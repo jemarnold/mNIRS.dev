@@ -11,14 +11,16 @@ signif_trailing(x, digits = 2, format = c("f", "fg"))
 
 \item{digits}{An integer scalar specifying the number of digits to preserve.}
 
-\item{format}{Indicates how to treat \code{digits}. Either the desired number of digits after
-the decimal point (\code{format = "f"}) or significant digits (\code{format = "fg"}).}
+\item{format}{Indicates how to treat \code{digits}. Either the desired number of
+digits after the decimal point (\code{format = "f"}) or significant digits
+(\code{format = "fg"}).}
 }
 \value{
 A character vector.
 }
 \description{
-Converts a numeric vector to a character vector to preserve trailing zeroes for display.
+Converts a numeric vector to a character vector to preserve trailing zeroes
+for display.
 }
 \examples{
 signif_trailing(c(1, 1.3, 1.35), digits = 2, format = "f")

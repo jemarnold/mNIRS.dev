@@ -24,9 +24,7 @@ create_mnirs_data <- function(.data, metadata) {
         nirs_columns = metadata$nirs_columns,
         sample_column = metadata$sample_column,
         event_column = metadata$event_column,
-        event_index = metadata$event_index,
-        event_sample = metadata$event_sample,
-        event_label = metadata$event_label,
+        event_indices = metadata$event_indices,
         sample_rate = metadata$sample_rate, ## samples per second
         baseline_fit_window = metadata$baseline_fit_window, ## 0-30 sec
         kinetics_fit_window = metadata$kinetics_fit_window, ## 10-300 sec
@@ -52,20 +50,23 @@ create_mnirs_data <- function(.data, metadata) {
 
 #' Read data from mNIRS device
 #'
-#' This function reads and imports mNIRS data from file, and returns a dataframe.
+#' This function reads and imports mNIRS data from file, and returns a
+#' dataframe.
 #'
-#' @param file_path The local file path including extension (either *".xlsx"*, *".xls"*, or
-#' *".csv"*) to import.
-#' @param nirs_columns A character vector indicating the mNIRS data columns to import from the
-#' target file. Must match exactly. Optionally, a named vector to rename the columns.
-#' @param sample_column (optional) A character scalar indicating the name of the time or sample
-#' data column. Must match exactly. Default is `<NULL>`. Optionally, a named scalar to rename
-#' the column.
-#' @param event_column (optional) A character scalar indicating the name of the event or lap
-#' data column. Must match exactly. Default is `<NULL>`. Optionally, a named scalar to rename
-#' the column.
-#' @param .keep_all A boolean, if `FALSE` (the default) will only include the target data
-#' columns. If `TRUE` will include all columns detected from the file.
+#' @param file_path The local file path including extension (either *".xlsx"*,
+#' *".xls"*, or *".csv"*) to import.
+#' @param nirs_columns A character vector indicating the mNIRS data columns
+#' to import from the target file. Must match exactly. Optionally, a named
+#' vector to rename the columns.
+#' @param sample_column (optional) A character scalar indicating the name of
+#' the time or sample data column. Must match exactly. Default is `<NULL>`.
+#' Optionally, a named scalar to rename the column.
+#' @param event_column (optional) A character scalar indicating the name of
+#' the event or lap data column. Must match exactly. Default is `<NULL>`.
+#' Optionally, a named scalar to rename the column.
+#' @param .keep_all A boolean, if `FALSE` (the default) will only include
+#' the target data columns. If `TRUE` will include all columns detected from
+#' the file.
 #' @param ... Additional arguments.
 #'
 #' @return A [tibble][tibble::tibble-package].
@@ -82,7 +83,8 @@ read_data <- function(
     ## validation: check file exists
     if (!file.exists(file_path)) {
         cli::cli_abort(paste(
-            "{.arg file_path} = {.file {file_path}} not found. Check that file exists."
+            "{.arg file_path} = {.file {file_path}} not found.",
+            "Check that file exists."
         ))
     }
 
@@ -120,22 +122,26 @@ read_data <- function(
             tibble::as_tibble()
     }
 
-    ## detect row where nirs_columns exists, assuming this is common header row for dataframe
-    header_row <- which(apply(raw_data_pre[1:100, ], 1, \(row) all(nirs_columns %in% row)))
+    ## detect row where nirs_columns exists, assuming this is common header
+    ## row for dataframe
+    header_row <- which(apply(
+        raw_data_pre[1:100, ], 1,
+        \(row) all(nirs_columns %in% row)))
 
-    ## validation: nirs_columns must be detected to extract the proper dataframe
+    ## validation: nirs_columns must be detected to extract the proper
+    ## dataframe
     if (rlang::is_empty(header_row)) {
         cli::cli_abort(paste(
-            "{.arg nirs_columns} = `{.val {nirs_columns}}` {?was/were} not detected",
-            "in the data."))
+            "{.arg nirs_columns} = `{.val {nirs_columns}}` {?was/were}",
+            "not detected in the data."))
     }
 
     ## return error if nirs_columns string is detected multiple times
     if (length(header_row) > 1) {
         cli::cli_abort(paste(
-            "{.arg nirs_columns} = `{.val {nirs_columns}}` {?was/were} detected at",
-            "multiple locations. Please ensure that the names in {.arg nirs_columns} are",
-            "uniquely identifiable."))
+            "{.arg nirs_columns} = `{.val {nirs_columns}}` {?was/were}",
+            "detected at multiple locations. Please ensure that the names",
+            "in {.arg nirs_columns} are uniquely identifiable."))
     }
 
     ## import from either excel or csv
@@ -178,17 +184,19 @@ read_data <- function(
 
 
     ## validation: check that sample_column and event_column
-    if (!is.null(sample_column) && !sample_column %in% names(raw_data_trimmed)) {
-        cli::cli_abort(paste(
-            "{.arg sample_column} = `{.val {sample_column}}` not detected.",
-            "Column names are case sensitive and should match exactly."))
-    }
+    if (!is.null(sample_column)) {
+        if (!sample_column %in% names(raw_data_trimmed)) {
+            cli::cli_abort(paste(
+                "{.arg sample_column} = `{.val {sample_column}}` not detected.",
+                "Column names are case sensitive and should match exactly."))
+        }}
 
-    if (!is.null(event_column) && !event_column %in% names(raw_data_trimmed)) {
-        cli::cli_abort(paste(
-            "{.arg event_column} = `{.val {event_column}}` not detected.",
-            "Column names are case sensitive and should match exactly."))
-    }
+    if (!is.null(event_column)) {
+        if (!event_column %in% names(raw_data_trimmed)) {
+            cli::cli_abort(paste(
+                "{.arg event_column} = `{.val {event_column}}` not detected.",
+                "Column names are case sensitive and should match exactly."))
+        }}
 
     raw_data_prepared <-
         raw_data_trimmed |>
@@ -220,8 +228,10 @@ read_data <- function(
         ) |>
         ( \(df) {
             ## drops rows after the first row where all(is.na())
-            ## c(..., 0) ensures the last row will be taken when no rows are all(is.na)
-            first_allna_row <- which(diff(c(rowSums(is.na(df)) != ncol(df), 0)) != 0)[1]
+            ## c(..., 0) ensures the last row will be taken when no rows
+            ## are all(is.na)
+            first_allna_row <- which(
+                diff(c(rowSums(is.na(df)) != ncol(df), 0)) != 0)[1]
             dplyr::slice_head(df, n = first_allna_row)
         })() |>
         dplyr::mutate(
@@ -231,7 +241,8 @@ read_data <- function(
             ## tested on Moxy, PerfPro, Oxysoft, VMPro x2
             ## TODO test on Train.Red, NNOXX, Graspor, Oxysoft csv, ...
             dplyr::across(
-                dplyr::any_of(names(sample_column)) & dplyr::where(is.character),
+                dplyr::any_of(names(sample_column)) &
+                    dplyr::where(is.character),
                 ~ as.POSIXct(., tryFormats = c(
                     "%Y-%m-%d %H:%M:%OS", "%Y/%m/%d %H:%M:%OS", "%H:%M:%OS"),
                     format = "%H:%M:%OS")),
@@ -245,7 +256,8 @@ read_data <- function(
 
     sample_vector <- as.numeric(raw_data_prepared[[names(sample_column)]])
 
-    ## validation: soft check whether sample_column has non-sequential or repeating values
+    ## validation: soft check whether sample_column has non-sequential or
+    ## repeating values
     if (any(c(diff(sample_vector) <= 0, FALSE) | duplicated(sample_vector))) {
         repeated_samples <-
             raw_data_prepared |>
@@ -256,9 +268,9 @@ read_data <- function(
             dplyr::pull(index)
 
         cli::cli_warn(paste(
-            "{.arg sample_column} = {.val {names(sample_column)}} has non-sequential",
-            "or repeating values. Consider investigating at sample(s)",
-            "{repeated_samples}."))
+            "{.arg sample_column} = {.val {names(sample_column)}} has",
+            "non-sequential or repeating values. Consider investigating at",
+            "sample(s) {repeated_samples}."))
     }
 
     ## validation: soft check gap in sample_column > 1 hr
@@ -271,8 +283,9 @@ read_data <- function(
             dplyr::pull(index)
 
         cli::cli_warn(paste(
-            "{.arg sample_column} = {.val {names(sample_column)}} has a gap greater than",
-            "60 minutes. Consider investigating at sample(s) {big_gap}."))
+            "{.arg sample_column} = {.val {names(sample_column)}} has a gap",
+            "greater than 60 minutes. Consider investigating at sample(s)",
+            "{big_gap}."))
     }
 
     metadata <- list(
@@ -282,9 +295,11 @@ read_data <- function(
         event_column = if (!is.null(event_column)) event_column else NA,
         missing_data = any(is.na(raw_data_prepared[names(nirs_columns)])),
         ## TODO detect sample rate intelligently
-        # sample_rate = ifelse( ## will be incorrect if `sample_column` is sample number
+        # sample_rate = ifelse( ## will be incorrect if `sample_column` is
+        ## sample number
         #     "sample" %in% names(raw_data_prepared),
-        #     1/mean(head(diff(sample_vector)), na.rm = TRUE), ## samples per second
+        #     1/mean(head(diff(sample_vector)), na.rm = TRUE), ## samples
+        ## per second
         #     NA)
         NULL)
 

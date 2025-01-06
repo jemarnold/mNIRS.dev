@@ -1,11 +1,13 @@
 #' Print a numeric value as character with trailing zeroes
 #'
-#' Converts a numeric vector to a character vector to preserve trailing zeroes for display.
+#' Converts a numeric vector to a character vector to preserve trailing zeroes
+#' for display.
 #'
 #' @param x A numeric vector.
 #' @param digits An integer scalar specifying the number of digits to preserve.
-#' @param format Indicates how to treat `digits`. Either the desired number of digits after
-#' the decimal point (`format = "f"`) or significant digits (`format = "fg"`).
+#' @param format Indicates how to treat `digits`. Either the desired number of
+#' digits after the decimal point (`format = "f"`) or significant digits
+#' (`format = "fg"`).
 #'
 #' @return A character vector.
 #'

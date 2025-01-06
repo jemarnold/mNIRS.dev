@@ -1,15 +1,18 @@
 #' Apply a Butterworth filter with better edge detection
 #'
-#' Custom Butterworth filtering function from [signal::butter()] and [signal::filtfilt()] which
-#' handles data 'edges' better at the start and end of data.
+#' Custom Butterworth filtering function from [signal::butter()] and
+#' [signal::filtfilt()] which handles data 'edges' better at the start and
+#' end of data.
 #'
 #' @param x A numeric vector.
-#' @param n An integer scalar specifying the filter order number. Passed through to
-#' [signal::butter()].
-#' @param W A numeric scalar between 0 and 1 specifying the relative cutoff frequency, where 1
-#' is the Nyquist frequency (half of the sample frequency in Hz).
+#' @param n An integer scalar specifying the filter order number. Passed
+#' through to [signal::butter()].
+#' @param W A numeric scalar between 0 and 1 specifying the relative cutoff
+#' frequency, where 1 is the Nyquist frequency (half of the sample frequency
+#' in Hz).
 #' @param edges Indicates how to pad `x`.
-#' - *"rev"* (the default) will pad `x` with the preceding 10% data in reverse sequence.
+#' - *"rev"* (the default) will pad `x` with the preceding 10% data in reverse
+#' sequence.
 #' - *"rep1"* will pad `x` with the last preceding value.
 #' - *"none"* will return the default [signal::filtfilt()] output.
 #'

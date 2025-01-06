@@ -14,22 +14,24 @@ read_data(
 )
 }
 \arguments{
-\item{file_path}{The local file path including extension (either \emph{".xlsx"}, \emph{".xls"}, or
-\emph{".csv"}) to import.}
+\item{file_path}{The local file path including extension (either \emph{".xlsx"},
+\emph{".xls"}, or \emph{".csv"}) to import.}
 
-\item{nirs_columns}{A character vector indicating the mNIRS data columns to import from the
-target file. Must match exactly. Optionally, a named vector to rename the columns.}
+\item{nirs_columns}{A character vector indicating the mNIRS data columns
+to import from the target file. Must match exactly. Optionally, a named
+vector to rename the columns.}
 
-\item{sample_column}{(optional) A character scalar indicating the name of the time or sample
-data column. Must match exactly. Default is \verb{<NULL>}. Optionally, a named scalar to rename
-the column.}
+\item{sample_column}{(optional) A character scalar indicating the name of
+the time or sample data column. Must match exactly. Default is \verb{<NULL>}.
+Optionally, a named scalar to rename the column.}
 
-\item{event_column}{(optional) A character scalar indicating the name of the event or lap
-data column. Must match exactly. Default is \verb{<NULL>}. Optionally, a named scalar to rename
-the column.}
+\item{event_column}{(optional) A character scalar indicating the name of
+the event or lap data column. Must match exactly. Default is \verb{<NULL>}.
+Optionally, a named scalar to rename the column.}
 
-\item{.keep_all}{A boolean, if \code{FALSE} (the default) will only include the target data
-columns. If \code{TRUE} will include all columns detected from the file.}
+\item{.keep_all}{A boolean, if \code{FALSE} (the default) will only include
+the target data columns. If \code{TRUE} will include all columns detected from
+the file.}
 
 \item{...}{Additional arguments.}
 }
@@ -37,5 +39,6 @@ columns. If \code{TRUE} will include all columns detected from the file.}
 A \link[tibble:tibble-package]{tibble}.
 }
 \description{
-This function reads and imports mNIRS data from file, and returns a dataframe.
+This function reads and imports mNIRS data from file, and returns a
+dataframe.
 }

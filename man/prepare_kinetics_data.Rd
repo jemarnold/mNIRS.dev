@@ -6,44 +6,40 @@
 \usage{
 prepare_kinetics_data(
   .data,
-  event_label = NULL,
-  event_index = NULL,
-  event_sample = NULL,
-  baseline_fit_window = 25,
-  kinetics_fit_window = 60,
-  baseline_display_window = 30,
-  kinetics_display_window = 70,
-  end_kinetics_window = NULL,
   multiple_kinetics_events = c("distinct", "ensemble"),
+  baseline_fit_window = 30,
+  kinetics_fit_window = 240,
+  baseline_display_window = 30,
+  kinetics_display_window = 240,
+  end_kinetics_window = NULL,
   ...
 )
 }
 \arguments{
 \item{.data}{The data retrived \code{\link[=process_data]{process_data()}}.}
 
-\item{event_label}{A character vector specified in \code{event_column} indicating the start
-of kinetics events to pass along for further analysis.}
+\item{multiple_kinetics_events}{Indicates whether each \emph{"distinct"} kinetics
+events should be analysed separately (the default). Or whether multiple
+kinetics events should be \emph{"ensemble"} averaged and analysed together
+(similar to pulmonary VO2 kinetics).}
 
-\item{event_index}{A numeric vector indicating the start indices of kinetics events
-to pass along for further analysis.}
+\item{baseline_fit_window}{A numeric scalar specifying the number of
+samples preceding to the kinetics events to include as baseline.}
 
-\item{event_sample}{A vector in the class of \code{sample_column} indicating the start
-of kinetic events to pass along. Any of \code{event_label}, \code{event_index}, or \code{event_sample}
-will be passed along for further analysis.}
+\item{kinetics_fit_window}{A numeric scalar specifying the number of
+samples following to the kinetics events to include for kinetics modelling.}
 
-\item{baseline_fit_window}{TODO.}
+\item{baseline_display_window}{A numeric scalar specifying the number of
+samples preceding to the kinetics events to include for display (will not
+necessarily be modelled).}
 
-\item{kinetics_fit_window}{TODO.}
+\item{kinetics_display_window}{A numeric scalar specifying the number of
+samples following to the kinetics events to include for display (will not
+necessarily be modelled).}
 
-\item{baseline_display_window}{TODO.}
-
-\item{kinetics_display_window}{TODO.}
-
-\item{end_kinetics_window}{TODO.}
-
-\item{multiple_kinetics_events}{Indicates whether each \emph{"distinct"} kinetics events should be
-analysed separately (the default). Or whether multiple kinetics events should be \emph{"ensemble"}
-averaged and analysed together (similar to pulmonary VO2 kinetics).}
+\item{end_kinetics_window}{A numeric scalar specifying the number of
+samples in which to look for a peak or nadir value indicating the kinetics
+plateau.}
 
 \item{...}{Additional arguments.}
 }
@@ -51,10 +47,10 @@ averaged and analysed together (similar to pulmonary VO2 kinetics).}
 A \link[tibble:tibble-package]{tibble}.
 }
 \description{
-This function retrieves processed data from \code{\link[=process_data]{process_data()}} and allows for manual specification
-of kinetics events by index, sample, or event label. Parameters are defined to extract data
-to display and fit the kinetics events. Each kinetics event can be analysed separately, or
-ensemble-averaged and analysed together.
+This function retrieves processed data from \code{\link[=process_data]{process_data()}} with manually
+identified kinetics events. Kinetics parameters are defined to extract
+data excerpts to fit those kinetics events. Each kinetics event can be
+analysed separately, or ensemble-averaged and analysed together.
 }
 \details{
 TODO

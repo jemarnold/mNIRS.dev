@@ -7,6 +7,9 @@
 process_data(
   .data,
   sample_rate,
+  event_index = NULL,
+  event_sample = NULL,
+  event_label = NULL,
   remove_fixed_values = NULL,
   handle_missing_values = c("linear interpolate", "none"),
   filter_method = c("none", "smooth-spline", "low-pass", "moving-average"),
@@ -19,61 +22,80 @@ process_data(
 \arguments{
 \item{.data}{The data retrieved from \code{\link[=read_data]{read_data()}}.}
 
-\item{sample_rate}{An integer scalar indicating the sample rate at which the raw data was
-recorded (in Hz; samples per second).}
+\item{sample_rate}{An integer scalar indicating the sample rate at which the
+raw data was recorded (in Hz; samples per second).}
 
-\item{remove_fixed_values}{(optional) Either \verb{<NULL>} (the default) or a numeric vector of
-values to remove from the data. e.g. \code{remove_fixed_values = c(0, 100)}.}
+\item{event_index}{(optional) A numeric vector indicating the start indices of
+kinetics events.
+\itemize{
+\item Any of \code{event_label}, \code{event_index}, or \code{event_sample}
+will be passed along for further analysis.
+}}
+
+\item{event_sample}{(optional) A vector in the same class as \code{sample_column}
+indicating the start of kinetic events.}
+
+\item{event_label}{(optional) A character vector specified in \code{event_column} indicating
+the start of kinetics events.}
+
+\item{remove_fixed_values}{(optional) Either \verb{<NULL>} (the default) or a
+numeric vector of values to remove from the data.
+e.g. \code{remove_fixed_values = c(0, 100)}.}
 
 \item{handle_missing_values}{Indicates how to handle missing data.
 \itemize{
-\item \emph{"linear interpolate"} (the default) will interpolate between existing values.
-\item \emph{"none"} will pass through missing data. This may introduce errors further
-along in processing.
+\item \emph{"linear interpolate"} (the default) will interpolate between existing
+values.
+\item \emph{"none"} will pass through missing data. This may introduce errors
+further along in processing.
 }}
 
 \item{filter_method}{Indicates the digital filter method used to smooth data.
 \itemize{
-\item \emph{"none"} (the default) will pass through raw data without any digital filtering.
+\item \emph{"none"} (the default) will pass through raw data without any digital
+filtering.
 \item \emph{"smooth-spline"} fits a cubic smoothing spline to the supplied data with
 and automatically determined smoothing parameter.
 \item \emph{"low-pass"} uses a symmetrical (centred) butterworth low-pass filter.
 \item \emph{"moving-average"} uses a symmetrical (centred) moving average filter.
 }}
 
-\item{filter_parameters}{(optional) Either \verb{<NULL<} or a named numeric vector of parameters
-to pass through to the digital filter defined in \code{filter_method}.
+\item{filter_parameters}{(optional) Either \verb{<NULL<} or a named numeric
+vector of parameters to pass through to the digital filter defined in
+\code{filter_method}.
 \itemize{
-\item For \code{filter_method = "low-pass"} this should be \code{c(n, fc)} or \code{c(n, W)} where \code{n}
-is an integer specifying the filter order number; \code{fc} is a numeric value specifying
-the cutoff frequency in Hz; \code{W} is a numeric scalar between 0 and 1 specifying the
-relative cutoff frequency, where 1 is the Nyquist frequency (half of the sample frequency
-in Hz).
-\item For \code{filter_method = "moving-average"} this should be \code{c(k)} where \code{k} is an odd integer
-specifying the window width (number of samples) centred around the index sample
-(\code{x +- k/2-1}).
-\item For \code{filter_method = "smooth-spline"} the default spar value is often good enough. Higher
-values within the range 0 to 1 will return more smoothing. Lower values will return less
-smoothing.
+\item For \code{filter_method = "low-pass"} this should be \code{c(n, fc)} or \code{c(n, W)}
+where \code{n} is an integer specifying the filter order number; \code{fc} is a
+numeric value specifying the cutoff frequency in Hz; \code{W} is a numeric
+scalar between 0 and 1 specifying the relative cutoff frequency, where 1
+is the Nyquist frequency (half of the sample frequency in Hz).
+\item For \code{filter_method = "moving-average"} this should be \code{c(k)} where \code{k}
+is an odd integer specifying the window width (number of samples) centred
+around the index sample (\code{x +- k/2-1}).
+\item For \code{filter_method = "smooth-spline"} the default spar value is often good
+enough. Higher values within the range 0 to 1 will return more smoothing.
+Lower values will return less smoothing.
 \item Reasonable default values are set to \code{c(n = 1, fc = 0.05, k = 5)}.
 }}
 
-\item{shift_range_positive}{A boolean indicating whether the range of mNIRS data should be
-shifted to return only positive data. For example, to be used when mNIRS values are arbitrarily
-scaled from the starting value (e.g., Artinis Oxysoft). This does not change the scale of the
-data.}
+\item{shift_range_positive}{A boolean indicating whether the range of mNIRS
+data should be shifted to return only positive data. For example, to be
+used when mNIRS values are arbitrarily scaled from the starting value
+(e.g., Artinis Oxysoft). This does not change the scale of the data.}
 
-\item{normalise_range}{Indicates whether and how the range of observed mNIRS data should be
-re-scaled to between 0 and 100. For example, to be used when calibrating the data to an
-ischaemic occlusion (physiological range), or to the existing observed data (functional range).
+\item{normalise_range}{Indicates whether and how the range of observed mNIRS
+data should be re-scaled to between 0 and 100. For example, to be used when
+calibrating the data to an ischaemic occlusion (physiological range), or to
+the existing observed data (functional range).
 \itemize{
 \item \emph{"none"} (the default) will not normalise any data.
-\item \emph{"column-wise"} will re-scale each NIRS column to 0-100 within it's own range.
+\item \emph{"column-wise"} will re-scale each NIRS column to 0-100 within it's own
+range.
 \item \emph{"all"} will re-scale all NIRS columns to a common 0-100 range, from the
 minimum to the maximum values across all columns.
-\item Alternatively, a list of character vectors of NIRS column names can be specified to
-re-scale across selected columns in groups, e.g. for left and right limbs separately, such
-as \code{c("smo2_left", "smo2_right")}.
+\item Alternatively, a list of character vectors of NIRS column names can be
+specified to re-scale across selected columns in groups, e.g. for left and
+right limbs separately, such as \code{c("smo2_left", "smo2_right")}.
 }}
 
 \item{...}{Additional arguments.}
@@ -82,17 +104,24 @@ as \code{c("smo2_left", "smo2_right")}.
 A \link[tibble:tibble-package]{tibble}.
 }
 \description{
-This function retrieves raw data from \code{\link[=read_data]{read_data()}} and applies processing methods:
-\enumerate{
-\item Removes outliers (not implemented) and custom fixed values such as c(0, 100).
-\item Handles missing data by either linear interpolation or omission.
-\item Applies digital filtering with either a Butterworth low-pass filter, simple moving average,
-or a smoothing spline with default or custom parameters.
-\item Rescales the data by either shifting values to be positive, and/or normalising to
-the observed range of data, either column-wise (each column scaled individually) or
-dataframe-wise (all columns on the same scale).
-}
+This function retrieves raw data from \code{\link[=read_data]{read_data()}} and applies processing
+methods.
 }
 \details{
-TODO
+Processing methods:
+\enumerate{
+\item Removes outliers (\emph{NOT IMPLEMENTED}) and custom fixed values such as
+c(0, 100).
+\item Handles missing data by linear interpolation.
+\item Applies digital filtering with either a Butterworth low-pass filter with
+\code{\link[signal:butter]{signal::butter()}} and \code{\link[=filtfilt_edges]{filtfilt_edges()}}, a simple moving average with
+\link[zoo:rollapply]{zoo::rollapply}, or a smoothing spline with \code{\link[stats:smooth.spline]{stats::smooth.spline()}}.
+Default or custom parameters can be used.
+\item Transform the data by either shifting values to be positive, and/or
+re-scale (normalise) data to the observed range, either column-wise (where
+each column is scaled individually), dataframe-wise (all columns are
+res-scaled to the same scale), or with manually defined groups.
+\item Kinetics events can be manually specified by index, sample, or
+event label.
+}
 }
