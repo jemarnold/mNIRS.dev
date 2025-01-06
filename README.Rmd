@@ -55,7 +55,7 @@ This package have been tested successfully with mNIRS data exported from the fol
 and apps:
 
 * [Moxy](https://www.moxymonitor.com/) onboard recording (.csv)
-*  app export (.filetype)
+* [Train.Red](https://train.red/) app export (.filetype)
 * [Artinis Oxysoft](https://www.artinis.com/oxysoft) (.csv and .xlsx)
 * [VO2 Master Manager](https://vo2master.com/features/) (.xlsx)
 * [PerfPro](https://perfprostudio.com/) (.xlsx)
