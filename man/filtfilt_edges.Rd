@@ -10,21 +10,24 @@ filtfilt_edges(x, n = 1, W = 0.1, edges = c("rev", "rep1", "none"))
 \item{x}{A numeric vector.}
 
 \item{n}{An integer scalar specifying the filter order number. Passed through to
-\code{signal::butter()}.}
+\code{\link[signal:butter]{signal::butter()}}.}
 
 \item{W}{A numeric scalar between 0 and 1 specifying the relative cutoff frequency, where 1
 is the Nyquist frequency (half of the sample frequency in Hz).}
 
-\item{edges}{Indicates how to pad \code{x}. \emph{"rev"} (the default) will pad \code{x} with the preceding
-10\% data in reverse sequence. \emph{"rep1"} will pad \code{x} with the last preceding value. Otherwise
-\emph{"none"} will return the default \code{signal::filtfilt()} output.}
+\item{edges}{Indicates how to pad \code{x}.
+\itemize{
+\item \emph{"rev"} (the default) will pad \code{x} with the preceding 10\% data in reverse sequence.
+\item \emph{"rep1"} will pad \code{x} with the last preceding value.
+\item \emph{"none"} will return the default \code{\link[signal:filtfilt]{signal::filtfilt()}} output.
+}}
 }
 \value{
-a numeric vector of filtered data.
+A numeric vector of filtered data.
 }
 \description{
-Custom Butterworth filtering function from \code{\link{signal::butter()}} which handles data 'edges' better, e.g. the start
-and end of data.
+Custom Butterworth filtering function from \code{\link[signal:butter]{signal::butter()}} and \code{\link[signal:filtfilt]{signal::filtfilt()}} which
+handles data 'edges' better at the start and end of data.
 }
 \examples{
 set.seed(13)

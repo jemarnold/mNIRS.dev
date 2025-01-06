@@ -68,7 +68,7 @@ create_mnirs_data <- function(.data, metadata) {
 #' columns. If `TRUE` will include all columns detected from the file.
 #' @param ... Additional arguments.
 #'
-#' @return a [tibble][tibble::tibble-package]
+#' @return A [tibble][tibble::tibble-package].
 #'
 #' @export
 read_data <- function(
@@ -149,7 +149,7 @@ read_data <- function(
 
     } else if (stringr::str_ends(file_path, ".csv")) {
 
-        raw_data_trimmed <- read.csv(
+        raw_data_trimmed <- utils::read.csv(
             file = file_path, skip = header_row - 1,
             check.names = FALSE, na.strings = c("", "NA")) |>
             tibble::as_tibble()

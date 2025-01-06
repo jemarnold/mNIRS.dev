@@ -1,11 +1,11 @@
 #' Prepare Dataframe for mNIRS Kinetics Analysis
 #'
-#' This function retrieves processed data from `process_data()` and allows for manual specification
+#' This function retrieves processed data from [process_data()] and allows for manual specification
 #' of kinetics events by index, sample, or event label. Parameters are defined to extract data
 #' to display and fit the kinetics events. Each kinetics event can be analysed separately, or
 #' ensemble-averaged and analysed together.
 #'
-#' @param .data The data retrived `process_data()`.
+#' @param .data The data retrived [process_data()].
 #' @param event_label A character vector specified in `event_column` indicating the start
 #' of kinetics events to pass along for further analysis.
 #' @param event_index A numeric vector indicating the start indices of kinetics events
@@ -21,11 +21,12 @@
 #' @param multiple_kinetics_events Indicates whether each *"distinct"* kinetics events should be
 #' analysed separately (the default). Or whether multiple kinetics events should be *"ensemble"*
 #' averaged and analysed together (similar to pulmonary VO2 kinetics).
+#' @param ... Additional arguments.
 #'
 #' @details
 #' TODO
 #'
-#' @return a [tibble][tibble::tibble-package]
+#' @return A [tibble][tibble::tibble-package].
 #'
 #' @export
 prepare_kinetics_data <- function(

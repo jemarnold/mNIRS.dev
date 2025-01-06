@@ -34,7 +34,7 @@ columns. If \code{TRUE} will include all columns detected from the file.}
 \item{...}{Additional arguments.}
 }
 \value{
-a \link[tibble:tibble-package]{tibble}
+A \link[tibble:tibble-package]{tibble}.
 }
 \description{
 This function reads and imports mNIRS data from file, and returns a dataframe.

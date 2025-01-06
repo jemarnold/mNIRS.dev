@@ -51,9 +51,10 @@ relative cutoff frequency, where 1 is the Nyquist frequency (half of the sample 
 in Hz).
 \item For \code{filter_method = "moving-average"} this should be \code{c(k)} where \code{k} is an odd integer
 specifying the window width (number of samples) centred around the index sample
-(\verb{x ± k/2-1}).
-\item For \code{filter_method = "smooth-spline"} the default spar value is often good enough. Higher values
-within the range 0 to 1 will return more smoothing. Lower values will return less smoothing.
+(\code{x +- k/2-1}).
+\item For \code{filter_method = "smooth-spline"} the default spar value is often good enough. Higher
+values within the range 0 to 1 will return more smoothing. Lower values will return less
+smoothing.
 \item Reasonable default values are set to \code{c(n = 1, fc = 0.05, k = 5)}.
 }}
 
@@ -78,7 +79,7 @@ as \code{c("smo2_left", "smo2_right")}.
 \item{...}{Additional arguments.}
 }
 \value{
-a \link[tibble:tibble-package]{tibble}
+A \link[tibble:tibble-package]{tibble}.
 }
 \description{
 This function retrieves raw data from \code{\link[=read_data]{read_data()}} and applies processing methods:

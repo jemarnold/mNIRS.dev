@@ -19,7 +19,7 @@ prepare_kinetics_data(
 )
 }
 \arguments{
-\item{.data}{The data retrived \code{process_data()}.}
+\item{.data}{The data retrived \code{\link[=process_data]{process_data()}}.}
 
 \item{event_label}{A character vector specified in \code{event_column} indicating the start
 of kinetics events to pass along for further analysis.}
@@ -44,12 +44,14 @@ will be passed along for further analysis.}
 \item{multiple_kinetics_events}{Indicates whether each \emph{"distinct"} kinetics events should be
 analysed separately (the default). Or whether multiple kinetics events should be \emph{"ensemble"}
 averaged and analysed together (similar to pulmonary VO2 kinetics).}
+
+\item{...}{Additional arguments.}
 }
 \value{
-a \link[tibble:tibble-package]{tibble}
+A \link[tibble:tibble-package]{tibble}.
 }
 \description{
-This function retrieves processed data from \code{process_data()} and allows for manual specification
+This function retrieves processed data from \code{\link[=process_data]{process_data()}} and allows for manual specification
 of kinetics events by index, sample, or event label. Parameters are defined to extract data
 to display and fit the kinetics events. Each kinetics event can be analysed separately, or
 ensemble-averaged and analysed together.

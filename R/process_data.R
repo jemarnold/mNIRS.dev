@@ -34,9 +34,10 @@
 #' in Hz).
 #' - For `filter_method = "moving-average"` this should be `c(k)` where `k` is an odd integer
 #' specifying the window width (number of samples) centred around the index sample
-#' (`x ± k/2-1`).
-#' - For `filter_method = "smooth-spline"` the default spar value is often good enough. Higher values
-#' within the range 0 to 1 will return more smoothing. Lower values will return less smoothing.
+#' (`x +- k/2-1`).
+#' - For `filter_method = "smooth-spline"` the default spar value is often good enough. Higher
+#' values within the range 0 to 1 will return more smoothing. Lower values will return less
+#' smoothing.
 #' - Reasonable default values are set to `c(n = 1, fc = 0.05, k = 5)`.
 #' @param shift_range_positive A boolean indicating whether the range of mNIRS data should be
 #' shifted to return only positive data. For example, to be used when mNIRS values are arbitrarily
@@ -57,7 +58,7 @@
 #' @details
 #' TODO
 #'
-#' @return a [tibble][tibble::tibble-package]
+#' @return A [tibble][tibble::tibble-package].
 #'
 #' @export
 process_data <- function(
@@ -109,7 +110,7 @@ process_data <- function(
             cli::cli_abort(paste(
                 "{.arg filter_parameters} should be a named {.cls numeric} vector",
                 "which includes {.arg k}. Where {.arg k} specifies the moving-average",
-                "window width in samples, centred around the index sample (x ± k/2-1)."))
+                "window width in samples, centred around the index sample (x +- k/2-1)."))
         } else if (filter_method == "low-pass" &
                    !any(grepl("n", names(filter_parameters), ignore.case = TRUE) |
                         grepl("fc|W", names(filter_parameters), ignore.case = TRUE))) {
@@ -227,12 +228,12 @@ process_data <- function(
         spar <- purrr::map(
             names(nirs_columns),
             \(nirs) {
-                smooth.spline(
+                stats::smooth.spline(
                     x = data_nomissing$index,
                     y = data_nomissing[[nirs]]
                 )$spar |>
                     signif_trailing(x = _, 2) |>
-                    setNames(nirs)
+                    stats::setNames(nirs)
             }) |>
             unlist()
 
@@ -272,7 +273,7 @@ process_data <- function(
             dplyr::mutate(
                 dplyr::across(
                     dplyr::any_of(names(nirs_columns)),
-                    ~ smooth.spline(x = index, y = .)$y),
+                    ~ stats::smooth.spline(x = index, y = .)$y),
             )
 
     } else if (filter_method == "none") {
