@@ -1,0 +1,61 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# mNIRS
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+`mNIRS` is a package to allow for importing, processing, and analysing data from muscle 
+near-infrared spectroscopy (mNIRS) devices.
+
+## Installation
+
+You can install the development version of `mNIRS` from [GitHub](https://github.com/jemarnold/mNIRS) 
+with:
+
+``` r
+# install.packages("remotes")
+devtools::install_github("jemarnold/mNIRS")
+```
+
+## Citation
+
+...
+
+## Usage
+
+...
+
+## mNIRS Device Compatibility
+
+This package is designed to recognise mNIRS data exported as *.xlsx*, *.xls*, or *.csv* files.
+It should be flexible for use with many different mNIRS devices, and compatibility will improve
+with continued development.
+
+This package have been tested successfully with the following mNIRS devices:
+
+* [Moxy](https://www.moxymonitor.com/) 5 and 3
+* [Train.Red](https://train.red/) FYER and Plus
+* [Artinis](https://www.artinis.com/nirs-devices) Portamon and Oxymon
+
+This package have been tested successfully with mNIRS data exported from the following devices
+and apps:
+
+* [Moxy](https://www.moxymonitor.com/) onboard recording (.csv)
+*  app export (.filetype)
+* [Artinis Oxysoft](https://www.artinis.com/oxysoft) (.csv and .xlsx)
+* [VO2 Master Manager](https://vo2master.com/features/) (.xlsx)
+* [PerfPro](https://perfprostudio.com/) (.xlsx)
