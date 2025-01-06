@@ -1,0 +1,32 @@
+Package: mNIRS
+Type: Package
+Title: Methods for Muscle Near-Infrared Spectroscopy Analysis
+Version: 0.1.0
+Authors@R: c(
+    person("Jem", 
+           "Arnold",
+           role = c("aut", "cre"),
+           email = "jem.arnold@gmail.com",
+           comment = c(ORCID = "0000-0003-3908-9447")
+    ))
+Description: Methods for importing, processing, and analysis data from muscle near-infrared
+    spectroscopy (mNIRS) devices.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+Imports:
+    cli,
+    dplyr,
+    purrr,
+    readxl,
+    rlang,
+    signal,
+    stats,
+    stringr,
+    tibble,
+    tidyr,
+    tools,
+    utils,
+    zoo
+RoxygenNote: 7.3.2
