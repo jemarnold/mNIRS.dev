@@ -6,18 +6,19 @@
 #' @param .data The data retrieved from [read_data()].
 #' @param sample_rate An integer scalar indicating the sample rate at which the
 #' raw data was recorded (in Hz; samples per second).
-## #' @param remove_outliers A boolean NOT IMPLEMENTED.
-#' @param event_index (optional) A numeric vector indicating the start indices of
-#' kinetics events.
+#' @param event_index (optional) A numeric vector indicating the start indices
+#' of kinetics events.
 #' - Any of `event_label`, `event_index`, or `event_sample`
 #' will be passed along for further analysis.
 #' @param event_sample (optional) A vector in the same class as `sample_column`
 #' indicating the start of kinetic events.
-#' @param event_label (optional) A character vector specified in `event_column` indicating
-#' the start of kinetics events.
+#' @param event_label (optional) A character vector specified in `event_column`
+#' indicating the start of kinetics events.
 #' @param remove_fixed_values (optional) Either `<NULL>` (the default) or a
 #' numeric vector of values to remove from the data.
 #' e.g. `remove_fixed_values = c(0, 100)`.
+#' @param remove_outliers A boolean indicating whether local outliers should
+#' be removed using a Hampel filter.
 #' @param handle_missing_values Indicates how to handle missing data.
 #' - *"linear interpolate"* (the default) will interpolate between existing
 #' values.
@@ -65,7 +66,7 @@
 #'
 #' @details
 #' Processing methods:
-#' 1) Removes outliers (*NOT IMPLEMENTED*) and custom fixed values such as
+#' 1) Removes outliers with [pracma::hampel()] and custom fixed values such as
 #' c(0, 100).
 #' 2) Handles missing data by linear interpolation.
 #' 3) Applies digital filtering with either a Butterworth low-pass filter with
@@ -88,8 +89,8 @@ process_data <- function(
         event_index = NULL, ## 59
         event_sample = NULL, ## c(3, 4)
         event_label = NULL, ## "end stage"
-        # remove_outliers = FALSE, ## not implemented
         remove_fixed_values = NULL, #c(0, 100),
+        remove_outliers = FALSE,
         handle_missing_values = c("linear interpolate", "none"),
         filter_method = c("none", "smooth-spline", "low-pass", "moving-average"),
         filter_parameters = NULL, #c(n = 2, fc = 0.03), #c(k = 5)
@@ -163,20 +164,19 @@ process_data <- function(
     }
 
 
-    ## validation: `remove_outliers` must be boolean
-    ## TODO NOT IMPLEMENTED
-    # if (!isTRUE(remove_outliers) & !isFALSE(remove_outliers)) {
-    #     cli::cli_abort(paste(
-    #         "{.arg remove_outliers} must be either {.val {TRUE}}",
-    #         "or {.val {FALSE}}, not {.val {remove_outliers}}."))
-    # }
-
     ## validation: `remove_fixed_values` must be numeric data
     if (!(is.null(remove_fixed_values) |
           rlang::is_double(remove_fixed_values))) {
         cli::cli_abort(paste(
             "{.arg remove_fixed_values} must be a {.cls numeric} vector",
             "or {.cls NULL}, not {.cls {class(remove_fixed_values)}}."))
+    }
+
+    ## validation: `remove_outliers` must be boolean
+    if (!isTRUE(remove_outliers) & !isFALSE(remove_outliers)) {
+        cli::cli_abort(paste(
+            "{.arg remove_outliers} must be either {.val {TRUE}}",
+            "or {.val {FALSE}}, not {.val {remove_outliers}}."))
     }
 
     ## validation: `filter_parameters` must include `n` and `fc` or `W`, or `k`
@@ -244,10 +244,11 @@ process_data <- function(
     }
 
 
-    ## remove outliers and fixed values ================================
+    ## remove fixed values ================================
+
     if (!is.null(remove_fixed_values)) {
 
-        data_nooutliers <- .data |>
+        data_nofixed <- .data |>
             dplyr::mutate(
                 dplyr::across(
                     dplyr::any_of(names(nirs_columns)),
@@ -260,10 +261,21 @@ process_data <- function(
         ))
 
     } else if (is.null(remove_fixed_values)) {
-        data_nooutliers <- .data
+        data_nofixed <- .data
     }
 
 
+    ## remove outliers ================================
+    if (remove_outliers) {
+        data_nooutliers <- no_fixed |>
+            dplyr::mutate(
+                dplyr::across(
+                    dplyr::any_of(names(nirs_columns)),
+                    ~ pracma::hampel(., k = 20 * sample_rate)$y
+                ))
+    } else {
+        data_nooutliers <- no_fixed
+    }
 
 
     ## handle missing values ================================
@@ -456,9 +468,23 @@ process_data <- function(
         ) |>
         dplyr::pull(index)
 
+    ## TODO what happens when a file is run through process_data()
+    ## multiple times?
+    # metadata <- modifyList(
+    #     list(
+    #         sample_rate = sample_rate,
+    #         event_indices = event_indices,
+    #         missing_index = data_normalised$index[
+    #             which(is.na(data_normalised[names(nirs_columns)]))],
+    #         filtered = filter_method,
+    #         shifted_positive = shift_range_positive,
+    #         normalised = normalise_range
+    #     ),
+    #     metadata,
+    # )
     metadata$sample_rate <- sample_rate
     metadata$event_indices <- event_indices
-    # metadata$outliers_index <- NA, ## TODO NOT IMPLEMENTED
+    metadata$outliers_removed <- remove_outliers
     metadata$missing_index <- data_normalised$index[
         which(is.na(data_normalised[names(nirs_columns)]))]
     metadata$filtered <- filter_method
@@ -482,13 +508,15 @@ process_data <- function(
 #     file_path = r"(C:\OneDrive - UBC\Body Position Study\Raw Data\SRLB02-Oxysoft-2024-12-20.xlsx)",
 #     nirs_columns = c("ICG_VL" = "9", "ICG_SCM" = "10"),
 #     sample_column = c("Sample" = "1"),
-#     event_column = c("Event" = "11"),
+#     # event_column = c("Event" = "11"),
 # )
 # processed_data <- process_data(
 #     .data = raw_data,
+#     sample_rate = 50,
 #     normalise_range = "column-wise",
 #     filter_method = "smooth-spline"
 # )
+# attributes(processed_data)
 # ## Moxy
 # # (raw_data <-
 # #         read_data(

@@ -2,15 +2,15 @@
 % Please edit documentation in R/prepare_kinetics_data.R
 \name{prepare_kinetics_data}
 \alias{prepare_kinetics_data}
-\title{Prepare Dataframe for mNIRS Kinetics Analysis}
+\title{Prepare Dataframes for mNIRS Kinetics Analysis}
 \usage{
 prepare_kinetics_data(
   .data,
   multiple_kinetics_events = c("distinct", "ensemble"),
   baseline_fit_window = 30,
-  kinetics_fit_window = 240,
+  kinetics_fit_window = 180,
   baseline_display_window = 30,
-  kinetics_display_window = 240,
+  kinetics_display_window = 180,
   end_kinetics_window = NULL,
   ...
 )
@@ -18,10 +18,18 @@ prepare_kinetics_data(
 \arguments{
 \item{.data}{The data retrived \code{\link[=process_data]{process_data()}}.}
 
-\item{multiple_kinetics_events}{Indicates whether each \emph{"distinct"} kinetics
-events should be analysed separately (the default). Or whether multiple
-kinetics events should be \emph{"ensemble"} averaged and analysed together
-(similar to pulmonary VO2 kinetics).}
+\item{multiple_kinetics_events}{Indicates whether kinetics events should
+be analysed separately or together.
+\itemize{
+\item \emph{"distinct"} (the default) will prepare a list of unique dataframes for
+each kinetics event.
+\item \emph{"ensemble"} will prepare one dataframe with the ensemble-averaged mNIRS
+data from all kinetics events (similar to pulmonary VO2 kinetics).
+\item Alternatively, a list of numeric vectors can be specified to
+ensemble-average groups of kinetics events together. Such as
+\code{multiple_kinetics_events = list(c(1, 2), c(3, 4))} for two sets of
+repeated bouts.
+}}
 
 \item{baseline_fit_window}{A numeric scalar specifying the number of
 samples preceding to the kinetics events to include as baseline.}

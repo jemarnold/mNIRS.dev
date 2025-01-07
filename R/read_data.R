@@ -15,7 +15,7 @@ create_mnirs_data <- function(.data, metadata) {
     nirs_data <- tibble::new_tibble(
         x = .data,
         nrow = nrow(.data),
-        class = "mNIRS",
+        class = "mNIRS_data",
         read_data = metadata$read_data,
         processed_data = metadata$processed_data,
         data_status = metadata$data_status,
@@ -31,7 +31,7 @@ create_mnirs_data <- function(.data, metadata) {
         baseline_display_window = metadata$baseline_display_window, ## 0-30 sec
         kinetics_display_window = metadata$kinetics_display_window, ## 10-300 sec
         end_kinetics_window = metadata$end_kinetics_window, ## c(10, 15, 30) sec or 1/10 kinetics_window
-        outliers_index = metadata$outliers_index, ## indices of outliers detected
+        outliers_removed = metadata$outliers_removed, ## boolean
         missing_index = metadata$missing_index, ## indices of missing data (NA)
         filtered = metadata$filtered, ## filter_method
         shifted_positive = metadata$shifted_positive, ## boolean

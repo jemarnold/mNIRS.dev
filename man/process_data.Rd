@@ -11,6 +11,7 @@ process_data(
   event_sample = NULL,
   event_label = NULL,
   remove_fixed_values = NULL,
+  remove_outliers = FALSE,
   handle_missing_values = c("linear interpolate", "none"),
   filter_method = c("none", "smooth-spline", "low-pass", "moving-average"),
   filter_parameters = NULL,
@@ -25,8 +26,8 @@ process_data(
 \item{sample_rate}{An integer scalar indicating the sample rate at which the
 raw data was recorded (in Hz; samples per second).}
 
-\item{event_index}{(optional) A numeric vector indicating the start indices of
-kinetics events.
+\item{event_index}{(optional) A numeric vector indicating the start indices
+of kinetics events.
 \itemize{
 \item Any of \code{event_label}, \code{event_index}, or \code{event_sample}
 will be passed along for further analysis.
@@ -35,12 +36,15 @@ will be passed along for further analysis.
 \item{event_sample}{(optional) A vector in the same class as \code{sample_column}
 indicating the start of kinetic events.}
 
-\item{event_label}{(optional) A character vector specified in \code{event_column} indicating
-the start of kinetics events.}
+\item{event_label}{(optional) A character vector specified in \code{event_column}
+indicating the start of kinetics events.}
 
 \item{remove_fixed_values}{(optional) Either \verb{<NULL>} (the default) or a
 numeric vector of values to remove from the data.
 e.g. \code{remove_fixed_values = c(0, 100)}.}
+
+\item{remove_outliers}{A boolean indicating whether local outliers should
+be removed using a Hampel filter.}
 
 \item{handle_missing_values}{Indicates how to handle missing data.
 \itemize{
@@ -110,7 +114,7 @@ methods.
 \details{
 Processing methods:
 \enumerate{
-\item Removes outliers (\emph{NOT IMPLEMENTED}) and custom fixed values such as
+\item Removes outliers with \code{\link[pracma:hampel]{pracma::hampel()}} and custom fixed values such as
 c(0, 100).
 \item Handles missing data by linear interpolation.
 \item Applies digital filtering with either a Butterworth low-pass filter with

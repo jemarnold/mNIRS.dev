@@ -1,4 +1,4 @@
-#' Prepare Dataframe for mNIRS Kinetics Analysis
+#' Prepare Dataframes for mNIRS Kinetics Analysis
 #'
 #' This function retrieves processed data from [process_data()] with manually
 #' identified kinetics events. Kinetics parameters are defined to extract
@@ -6,10 +6,16 @@
 #' analysed separately, or ensemble-averaged and analysed together.
 #'
 #' @param .data The data retrived [process_data()].
-#' @param multiple_kinetics_events Indicates whether each *"distinct"* kinetics
-#' events should be analysed separately (the default). Or whether multiple
-#' kinetics events should be *"ensemble"* averaged and analysed together
-#' (similar to pulmonary VO2 kinetics).
+#' @param multiple_kinetics_events Indicates whether kinetics events should
+#' be analysed separately or together.
+#' - *"distinct"* (the default) will prepare a list of unique dataframes for
+#' each kinetics event.
+#' - *"ensemble"* will prepare one dataframe with the ensemble-averaged mNIRS
+#' data from all kinetics events (similar to pulmonary VO2 kinetics).
+#' - Alternatively, a list of numeric vectors can be specified to
+#' ensemble-average groups of kinetics events together. Such as
+#' `multiple_kinetics_events = list(c(1, 2), c(3, 4))` for two sets of
+#' repeated bouts.
 #' @param baseline_fit_window A numeric scalar specifying the number of
 #' samples preceding to the kinetics events to include as baseline.
 #' @param kinetics_fit_window A numeric scalar specifying the number of
@@ -35,9 +41,9 @@ prepare_kinetics_data <- function(
         .data,
         multiple_kinetics_events = c("distinct", "ensemble"),
         baseline_fit_window = 30,
-        kinetics_fit_window = 240,
+        kinetics_fit_window = 180,
         baseline_display_window = 30,
-        kinetics_display_window = 240,
+        kinetics_display_window = 180,
         end_kinetics_window = NULL,
         ...
 ) {
@@ -56,16 +62,22 @@ prepare_kinetics_data <- function(
 
     ## functionality
     ## TODO
-    ## ...
-    ## split into a list of dataframes if multiple_kinetics_events == "distinct"
+    ## take in processed_data with event_indices metadata
+    ## split into a list of dataframes using display_window
+    ## prepare kinetics_data mapping over each dataframe and each nirs_column
+    ## prepare metadataf or each nirs_column
+    ## ... how?
+    ## if multiple_kinetics_events == "distinct", output is a list of dataframes
+    ## if == "ensemble", output is a single dataframe with all ensembled
+    ## if == list(c(1, 2), c(3, 4)), output is a list of ensembled dataframes
 
 
-    multiple_kinetics_events <- match.arg(multiple_kinetics_events)
 
-    ## validation: check for metadata to ensure `read_data()` has been run
-    if (is.null(attributes(.data)$nirs_columns)) {
+    ## validation: check for metadata to ensure `process_data()` has been run
+    if (is.null(attributes(processed_data)$event_indices)) {
         cli::cli_abort(paste(
-            "Data should be extracted with {.fn read_data} before processing."
+            "Metadata has no kinetics events identified.",
+            "Indicate kinetics events in {.fn process_data} first."
         ))
     }
 
@@ -73,6 +85,7 @@ prepare_kinetics_data <- function(
     nirs_columns <- metadata$nirs_columns
     sample_column <- metadata$sample_column
     event_column <- metadata$event_column
+    event_indices <- metadata$event_indices
 
     ## validation: inform message when end_kinetics_window set to default
     if (is.null(end_kinetics_window)) {
@@ -82,6 +95,43 @@ prepare_kinetics_data <- function(
             "samples"
         ))
     }
+
+
+    ## split dataframes ==================================
+    start_index <- min(c(baseline_fit_window,
+                         baseline_display_window))
+    end_index <- min(c(kinetics_fit_window,
+                       kinetics_display_window))
+
+    df_list <- purrr::pmap(
+        list(
+            start_idx = event_indices - start_index,
+            end_idx = event_indices + end_index
+        ),
+        \(start_idx, end_idx) {
+            .data |>
+                dplyr::filter(
+                    dplyr::between(index, start_idx, end_idx)
+                )
+        })
+
+
+    ## TODO pmap over expanded grid for prepared_kinetics_data
+    ## insert metadata individually
+    ## output list of dataframes with prepared kinetics metadata
+    purrr::pmap(
+        tidyr::expand_grid(
+            df = df_list,
+            nirs = names(nirs_columns),
+        ),
+        \(df, nirs) {
+            df |>
+                dplyr::summarise(
+                    dplyr::across(
+                        dplyr::any_of(nirs),
+                        ~ mean(., na.rm = TRUE)),
+                )
+        })
 
 
     ## prepare prepared_kinetics_data ===================================
@@ -165,7 +215,8 @@ prepare_kinetics_data <- function(
 # attributes(raw_data)
 # (processed_data <- process_data(
 #     raw_data,
-#     sample_rate = 1
+#     sample_rate = 1,
+#     event_label = "end stage"
 # ))
 # attributes(processed_data)
 # .data = processed_data
