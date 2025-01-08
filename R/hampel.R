@@ -62,7 +62,8 @@ hampel <- function(x, k, t0 = 3) {
         }
     }
 
-    x.all[as.numeric(names(y[ind]))] <- y[ind]
+    y.ind <- as.numeric(names(y[ind]))
+    x.all[y.ind] <- y[ind]
 
-    list(y = x.all, ind = as.numeric(names(y[ind])))
+    list(y = x.all, ind = y.ind)
 }
