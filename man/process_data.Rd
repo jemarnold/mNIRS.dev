@@ -16,7 +16,7 @@ process_data(
   filter_method = c("none", "smooth-spline", "low-pass", "moving-average"),
   filter_parameters = NULL,
   shift_range_positive = FALSE,
-  normalise_range = c("none", "column-wise", "all"),
+  normalise_range = c("none", "column-wise", "globally"),
   ...
 )
 }
@@ -95,8 +95,8 @@ the existing observed data (functional range).
 \item \emph{"none"} (the default) will not normalise any data.
 \item \emph{"column-wise"} will re-scale each NIRS column to 0-100 within it's own
 range.
-\item \emph{"all"} will re-scale all NIRS columns to a common 0-100 range, from the
-minimum to the maximum values across all columns.
+\item \emph{"globally"} will re-scale all NIRS columns to a common 0-100 range, from
+the minimum to the maximum values across all columns.
 \item Alternatively, a list of character vectors of NIRS column names can be
 specified to re-scale across selected columns in groups, e.g. for left and
 right limbs separately, such as \code{c("smo2_left", "smo2_right")}.
@@ -114,8 +114,8 @@ methods.
 \details{
 Processing methods:
 \enumerate{
-\item Removes outliers with \code{\link[pracma:hampel]{pracma::hampel()}} and custom fixed values such as
-c(0, 100).
+\item Removes custom fixed values such as c(0, 100), and remove outliers with
+\code{\link[pracma:hampel]{pracma::hampel()}}.
 \item Handles missing data by linear interpolation.
 \item Applies digital filtering with either a Butterworth low-pass filter with
 \code{\link[signal:butter]{signal::butter()}} and \code{\link[=filtfilt_edges]{filtfilt_edges()}}, a simple moving average with

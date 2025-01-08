@@ -31,6 +31,7 @@ create_mnirs_data <- function(.data, metadata) {
         baseline_display_window = metadata$baseline_display_window, ## 0-30 sec
         kinetics_display_window = metadata$kinetics_display_window, ## 10-300 sec
         end_kinetics_window = metadata$end_kinetics_window, ## c(10, 15, 30) sec or 1/10 kinetics_window
+        fixed_values_removed = metadata$fixed_values_removed, ## c(0, 100)
         outliers_removed = metadata$outliers_removed, ## boolean
         missing_index = metadata$missing_index, ## indices of missing data (NA)
         filtered = metadata$filtered, ## filter_method

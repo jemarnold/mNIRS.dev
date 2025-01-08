@@ -57,8 +57,8 @@
 #' - *"none"* (the default) will not normalise any data.
 #' - *"column-wise"* will re-scale each NIRS column to 0-100 within it's own
 #' range.
-#' - *"all"* will re-scale all NIRS columns to a common 0-100 range, from the
-#' minimum to the maximum values across all columns.
+#' - *"globally"* will re-scale all NIRS columns to a common 0-100 range, from
+#' the minimum to the maximum values across all columns.
 #' - Alternatively, a list of character vectors of NIRS column names can be
 #' specified to re-scale across selected columns in groups, e.g. for left and
 #' right limbs separately, such as `c("smo2_left", "smo2_right")`.
@@ -66,8 +66,8 @@
 #'
 #' @details
 #' Processing methods:
-#' 1) Removes outliers with [pracma::hampel()] and custom fixed values such as
-#' c(0, 100).
+#' 1) Removes custom fixed values such as c(0, 100), and remove outliers with
+#' a modified version of [pracma::hampel()] which skips `NA`.
 #' 2) Handles missing data by linear interpolation.
 #' 3) Applies digital filtering with either a Butterworth low-pass filter with
 #' [signal::butter()] and [filtfilt_edges()], a simple moving average with
@@ -95,7 +95,7 @@ process_data <- function(
         filter_method = c("none", "smooth-spline", "low-pass", "moving-average"),
         filter_parameters = NULL, #c(n = 2, fc = 0.03), #c(k = 5)
         shift_range_positive = FALSE,
-        normalise_range = c("none", "column-wise", "all"),
+        normalise_range = c("none", "column-wise", "globally"),
         ...
 ) {
     handle_missing_values <- match.arg(handle_missing_values)
@@ -234,12 +234,12 @@ process_data <- function(
 
     ## validation: `normalise_range` must be boolean
     if (!all(unlist(normalise_range) %in%
-             c("none", "column-wise", "all",
+             c("none", "column-wise", "globally",
                names(nirs_columns), nirs_columns))
     ) {
         cli::cli_abort(paste(
             "{.arg normalise_range} must be either {.val none},",
-            "{.val column-wise}, {.val all}, or a list of names from",
+            "{.val column-wise}, {.val globally}, or a list of names from",
             "{.arg nirs_columns}. Make sure column names match exactly"))
     }
 
@@ -267,14 +267,14 @@ process_data <- function(
 
     ## remove outliers ================================
     if (remove_outliers) {
-        data_nooutliers <- no_fixed |>
+        data_nooutliers <- data_nofixed |>
             dplyr::mutate(
                 dplyr::across(
                     dplyr::any_of(names(nirs_columns)),
-                    ~ pracma::hampel(., k = 20 * sample_rate)$y
+                    ~ hampel(., k = 20 * sample_rate)$y
                 ))
     } else {
-        data_nooutliers <- no_fixed
+        data_nooutliers <- data_nofixed
     }
 
 
@@ -404,7 +404,7 @@ process_data <- function(
                     ~ (. - min(., na.rm = TRUE)) /
                         diff(range(., na.rm = TRUE))*100),
             )
-    } else if (all(normalise_range == "all")) {
+    } else if (all(normalise_range == "globally")) {
 
         data_normalised <- data_shifted |>
             dplyr::mutate(
