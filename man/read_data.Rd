@@ -22,11 +22,11 @@ to import from the target file. Must match exactly. Optionally, a named
 vector to rename the columns.}
 
 \item{sample_column}{(optional) A character scalar indicating the name of
-the time or sample data column. Must match exactly. Default is \verb{<NULL>}.
+the time or sample data column. Must match exactly. Default is \code{NULL}.
 Optionally, a named scalar to rename the column.}
 
 \item{event_column}{(optional) A character scalar indicating the name of
-the event or lap data column. Must match exactly. Default is \verb{<NULL>}.
+the event or lap data column. Must match exactly. Default is \code{NULL}.
 Optionally, a named scalar to rename the column.}
 
 \item{.keep_all}{A boolean, if \code{FALSE} (the default) will only include

@@ -39,7 +39,7 @@ indicating the start of kinetic events.}
 \item{event_label}{(optional) A character vector specified in \code{event_column}
 indicating the start of kinetics events.}
 
-\item{remove_fixed_values}{(optional) Either \verb{<NULL>} (the default) or a
+\item{remove_fixed_values}{(optional) Either \code{NULL} (the default) or a
 numeric vector of values to remove from the data.
 e.g. \code{remove_fixed_values = c(0, 100)}.}
 
@@ -115,7 +115,7 @@ methods.
 Processing methods:
 \enumerate{
 \item Removes custom fixed values such as c(0, 100), and remove outliers with
-\code{\link[pracma:hampel]{pracma::hampel()}}.
+a modified version of \code{\link[pracma:hampel]{pracma::hampel()}} which skips \code{NA}.
 \item Handles missing data by linear interpolation.
 \item Applies digital filtering with either a Butterworth low-pass filter with
 \code{\link[signal:butter]{signal::butter()}} and \code{\link[=filtfilt_edges]{filtfilt_edges()}}, a simple moving average with

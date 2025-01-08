@@ -60,10 +60,10 @@ create_mnirs_data <- function(.data, metadata) {
 #' to import from the target file. Must match exactly. Optionally, a named
 #' vector to rename the columns.
 #' @param sample_column (optional) A character scalar indicating the name of
-#' the time or sample data column. Must match exactly. Default is `<NULL>`.
+#' the time or sample data column. Must match exactly. Default is `NULL`.
 #' Optionally, a named scalar to rename the column.
 #' @param event_column (optional) A character scalar indicating the name of
-#' the event or lap data column. Must match exactly. Default is `<NULL>`.
+#' the event or lap data column. Must match exactly. Default is `NULL`.
 #' Optionally, a named scalar to rename the column.
 #' @param .keep_all A boolean, if `FALSE` (the default) will only include
 #' the target data columns. If `TRUE` will include all columns detected from

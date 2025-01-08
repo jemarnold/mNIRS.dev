@@ -14,7 +14,7 @@
 #' indicating the start of kinetic events.
 #' @param event_label (optional) A character vector specified in `event_column`
 #' indicating the start of kinetics events.
-#' @param remove_fixed_values (optional) Either `<NULL>` (the default) or a
+#' @param remove_fixed_values (optional) Either `NULL` (the default) or a
 #' numeric vector of values to remove from the data.
 #' e.g. `remove_fixed_values = c(0, 100)`.
 #' @param remove_outliers A boolean indicating whether local outliers should
