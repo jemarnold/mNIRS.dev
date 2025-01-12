@@ -3,7 +3,7 @@
 #' Remove manually specified fixed values such as `c(0, 100)`, and remove
 #' local outliers with [hampel()].
 #'
-#' @param .data A dataframe retrieved from [read_data()]
+#' @param .data A dataframe with mNIRS metadata.
 #' @param sample_rate An integer scalar indicating the sample rate at which the
 #' raw data was recorded (in Hz; samples per second).
 #' @param remove_fixed_values (optional) Either `NULL` (the default) or a
@@ -11,16 +11,12 @@
 #' column-wise if a named list, or globally if not named.
 #'
 #' e.g.: `remove_fixed_values = list(SmO2 = c(0, 100), HHb = c(-5, 5))`.
-#' @param remove_outliers A boolean indicating whether local outliers should
+#' @param remove_outliers A logical indicating whether local outliers should
 #' be removed globally using a Hampel filter [hampel()].
-#' @param ... Additional arguments will accept `hampel(k, t0)`.
+#' @param ... Additional arguments.
 #'
 #' @details
-#' Additional arguments for [hampel()]:
-#' - `k` is an integer scalar specifying the window length `2k+1` in indices
-#' over which to apply the rolling Hampel filter. Default value is `20 seconds`.
-#' - `t0` is an integer scalar specifying the threshold for outlier detection,
-#' where the default is `t0 = 3` for Pearson's 3 sigma rule.
+#' Additional arguments will accept `k, t0, na.rm, return` for [hampel()].
 #'
 #' @return A [tibble][tibble::tibble-package].
 #'
@@ -56,7 +52,7 @@ remove_outliers <- function(
             "or {.cls NULL}, not {.cls {class(remove_fixed_values)}}."))
     }
 
-    ## validation: `remove_outliers` must be boolean
+    ## validation: `remove_outliers` must be logical
     if (!isTRUE(remove_outliers) & !isFALSE(remove_outliers)) {
         cli::cli_abort(paste(
             "{.arg remove_outliers} must be either {.val {TRUE}}",
@@ -67,24 +63,10 @@ remove_outliers <- function(
     ## fixed values can be defined column-wise or globally
     ## a vector will be converted to a list, a list will be
     ## converted to a named list. The named list will be mapped over
-    ## to remove specified values for each defined nirs_column (or globally)
+    ## to remove specified values for each defined nirs_column
     if (!is.null(remove_fixed_values)) {
-        (removed_fixed_values_list <-
-             if (is.list(remove_fixed_values) &
-                 length(names(remove_fixed_values)) ==
-                 length(remove_fixed_values)) {
-                 remove_fixed_values
-             } else if (is.list(remove_fixed_values)) {
-                 setNames(rlang::rep_along(
-                     names(nirs_columns),
-                     remove_fixed_values),
-                     names(nirs_columns))
-             } else {
-                 setNames(rlang::rep_along(
-                     names(nirs_columns),
-                     list(remove_fixed_values)),
-                     names(nirs_columns))
-             })
+        removed_fixed_values_list <-
+            assign_to_named_list(remove_fixed_values, names(nirs_columns))
 
         data_nofixed <- purrr::imap(
             removed_fixed_values_list,
@@ -127,15 +109,32 @@ remove_outliers <- function(
     ## TODO can I pull out indices of outliers to metadata?
     if (remove_outliers) {
 
-        if (!"k" %in% names(args)) k <- 20 * sample_rate else k <- args$k
-        if (!"t0" %in% names(args)) t0 <- 3 else t0 <- args$t0
-        cli::cli_alert_info("{.arg k} = {.val {k}}. {.arg t0} = {.val {t0}}")
+        if ("k" %in% names(args)) {
+            k <- args$k
+            cli::cli_alert_info("`hampel(k = {.val {k}})`")
+        } else {k <- 20 * sample_rate}
+
+        if ("t0" %in% names(args)) {
+            t0 <- args$t0
+            cli::cli_alert_info("`hampel(t0 = {.val {t0}})`")
+        } else {t0 <- 3}
+
+        if ("na.rm" %in% names(args)) {
+            na.rm <- args$na.rm
+            cli::cli_alert_info("`hampel(na.rm = {.val {na.rm}})`")
+        } else {na.rm <- TRUE}
+
+        if ("return" %in% names(args)) {
+            return <- args$return
+            cli::cli_alert_info("`hampel(return = {.val {return}})`")
+        } else {return <- "median"}
 
         data_nooutliers <- data_nofixed |>
             dplyr::mutate(
                 dplyr::across(
                     dplyr::any_of(names(nirs_columns)),
-                    ~ hampel(., k, t0)$y
+                    ~ hampel(., k = k, t0 = t0,
+                             na.rm = na.rm, return = return)$y
                 ))
 
         cli::cli_alert_info("Local outliers will be set to the local median.")
@@ -143,6 +142,7 @@ remove_outliers <- function(
         data_nooutliers <- data_nofixed
     }
 
+    ## metadata ==================================================
     metadata$fixed_values_removed <-
         if (!is.null(remove_fixed_values)) {
             removed_fixed_values_list
@@ -150,8 +150,9 @@ remove_outliers <- function(
     metadata$outliers_removed <- remove_outliers
 
     create_mnirs_data(data_nooutliers, metadata)
-    # attributes(processed_data)
+    # attributes(data_nooutliers)
 }
+#
 ## Troubleshooting ========================
 # library(mNIRS)
 # (raw_data <- read_data(

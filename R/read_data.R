@@ -32,11 +32,11 @@ create_mnirs_data <- function(.data, metadata) {
         kinetics_display_window = metadata$kinetics_display_window, ## 10-300 sec
         end_kinetics_window = metadata$end_kinetics_window, ## c(10, 15, 30) sec or 1/10 kinetics_window
         fixed_values_removed = metadata$fixed_values_removed, ## c(0, 100)
-        outliers_removed = metadata$outliers_removed, ## boolean
+        outliers_removed = metadata$outliers_removed, ## logical
         missing_index = metadata$missing_index, ## indices of missing data (NA)
         filtered = metadata$filtered, ## filter_method
-        shifted_positive = metadata$shifted_positive, ## boolean
-        normalised = metadata$normalised, ## boolean
+        shifted_positive = metadata$shifted_positive, ## logical
+        normalised = metadata$normalised, ## logical
     )
 
     tibble::validate_tibble(nirs_data)
@@ -65,7 +65,7 @@ create_mnirs_data <- function(.data, metadata) {
 #' @param event_column (optional) A character scalar indicating the name of
 #' the event or lap data column. Must match exactly. Default is `NULL`.
 #' Optionally, a named scalar to rename the column.
-#' @param .keep_all A boolean, if `FALSE` (the default) will only include
+#' @param .keep_all A logical, if `FALSE` (the default) will only include
 #' the target data columns. If `TRUE` will include all columns detected from
 #' the file.
 #' @param ... Additional arguments.

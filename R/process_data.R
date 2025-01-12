@@ -17,7 +17,7 @@
 #' @param remove_fixed_values (optional) Either `NULL` (the default) or a
 #' numeric vector of values to remove from the data.
 #' e.g. `remove_fixed_values = c(0, 100)`.
-#' @param remove_outliers A boolean indicating whether local outliers should
+#' @param remove_outliers A logical indicating whether local outliers should
 #' be removed using a Hampel filter.
 #' @param handle_missing_values Indicates how to handle missing data.
 #' - *"linear interpolate"* (the default) will interpolate between existing
@@ -31,7 +31,7 @@
 #' and automatically determined smoothing parameter.
 #' - *"low-pass"* uses a symmetrical (centred) butterworth low-pass filter.
 #' - *"moving-average"* uses a symmetrical (centred) moving average filter.
-#' @param filter_parameters (optional) Either `<NULL<` or a named numeric
+#' @param filter_parameters (optional) Either `NULL` or a named numeric
 #' vector of parameters to pass through to the digital filter defined in
 #' `filter_method`.
 #' - For `filter_method = "low-pass"` this should be `c(n, fc)` or `c(n, W)`
@@ -46,7 +46,7 @@
 #' enough. Higher values within the range 0 to 1 will return more smoothing.
 #' Lower values will return less smoothing.
 #' - Reasonable default values are set to `c(n = 1, fc = 0.05, k = 5)`.
-#' @param shift_range_positive A boolean indicating whether the range of mNIRS
+#' @param shift_range_positive A logical indicating whether the range of mNIRS
 #' data should be shifted to return only positive data. For example, to be
 #' used when mNIRS values are arbitrarily scaled from the starting value
 #' (e.g., Artinis Oxysoft). This does not change the scale of the data.
@@ -172,7 +172,7 @@ process_data <- function(
             "or {.cls NULL}, not {.cls {class(remove_fixed_values)}}."))
     }
 
-    ## validation: `remove_outliers` must be boolean
+    ## validation: `remove_outliers` must be logical
     if (!isTRUE(remove_outliers) & !isFALSE(remove_outliers)) {
         cli::cli_abort(paste(
             "{.arg remove_outliers} must be either {.val {TRUE}}",
@@ -214,7 +214,7 @@ process_data <- function(
         }
     }
 
-    ## validation: shift_range_positive must be boolean
+    ## validation: shift_range_positive must be logical
     if (!isTRUE(shift_range_positive) & !isFALSE(shift_range_positive)) {
         cli::cli_abort(paste(
             "{.arg shift_range_positive} must be either {.val {TRUE}}",
@@ -232,7 +232,7 @@ process_data <- function(
     }
 
 
-    ## validation: `normalise_range` must be boolean
+    ## validation: `normalise_range` must be logical
     if (!all(unlist(normalise_range) %in%
              c("none", "column-wise", "globally",
                names(nirs_columns), nirs_columns))

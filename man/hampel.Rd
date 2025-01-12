@@ -4,7 +4,7 @@
 \alias{hampel}
 \title{Hampel Filter}
 \usage{
-hampel(x, k, t0 = 3)
+hampel(x, k, t0 = 3, na.rm = FALSE, return = c("median", "NA"))
 }
 \arguments{
 \item{x}{Numeric vector representing a time series.}
@@ -12,6 +12,12 @@ hampel(x, k, t0 = 3)
 \item{k}{Window length \code{2*k+1} in indices.}
 
 \item{t0}{Threshold, default is 3 (Pearson's rule), see below.}
+
+\item{na.rm}{A logical indicating whether missing values should be removed
+before the filter is applied.}
+
+\item{return}{Indicates whether the outlier should be replaced with the
+local \emph{"median"} value (the default), or returned as \code{NA}.}
 }
 \value{
 A list \code{L} with \code{L$y} the corrected time series and
@@ -30,10 +36,14 @@ A high threshold makes the filter more forgiving, a low one will declare
 more points to be outliers. \code{t0 <- 3} (the default) corresponds to Ron
 Pearson's 3 sigma edit rule, \code{t0 <- 0} to John Tukey's median filter.
 
-This modified Hampel filter records the index of \code{NA} values, omits \code{NA},
-applies the filter, then re-inserts those \code{NA} back to their original
-indices, preserving the original input data indices and replacing outliers
-as intended.
+If \code{na.rm = FALSE} (the default) \code{NA}s in \code{x} will cause an error.
+If \code{na.rm = TRUE} the index of \code{NA}s are recorded and omitted before
+applying the Hampel filter. Then \code{NA}s are re-inserted back to their
+original indices when the filtered data are returned.
+
+The default \code{return = "median"} will replace the outlier with the local
+median value, as in \code{\link[pracma:hampel]{pracma::hampel()}}. Otherwise, the outlier will be
+returned as \code{NA}.
 }
 \examples{
 set.seed(8421)
@@ -43,8 +53,8 @@ x[1] <- z[1]
 for (i in 2:1024) {
     x[i] <- 0.4*x[i-1] + 0.8*x[i-1]*z[i-1] + z[i]
 }
-x[c(3, 8)] <- NA
-omad <- hampel(x, k=20)
+x[100:200] <- NA
+omad <- hampel(x, k = 20, na.rm = TRUE)
 
 ## Not run:
 plot(1:1024, x, type="l")

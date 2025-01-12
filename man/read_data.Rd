@@ -29,7 +29,7 @@ Optionally, a named scalar to rename the column.}
 the event or lap data column. Must match exactly. Default is \code{NULL}.
 Optionally, a named scalar to rename the column.}
 
-\item{.keep_all}{A boolean, if \code{FALSE} (the default) will only include
+\item{.keep_all}{A logical, if \code{FALSE} (the default) will only include
 the target data columns. If \code{TRUE} will include all columns detected from
 the file.}
 

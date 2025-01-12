@@ -13,7 +13,7 @@ remove_outliers(
 )
 }
 \arguments{
-\item{.data}{A dataframe retrieved from \code{\link[=read_data]{read_data()}}}
+\item{.data}{A dataframe with mNIRS metadata.}
 
 \item{sample_rate}{An integer scalar indicating the sample rate at which the
 raw data was recorded (in Hz; samples per second).}
@@ -24,10 +24,10 @@ column-wise if a named list, or globally if not named.
 
 e.g.: \code{remove_fixed_values = list(SmO2 = c(0, 100), HHb = c(-5, 5))}.}
 
-\item{remove_outliers}{A boolean indicating whether local outliers should
+\item{remove_outliers}{A logical indicating whether local outliers should
 be removed globally using a Hampel filter \code{\link[=hampel]{hampel()}}.}
 
-\item{...}{Additional arguments will accept \code{hampel(k, t0)}.}
+\item{...}{Additional arguments.}
 }
 \value{
 A \link[tibble:tibble-package]{tibble}.
@@ -37,11 +37,5 @@ Remove manually specified fixed values such as \code{c(0, 100)}, and remove
 local outliers with \code{\link[=hampel]{hampel()}}.
 }
 \details{
-Additional arguments for \code{\link[=hampel]{hampel()}}:
-\itemize{
-\item \code{k} is an integer scalar specifying the window length \verb{2k+1} in indices
-over which to apply the rolling Hampel filter. Default value is \verb{20 seconds}.
-\item \code{t0} is an integer scalar specifying the threshold for outlier detection,
-where the default is \code{t0 = 3} for Pearson's 3 sigma rule.
-}
+Additional arguments will accept \verb{k, t0, na.rm, return} for \code{\link[=hampel]{hampel()}}.
 }

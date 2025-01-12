@@ -43,7 +43,7 @@ indicating the start of kinetics events.}
 numeric vector of values to remove from the data.
 e.g. \code{remove_fixed_values = c(0, 100)}.}
 
-\item{remove_outliers}{A boolean indicating whether local outliers should
+\item{remove_outliers}{A logical indicating whether local outliers should
 be removed using a Hampel filter.}
 
 \item{handle_missing_values}{Indicates how to handle missing data.
@@ -64,7 +64,7 @@ and automatically determined smoothing parameter.
 \item \emph{"moving-average"} uses a symmetrical (centred) moving average filter.
 }}
 
-\item{filter_parameters}{(optional) Either \verb{<NULL<} or a named numeric
+\item{filter_parameters}{(optional) Either \code{NULL} or a named numeric
 vector of parameters to pass through to the digital filter defined in
 \code{filter_method}.
 \itemize{
@@ -82,7 +82,7 @@ Lower values will return less smoothing.
 \item Reasonable default values are set to \code{c(n = 1, fc = 0.05, k = 5)}.
 }}
 
-\item{shift_range_positive}{A boolean indicating whether the range of mNIRS
+\item{shift_range_positive}{A logical indicating whether the range of mNIRS
 data should be shifted to return only positive data. For example, to be
 used when mNIRS values are arbitrarily scaled from the starting value
 (e.g., Artinis Oxysoft). This does not change the scale of the data.}
