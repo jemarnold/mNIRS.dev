@@ -60,6 +60,8 @@ Applies digital filtering with either:
 }
 }
 \details{
+\code{handle_missing_values} imported from \code{\link[=handle_missing_data]{handle_missing_data()}}.
+
 \code{handle_missing_values} must be defined before filtering can be performed.
 \itemize{
 \item \emph{"none"} will pass through data as-is, but will cause \emph{"low-pass"}

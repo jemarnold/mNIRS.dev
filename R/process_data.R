@@ -252,7 +252,8 @@ process_data <- function(
             dplyr::mutate(
                 dplyr::across(
                     dplyr::any_of(names(nirs_columns)),
-                    ~ dplyr::if_else(. %in% remove_fixed_values, NA_real_, .)
+                    \(.x) dplyr::if_else(
+                        .x %in% remove_fixed_values, NA_real_, .x)
                 ))
 
         cli::cli_alert_info(paste(
@@ -271,7 +272,7 @@ process_data <- function(
             dplyr::mutate(
                 dplyr::across(
                     dplyr::any_of(names(nirs_columns)),
-                    ~ hampel(., k = 20 * sample_rate)$y
+                    \(.x) hampel(.x, k = 20 * sample_rate)$y
                 ))
     } else {
         data_nooutliers <- data_nofixed
@@ -284,7 +285,7 @@ process_data <- function(
             dplyr::mutate(
                 dplyr::across(
                     dplyr::any_of(names(nirs_columns)),
-                    ~ zoo::na.approx(., na.rm = FALSE, rule = 2)), ## maxgap?
+                    \(.x) zoo::na.approx(.x, na.rm = FALSE, rule = 2)), ## maxgap?
             )
         ## omit method not implemented. Redundant?
         # } else if (handle_missing_values == "omit") {
@@ -292,7 +293,7 @@ process_data <- function(
         #         dplyr::filter(
         #             dplyr::if_any(
         #                 dplyr::any_of(names(nirs_columns)),
-        #                 ~ is.na(.))) |>
+        #                 \(.x) is.na(.x))) |>
         #         dplyr::pull(index)
         #
         #     data_nomissing <- data_nooutliers |>
@@ -354,7 +355,7 @@ process_data <- function(
             dplyr::mutate(
                 dplyr::across(
                     dplyr::any_of(names(nirs_columns)),
-                    ~ filtfilt_edges(., n = n, W = fc / (sample_rate/2))),
+                    \(.x) filtfilt_edges(.x, n = n, W = fc / (sample_rate/2))),
             )
 
     } else if (filter_method == "moving-average") {
@@ -363,8 +364,8 @@ process_data <- function(
             dplyr::mutate(
                 dplyr::across(
                     dplyr::any_of(names(nirs_columns)),
-                    ~ zoo::rollapply(., width = k, FUN = mean,
-                                     partial = TRUE, na.rm = TRUE)),
+                    \(.x) zoo::rollapply(.x, width = k, FUN = mean,
+                                         partial = TRUE, na.rm = TRUE)),
             )
 
     } else if (filter_method == "smooth-spline") {
@@ -373,7 +374,7 @@ process_data <- function(
             dplyr::mutate(
                 dplyr::across(
                     dplyr::any_of(names(nirs_columns)),
-                    ~ stats::smooth.spline(x = index, y = .)$y),
+                    \(.x) stats::smooth.spline(x = index, y = .x)$y),
             )
 
     } else if (filter_method == "none") {
@@ -387,7 +388,7 @@ process_data <- function(
             dplyr::mutate(
                 dplyr::across(
                     dplyr::any_of(names(nirs_columns)),
-                    ~ . - min(., na.rm = TRUE) + 0.1
+                    \(.x) .x - min(.x, na.rm = TRUE) + 0.1
                 ))
     } else {
         data_shifted <- data_filtered
@@ -401,8 +402,8 @@ process_data <- function(
             dplyr::mutate(
                 dplyr::across(
                     dplyr::any_of(names(nirs_columns)),
-                    ~ (. - min(., na.rm = TRUE)) /
-                        diff(range(., na.rm = TRUE))*100),
+                    \(.x) (.x - min(.x, na.rm = TRUE)) /
+                        diff(range(.x, na.rm = TRUE))*100),
             )
     } else if (all(normalise_range == "globally")) {
 
@@ -410,7 +411,7 @@ process_data <- function(
             dplyr::mutate(
                 dplyr::across(
                     dplyr::any_of(names(nirs_columns)),
-                    ~ (. - min(
+                    \(.x) (.x - min(
                         dplyr::pick(dplyr::any_of(names(nirs_columns))),
                         na.rm = TRUE)) /
                         diff(range(
@@ -421,25 +422,22 @@ process_data <- function(
         data_normalised <- data_shifted
     } else { ## take custom normalising groups
 
-        data_normalised <-
-            purrr::map(
-                if (is.list(normalise_range)) {
-                    normalise_range
-                } else {list(normalise_range)},
-                \(norm_range)
-                data_shifted |>
-                    dplyr::select(dplyr::any_of(norm_range)) |>
-                    dplyr::mutate(
-                        dplyr::across(
-                            dplyr::any_of(norm_range),
-                            ~ (. - min(
-                                dplyr::pick(dplyr::any_of(norm_range)),
-                                na.rm = TRUE)) /
-                                diff(range(
-                                    dplyr::pick(dplyr::any_of(norm_range)),
-                                    na.rm = TRUE))*100),
-                    )
-            ) |>
+        data_normalised <- purrr::map(
+            if (is.list(normalise_range)) {
+                normalise_range
+            } else {list(normalise_range)},
+            \(norm_range)
+            data_shifted |>
+                dplyr::select(dplyr::any_of(norm_range)) |>
+                dplyr::mutate(
+                    dplyr::across(
+                        dplyr::any_of(norm_range),
+                        \(.x) (.x - min(dplyr::pick(dplyr::any_of(norm_range)),
+                                        na.rm = TRUE)) /
+                            diff(range(dplyr::pick(dplyr::any_of(norm_range)),
+                                       na.rm = TRUE))*100),
+                )
+        ) |>
             dplyr::bind_cols(
                 dplyr::select(
                     data_shifted,
@@ -453,18 +451,18 @@ process_data <- function(
     event_indices <- data_normalised |>
         dplyr::mutate(
             dplyr::across(
-                any_of(sample_column),
-                ~ as.character(.)
+                dplyr::any_of(sample_column),
+                \(.x) as.character(.x)
             )
         ) |>
         dplyr::filter(
             index %in% event_index |
                 dplyr::if_any(
-                    any_of(names(sample_column)),
-                    ~ . %in% as.character(event_sample)) |
+                    dplyr::any_of(names(sample_column)),
+                    \(.x) .x %in% as.character(event_sample)) |
                 dplyr::if_any(
-                    any_of(names(event_column)),
-                    ~ grepl(paste(event_label, collapse = "|"), .))
+                    dplyr::any_of(names(event_column)),
+                    \(.x) grepl(paste(event_label, collapse = "|"), .x))
         ) |>
         dplyr::pull(index)
 

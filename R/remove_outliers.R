@@ -65,8 +65,9 @@ remove_outliers <- function(
     ## converted to a named list. The named list will be mapped over
     ## to remove specified values for each defined nirs_column
     if (!is.null(remove_fixed_values)) {
-        removed_fixed_values_list <-
-            assign_to_named_list(remove_fixed_values, names(nirs_columns))
+        removed_fixed_values_list <- assign_to_named_list(
+            remove_fixed_values,
+            names(nirs_columns))
 
         data_nofixed <- purrr::imap(
             removed_fixed_values_list,
@@ -76,9 +77,8 @@ remove_outliers <- function(
                     dplyr::mutate(
                         dplyr::across(
                             dplyr::any_of(nirs),
-                            ~ dplyr::if_else(
-                                . %in% fixed_vals,
-                                NA_real_, .))
+                            \(.x) dplyr::if_else(
+                                .x %in% fixed_vals, NA_real_, .x))
                     )
             }) |>
             dplyr::bind_cols(
@@ -94,8 +94,8 @@ remove_outliers <- function(
             sep = " = ")
 
         cli::cli_alert_info(paste(
-            "Values will be set to {.val {NA}} from",
-            "{.arg {removed_fixed_values_string}}."
+            "Values from {.val {removed_fixed_values_string}} set to",
+            "{.val {NA}}."
         ))
 
     } else if (is.null(remove_fixed_values)) {
@@ -133,20 +133,19 @@ remove_outliers <- function(
             dplyr::mutate(
                 dplyr::across(
                     dplyr::any_of(names(nirs_columns)),
-                    ~ hampel(., k = k, t0 = t0,
-                             na.rm = na.rm, return = return)$y
+                    \(.x) hampel(.x, k = k, t0 = t0,
+                                 na.rm = na.rm, return = return)$y
                 ))
 
-        cli::cli_alert_info("Local outliers will be set to the local median.")
+        cli::cli_alert_info("Local outliers set to the local median.")
     } else {
         data_nooutliers <- data_nofixed
     }
 
     ## metadata ==================================================
-    metadata$fixed_values_removed <-
-        if (!is.null(remove_fixed_values)) {
-            removed_fixed_values_list
-        } else NA
+    metadata$fixed_values_removed <- if (!is.null(remove_fixed_values)) {
+        removed_fixed_values_list
+    } else {NA}
     metadata$outliers_removed <- remove_outliers
 
     create_mnirs_data(data_nooutliers, metadata)

@@ -199,8 +199,7 @@ read_data <- function(
                 "Column names are case sensitive and should match exactly."))
         }}
 
-    raw_data_prepared <-
-        raw_data_trimmed |>
+    raw_data_prepared <- raw_data_trimmed |>
         ## keep_all selects everything, else only manual columns
         dplyr::select(
             dplyr::any_of(c(
@@ -217,15 +216,15 @@ read_data <- function(
                 event_column))
         ) |>
         ## drops columns where all(is.na()) or all(.==0) values
-        dplyr::select(dplyr::where(~ !all(is.na(.) | . == 0))) |>
+        dplyr::select(dplyr::where(\(.x) !all(is.na(.x) | .x == 0))) |>
         dplyr::mutate(
             ## convert blank values to NA
             dplyr::across(
                 dplyr::where(is.numeric),
-                ~ ifelse(. %in% c(Inf, -Inf, NaN), NA_real_, .)),
+                \(.x) ifelse(.x %in% c(Inf, -Inf, NaN), NA_real_, .x)),
             dplyr::across(
                 dplyr::where(is.character),
-                ~ ifelse(. %in% c("", "NA"), NA_character_, .)),
+                \(.x) ifelse(.x %in% c("", "NA"), NA_character_, .x)),
         ) |>
         ( \(df) {
             ## drops rows after the first row where all(is.na())
@@ -244,13 +243,13 @@ read_data <- function(
             dplyr::across(
                 dplyr::any_of(names(sample_column)) &
                     dplyr::where(is.character),
-                ~ as.POSIXct(., tryFormats = c(
+                \(.x) as.POSIXct(.x, tryFormats = c(
                     "%Y-%m-%d %H:%M:%OS", "%Y/%m/%d %H:%M:%OS", "%H:%M:%OS"),
                     format = "%H:%M:%OS")),
             ## adds a sequential index column
             dplyr::across(
                 dplyr::any_of(names(nirs_columns[1])),
-                ~ seq_along(.),
+                \(.x) seq_along(.x),
                 .names = "index"),
         ) |>
         dplyr::relocate(index)
@@ -260,8 +259,7 @@ read_data <- function(
     ## validation: soft check whether sample_column has non-sequential or
     ## repeating values
     if (any(c(diff(sample_vector) <= 0, FALSE) | duplicated(sample_vector))) {
-        repeated_samples <-
-            raw_data_prepared |>
+        repeated_samples <- raw_data_prepared |>
             dplyr::filter(
                 c(diff(get(names(sample_column))) <= 0, FALSE) |
                     duplicated(get(names(sample_column)))
@@ -276,8 +274,7 @@ read_data <- function(
 
     ## validation: soft check gap in sample_column > 1 hr
     if (any(diff(sample_vector) > 3600)) {
-        big_gap <-
-            raw_data_prepared |>
+        big_gap <- raw_data_prepared |>
             dplyr::filter(
                 c(diff(get(names(sample_column))) > 3600, FALSE)
             ) |>

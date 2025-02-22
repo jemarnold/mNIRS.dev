@@ -48,6 +48,41 @@ handle_missing_data <- function(
     metadata <- attributes(.data)
     nirs_columns <- metadata$nirs_columns
 
+    ## report of missing values ===================================
+    ## report total count of missing values from all nirs_columns
+    NA_count <- .data |>
+        dplyr::summarise(
+            dplyr::across(
+                dplyr::any_of(names(nirs_columns)),
+                \(.x) sum(is.na(.x)))
+        ) |>
+        dplyr::summarise(
+            count = rowSums(dplyr::across(dplyr::where(is.numeric)))
+        ) |>
+        dplyr::pull(count)
+
+    ## function to find the longest continuous sequence of missing values
+    find_longest_NA_sequence <- function(x) {
+        if (!any(is.na(x))) return(0)
+
+        rle_result <- rle(is.na(x))
+        NA_sequence <- max(rle_result$lengths[rle_result$values])
+        return(NA_sequence)
+    }
+
+    ## report longest continuouse sequence of missing values from
+    ## all nirs_columns
+    NA_sequence <- .data |>
+        dplyr::summarise(
+            dplyr::across(
+                dplyr::any_of(names(nirs_columns)),
+                \(.x) find_longest_NA_sequence(.x))
+        ) |>
+        dplyr::summarise(
+            length = max(dplyr::across(dplyr::where(is.numeric)))
+        ) |>
+        dplyr::pull(length)
+
     ## handle missing values ================================
     if (handle_missing_values == "interpolate") {
 
@@ -60,9 +95,14 @@ handle_missing_data <- function(
             dplyr::mutate(
                 dplyr::across(
                     dplyr::any_of(names(nirs_columns)),
-                    ~ zoo::na.approx(
-                        ., na.rm = FALSE, rule = 2, maxgap = maxgap)),
+                    \(.x) zoo::na.approx(
+                        .x, na.rm = FALSE, rule = 2, maxgap = maxgap)),
             )
+
+        cli::cli_alert_info(paste(
+            "Missing data interpolated at {.val {NA_count}} total indices.",
+            "The longest continuous sequence was {.val {NA_sequence}} indices."
+        ))
 
     } else if (handle_missing_values == "omit") {
         ## omit method not implemented. Redundant?
@@ -77,7 +117,7 @@ handle_missing_data <- function(
         #         dplyr::filter(
         #             dplyr::if_any(
         #                 dplyr::any_of(names(nirs_columns)),
-        #                 ~ is.na(.))) |>
+        #                 \(.x) is.na(.x))) |>
         #         dplyr::pull(index)
         #
         #     data_nomissing <- .data |>
@@ -105,7 +145,7 @@ handle_missing_data <- function(
 # # attributes(raw_data)
 # raw_data <- raw_data |>
 #     dplyr::mutate(
-#         dplyr::across(dplyr::matches("smo2_"), ~ round(., 1))
+#         dplyr::across(dplyr::matches("smo2_"), \(.x) round(.x, 1))
 #     )
 # (df <- remove_outliers(
 #     .data = raw_data,

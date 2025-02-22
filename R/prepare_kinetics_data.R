@@ -129,7 +129,7 @@ prepare_kinetics_data <- function(
                 dplyr::summarise(
                     dplyr::across(
                         dplyr::any_of(nirs),
-                        ~ mean(., na.rm = TRUE)),
+                        \(.x) mean(.x, na.rm = TRUE)),
                 )
         })
 
@@ -194,7 +194,8 @@ prepare_kinetics_data <- function(
             ## convert Inf or NaN values to NA
             dplyr::across(
                 dplyr::where(is.numeric),
-                ~ dplyr::if_else(is.infinite(.) | is.nan(.), NA_real_, .)),
+                \(.x) dplyr::if_else(
+                    is.infinite(.x) | is.nan(.x), NA_real_, .x)),
         ) |>
         suppressWarnings()
 

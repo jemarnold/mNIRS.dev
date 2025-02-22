@@ -31,6 +31,8 @@
 #' @param ... Additional arguments.
 #'
 #' @details
+#' `handle_missing_values` imported from [handle_missing_data()].
+#'
 #' `handle_missing_values` must be defined before filtering can be performed.
 #' - *"none"* will pass through data as-is, but will cause *"low-pass"*
 #' or *"smooth-spline"* filtering to fail if there are nay missing or
@@ -92,7 +94,6 @@ filter_data <- function(
     }
 
     ## pass through optional arguments
-    handle_missing_values <- match.arg(handle_missing_values)
     args <- list(...)
 
     metadata <- attributes(.data)
@@ -108,43 +109,9 @@ filter_data <- function(
     }
 
     ## handle missing values ================================
-    if (handle_missing_values == "interpolate") {
-
-        if ("maxgap" %in% names(args)) {
-            maxgap <- args$maxgap
-            cli::cli_alert_info("`na.approx(maxgap = {.val {maxgap}})`")
-        } else {maxgap <- Inf}
-
-        data_nomissing <- .data |>
-            dplyr::mutate(
-                dplyr::across(
-                    dplyr::any_of(names(nirs_columns)),
-                    ~ zoo::na.approx(
-                        ., na.rm = FALSE, rule = 2, maxgap = maxgap)),
-            )
-
-    } else if (handle_missing_values == "omit") {
-        ## omit method not implemented. Redundant?
-        ## TODO implement
-
-        cli::cli_abort(paste(
-            "{.arg handle_missing_values} = {.val {handle_missing_values}}",
-            "is not currently implemented."
-        ))
-
-        #     missing_indices <- .data |>
-        #         dplyr::filter(
-        #             dplyr::if_any(
-        #                 dplyr::any_of(names(nirs_columns)),
-        #                 ~ is.na(.))) |>
-        #         dplyr::pull(index)
-        #
-        #     data_nomissing <- .data |>
-        #         tidyr::drop_na(dplyr::any_of(names(nirs_columns)))
-
-    } else if (handle_missing_values == "none") {
-        data_nomissing <- .data
-    }
+    data_nomissing <- handle_missing_data(
+        .data = .data,
+        handle_missing_values = handle_missing_values)
 
     ## set digital filter parameters ===================================
     ## Filter methods can be defined column-wise or globally
@@ -152,8 +119,9 @@ filter_data <- function(
     ## converted to a named list. The named list will be mapped over
     ## to filter each defined nirs_column
 
-    filter_method_list <-
-        assign_to_named_list(filter_method, names(nirs_columns))
+    filter_method_list <- assign_to_named_list(
+        filter_method,
+        names(nirs_columns))
 
     default_parameters <- lapply(
         filter_method_list,
@@ -164,8 +132,9 @@ filter_data <- function(
              "none" = NULL)[[x]]
     )
 
-    filter_parameters_list <-
-        assign_to_named_list(filter_parameters, names(nirs_columns))
+    filter_parameters_list <- assign_to_named_list(
+        filter_parameters,
+        names(nirs_columns))
 
     filter_parameters_list <- lapply(
         names(filter_method_list),
@@ -212,15 +181,15 @@ filter_data <- function(
                     dplyr::mutate(
                         dplyr::across(
                             dplyr::any_of(nirs),
-                            ~ if (method == "smooth-spline") {
-                                stats::smooth.spline(x = index, y = .)$y
+                            \(.x) if (method == "smooth-spline") {
+                                stats::smooth.spline(x = index, y = .x)$y
                             } else if (method == "low-pass") {
-                                filtfilt_edges(., n = n, W = fc / (sample_rate/2))
+                                filtfilt_edges(.x, n = n, W = fc / (sample_rate/2))
                             } else if (method == "moving-average") {
                                 zoo::rollapply(
-                                    ., width = k, FUN = mean,
+                                    .x, width = k, FUN = mean,
                                     partial = TRUE, na.rm = TRUE)
-                            }  else if (method == "none") {.}
+                            }  else if (method == "none") {.x}
                         )) |>
                     dplyr::select(-index)
             } else if (method == "none") {
