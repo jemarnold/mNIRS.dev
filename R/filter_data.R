@@ -205,8 +205,8 @@ filter_data <- function(
         dplyr::relocate(names(.data)) ## data_filtered
 
     ## metadata ==================================================
-
     metadata$filter_parameters <- filter_parameters_list
+    metadata$missing_indices <- attributes(data_nomissing)$missing_indices
     create_mnirs_data(data_filtered, metadata)
     # attributes(data_filtered)
 

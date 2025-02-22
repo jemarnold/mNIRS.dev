@@ -49,8 +49,21 @@ handle_missing_data <- function(
     nirs_columns <- metadata$nirs_columns
 
     ## report of missing values ===================================
+    missing_indices <- .data |>
+        dplyr::filter(
+            dplyr::if_any(
+                dplyr::any_of(names(nirs_columns)),
+                \(.x) is.na(.x))
+        ) |>
+        dplyr::reframe(
+            dplyr::across(
+                dplyr::any_of(names(nirs_columns)),
+                \(.x) list(index[is.na(.x)]))
+        ) |>
+        purrr::map(\(.x) unlist(.x[[1]]))
+
     ## report total count of missing values from all nirs_columns
-    NA_count <- .data |>
+    missing_count <- .data |>
         dplyr::summarise(
             dplyr::across(
                 dplyr::any_of(names(nirs_columns)),
@@ -72,7 +85,7 @@ handle_missing_data <- function(
 
     ## report longest continuouse sequence of missing values from
     ## all nirs_columns
-    NA_sequence <- .data |>
+    missing_sequence <- .data |>
         dplyr::summarise(
             dplyr::across(
                 dplyr::any_of(names(nirs_columns)),
@@ -100,8 +113,8 @@ handle_missing_data <- function(
             )
 
         cli::cli_alert_info(paste(
-            "Missing data interpolated at {.val {NA_count}} total indices.",
-            "The longest continuous sequence was {.val {NA_sequence}} indices."
+            "Missing data interpolated at {.val {missing_count}} total indices.",
+            "The longest continuous sequence was {.val {missing_sequence}} indices."
         ))
 
     } else if (handle_missing_values == "omit") {
@@ -128,8 +141,7 @@ handle_missing_data <- function(
     }
 
     ## metadata ==================================================
-    metadata$missing_index <- data_nomissing$index[
-        which(is.na(data_nomissing[names(nirs_columns)]))]
+    metadata$missing_indices <- missing_indices
 
     create_mnirs_data(data_nomissing, metadata)
     # attributes(data_nomissing)
@@ -143,21 +155,27 @@ handle_missing_data <- function(
 #     sample_column = "Time",
 #     event_column = "Event"))
 # # attributes(raw_data)
-# raw_data <- raw_data |>
+# (raw_data <- raw_data |>
 #     dplyr::mutate(
-#         dplyr::across(dplyr::matches("smo2_"), \(.x) round(.x, 1))
-#     )
-# (df <- remove_outliers(
-#     .data = raw_data,
-#     sample_rate = 1,
-#     remove_fixed_values = c(66.4, 70.9),
-#     remove_outliers = TRUE,
-#     k = 30, t0 = 3
-# ))
+#         dplyr::across(
+#             smo2_left_VL,
+#             \(.x) dplyr::if_else(dplyr::between(Time, 100, 200), NA, .x)),
+#         dplyr::across(
+#             smo2_right_VL,
+#             \(.x) dplyr::if_else(dplyr::between(Time, 484, 585), NA, .x)),
+#     ))
+# # (df <- remove_outliers(
+# #     .data = raw_data,
+# #     sample_rate = 1,
+# #     remove_fixed_values = c(66.4, 70.9),
+# #     remove_outliers = TRUE,
+# #     k = 30, t0 = 3
+# # ))
+# # raw_data |> dplyr::filter(is.na(smo2_right_VL))
 # (df <- handle_missing_data(
-#     .data = df,
-#     handle_missing_values = "interpolate"#,
+#     .data = raw_data,
+#     handle_missing_values = "interpolate"
 #     # maxgap = 30
 # ))
-# dplyr::filter(df, is.na(smo2_left_VL))
+# # df |> dplyr::filter(is.na(smo2_right_VL))
 # attributes(df)

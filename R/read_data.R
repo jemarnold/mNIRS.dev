@@ -33,7 +33,7 @@ create_mnirs_data <- function(.data, metadata) {
         end_kinetics_window = metadata$end_kinetics_window, ## c(10, 15, 30) sec or 1/10 kinetics_window
         fixed_values_removed = metadata$fixed_values_removed, ## c(0, 100)
         outliers_removed = metadata$outliers_removed, ## logical
-        missing_index = metadata$missing_index, ## indices of missing data (NA)
+        missing_indices = metadata$missing_indices, ## indices of missing data (NA)
         filtered = metadata$filtered, ## filter_method
         shifted_positive = metadata$shifted_positive, ## logical
         normalised = metadata$normalised, ## logical
