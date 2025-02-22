@@ -6,19 +6,20 @@
 \usage{
 handle_missing_data(
   .data,
-  handle_missing_values = c("interpolate", "none"),
+  handle_missing_values = c("none", "interpolate", "omit"),
   ...
 )
 }
 \arguments{
 \item{.data}{A dataframe with mNIRS metadata.}
 
-\item{handle_missing_values}{Indicates how to handle missing data.
+\item{handle_missing_values}{Indicates how to handle missing data globally
+before filtering can be applied.
 \itemize{
-\item \emph{"interpolate"} (the default) will interpolate between existing
-values.
-\item \emph{"none"} will pass through missing data. This may introduce errors
-further along in processing.
+\item \emph{"none"} (the default) will pass through data as-is. May cause errors.
+\item \emph{"interpolate"} will interpolate between existing values.
+\item \emph{"omit"} will remove \code{NA}s before analysis and re-insert them back to
+their original indices.
 }}
 }
 \value{
@@ -28,5 +29,20 @@ A \link[tibble:tibble-package]{tibble}.
 Linearly interpolate across missing mNIRS data.
 }
 \details{
-Additional details...
+\code{handle_missing_values} must be defined before filtering can be performed.
+\itemize{
+\item \emph{"none"} will pass through data as-is, but will cause \emph{"low-pass"}
+or \emph{"smooth-spline"} filtering to fail if there are nay missing or
+non-finite data.
+\item \emph{"interpolate"} uses \code{\link[zoo:na.approx]{zoo::na.approx()}} to linearly interpolate across
+missing data. Missing values on the edges of the dataframe will be
+extrapolated from the first or last present value (see \emph{"rule = 2"} in
+\code{\link[stats:approxfun]{stats::approx()}}). Additional arguments include \emph{"maxgap"} to
+define a limit of consecutive \code{NA}s to fill. Longer gaps will be left
+unchanged and may cause subsequent errors (see \emph{"maxgap"} in
+\code{\link[zoo:na.approx]{zoo::na.approx()}}).
+\item \emph{"omit"} CURRENTLY NOT IMPLEMENTED. will record the indices of \code{NA}s and
+omit them before applying the digital filter. Then \code{NA}s are re-inserted
+back to their original indices when the filtered dataframe is returned.
+}
 }

@@ -7,7 +7,7 @@
 filter_data(
   .data,
   sample_rate,
-  handle_missing_values = c("interpolate", "omit", "none"),
+  handle_missing_values = c("none", "interpolate", "omit"),
   filter_method = "none",
   filter_parameters = NULL,
   ...
@@ -22,17 +22,17 @@ raw data was recorded (in Hz; samples per second).}
 \item{handle_missing_values}{Indicates how to handle missing data globally
 before filtering can be applied.
 \itemize{
-\item \emph{"interpolate"} (the default) will interpolate between existing values.
-\item \emph{"omit"} will remove \code{NA}s before analysis and re-insert
-them back to their original indices.
-\item \emph{"none"} will pass through missing data. May cause errors.
+\item \emph{"none"} (the default) will pass through data as-is. May cause errors.
+\item \emph{"interpolate"} will interpolate between existing values.
+\item \emph{"omit"} will remove \code{NA}s before analysis and re-insert them back to
+their original indices.
 }}
 
 \item{filter_method}{A list of character vectors indicating the digital
 filter method used to smooth each mNIRS data column, either column-wise
 if the list is named by mNIRS columns, or globally if not named. See details.
 \itemize{
-\item \emph{"none"} (the default) will pass through raw data without any digital
+\item \emph{"none"} (the default) will pass through data as-is without any digital
 filtering.
 \item \emph{"smooth-spline"} fits a cubic smoothing spline to the supplied data with
 and automatically determined smoothing parameter \code{spar}.
@@ -62,6 +62,9 @@ Applies digital filtering with either:
 \details{
 \code{handle_missing_values} must be defined before filtering can be performed.
 \itemize{
+\item \emph{"none"} will pass through data as-is, but will cause \emph{"low-pass"}
+or \emph{"smooth-spline"} filtering to fail if there are nay missing or
+non-finite data.
 \item \emph{"interpolate"} uses \code{\link[zoo:na.approx]{zoo::na.approx()}} to linearly interpolate across
 missing data. Missing values on the edges of the dataframe will be
 extrapolated from the first or last present value (see \emph{"rule = 2"} in
@@ -69,12 +72,9 @@ extrapolated from the first or last present value (see \emph{"rule = 2"} in
 define a limit of consecutive \code{NA}s to fill. Longer gaps will be left
 unchanged and may cause subsequent errors (see \emph{"maxgap"} in
 \code{\link[zoo:na.approx]{zoo::na.approx()}}).
-\item \emph{"omit"} will record the indices of \code{NA}s and omit them before
-applying the digital filter. Then \code{NA}s are re-inserted back to their
-original indices when the filtered dataframe is returned. CURRENTLY NOT
-IMPLEMENTED.
-\item \emph{"none"} will cause \emph{"low-pass"} or \emph{"smooth-spline"}
-filtering to fail if there are nay missing or non-finite data.
+\item \emph{"omit"} CURRENTLY NOT IMPLEMENTED. will record the indices of \code{NA}s and
+omit them before applying the digital filter. Then \code{NA}s are re-inserted
+back to their original indices when the filtered dataframe is returned. #'
 }
 
 \code{filter_method} may be a named list for column-wise filtering of individual

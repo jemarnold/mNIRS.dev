@@ -11,14 +11,14 @@
 #' raw data was recorded (in Hz; samples per second).
 #' @param handle_missing_values Indicates how to handle missing data globally
 #' before filtering can be applied.
-#' - *"interpolate"* (the default) will interpolate between existing values.
-#' - *"omit"* will remove `NA`s before analysis and re-insert
-#' them back to their original indices.
-#' - *"none"* will pass through missing data. May cause errors.
+#' - *"none"* (the default) will pass through data as-is. May cause errors.
+#' - *"interpolate"* will interpolate between existing values.
+#' - *"omit"* will remove `NA`s before analysis and re-insert them back to
+#' their original indices.
 #' @param filter_method A list of character vectors indicating the digital
 #' filter method used to smooth each mNIRS data column, either column-wise
 #' if the list is named by mNIRS columns, or globally if not named. See details.
-#' - *"none"* (the default) will pass through raw data without any digital
+#' - *"none"* (the default) will pass through data as-is without any digital
 #' filtering.
 #' - *"smooth-spline"* fits a cubic smoothing spline to the supplied data with
 #' and automatically determined smoothing parameter `spar`.
@@ -32,6 +32,9 @@
 #'
 #' @details
 #' `handle_missing_values` must be defined before filtering can be performed.
+#' - *"none"* will pass through data as-is, but will cause *"low-pass"*
+#' or *"smooth-spline"* filtering to fail if there are nay missing or
+#' non-finite data.
 #' - *"interpolate"* uses [zoo::na.approx()] to linearly interpolate across
 #' missing data. Missing values on the edges of the dataframe will be
 #' extrapolated from the first or last present value (see *"rule = 2"* in
@@ -39,12 +42,9 @@
 #' define a limit of consecutive `NA`s to fill. Longer gaps will be left
 #' unchanged and may cause subsequent errors (see *"maxgap"* in
 #' [zoo::na.approx()]).
-#' - *"omit"* will record the indices of `NA`s and omit them before
-#' applying the digital filter. Then `NA`s are re-inserted back to their
-#' original indices when the filtered dataframe is returned. CURRENTLY NOT
-#' IMPLEMENTED.
-#' - *"none"* will cause *"low-pass"* or *"smooth-spline"*
-#' filtering to fail if there are nay missing or non-finite data.
+#' - *"omit"* CURRENTLY NOT IMPLEMENTED. will record the indices of `NA`s and
+#' omit them before applying the digital filter. Then `NA`s are re-inserted
+#' back to their original indices when the filtered dataframe is returned. #'
 #'
 #' `filter_method` may be a named list for column-wise filtering of individual
 #' mNIRS columns. Or a non-named list or vector with one filtering method to
@@ -67,15 +67,13 @@
 #' where `k` is an odd integer scalar specifying the window width (number of
 #' samples) centred around the index sample (`x +- k/2-1`).
 #'
-
-#'
 #' @return A [tibble][tibble::tibble-package].
 #'
 #' @export
 filter_data <- function(
         .data,
         sample_rate,
-        handle_missing_values = c("interpolate", "omit", "none"),
+        handle_missing_values = c("none", "interpolate", "omit"),
         filter_method = "none",
         filter_parameters = NULL, ## TODO convert this to ... arguments?
         ...
@@ -126,8 +124,23 @@ filter_data <- function(
             )
 
     } else if (handle_missing_values == "omit") {
-
+        ## omit method not implemented. Redundant?
         ## TODO implement
+
+        cli::cli_abort(paste(
+            "{.arg handle_missing_values} = {.val {handle_missing_values}}",
+            "is not currently implemented."
+        ))
+
+        #     missing_indices <- .data |>
+        #         dplyr::filter(
+        #             dplyr::if_any(
+        #                 dplyr::any_of(names(nirs_columns)),
+        #                 ~ is.na(.))) |>
+        #         dplyr::pull(index)
+        #
+        #     data_nomissing <- .data |>
+        #         tidyr::drop_na(dplyr::any_of(names(nirs_columns)))
 
     } else if (handle_missing_values == "none") {
         data_nomissing <- .data
