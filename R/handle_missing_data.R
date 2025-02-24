@@ -9,6 +9,7 @@
 #' - *"interpolate"* will interpolate between existing values.
 #' - *"omit"* will remove `NA`s before analysis and re-insert them back to
 #' their original indices.
+#' @param ... Additional arguments.
 #'
 #' @details
 #' `handle_missing_values` must be defined before filtering can be performed.

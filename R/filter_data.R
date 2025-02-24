@@ -7,8 +7,6 @@
 #' 3. A simple moving average with [zoo::rollapply()].
 #'
 #' @param .data A dataframe with mNIRS metadata.
-#' @param sample_rate An integer scalar indicating the sample rate at which the
-#' raw data was recorded (in Hz; samples per second).
 #' @param handle_missing_values Indicates how to handle missing data globally
 #' before filtering can be applied.
 #' - *"none"* (the default) will pass through data as-is. May cause errors.
@@ -28,6 +26,8 @@
 #' numeric vectors of parameters to pass through to the digital filter(s)
 #' defined in `filter_method`. Either column-wise if the list is named by
 #' mNIRS columns, or globally if not named. See details.
+#' @param sample_rate An integer scalar indicating the sample rate at which the
+#' raw data was recorded (in Hz; samples per second).
 #' @param ... Additional arguments.
 #'
 #' @details
@@ -74,10 +74,10 @@
 #' @export
 filter_data <- function(
         .data,
-        sample_rate,
         handle_missing_values = c("none", "interpolate", "omit"),
         filter_method = "none",
         filter_parameters = NULL, ## TODO convert this to ... arguments?
+        sample_rate = NULL,
         ...
 ) {
     ## TODO
@@ -99,8 +99,16 @@ filter_data <- function(
     metadata <- attributes(.data)
     nirs_columns <- metadata$nirs_columns
 
-    ## validation: `filter_method` must be a character vector or list
+    ## ensure sample_rate is defined in metadata or manually
+    if (is.null(sample_rate) & is.na(metadata$sample_rate)) {
+        cli::cli_abort(paste(
+            "Argument {.arg sample_rate} is missing, with no default."))
 
+    } else if (is.null(sample_rate) & !is.na(metadata$sample_rate)) {
+        sample_rate <- metadata$sample_rate
+    }
+
+    ## validation: `filter_method` must be a character vector or list
     if (any(!unlist(filter_method) %in% c(
         "none", "smooth-spline", "low-pass", "moving-average"))) {
         cli::cli_abort(paste(
@@ -126,7 +134,7 @@ filter_data <- function(
     default_parameters <- lapply(
         filter_method_list,
         \(x)
-        list("smooth-spline" = c(spar = 0),
+        list("smooth-spline" = c(spar = "AUTO"),
              "low-pass" = c(n = 2, fc = 0.05),
              "moving-average" = c(k = 5),
              "none" = NULL)[[x]]

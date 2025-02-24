@@ -6,17 +6,14 @@
 \usage{
 remove_outliers(
   .data,
-  sample_rate,
   remove_fixed_values = NULL,
   remove_outliers = FALSE,
+  sample_rate = NULL,
   ...
 )
 }
 \arguments{
 \item{.data}{A dataframe with mNIRS metadata.}
-
-\item{sample_rate}{An integer scalar indicating the sample rate at which the
-raw data was recorded (in Hz; samples per second).}
 
 \item{remove_fixed_values}{(optional) Either \code{NULL} (the default) or a
 list of numeric vectors of values to remove from mNIRS data, either
@@ -26,6 +23,9 @@ e.g.: \code{remove_fixed_values = list(SmO2 = c(0, 100), HHb = c(-5, 5))}.}
 
 \item{remove_outliers}{A logical indicating whether local outliers should
 be removed globally using a Hampel filter \code{\link[=hampel]{hampel()}}.}
+
+\item{sample_rate}{An integer scalar indicating the sample rate at which the
+raw data was recorded (in Hz; samples per second).}
 
 \item{...}{Additional arguments.}
 }

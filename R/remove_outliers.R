@@ -4,8 +4,6 @@
 #' local outliers with [hampel()].
 #'
 #' @param .data A dataframe with mNIRS metadata.
-#' @param sample_rate An integer scalar indicating the sample rate at which the
-#' raw data was recorded (in Hz; samples per second).
 #' @param remove_fixed_values (optional) Either `NULL` (the default) or a
 #' list of numeric vectors of values to remove from mNIRS data, either
 #' column-wise if a named list, or globally if not named.
@@ -13,6 +11,8 @@
 #' e.g.: `remove_fixed_values = list(SmO2 = c(0, 100), HHb = c(-5, 5))`.
 #' @param remove_outliers A logical indicating whether local outliers should
 #' be removed globally using a Hampel filter [hampel()].
+#' @param sample_rate An integer scalar indicating the sample rate at which the
+#' raw data was recorded (in Hz; samples per second).
 #' @param ... Additional arguments.
 #'
 #' @details
@@ -23,9 +23,9 @@
 #' @export
 remove_outliers <- function(
         .data,
-        sample_rate, ## 1
         remove_fixed_values = NULL,
         remove_outliers = FALSE,
+        sample_rate = NULL,
         ...
 ) {
     ## validation: check for metadata to ensure `read_data()` has been run
@@ -40,6 +40,15 @@ remove_outliers <- function(
 
     metadata <- attributes(.data)
     nirs_columns <- metadata$nirs_columns
+
+    ## ensure sample_rate is defined in metadata or manually
+    if (is.null(sample_rate) & is.na(metadata$sample_rate)) {
+        cli::cli_abort(paste(
+            "Argument {.arg sample_rate} is missing, with no default."))
+
+    } else if (is.null(sample_rate) & !is.na(metadata$sample_rate)) {
+        sample_rate <- metadata$sample_rate
+    }
 
     ## validation: `remove_fixed_values` must be NULL, numeric, or a list
     if (!(

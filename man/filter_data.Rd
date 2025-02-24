@@ -6,18 +6,15 @@
 \usage{
 filter_data(
   .data,
-  sample_rate,
   handle_missing_values = c("none", "interpolate", "omit"),
   filter_method = "none",
   filter_parameters = NULL,
+  sample_rate = NULL,
   ...
 )
 }
 \arguments{
 \item{.data}{A dataframe with mNIRS metadata.}
-
-\item{sample_rate}{An integer scalar indicating the sample rate at which the
-raw data was recorded (in Hz; samples per second).}
 
 \item{handle_missing_values}{Indicates how to handle missing data globally
 before filtering can be applied.
@@ -44,6 +41,9 @@ and automatically determined smoothing parameter \code{spar}.
 numeric vectors of parameters to pass through to the digital filter(s)
 defined in \code{filter_method}. Either column-wise if the list is named by
 mNIRS columns, or globally if not named. See details.}
+
+\item{sample_rate}{An integer scalar indicating the sample rate at which the
+raw data was recorded (in Hz; samples per second).}
 
 \item{...}{Additional arguments.}
 }

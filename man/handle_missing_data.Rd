@@ -21,6 +21,8 @@ before filtering can be applied.
 \item \emph{"omit"} will remove \code{NA}s before analysis and re-insert them back to
 their original indices.
 }}
+
+\item{...}{Additional arguments.}
 }
 \value{
 A \link[tibble:tibble-package]{tibble}.

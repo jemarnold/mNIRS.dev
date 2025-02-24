@@ -42,3 +42,6 @@ A \link[tibble:tibble-package]{tibble}.
 This function reads and imports mNIRS data from file, and returns a
 dataframe.
 }
+\details{
+Additional arguments will accept \code{sample_rate}.
+}

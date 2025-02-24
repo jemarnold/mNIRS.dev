@@ -6,6 +6,19 @@
 #' analysed separately, or ensemble-averaged and analysed together.
 #'
 #' @param .data The data retrived [process_data()].
+#' @param fit_baseline_window A numeric scalar specifying the number of
+#' samples preceding to the kinetics events to include as baseline.
+#' @param fit_kinetics_window A numeric scalar specifying the number of
+#' samples following to the kinetics events to include for kinetics modelling.
+#' @param display_baseline_window A numeric scalar specifying the number of
+#' samples preceding to the kinetics events to include for display (will not
+#' necessarily be modelled).
+#' @param display_kinetics_window A numeric scalar specifying the number of
+#' samples following to the kinetics events to include for display (will not
+#' necessarily be modelled).
+#' @param end_kinetics_window A numeric scalar specifying the number of
+#' samples in which to look for a peak or nadir value indicating the kinetics
+#' plateau.
 #' @param multiple_kinetics_events Indicates whether kinetics events should
 #' be analysed separately or together.
 #' - *"distinct"* (the default) will prepare a list of unique dataframes for
@@ -16,19 +29,6 @@
 #' ensemble-average groups of kinetics events together. Such as
 #' `multiple_kinetics_events = list(c(1, 2), c(3, 4))` for two sets of
 #' repeated bouts.
-#' @param baseline_fit_window A numeric scalar specifying the number of
-#' samples preceding to the kinetics events to include as baseline.
-#' @param kinetics_fit_window A numeric scalar specifying the number of
-#' samples following to the kinetics events to include for kinetics modelling.
-#' @param baseline_display_window A numeric scalar specifying the number of
-#' samples preceding to the kinetics events to include for display (will not
-#' necessarily be modelled).
-#' @param kinetics_display_window A numeric scalar specifying the number of
-#' samples following to the kinetics events to include for display (will not
-#' necessarily be modelled).
-#' @param end_kinetics_window A numeric scalar specifying the number of
-#' samples in which to look for a peak or nadir value indicating the kinetics
-#' plateau.
 #' @param ... Additional arguments.
 #'
 #' @details
@@ -39,12 +39,12 @@
 #' @export
 prepare_kinetics_data <- function(
         .data,
-        multiple_kinetics_events = c("distinct", "ensemble"),
-        baseline_fit_window = 30,
-        kinetics_fit_window = 180,
-        baseline_display_window = 30,
-        kinetics_display_window = 180,
+        fit_baseline_window = 30,
+        fit_kinetics_window = 180,
+        display_baseline_window = 30,
+        display_kinetics_window = 180,
         end_kinetics_window = NULL,
+        multiple_kinetics_events = c("distinct", "ensemble"),
         ...
 ) {
     ## validations
@@ -89,7 +89,7 @@ prepare_kinetics_data <- function(
 
     ## validation: inform message when end_kinetics_window set to default
     if (is.null(end_kinetics_window)) {
-        end_kinetics_window <- min(round(kinetics_fit_window * 0.15/5)*5, 30)
+        end_kinetics_window <- min(round(fit_kinetics_window * 0.15/5)*5, 30)
         cli::cli_alert_info(paste(
             "{.arg end_kinetics_window} set to {.val {end_kinetics_window}}",
             "samples"
@@ -98,10 +98,8 @@ prepare_kinetics_data <- function(
 
 
     ## split dataframes ==================================
-    start_index <- min(c(baseline_fit_window,
-                         baseline_display_window))
-    end_index <- min(c(kinetics_fit_window,
-                       kinetics_display_window))
+    start_index <- min(c(fit_baseline_window, display_baseline_window))
+    end_index <- min(c(fit_kinetics_window, display_kinetics_window))
 
     df_list <- purrr::pmap(
         list(
@@ -135,20 +133,19 @@ prepare_kinetics_data <- function(
 
 
     ## prepare prepared_kinetics_data ===================================
-    prepared_kinetics_data <-
-        .data |>
+    prepared_kinetics_data <- .data |>
         dplyr::mutate(
             display_index = index - event_index,
             nirs_fit_window = dplyr::if_else(
-                dplyr::between(display_index, 1, kinetics_fit_window),
+                dplyr::between(display_index, 1, fit_kinetics_window),
                 nirs, NA_real_),
             nirs_fit_window = signif(nirs_fit_window, 3),
         ) |>
         dplyr::filter(
             dplyr::between(
                 display_index,
-                -baseline_display_window,
-                kinetics_display_window)
+                -display_baseline_window,
+                display_kinetics_window)
         ) |>
         dplyr::mutate(
             ## TROUBLESHOOTING FUNCTION
@@ -180,11 +177,11 @@ prepare_kinetics_data <- function(
             #     partial = TRUE,
             #     na.rm = TRUE),
             ## ensure the peak must be above the mean data within
-            ## kinetics_fit_window. I think to avoid early peaks?
+            ## fit_kinetics_window. I think to avoid early peaks?
             mean = signif(mean(nirs_fit_window, na.rm = TRUE), 3),
             peak = tidyr::replace_na(
                 nirs_fit_window == max & nirs_fit_window > mean, 0),
-            ## where no local peak exists, use the last kinetics_fit_window
+            ## where no local peak exists, use the last fit_kinetics_window
             ## value
             peak2 = (all(is.na(peak) | !peak) & display_index > 0 &
                          is.na(dplyr::lead(nirs_fit_window))) + peak,

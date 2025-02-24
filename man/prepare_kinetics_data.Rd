@@ -6,17 +6,35 @@
 \usage{
 prepare_kinetics_data(
   .data,
-  multiple_kinetics_events = c("distinct", "ensemble"),
-  baseline_fit_window = 30,
-  kinetics_fit_window = 180,
-  baseline_display_window = 30,
-  kinetics_display_window = 180,
+  fit_baseline_window = 30,
+  fit_kinetics_window = 180,
+  display_baseline_window = 30,
+  display_kinetics_window = 180,
   end_kinetics_window = NULL,
+  multiple_kinetics_events = c("distinct", "ensemble"),
   ...
 )
 }
 \arguments{
 \item{.data}{The data retrived \code{\link[=process_data]{process_data()}}.}
+
+\item{fit_baseline_window}{A numeric scalar specifying the number of
+samples preceding to the kinetics events to include as baseline.}
+
+\item{fit_kinetics_window}{A numeric scalar specifying the number of
+samples following to the kinetics events to include for kinetics modelling.}
+
+\item{display_baseline_window}{A numeric scalar specifying the number of
+samples preceding to the kinetics events to include for display (will not
+necessarily be modelled).}
+
+\item{display_kinetics_window}{A numeric scalar specifying the number of
+samples following to the kinetics events to include for display (will not
+necessarily be modelled).}
+
+\item{end_kinetics_window}{A numeric scalar specifying the number of
+samples in which to look for a peak or nadir value indicating the kinetics
+plateau.}
 
 \item{multiple_kinetics_events}{Indicates whether kinetics events should
 be analysed separately or together.
@@ -30,24 +48,6 @@ ensemble-average groups of kinetics events together. Such as
 \code{multiple_kinetics_events = list(c(1, 2), c(3, 4))} for two sets of
 repeated bouts.
 }}
-
-\item{baseline_fit_window}{A numeric scalar specifying the number of
-samples preceding to the kinetics events to include as baseline.}
-
-\item{kinetics_fit_window}{A numeric scalar specifying the number of
-samples following to the kinetics events to include for kinetics modelling.}
-
-\item{baseline_display_window}{A numeric scalar specifying the number of
-samples preceding to the kinetics events to include for display (will not
-necessarily be modelled).}
-
-\item{kinetics_display_window}{A numeric scalar specifying the number of
-samples following to the kinetics events to include for display (will not
-necessarily be modelled).}
-
-\item{end_kinetics_window}{A numeric scalar specifying the number of
-samples in which to look for a peak or nadir value indicating the kinetics
-plateau.}
 
 \item{...}{Additional arguments.}
 }

@@ -35,8 +35,8 @@ create_mnirs_data <- function(.data, metadata) {
         outliers_removed = metadata$outliers_removed, ## logical
         missing_indices = metadata$missing_indices, ## indices of missing data (NA)
         filtered = metadata$filtered, ## filter_method
-        shifted_positive = metadata$shifted_positive, ## logical
-        normalised = metadata$normalised, ## logical
+        shifted = metadata$shifted, ## character scalar or list of vectors
+        normalised = metadata$normalised, ## character scalar or list of vectors
     )
 
     tibble::validate_tibble(nirs_data)
@@ -70,6 +70,9 @@ create_mnirs_data <- function(.data, metadata) {
 #' the file.
 #' @param ... Additional arguments.
 #'
+#' @details
+#' Additional arguments will accept `sample_rate`.
+#'
 #' @return A [tibble][tibble::tibble-package].
 #'
 #' @export
@@ -97,6 +100,9 @@ read_data <- function(
             "{.arg .csv} currently recognised."
         ))
     }
+
+    ## pass through optional arguments
+    args <- list(...)
 
     ## import from either excel or csv
     ## report error when file is open and cannot be opened by readxl
@@ -286,19 +292,24 @@ read_data <- function(
             "{big_gap}."))
     }
 
+    sample_rate <- if ("sample_rate" %in% names(args)) {
+        args$sample_rate
+
+        ## TODO detect sample rate intelligently
+        ## sample_rate will be incorrect if `sample_column` is sample number
+        # ifelse( ## samples per second
+        #     "sample" %in% names(raw_data_prepared),
+        #     1/mean(head(diff(sample_vector)), na.rm = TRUE),
+        #     NA)
+    } else {NA}
+
     metadata <- list(
         file_path = stringr::str_replace_all(file_path, "\\\\", "/"),
         nirs_columns = nirs_columns,
         sample_column = if (!is.null(sample_column)) sample_column else NA,
         event_column = if (!is.null(event_column)) event_column else NA,
         missing_data = any(is.na(raw_data_prepared[names(nirs_columns)])),
-        ## TODO detect sample rate intelligently
-        # sample_rate = ifelse( ## will be incorrect if `sample_column` is
-        ## sample number
-        #     "sample" %in% names(raw_data_prepared),
-        #     1/mean(head(diff(sample_vector)), na.rm = TRUE), ## samples
-        ## per second
-        #     NA)
+        sample_rate = sample_rate,
         NULL)
 
     raw_data <- create_mnirs_data(raw_data_prepared, metadata)
