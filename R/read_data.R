@@ -132,7 +132,7 @@ read_data <- function(
     ## detect row where nirs_columns exists, assuming this is common header
     ## row for dataframe
     header_row <- which(apply(
-        raw_data_pre[1:100, ], 1,
+        raw_data_pre[1:1000, ], 1,
         \(row) all(nirs_columns %in% row)))
 
     ## validation: nirs_columns must be detected to extract the proper
