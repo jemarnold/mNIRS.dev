@@ -43,5 +43,14 @@ This function reads and imports mNIRS data from file, and returns a
 dataframe.
 }
 \details{
-Additional arguments will accept \code{sample_rate}.
+Additional arguments will accept \code{sample_rate} as an integer scalar for the
+data sample rate in Hz. This is required for certain functions. \code{sample_rate}
+will be estimated based on the mean difference between values in the
+\code{sample_column}. If this column contains decimal or date-time values,
+it should correctly estimate the sample rate in Hz. If this column
+contains integer sample numbers, it will incorrectly estimate \code{sample_rate}
+as 1 Hz, and the correct value should be entered manually.
+
+A method has been included to correctly identify \emph{Artinis Oxysoft} sample
+rates, from files exported in English language.
 }

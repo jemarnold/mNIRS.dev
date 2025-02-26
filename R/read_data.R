@@ -71,7 +71,16 @@ create_mnirs_data <- function(.data, metadata) {
 #' @param ... Additional arguments.
 #'
 #' @details
-#' Additional arguments will accept `sample_rate`.
+#' Additional arguments will accept `sample_rate` as an integer scalar for the
+#' data sample rate in Hz. This is required for certain functions. `sample_rate`
+#' will be estimated based on the mean difference between values in the
+#' `sample_column`. If this column contains decimal or date-time values,
+#' it should correctly estimate the sample rate in Hz. If this column
+#' contains integer sample numbers, it will incorrectly estimate `sample_rate`
+#' as 1 Hz, and the correct value should be entered manually.
+#'
+#' A method has been included to correctly identify *Artinis Oxysoft* sample
+#' rates, from files exported in English language.
 #'
 #' @return A [tibble][tibble::tibble-package].
 #'
@@ -111,7 +120,7 @@ read_data <- function(
         raw_data_pre <- tryCatch({
             readxl::read_excel(
                 path = file_path, col_names = FALSE, col_types = "text",
-                n_max = 100) |>
+                n_max = 1000) |>
                 suppressMessages()
         }, error = \(e) {
             if (stringr::str_detect(e$message, "cannot be opened")) {
@@ -157,15 +166,30 @@ read_data <- function(
 
         raw_data_trimmed <- readxl::read_excel(
             path = file_path, skip = header_row - 1,
-            guess_max = 50000, na = c("", "NA")) |>
+            guess_max = 50000, na = c("", "NA")
+        ) |>
+            ## drops columns where all NA or 0
+            dplyr::select(dplyr::where(\(.x) !all(is.na(.x) | .x == 0))) |>
+            ## drops rows where all NA
+            dplyr::filter(
+                dplyr::if_any(dplyr::everything(), \(.x) !is.na(.x))
+            ) |>
             suppressMessages()
 
     } else if (stringr::str_ends(file_path, ".csv")) {
 
         raw_data_trimmed <- utils::read.csv(
             file = file_path, skip = header_row - 1,
-            check.names = FALSE, na.strings = c("", "NA")) |>
-            tibble::as_tibble()
+            check.names = FALSE, na.strings = c("", "NA")
+        ) |>
+            tibble::as_tibble(.name_repair = "unique") |>
+            ## drops columns where all NA or 0
+            dplyr::select(dplyr::where(\(.x) !all(is.na(.x) | .x == 0))) |>
+            ## drops rows where all NA
+            dplyr::filter(
+                dplyr::if_any(dplyr::everything(), \(.x) !is.na(.x))
+            ) |>
+            suppressMessages()
     }
 
     ## rename nirs_columns
@@ -275,7 +299,13 @@ read_data <- function(
         cli::cli_warn(paste(
             "{.arg sample_column} = {.val {names(sample_column)}} has",
             "non-sequential or repeating values. Consider investigating at",
-            "sample(s) {repeated_samples}."))
+            if (length(repeated_samples) > 5) {
+                paste("sample(s)",
+                "{paste(head(repeated_samples, 3), collapse = ', ')}, and",
+                "{.val {length(tail(repeated_samples, -3))}} more samples.")
+            } else {
+                "sample(s) {repeated_samples}."
+            }))
     }
 
     ## validation: soft check gap in sample_column > 1 hr
@@ -292,16 +322,41 @@ read_data <- function(
             "{big_gap}."))
     }
 
-    sample_rate <- if ("sample_rate" %in% names(args)) {
-        args$sample_rate
+    if ("sample_rate" %in% names(args)) {
+        ## return custom input sample rate
+        sample_rate <- args$sample_rate
 
-        ## TODO detect sample rate intelligently
-        ## sample_rate will be incorrect if `sample_column` is sample number
-        # ifelse( ## samples per second
-        #     "sample" %in% names(raw_data_prepared),
-        #     1/mean(head(diff(sample_vector)), na.rm = TRUE),
-        #     NA)
-    } else {NA}
+    } else if (
+        any(apply(
+            raw_data_pre[1:1000, ], 1,
+            \(row) all("Export sample rate" %in% row)))
+    ) {
+
+        ## manually extract Oxysoft sample rate
+        oxysoft_sample_row <- which(apply(
+            raw_data_pre[1:1000, ], 1,
+            \(row) all("Export sample rate" %in% row)))
+
+        sample_rate <- as.numeric(raw_data_pre[oxysoft_sample_row, 2])
+
+        cli::cli_alert_info(paste(
+            "Estimated sample rate is {.val {sample_rate}} Hz.",
+            "Overwrite this by re-running with {.arg sample_rate = X}"
+        ))
+
+    } else {
+
+        ## TODO sample_rate will be incorrect if `sample_column` is sample number
+        ## samples per second
+        sample_rate <- head(diff(sample_vector), 100) |>
+            mean(na.rm = TRUE) |>
+            (\(.x) round(1/.x, 1))()
+
+        cli::cli_alert_info(paste(
+            "Estimated sample rate is {.val {sample_rate}} Hz.",
+            "Overwrite this by re-running with {.arg sample_rate = X}"
+        ))
+    }
 
     metadata <- list(
         file_path = stringr::str_replace_all(file_path, "\\\\", "/"),
