@@ -121,7 +121,7 @@ remove_outliers <- function(
         if ("k" %in% names(args)) {
             k <- args$k
             cli::cli_alert_info("`hampel(k = {.val {k}})`")
-        } else {k <- 20 * sample_rate}
+        } else {k <- 20} ## 20 * sample_rate
 
         if ("t0" %in% names(args)) {
             t0 <- args$t0

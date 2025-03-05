@@ -75,12 +75,3 @@ filtfilt_edges <- function (
            "rep1" = x_filt[(length(x)/10 + 1):(length(x)/10 + length(x))],
            "none" = x_filt)
 }
-
-
-
-
-
-
-
-
-
