@@ -74,13 +74,14 @@ create_mnirs_data <- function(.data, metadata) {
 #' Additional arguments will accept `sample_rate` as an integer scalar for the
 #' data sample rate in Hz. This is required for certain functions. `sample_rate`
 #' will be estimated based on the mean difference between values in the
-#' `sample_column`. If this column contains decimal or date-time values,
-#' it should correctly estimate the sample rate in Hz. If this column
-#' contains integer sample numbers, it will incorrectly estimate `sample_rate`
-#' as 1 Hz, and the correct value should be entered manually.
+#' `sample_column`. If `sample_column` is not specified, then `sample_rate`
+#' will be set to 1 Hz. If `sample_column` contains decimal or date-time
+#' values, `sample_rate` should be correctly estimated in Hz. If `sample_column`
+#' contains integer sample numbers, it will assume `sample_rate` is equal to
+#' 1 Hz. If estimated incorrectly, `sample_rate` should be specified manually.
 #'
-#' A method has been included to correctly identify *Artinis Oxysoft* sample
-#' rates, from files exported in English language.
+#' A method has been included to correctly identify `sample_rate` for
+#' *Artinis Oxysoft* files exported in English.
 #'
 #' @return A [tibble][tibble::tibble-package].
 #'
@@ -284,44 +285,49 @@ read_data <- function(
         ) |>
         dplyr::relocate(index)
 
-    sample_vector <- as.numeric(raw_data_prepared[[names(sample_column)]])
+    ## Soft check sample values if sample_column is present
+    if (!is.null(names(sample_column))) {
 
-    ## validation: soft check whether sample_column has non-sequential or
-    ## repeating values
-    if (any(c(diff(sample_vector) <= 0, FALSE) | duplicated(sample_vector))) {
-        repeated_samples <- raw_data_prepared |>
-            dplyr::filter(
-                c(diff(get(names(sample_column))) <= 0, FALSE) |
-                    duplicated(get(names(sample_column)))
-            ) |>
-            dplyr::pull(index)
+        sample_vector <- as.numeric(raw_data_prepared[[names(sample_column)]])
 
-        cli::cli_warn(paste(
-            "{.arg sample_column} = {.val {names(sample_column)}} has",
-            "non-sequential or repeating values. Consider investigating at",
-            if (length(repeated_samples) > 5) {
-                paste("sample(s)",
-                "{paste(head(repeated_samples, 3), collapse = ', ')}, and",
-                "{.val {length(tail(repeated_samples, -3))}} more samples.")
-            } else {
-                "sample(s) {repeated_samples}."
-            }))
+        ## validation: soft check whether sample_column has non-sequential or
+        ## repeating values
+        if (any(c(diff(sample_vector) <= 0, FALSE) | duplicated(sample_vector))) {
+            repeated_samples <- raw_data_prepared |>
+                dplyr::filter(
+                    c(diff(get(names(sample_column))) <= 0, FALSE) |
+                        duplicated(get(names(sample_column)))
+                ) |>
+                dplyr::pull(index)
+
+            cli::cli_warn(paste(
+                "{.arg sample_column} = {.val {names(sample_column)}} has",
+                "non-sequential or repeating values. Consider investigating at",
+                if (length(repeated_samples) > 5) {
+                    paste("sample(s)",
+                          "{paste(head(repeated_samples, 3), collapse = ', ')}, and",
+                          "{.val {length(tail(repeated_samples, -3))}} more samples.")
+                } else {
+                    "sample(s) {repeated_samples}."
+                }))
+        }
+
+        ## validation: soft check gap in sample_column > 1 hr
+        if (any(diff(sample_vector) > 3600)) {
+            big_gap <- raw_data_prepared |>
+                dplyr::filter(
+                    c(diff(get(names(sample_column))) > 3600, FALSE)
+                ) |>
+                dplyr::pull(index)
+
+            cli::cli_warn(paste(
+                "{.arg sample_column} = {.val {names(sample_column)}} has a gap",
+                "greater than 60 minutes. Consider investigating at sample(s)",
+                "{big_gap}."))
+        }
     }
 
-    ## validation: soft check gap in sample_column > 1 hr
-    if (any(diff(sample_vector) > 3600)) {
-        big_gap <- raw_data_prepared |>
-            dplyr::filter(
-                c(diff(get(names(sample_column))) > 3600, FALSE)
-            ) |>
-            dplyr::pull(index)
-
-        cli::cli_warn(paste(
-            "{.arg sample_column} = {.val {names(sample_column)}} has a gap",
-            "greater than 60 minutes. Consider investigating at sample(s)",
-            "{big_gap}."))
-    }
-
+    ## estimate sample rate
     if ("sample_rate" %in% names(args)) {
         ## return custom input sample rate
         sample_rate <- args$sample_rate
@@ -344,7 +350,7 @@ read_data <- function(
             "Overwrite this by re-running with {.arg sample_rate = X}"
         ))
 
-    } else {
+    } else if (exists("sample_vector")) {
 
         ## TODO sample_rate will be incorrect if `sample_column` is sample number
         ## samples per second
@@ -356,6 +362,14 @@ read_data <- function(
             "Estimated sample rate is {.val {sample_rate}} Hz.",
             "Overwrite this by re-running with {.arg sample_rate = X}"
         ))
+    } else {
+
+        sample_rate <- 1
+
+        cli::cli_alert_info(paste(
+            "No {.arg sample_column} provided. Sample rate set to 1 Hz.",
+            "Overwrite this by re-running with {.arg sample_rate = X}"
+        ))
     }
 
     metadata <- list(
@@ -364,8 +378,7 @@ read_data <- function(
         sample_column = if (!is.null(sample_column)) sample_column else NA,
         event_column = if (!is.null(event_column)) event_column else NA,
         missing_data = any(is.na(raw_data_prepared[names(nirs_columns)])),
-        sample_rate = sample_rate,
-        NULL)
+        sample_rate = sample_rate)
 
     raw_data <- create_mnirs_data(raw_data_prepared, metadata)
     # attributes(raw_data)

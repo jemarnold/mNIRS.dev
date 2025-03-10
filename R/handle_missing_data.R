@@ -127,12 +127,19 @@ handle_missing_data <- function(
             "is not currently implemented."
         ))
 
-        #     missing_indices <- .data |>
-        #         dplyr::filter(
-        #             dplyr::if_any(
-        #                 dplyr::any_of(names(nirs_columns)),
-        #                 \(.x) is.na(.x))) |>
-        #         dplyr::pull(index)
+        # x.all <- setNames(x, seq_along(x))
+        # x <- if (na.rm) {na.omit(x.all)} else {x.all}
+        # y.ind <- as.numeric(names(y[ind]))
+        # x.all[y.ind] <- y[ind]
+
+
+
+            # missing_indices <- .data |>
+            #     dplyr::filter(
+            #         dplyr::if_any(
+            #             dplyr::any_of(names(nirs_columns)),
+            #             \(.x) is.na(.x))) |>
+            #     dplyr::pull(index)
         #
         #     data_nomissing <- .data |>
         #         tidyr::drop_na(dplyr::any_of(names(nirs_columns)))
