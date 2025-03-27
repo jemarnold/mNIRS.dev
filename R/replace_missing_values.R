@@ -6,14 +6,12 @@
 #' @param x A numeric vector of mNIRS data.
 #' @param method Indicates how to replace missing data.
 #' - *"locf"* Stands for 'last observation carried forward'. Replaces each `NA`
-#' with the most recent non-`NA` value prior to it.
-#' - *"linear"* Replaces each `NA` via linear interpolation.
-#' - *"spline"* Replaces each `NA` with cubic spline interpolation.
-#' @param rule An integer of length 1 or 2 describing how interpolation is to
-#' take place outside the interval [`min(x), max(x)`]. If `rule = 1` then `NA`s
-#' are returned for such points and if `rule = 2`, the value at the closest
-#' data extreme is used. Use, e.g., `rule = 2:1`, if the left and right side
-#' extrapolation should differ.
+#' with the most recent non-`NA` value prior to it via [zoo::na.locf()].
+#' - *"linear"* Replaces each `NA` via linear interpolation via
+#' [zoo::na.approx()].
+#' - *"spline"* Replaces each `NA` with cubic spline interpolation via
+#' [zoo::na.spline()].
+#' - *"omit"* Removes `NA` via [stats::na.omit()].
 #' @param na.rm A logical. If the result of the interpolation still results in
 #' leading and/or trailing `NA`s, should these be removed (using na.trim)?
 #' @param maxgap A numeric scalar for the maximum number of consecutive `NA`s
@@ -21,19 +19,26 @@
 #' @param ... Additional arguments.
 #'
 #' @details
-#' For *"locf"*, if there are no earlier non-`NA`s, then the `NA` is either
+#' For `method = locf`, if there are no earlier non-`NA`s, then the `NA` is either
 #' omitted (if `na.rm = TRUE`) or it is not replaced (if `na.rm = FALSE`).
 #'
-#' ...
+#' For `method = linear`, `na.rm = TRUE` will extrapolate over leading and trailing
+#' `NA`s by applying `rule = 2` (see [stats::approx()]). `na.rm = FALSE` will
+#' return leading/trailing `NA`s by applying `rule = 1`.
+#'
+#' For `method = spline` *TODO*.
+#'
+#' For `method = omit`, the returned vector `y` will be a named vector with the
+#' original indices of each value as names. This allows for preserving and
+#' re-inserting the omitted `NA`s back into the final dataset.
 #'
 #' @return A list `L` with `L$y` the corrected time series and
 #' `L$idx` the indices of the values replaced.
 #'
 #' @export
-replace_missing_data <- function(
+replace_missing_values <- function(
         x,
-        method = c("locf", "linear", "spline"),
-        rule = 2,
+        method = c("locf", "linear", "spline", "omit"),
         na.rm = FALSE,
         maxgap = Inf,
         ...
@@ -42,11 +47,23 @@ replace_missing_data <- function(
     method <- match.arg(method)
 
     if (method == "locf") {
-        y <- zoo::na.locf(x, rule = rule, na.rm = na.rm, maxgap = maxgap)
+
+        y <- zoo::na.locf(x, na.rm = na.rm, maxgap = maxgap)
+
     } else if (method == "linear") {
+
+        rule <- ifelse(na.rm, 2, 1)
         y <- zoo::na.approx(x, rule = rule, na.rm = na.rm, maxgap = maxgap)
+
     } else if (method == "spline") {
+
         y <- zoo::na.spline(x, na.rm = na.rm, maxgap = maxgap)
+
+    } else if (method == "omit") {
+
+        x.all <- setNames(x, seq_along(x))
+        y <- na.omit(x.all)[names(na.omit(x.all))]
+
     }
 
     idx <- which(is.na(x))
@@ -55,4 +72,5 @@ replace_missing_data <- function(
 }
 # (x <- c(2,NA,1,4,5,2, NA))
 # zoo::na.locf(x)
-# replace_missing_data(x, "locf", rule = 1, na.rm = FALSE)
+# zoo::na.spline()
+# replace_missing_data(x, "linear", na.rm = TRUE)
