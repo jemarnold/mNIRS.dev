@@ -2,31 +2,67 @@
 % Please edit documentation in R/replace_outliers.R
 \name{replace_outliers}
 \alias{replace_outliers}
-\title{Replace Fixed Values and Outliers from mNIRS Data}
+\title{Replace Local Outliers}
 \usage{
-replace_outliers(.x, fixed_values = NULL, outliers = FALSE, k = 20, ...)
+replace_outliers(.x, k, t0 = 3, na.rm = FALSE, return = c("median", "NA"))
 }
 \arguments{
-\item{.x}{A numeric vector of mNIRS data.}
+\item{.x}{A numeric vector representing a time series.}
 
-\item{fixed_values}{(optional) Either \code{NULL} (the default) or a
-numeric vector of values to be overwritten. e.g. \code{fixed_values = c(0, 100)}.}
+\item{k}{A numeric scalar for the window length of \verb{(2 · k + 1)} indices.}
 
-\item{outliers}{A logical indicating whether local outliers should
-be replaced using a Hampel filter \code{\link[=hampel]{hampel()}}.}
+\item{t0}{A numeric scalar for the outlier threshold, default is 3
+(Pearson's rule), see below.}
 
-\item{k}{A numeric scalar for the window length of \verb{(2 · k + 1)} indices,
-for local outlier detection and the median value replacement.}
+\item{na.rm}{A logical indicating whether missing values should be ignored
+before the filter is applied.}
 
-\item{...}{Additional arguments.}
+\item{return}{Indicates whether outliers should be replaced with the
+local \emph{"median"} value (the default), or returned as \code{NA}.}
 }
 \value{
-A numeric vector.
+A list \code{L} with \code{L$y} the corrected time series and
+\code{L$idx} the indices of outliers in the \emph{"median absolute deviation"} sense.
 }
 \description{
-Detect specified values such as \code{c(0, 100)}, and local outliers with
-\code{\link[=hampel]{hampel()}} within mNIRS vector data, and replaces with the local median value.
+Hampel filter with median absolute deviation (MAD) outlier detection in time
+series which skips \code{NA} (modified from \code{\link[pracma:hampel]{pracma::hampel()}}).
 }
 \details{
-Additional arguments will accept \verb{t0, na.rm, return} for \code{\link[=hampel]{hampel()}}.
+The \emph{"median absolute deviation"} computation is done in the \verb{[-k...k]}
+vicinity of each point at least \code{k} steps away from the end points of the
+interval. At the lower and upper end the time series values are preserved.
+
+A high threshold makes the filter more forgiving, a low one will declare
+more points to be outliers. \code{t0 <- 3} (the default) corresponds to Ron
+Pearson's 3 sigma edit rule, \code{t0 <- 0} to John Tukey's median filter.
+
+\code{NA} values in the numeric vector will cause an error unless
+\code{na.rm} is set to \code{TRUE}. Then \code{NA} values are skipped and preserved in the
+returned vector.
+
+The default \code{return = "median"} will replace outliers with the local
+median value, as in \code{\link[pracma:hampel]{pracma::hampel()}}. Otherwise, outliers will be
+returned as \code{NA}.
+}
+\examples{
+set.seed(8421)
+.x <- numeric(1024)
+z <- rnorm(1024)
+.x[1] <- z[1]
+for (i in 2:1024) {
+    .x[i] <- 0.4*.x[i-1] + 0.8*.x[i-1]*z[i-1] + z[i]
+}
+.x[100:200] <- NA
+omad <- replace_outliers(.x, k = 20, na.rm = TRUE)
+
+## Not run:
+plot(1:1024, .x, type="l")
+points(omad$idx, .x[omad$idx], pch=21, col="darkred")
+grid()
+## End(Not run)
+
+}
+\seealso{
+\code{\link[pracma:hampel]{pracma::hampel()}}
 }

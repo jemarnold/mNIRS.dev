@@ -1,133 +1,100 @@
-#' Replace Fixed Values and Outliers from mNIRS Data
+#' Replace Local Outliers
 #'
-#' Detect specified values such as `c(0, 100)`, and local outliers with
-#' [hampel()] within mNIRS vector data, and replaces with the local median value.
+#' Hampel filter with median absolute deviation (MAD) outlier detection in time
+#' series which skips `NA` (modified from [pracma::hampel()]).
 #'
-#' @param .x A numeric vector of mNIRS data.
-#' @param fixed_values (optional) Either `NULL` (the default) or a
-#' numeric vector of values to be overwritten. e.g. `fixed_values = c(0, 100)`.
-#' @param outliers A logical indicating whether local outliers should
-#' be replaced using a Hampel filter [hampel()].
-#' @param k A numeric scalar for the window length of `(2 · k + 1)` indices,
-#' for local outlier detection and the median value replacement.
-#' @param ... Additional arguments.
+#' @param .x A numeric vector representing a time series.
+#' @param k A numeric scalar for the window length of `(2 · k + 1)` indices.
+#' @param t0 A numeric scalar for the outlier threshold, default is 3
+#' (Pearson's rule), see below.
+#' @param na.rm A logical indicating whether missing values should be ignored
+#' before the filter is applied.
+#' @param return Indicates whether outliers should be replaced with the
+#' local *"median"* value (the default), or returned as `NA`.
 #'
 #' @details
-#' Additional arguments will accept `t0, na.rm, return` for [hampel()].
+#' The *"median absolute deviation"* computation is done in the `[-k...k]`
+#' vicinity of each point at least `k` steps away from the end points of the
+#' interval. At the lower and upper end the time series values are preserved.
 #'
-#' @return A numeric vector.
+#' A high threshold makes the filter more forgiving, a low one will declare
+#' more points to be outliers. `t0 <- 3` (the default) corresponds to Ron
+#' Pearson's 3 sigma edit rule, `t0 <- 0` to John Tukey's median filter.
+#'
+#' `NA` values in the numeric vector will cause an error unless
+#' `na.rm` is set to `TRUE`. Then `NA` values are skipped and preserved in the
+#' returned vector.
+#'
+#' The default `return = "median"` will replace outliers with the local
+#' median value, as in [pracma::hampel()]. Otherwise, outliers will be
+#' returned as `NA`.
+#'
+#' @seealso [pracma::hampel()]
+#'
+#' @examples
+#' set.seed(8421)
+#' .x <- numeric(1024)
+#' z <- rnorm(1024)
+#' .x[1] <- z[1]
+#' for (i in 2:1024) {
+#'     .x[i] <- 0.4*.x[i-1] + 0.8*.x[i-1]*z[i-1] + z[i]
+#' }
+#' .x[100:200] <- NA
+#' omad <- replace_outliers(.x, k = 20, na.rm = TRUE)
+#'
+#' ## Not run:
+#' plot(1:1024, .x, type="l")
+#' points(omad$idx, .x[omad$idx], pch=21, col="darkred")
+#' grid()
+#' ## End(Not run)
+#'
+#' @return A list `L` with `L$y` the corrected time series and
+#' `L$idx` the indices of outliers in the *"median absolute deviation"* sense.
 #'
 #' @export
 replace_outliers <- function(
         .x,
-        fixed_values = NULL, ## numeric vector
-        outliers = FALSE, ## logical
-        k = 20, ## numeric scalar
-        ...
+        k,
+        t0 = 3,
+        na.rm = FALSE,
+        return = c("median", "NA")
 ) {
 
-    ## pass through optional arguments
-    args <- list(...)
+    return <- match.arg(return)
 
+    ## validation: `k` must be a numeric scalar
     if (!rlang::is_double(k) | length(k) > 1) {
         cli::cli_abort(paste("{.arg k} must be a {.cls numeric} scalar."))
     }
 
-    ## replace fixed values ================================
-    ## TODO replace fixed values with local median
-    ## validation: `fixed_values` must be NULL or numeric vector
-    if (!(
-        is.null(fixed_values) | rlang::is_double(fixed_values)
-    )) {
-
-        cli::cli_abort(paste(
-            "{.arg fixed_values} must be a {.cls numeric} vector",
-            "or {.cls NULL}, not {.cls {class(fixed_values)}}."))
-    } else if (rlang::is_double(fixed_values)) {
-
-        # fixed_removed <- .x[!.x %in% fixed_values]
-
-        ## TODO replace fixed values with local median
-        fixed_indices <- which(.x %in% fixed_values)
-
-    } else if (is.null(fixed_values)) {
-        fixed_removed <- .x
+    ## validation: `k` must be shorter than .x
+    if (k >= ceiling(length(.x)/2)) {
+        cli::cli_abort(paste("{.arg k} must be 1/2 the length of {.arg .x}."))
     }
 
-
-    ## replace outliers ================================
-    ## validation: `outliers` must be logical
-    if (!isTRUE(outliers) & !isFALSE(outliers)) {
-
-        cli::cli_abort(paste(
-            "{.arg outliers} must be either {.val {TRUE}}",
-            "or {.val {FALSE}}, not {.val {outliers}}."))
-
-    } else if (outliers) {
-
-        if ("t0" %in% names(args)) {
-            t0 <- args$t0
-            cli::cli_alert_info("`hampel(t0 = {.val {t0}})`")
-        } else {t0 <- 3}
-
-        if ("na.rm" %in% names(args)) {
-            na.rm <- args$na.rm
-            cli::cli_alert_info("`hampel(na.rm = {.val {na.rm}})`")
-        } else {na.rm <- TRUE}
-
-        if ("return" %in% names(args)) {
-            return <- args$return
-            cli::cli_alert_info("`hampel(return = {.val {return}})`")
-        } else {return <- "median"}
-
-        outliers_removed <- mNIRS::hampel(
-            fixed_removed,
-            k = k,
-            t0 = t0,
-            na.rm = na.rm,
-            return = return)$y
-
-    } else if (!outliers) {
-        outliers_removed <- fixed_removed
+    ## validation: `t0` must be a numeric scalar
+    if (!rlang::is_double(t0) | length(t0) > 1) {
+        cli::cli_abort(paste("{.arg t0} must be a {.cls numeric} scalar."))
     }
 
-    ## return ====================================
-    return(outliers_removed)
+    x.all <- setNames(.x, seq_along(.x))
+    .x <- if (na.rm) {na.omit(x.all)} else {x.all}
+
+    n <- length(.x)
+    y <- .x
+    idx <- c()
+    L <- 1.4826
+    for (i in (k + 1):(n - k)) {
+        x0 <- median(.x[(i - k):(i + k)])
+        S0 <- L * median(abs(.x[(i - k):(i + k)] - x0))
+        if (abs(.x[i] - x0) > t0 * S0) {
+            y[i] <- if (return == "median") {x0} else {NA_real_}
+            idx <- c(idx, i)
+        }
+    }
+
+    y.idx <- as.numeric(names(y[idx]))
+    x.all[y.idx] <- y[idx]
+
+    list(y = x.all, idx = y.idx)
 }
-#
-## Troubleshooting ========================
-# library(mNIRS)
-# (raw_data <- read_data(
-#     file_path = r"(C:\OneDrive - UBC\5-1 Assessments\Processed Data\03-2_2021-08-10-data.xlsx)",
-#     nirs_columns = c("smo2_left_VL", "smo2_right_VL"),
-#     sample_column = "Time",
-#     event_column = "Event"))
-# # attributes(raw_data)
-# raw_data <- raw_data |>
-#     dplyr::mutate(
-#         dplyr::across(dplyr::matches("smo2_"), ~ round(., 1))
-#     )
-# (processed_data <- outliers(
-#     .data = raw_data,
-#     sample_rate = 1,
-#     fixed_values = c(66.4, 70.9),
-#     outliers = TRUE,
-#     k = 30, t0 = 3
-# ))
-# attributes(processed_data)
-
-# fixed_values = list(smo2_left_VL = c(66.4, 66.8),
-#                            smo2_right_VL = c(70.9, 70.6))
-# fixed_values <- list(c(66.4, 70.9))
-# fixed_values <- c(66.4, 70.9)
-#
-# tst <- function(...) {
-#
-#     args <- list(...)
-#
-#
-#     if (!"k" %in% names(args)) k <- 2 else k <- args$k
-#     k + 3
-# }
-#
-# tst(k = 5)
