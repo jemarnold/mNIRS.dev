@@ -4,20 +4,15 @@
 \alias{replace_fixed_values}
 \title{Replace Fixed Values}
 \usage{
-replace_fixed_values(
-  .x,
-  fixed_values = NULL,
-  k = 20,
-  return = c("median", "NA")
-)
+replace_fixed_values(x, fixed_values, k = 20, return = c("median", "NA"))
 }
 \arguments{
-\item{.x}{A numeric vector of mNIRS data.}
+\item{x}{A numeric vector of mNIRS data.}
 
 \item{fixed_values}{A numeric vector of values to be replaced,
 e.g. \code{fixed_values = c(0, 100)}.}
 
-\item{k}{A numeric scalar for the window length of \verb{(2 · k + 1)} indices.}
+\item{k}{A numeric scalar for the window length of \verb{(2 · k + 1)} samples.}
 
 \item{return}{Indicates whether outliers should be replaced with the
 local \emph{"median"} value (the default), or returned as \code{NA}.}
@@ -26,7 +21,7 @@ local \emph{"median"} value (the default), or returned as \code{NA}.}
 }
 \value{
 A list \code{L} with \code{L$y} the corrected time series and
-\code{L$idx} the indices of the fixed values replaced.
+\code{L$idx} the indices of the values replaced.
 }
 \description{
 Detect specified values such as \code{c(0, 100)} within mNIRS vector data and

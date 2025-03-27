@@ -4,12 +4,12 @@
 \alias{replace_outliers}
 \title{Replace Local Outliers}
 \usage{
-replace_outliers(.x, k, t0 = 3, na.rm = FALSE, return = c("median", "NA"))
+replace_outliers(x, k, t0 = 3, na.rm = FALSE, return = c("median", "NA"))
 }
 \arguments{
-\item{.x}{A numeric vector representing a time series.}
+\item{x}{A numeric vector representing a time series.}
 
-\item{k}{A numeric scalar for the window length of \verb{(2 · k + 1)} indices.}
+\item{k}{A numeric scalar for the window length of \verb{(2 · k + 1)} samples.}
 
 \item{t0}{A numeric scalar for the outlier threshold, default is 3
 (Pearson's rule), see below.}
@@ -22,7 +22,7 @@ local \emph{"median"} value (the default), or returned as \code{NA}.}
 }
 \value{
 A list \code{L} with \code{L$y} the corrected time series and
-\code{L$idx} the indices of outliers in the \emph{"median absolute deviation"} sense.
+\code{L$idx} the indices of the values replaced.
 }
 \description{
 Hampel filter with median absolute deviation (MAD) outlier detection in time
@@ -47,18 +47,18 @@ returned as \code{NA}.
 }
 \examples{
 set.seed(8421)
-.x <- numeric(1024)
+x <- numeric(1024)
 z <- rnorm(1024)
-.x[1] <- z[1]
+x[1] <- z[1]
 for (i in 2:1024) {
-    .x[i] <- 0.4*.x[i-1] + 0.8*.x[i-1]*z[i-1] + z[i]
+    x[i] <- 0.4*x[i-1] + 0.8*x[i-1]*z[i-1] + z[i]
 }
-.x[100:200] <- NA
-omad <- replace_outliers(.x, k = 20, na.rm = TRUE)
+x[100:200] <- NA
+omad <- replace_outliers(x, k = 20, na.rm = TRUE)
 
 ## Not run:
-plot(1:1024, .x, type="l")
-points(omad$idx, .x[omad$idx], pch=21, col="darkred")
+plot(1:1024, x, type="l")
+points(omad$idx, x[omad$idx], pch=21, col="darkred")
 grid()
 ## End(Not run)
 
