@@ -133,17 +133,22 @@ read_data <- function(
             } else {stop(e)}
         })
 
+        ## detect row where nirs_columns exists, assuming this is common header
+        ## row for dataframe
+        header_row <- which(apply(
+            raw_data_pre[1:1000, ], 1,
+            \(row) all(nirs_columns %in% row)))
+
     } else if (grepl("csv", tools::file_ext(file_path))) {
 
-        raw_data_pre <- utils::read.csv(file = file_path, header = FALSE) |>
+        all_lines <- readLines(file_path, warn = FALSE)
+
+        header_row <- which(
+            Reduce(`&`, lapply(nirs_columns, grepl, x = all_lines)))
+
+        raw_data_pre <- data.table::fread(file_path, fill = Inf) |>
             tibble::as_tibble()
     }
-
-    ## detect row where nirs_columns exists, assuming this is common header
-    ## row for dataframe
-    header_row <- which(apply(
-        raw_data_pre[1:1000, ], 1,
-        \(row) all(nirs_columns %in% row)))
 
     ## validation: nirs_columns must be detected to extract the proper
     ## dataframe
@@ -413,7 +418,7 @@ read_data <- function(
 # read_data(
 #     file_path = r"(C:\OneDrive - UBC\Group Projects\JAData\1619.csv)",
 #     nirs_columns = c("SmO2 Live", "SmO2 Averaged", "THb"),
-#     sample_column = "hh:mm:ss",
+#     sample_column = c("time" = "hh:mm:ss"),
 #     event_column = NULL)
 # #
 # # ## PerfPro
@@ -421,7 +426,7 @@ read_data <- function(
 #     file_path = r"(C:\OneDrive - UBC\Group Projects\JAData\Treadmill-VO2max-PerfPro-2024-12-16.xlsx)",
 #     nirs_columns = "smo2_left_VL",
 #     sample_column = "Time",
-#     event_column = NULL) |> attributes()
+#     event_column = NULL)
 # #
 # # ## Artinis Oxysoft
 # read_data(
@@ -431,17 +436,30 @@ read_data <- function(
 #     event_column = "event")
 # #
 # # ## VMPro
-# read_data(
+# mNIRS::read_data(
 #     file_path = r"(C:\OneDrive - UBC\Group Projects\JAData\DataAverage-VMPro-2023-05-17.xlsx)",
-#     nirs_columns = c("SmO2[%]", "SmO2 -  2[%]", "THb[THb]"),
-#     sample_column = "Time[hh:mm:ss]",
-#     event_column = NULL)
+#     nirs_columns = c("right_smo2" = "SmO2[%]",
+#                      "left_smo2" = "SmO2 -  2[%]",
+#                      "thb" = "THb[THb]"),
+#     sample_column = c("time" = "Time[hh:mm:ss]"),
+#     event_column = NULL,
+#     .keep_all = TRUE)
 # #
 # # ## VMPro
-# read_data(
+# mNIRS::read_data(
 #     file_path = r"(C:\OneDrive - UBC\Group Projects\JAData\MoxyUnit-VMPro-2023-05-17.xlsx)",
-#     nirs_columns = c("SmO2[%]", "SmO2 -  2[%]", "THb[THb]"),
-#     sample_column = "Time[s]",
+#     nirs_columns = c("right_smo2" = "SmO2[%]",
+#                      "left_smo2" = "SmO2 -  2[%]",
+#                      "thb" = "THb[THb]"),
+#     sample_column = c("time" = "Time[s]"),
 #     event_column = NULL)
 # # #
 #
+## Train Red
+# mNIRS::read_data(
+#     file_path = r"(C:\OneDrive - UBC\Group Projects\JAData\MF-TR-2025-03-20.csv)",
+#     nirs_columns = c("SmO2" = "SmO2 unfiltered",
+#                      "HHb" = "HHb unfiltered",
+#                      "O2Hb" = "O2HB unfiltered"),
+#     sample_column = c("time" = "Timestamp (seconds passed)"),
+#     event_column = c("lap" = "Lap/Event"))
