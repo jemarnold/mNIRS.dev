@@ -28,7 +28,5 @@ Detect specified values such as \code{c(0, 100)} within mNIRS vector data and
 replaces with the local median value.
 }
 \details{
-The default \code{return = "median"} will replace outliers with the local
-median value, as in \code{\link[pracma:hampel]{pracma::hampel()}}. Otherwise, outliers will be
-returned as \code{NA}.
+...
 }

@@ -43,16 +43,16 @@ Detect missing values within mNIRS vector data and replace via methods from
 the \code{{zoo}} package.
 }
 \details{
-For \code{method = locf}, if there are no earlier non-\code{NA}s, then the \code{NA} is either
+For \code{method = "locf"}, if there are no earlier non-\code{NA}s, then the \code{NA} is either
 omitted (if \code{na.rm = TRUE}) or it is not replaced (if \code{na.rm = FALSE}).
 
-For \code{method = linear}, \code{na.rm = TRUE} will extrapolate over leading and trailing
+For \code{method = "linear"}, \code{na.rm = TRUE} will extrapolate over leading and trailing
 \code{NA}s by applying \code{rule = 2} (see \code{\link[stats:approxfun]{stats::approx()}}). \code{na.rm = FALSE} will
 return leading/trailing \code{NA}s by applying \code{rule = 1}.
 
-For \code{method = spline} \emph{TODO}.
+For \code{method = "spline"} \emph{TODO}.
 
-For \code{method = omit}, the returned vector \code{y} will be a named vector with the
+For \code{method = "omit"}, the returned vector \code{y} will be a named vector with the
 original indices of each value as names. This allows for preserving and
 re-inserting the omitted \code{NA}s back into the final dataset.
 }

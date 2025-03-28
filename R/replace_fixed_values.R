@@ -12,9 +12,7 @@
 #' @param ... Additional arguments.
 #'
 #' @details
-#' The default `return = "median"` will replace outliers with the local
-#' median value, as in [pracma::hampel()]. Otherwise, outliers will be
-#' returned as `NA`.
+#' ...
 #'
 #' @return A list `L` with `L$y` the corrected time series and
 #' `L$idx` the indices of the values replaced.

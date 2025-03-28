@@ -9,7 +9,7 @@ replace_outliers(x, k, t0 = 3, na.rm = FALSE, return = c("median", "NA"))
 \arguments{
 \item{x}{A numeric vector representing a time series.}
 
-\item{k}{A numeric scalar for the window length of \verb{(2 · k + 1)} samples.}
+\item{k}{A numeric scalar for the window length of \verb{(2 × k + 1)} samples.}
 
 \item{t0}{A numeric scalar for the outlier threshold, default is 3
 (Pearson's rule), see below.}
@@ -34,8 +34,8 @@ vicinity of each point at least \code{k} steps away from the end points of the
 interval. At the lower and upper end the time series values are preserved.
 
 A high threshold makes the filter more forgiving, a low one will declare
-more points to be outliers. \code{t0 <- 3} (the default) corresponds to Ron
-Pearson's 3 sigma edit rule, \code{t0 <- 0} to John Tukey's median filter.
+more points to be outliers. \code{t0 = 3} (the default) corresponds to Ron
+Pearson's 3 sigma edit rule, \code{t0 = 0} to John Tukey's median filter.
 
 \code{NA} values in the numeric vector will cause an error unless
 \code{na.rm} is set to \code{TRUE}. Then \code{NA} values are skipped and preserved in the

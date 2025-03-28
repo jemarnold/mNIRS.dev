@@ -19,16 +19,16 @@
 #' @param ... Additional arguments.
 #'
 #' @details
-#' For `method = locf`, if there are no earlier non-`NA`s, then the `NA` is either
+#' For `method = "locf"`, if there are no earlier non-`NA`s, then the `NA` is either
 #' omitted (if `na.rm = TRUE`) or it is not replaced (if `na.rm = FALSE`).
 #'
-#' For `method = linear`, `na.rm = TRUE` will extrapolate over leading and trailing
+#' For `method = "linear"`, `na.rm = TRUE` will extrapolate over leading and trailing
 #' `NA`s by applying `rule = 2` (see [stats::approx()]). `na.rm = FALSE` will
 #' return leading/trailing `NA`s by applying `rule = 1`.
 #'
-#' For `method = spline` *TODO*.
+#' For `method = "spline"` *TODO*.
 #'
-#' For `method = omit`, the returned vector `y` will be a named vector with the
+#' For `method = "omit"`, the returned vector `y` will be a named vector with the
 #' original indices of each value as names. This allows for preserving and
 #' re-inserting the omitted `NA`s back into the final dataset.
 #'

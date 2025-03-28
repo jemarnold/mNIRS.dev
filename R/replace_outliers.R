@@ -4,7 +4,7 @@
 #' series which skips `NA` (modified from [pracma::hampel()]).
 #'
 #' @param x A numeric vector representing a time series.
-#' @param k A numeric scalar for the window length of `(2 · k + 1)` samples.
+#' @param k A numeric scalar for the window length of `(2 × k + 1)` samples.
 #' @param t0 A numeric scalar for the outlier threshold, default is 3
 #' (Pearson's rule), see below.
 #' @param na.rm A logical indicating whether missing values should be ignored
@@ -18,8 +18,8 @@
 #' interval. At the lower and upper end the time series values are preserved.
 #'
 #' A high threshold makes the filter more forgiving, a low one will declare
-#' more points to be outliers. `t0 <- 3` (the default) corresponds to Ron
-#' Pearson's 3 sigma edit rule, `t0 <- 0` to John Tukey's median filter.
+#' more points to be outliers. `t0 = 3` (the default) corresponds to Ron
+#' Pearson's 3 sigma edit rule, `t0 = 0` to John Tukey's median filter.
 #'
 #' `NA` values in the numeric vector will cause an error unless
 #' `na.rm` is set to `TRUE`. Then `NA` values are skipped and preserved in the
