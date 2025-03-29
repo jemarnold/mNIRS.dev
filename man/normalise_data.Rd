@@ -2,68 +2,29 @@
 % Please edit documentation in R/normalise_data.R
 \name{normalise_data}
 \alias{normalise_data}
-\title{Normalise mNIRS data range}
+\title{Normalise Signal Range}
 \usage{
 normalise_data(
-  .data,
-  shift_minimum = c("none", "column", "global"),
-  shift_value = 0,
-  normalise = c("none", "column", "global"),
+  x,
+  shift_to = 0,
   normalise_range = c(0, 100),
+  shift_by,
+  shift_position = c("minimum", "start value", "maximum"),
+  mean_samples,
   ...
 )
 }
 \arguments{
-\item{shift_minimum}{Indicates whether and how the range of observed mNIRS
-data should be shifted, to return only positive data or to a specified
-starting baseline value. For example, can be used when mNIRS values are
-arbitrarily scaled from the starting value (e.g., Artinis Oxysoft).
-This does not change the scale of the data.
-\itemize{
-\item \emph{"none"} (the default) will not shift any data.
-\item \emph{"column"} will shift each NIRS column to it's own new baseline value.
-\item \emph{"global"} will shift all NIRS columns to a common baseline value, from
-the minimum value across all columns. Will preserve the relationship across
-NIRS columns.
-\item Alternatively, a list of character vectors of NIRS column names can be
-specified to shift across selected columns in groups, e.g. for left and
-right quadriceps and deltoid sites separately, such as
-\code{list(c("smo2_left", "smo2_right"), "smo2_delt")}.
-}}
-
-\item{shift_value}{A numeric scalar to which the minimum value from the
-specified NIRS data columns will be shifted to.}
-
-\item{normalise}{Indicates whether and how the range of observed mNIRS
-data should be re-scaled to between 0 and 100. For example, to be used when
-calibrating the data to an ischaemic occlusion (physiological range), or to
-the existing observed data (functional range).
-\itemize{
-\item \emph{"none"} (the default) will not normalise any data.
-\item \emph{"column"} will re-scale each NIRS column to 0-100 within it's own
-range.
-\item \emph{"global"} will re-scale all NIRS columns to a common 0-100 range, from
-the minimum to the maximum values across all columns. Will preserve the
-relationship across NIRS columns.
-\item Alternatively, a list of character vectors of NIRS column names can be
-specified to re-scale across selected columns in groups, e.g. for left and
-right quadriceps and deltoid sites separately, such as
-\code{list(c("smo2_left", "smo2_right"), "smo2_delt")}.
-}}
-
-\item{normalise_range}{A numeric vector in the form \code{c(min, max)},
-indicating the minimum and maximum values to which the specified NIRS
-data columns will be  re-scaled.}
-
 \item{...}{Additional arguments.}
 }
 \value{
-A \link[tibble:tibble-package]{tibble}.
+A numeric vector of filtered data.
 }
 \description{
-Shifts the data range to be positive values, and normalise the dynamic
-range of data to 0-100.
+Shift the signal values while preserving the dynamic range (e.g. shift to
+positive values), or normalise the signal to within a new dynamic range (e.g.
+normalise range to \verb{[0, 100]}).
 }
 \details{
-Additional arguments will accept ``
+...
 }

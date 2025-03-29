@@ -19,6 +19,25 @@ camcorder::gg_record(
   bg = "white")
 # camcorder::gg_stop_recording()
 #
+## BUILD =======================================
+# library(devtools)
+#
+# usethis::use_mit_license()
+#
+# use_r("read_data")
+# load_all()
+#
+# exists("read_data", where = globalenv(), inherits = FALSE)
+#
+# check()
+#
+# tools::showNonASCIIfile("C:/R-Projects/mNIRS/R/process_data.R")
+# document()
+# ?read_data
+# install()
+# use_readme_rmd()
+# devtools::build_readme()
+
 ## Data Wrangling ================================
 file_path = "C:/OneDrive - UBC/FLIA Clinical Assessments/Raw Data/CSI-O CB/CB12-RVL-2025-03-07.xlsx"
 # file_path = r"(C:\OneDrive - UBC\FLIA Clinical Assessments\Raw Data\CSI-O CB\CBpre-LVL-2024-1126.xlsx)"
