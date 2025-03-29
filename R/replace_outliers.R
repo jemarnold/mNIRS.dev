@@ -1,9 +1,9 @@
 #' Replace Local Outliers
 #'
-#' Hampel filter with median absolute deviation (MAD) outlier detection in time
-#' series which skips `NA` (modified from [pracma::hampel()]).
+#' Hampel filter with median absolute deviation (MAD) to detect outliers in
+#' mNIRS vector data. Modified from [pracma::hampel()] to skip `NA`s.
 #'
-#' @param x A numeric vector representing a time series.
+#' @param xA numeric vector of mNIRS data.
 #' @param k A numeric scalar for the window length of `(2 × k + 1)` samples.
 #' @param t0 A numeric scalar for the outlier threshold, default is 3
 #' (Pearson's rule), see below.

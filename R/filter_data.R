@@ -28,20 +28,21 @@
 #' the lowest order that sufficiently captures rapid step-changes in the data.
 #'
 #' The low frequencies to be passed through the filter are defined by a
-#' critical frequency. This can be defined by either `fc`, a numeric scalar
-#' representing the desired critical frequency in Hz, and `sr`, a numeric
-#' scalar reflecting the sample rate of the data in Hz together. Or by `W`,
-#' a numeric scalar representing the desired fractional critical frequency
-#' between `[0, 1]`, where `1` is the Nyquist frequency, i.e., half the sample
-#' rate of the data in Hz.
+#' critical frequency. This can be defined by either `critical_frequency`, a
+#' numeric scalar representing the desired critical frequency in Hz, and
+#' `sample_rate`, a numeric scalar reflecting the sample rate of the data in Hz
+#' together. Or by `W`, a numeric scalar representing the desired fractional
+#' critical frequency between `[0, 1]`, where `1` is the Nyquist frequency,
+#' i.e., half the sample rate of the data in Hz.
 #'
-#' Defining both `fc` and `sr` explicitly will overwrite `W`.
+#' Defining both `critical_frequency` and `sample_rate` explicitly will
+#' overwrite `W`.
 #'
 #' `method = "moving-average"` applies a centred (two-way symmetrical) moving
 #' average filter from [zoo::rollapply()]. The moving-average is calculated
-#' over a window of width `k`, an integer scalar specifying the number of
-#' samples between `[i - floor(k/2), i + floor(k/2)]`. A partial moving-average
-#' will be calculated at the edges of the existing data.
+#' over a window of width `width`, an integer scalar specifying the number of
+#' samples between `[i - floor(width/2), i + floor(width/2)]`. A partial
+#' moving-average will be calculated at the edges of the existing data.
 #'
 #' @return A numeric vector of filtered data.
 #'
@@ -52,9 +53,9 @@ filter_data <- function(
         spar = NULL,
         n = 4,
         W = 0.1,
-        fc,
-        sr,
-        k = 15,
+        critical_frequency,
+        sample_rate,
+        width = 15,
         ...
 ) {
 
@@ -70,14 +71,20 @@ filter_data <- function(
 
     } else if (method == "low-pass") {
 
-        if (!missing(fc) & !missing(sr)) {
+        if (!missing(critical_frequency) & !missing(sample_rate)) {
 
-            y <- mNIRS::filtfilt_edges(x = x, n = n, W = fc / (sr/2))
+            y <- mNIRS::filtfilt_edges(
+                x = x, n = n, W = critical_frequency / (sample_rate/2))
+
             cli::cli_alert_info(paste(
                 "Butterworth low-pass filter: n = {.val {n}},",
-                "fc = {.val {fc}}, sr = {.val {sr}}."))
+                "critical_frequency = {.val {critical_frequency}},",
+                "sample_rate = {.val {sample_rate}}."))
 
-        } else if ((missing(fc) | missing(sr)) & !(missing(W) | is.null(W))) {
+        } else if (
+            (missing(critical_frequency) | missing(sample_rate))
+            & !(missing(W) | is.null(W))
+        ) {
 
             y <- mNIRS::filtfilt_edges(x = x, n = n, W = W)
             cli::cli_alert_info(paste(
@@ -86,16 +93,17 @@ filter_data <- function(
 
         } else {
             cli::cli_abort(paste(
-                "Either {.arg W}, or {.arg fc} and {.arg sr}",
-                "must be specified for the Butterworth low-pass filter."))
+                "Either {.arg W}, or {.arg critical_frequency} and
+                {.arg sample_rate} must be specified for the",
+                "Butterworth low-pass filter."))
         }
 
     } else if (method == "moving-average") {
 
         y <- zoo::rollapply(
-            x, width = k, FUN = mean,
+            x, width = width, FUN = mean,
             align = "center", partial = TRUE, na.rm = TRUE)
-        cli::cli_alert_info("Moving-average: k = {.val {k}}.")
+        cli::cli_alert_info("Moving-average: width = {.val {width}}.")
 
     }
 
@@ -116,9 +124,9 @@ filter_data <- function(
 #         # smo2_filt = filter_data(
 #         #     smo2_673, method = "low-pass", n = 2, W = 0.01),
 #         smo2_filt = filter_data(
-#             smo2_673, method = "low-pass", fc = 0.5),
+#             smo2_673, method = "low-pass", critical_frequency = 0.5),
 #         # smo2_filt = filter_data(
-#         #     smo2_673, method = "moving-average", k = 50),
+#         #     smo2_673, method = "moving-average", width = 50),
 #     ) |>
 #     print()
 #
@@ -129,24 +137,3 @@ filter_data <- function(
 #         geom_line(aes(y = smo2_673)),
 #         geom_line(aes(y = smo2_filt, colour = "filt")),
 #         NULL)} ## Data
-#
-#
-# test <- function(W=0.1, fc, sr) {
-#     W <- W
-#     print(missing(fc))
-#     print(missing(sr))
-#
-#     if (!missing(fc) & !missing(sr)) {
-#
-#         print("fc & sr EXIST")
-#
-#     } else if ((missing(fc) | missing(sr)) & !(missing(W) | is.null(W))) {
-#
-#         print("either fc OR sr are missing")
-#
-#     } else {
-#
-#         print("fc & sr are MISSING")
-#     }
-# }
-# test(W = NULL, fc = 1)

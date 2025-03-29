@@ -1,6 +1,6 @@
-#' Create a dataframe with metadata
+#' Create a Dataframe with Metadata
 #'
-#' Learned from https://github.com/fmmattioni/whippr/blob/master/R/tbl.R
+#' Description
 #'
 #' @param .data A dataframe.
 #' @param metadata Metadata passed along with the dataframe.
@@ -8,7 +8,11 @@
 #' @return a [tibble][tibble::tibble-package]
 #'
 #' @keywords internal
-create_mnirs_data <- function(.data, metadata) {
+create_mnirs_data <- function(
+        .data,
+        metadata
+) {
+    ## from https://github.com/fmmattioni/whippr/blob/master/R/tbl.R
     if (!is.data.frame(.data))
         cli::cli_abort("You can only pass a data frame to this function.")
 
@@ -49,36 +53,37 @@ create_mnirs_data <- function(.data, metadata) {
 
 
 
-#' Read data from mNIRS device
+#' Read mNIRS Data From File
 #'
-#' This function reads and imports mNIRS data from file, and returns a
-#' dataframe.
+#' Reads mNIRS data from file, and returns a dataframe.
 #'
-#' @param file_path The local file path including extension (either *".xlsx"*,
+#' @param file_path The file path including extension (either *".xlsx"*,
 #' *".xls"*, or *".csv"*) to import.
 #' @param nirs_columns A character vector indicating the mNIRS data columns
-#' to import from the target file. Must match exactly. Optionally, a named
-#' vector to rename the columns.
+#' to import from the target file. Must match exactly. A named character vector
+#' can be used to rename columns.
 #' @param sample_column (optional) A character scalar indicating the name of
-#' the time or sample data column. Must match exactly. Default is `NULL`.
-#' Optionally, a named scalar to rename the column.
+#' a time or sample data column. Must match exactly. A named character vector
+#' can be used to rename columns. Default is `NULL`.
 #' @param event_column (optional) A character scalar indicating the name of
-#' the event or lap data column. Must match exactly. Default is `NULL`.
-#' Optionally, a named scalar to rename the column.
-#' @param .keep_all A logical, if `FALSE` (the default) will only include
-#' the target data columns. If `TRUE` will include all columns detected from
-#' the file.
-#' @param ... Additional arguments.
+#' an event or lap data column. Must match exactly. A named character vector
+#' can be used to rename columns. Default is `NULL`.
+#' @param .keep_all A logical. `FALSE` (the default) will only include the
+#' explicitly indicated data columns. `TRUE` will include all columns detected
+#' from the file.
+#' @param ... Additional arguments (see *Details*).
 #'
 #' @details
 #' Additional arguments will accept `sample_rate` as an integer scalar for the
-#' data sample rate in Hz. This is required for certain functions. `sample_rate`
-#' will be estimated based on the mean difference between values in the
-#' `sample_column`. If `sample_column` is not specified, then `sample_rate`
-#' will be set to 1 Hz. If `sample_column` contains decimal or date-time
-#' values, `sample_rate` should be correctly estimated in Hz. If `sample_column`
-#' contains integer sample numbers, it will assume `sample_rate` is equal to
-#' 1 Hz. If estimated incorrectly, `sample_rate` should be specified manually.
+#' recorded sample rate in Hz of the mNIRS file. This is required for certain
+#' functions. If not defined explicitly, `sample_rate` will be estimated based
+#' on the mean difference between values in the `sample_column`. If
+#' `sample_column` is not specified, then `sample_rate` will be set to 1 Hz.
+#'
+#' If `sample_column` contains decimal or date-time values, `sample_rate`
+#' should be correctly estimated in Hz. If `sample_column` contains integer
+#' sample numbers rather than time values, then `sample_rate` will be
+#' incorrectly estimated to be 1 Hz, and should be defined explicitly.
 #'
 #' A method has been included to correctly identify `sample_rate` for
 #' *Artinis Oxysoft* files exported in English.

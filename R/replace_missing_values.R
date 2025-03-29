@@ -1,7 +1,7 @@
 #' Replace Missing Values
 #'
 #' Detect missing values within mNIRS vector data and replace via methods from
-#' the `{zoo}` package.
+#' the [zoo][zoo::na.approx()] package.
 #'
 #' @param x A numeric vector of mNIRS data.
 #' @param method Indicates how to replace missing data.
