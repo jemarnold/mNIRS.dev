@@ -74,6 +74,11 @@ create_mnirs_data <- function(
 #' @param ... Additional arguments (see *Details*).
 #'
 #' @details
+#' Column names must match exactly, however in data files with duplicate column
+#' names (such as Train.Red .csv export), the column names will match in order
+#' of appearance. You may want to double check the correct columns have been
+#' assigned as intended.
+#'
 #' Additional arguments will accept `sample_rate` as an integer scalar for the
 #' recorded sample rate in Hz of the mNIRS file. This is required for certain
 #' functions. If not defined explicitly, `sample_rate` will be estimated based
@@ -203,42 +208,75 @@ read_data <- function(
             suppressMessages()
     }
 
-    ## rename nirs_columns
-    names(nirs_columns) <- if (!is.null(names(nirs_columns))) {
-        replace(names(nirs_columns),
-                names(nirs_columns) == "",
-                nirs_columns[names(nirs_columns) == ""])
-    } else {nirs_columns}
+    ## rename named column vectors
+    rename_column_function <- function(colnames) {
+        names(colnames) <- if (!is.null(names(colnames))) {
+            replace(names(colnames),
+                    names(colnames) == "",
+                    colnames[names(colnames) == ""])
+        } else {colnames}
 
-    ## rename sample_column
-    names(sample_column) <- if (!is.null(names(sample_column))) {
-        replace(names(sample_column),
-                names(sample_column) == "",
-                sample_column[names(sample_column) == ""])
-    } else {sample_column}
+        return(colnames)
+    }
 
-    ## rename event_column
-    names(event_column) <- if (!is.null(names(event_column))) {
-        replace(names(event_column),
-                names(event_column) == "",
-                event_column[names(event_column) == ""])
-    } else {event_column}
+    nirs_columns <- rename_column_function(nirs_columns)
+    sample_column <- rename_column_function(sample_column)
+    event_column <- rename_column_function(event_column)
 
 
     ## validation: check that sample_column and event_column
     if (!is.null(sample_column)) {
-        if (!sample_column %in% names(raw_data_trimmed)) {
+        if (!all(sample_column %in% names(raw_data_trimmed))) {
             cli::cli_abort(paste(
                 "{.arg sample_column} = `{.val {sample_column}}` not detected.",
                 "Column names are case sensitive and should match exactly."))
         }}
 
     if (!is.null(event_column)) {
-        if (!event_column %in% names(raw_data_trimmed)) {
+        if (!all(event_column %in% names(raw_data_trimmed))) {
             cli::cli_abort(paste(
                 "{.arg event_column} = `{.val {event_column}}` not detected.",
                 "Column names are case sensitive and should match exactly."))
         }}
+
+    match_columns <- function(name_vector) {
+        ## Get the base names (without suffixes) of dataframe columns
+        base_names <- gsub("(?<!^)\\.\\.\\.[0-9]+$", "",
+                           names(raw_data_trimmed),
+                           perl = TRUE)
+
+        ## Initialize result vector
+        matched_cols <- character(length(name_vector)) |>
+            setNames(names(name_vector))
+
+        ## Track which columns have been matched already
+        used_cols <- logical(length(names(raw_data_trimmed)))
+
+        ## For each name in the input vector
+        for (i in seq_along(name_vector)) {
+            target_name <- name_vector[i]
+
+            ## Find indices of columns with matching base name
+            ## which haven't been used yet
+            matching_indices <- which(base_names == target_name & !used_cols)
+
+            if (length(matching_indices) > 0) {
+                ## Take the first available match
+                matched_cols[i] <- names(raw_data_trimmed)[matching_indices[1]]
+                ## Mark this column as used
+                used_cols[matching_indices[1]] <- TRUE
+            } else {
+                ## No matching column found
+                matched_cols[i] <- NA_character_
+            }
+        }
+
+        return(matched_cols)
+    }
+
+    nirs_columns <- match_columns(nirs_columns)
+    sample_column <- match_columns(sample_column)
+    event_column <- match_columns(event_column)
 
     raw_data_prepared <- raw_data_trimmed |>
         ## keep_all selects everything, else only manual columns
@@ -366,7 +404,8 @@ read_data <- function(
         ## samples per second
         sample_rate <- head(diff(sample_vector), 100) |>
             mean(na.rm = TRUE) |>
-            (\(.x) round(1/.x, 1))()
+            (\(.x) round((1/.x)/0.5)*0.5)()
+
 
         cli::cli_alert_info(paste(
             "Estimated sample rate is {.val {sample_rate}} Hz.",
@@ -412,12 +451,6 @@ read_data <- function(
 #      dplyr::mutate(index = index - dplyr::first(index))
 #  )
 # #
-# read_data(
-#     file_path = r"(C:\OneDrive - UBC\FLIA Clinical Assessments\Raw Data\CSIO-LGC-2024-1126.xlsx)",
-#     nirs_columns = c("SmO2" = "SmO2 Live", "SmO2 Averaged", "total[heme]" = "THb"),
-#     sample_column = c("Time" = "hh:mm:ss"),
-#     event_column = NULL,
-#     .keep_all = TRUE)
 #
 # ## Moxy
 # read_data(
@@ -436,9 +469,9 @@ read_data <- function(
 # # ## Artinis Oxysoft
 # read_data(
 #     file_path = r"(C:\OneDrive - UBC\Body Position Study\Raw Data\SRLB02-Oxysoft-2024-12-20.xlsx)",
-#     nirs_columns = "HHb",
-#     sample_column = "time",
-#     event_column = "event")
+#     nirs_columns = c("HHb" = "6", "O2Hb" = "7"),
+#     sample_column = c("sample" = "1"),
+#     event_column = c("event" = "10"))
 # #
 # # ## VMPro
 # mNIRS::read_data(
@@ -448,7 +481,7 @@ read_data <- function(
 #                      "thb" = "THb[THb]"),
 #     sample_column = c("time" = "Time[hh:mm:ss]"),
 #     event_column = NULL,
-#     .keep_all = TRUE)
+#     .keep_all = FALSE)
 # #
 # # ## VMPro
 # mNIRS::read_data(
@@ -462,9 +495,21 @@ read_data <- function(
 #
 ## Train Red
 # mNIRS::read_data(
-#     file_path = r"(C:\OneDrive - UBC\Group Projects\JAData\MF-TR-2025-03-20.csv)",
-#     nirs_columns = c("SmO2" = "SmO2 unfiltered",
-#                      "HHb" = "HHb unfiltered",
-#                      "O2Hb" = "O2HB unfiltered"),
+#     file_path = "C:/OneDrive - UBC/Body Position Study/Raw Data/BP01-Train.Red-2025-04-01.csv",
+#     nirs_columns = c("smo2_left" = "SmO2 unfiltered",
+#                      # "HHb" = "HHb unfiltered",
+#                      # "O2Hb" = "O2HB unfiltered",
+#                      "smo2_right" = "SmO2 unfiltered"),
 #     sample_column = c("time" = "Timestamp (seconds passed)"),
-#     event_column = c("lap" = "Lap/Event"))
+#     event_column = c("Lap/Event"))
+#
+## Oxysoft
+# mNIRS::read_data(
+#     file_path = "C:/OneDrive - UBC/Body Position Study/Raw Data/BP01-oxysoft-2025-04-01.xlsx",
+#     nirs_columns = c("PS_O2Hb" = "2",
+#                      "PS_HHb" = "3",
+#                      "VL_O2Hb" = "5",
+#                      "VL_HHb" = "6"),
+#     sample_column = c("sample" = "1"),
+#     event_column = c("event" = "10", "label" = "...11"),
+#     .keep_all = FALSE)

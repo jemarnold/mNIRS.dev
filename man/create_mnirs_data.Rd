@@ -2,7 +2,7 @@
 % Please edit documentation in R/read_data.R
 \name{create_mnirs_data}
 \alias{create_mnirs_data}
-\title{Create a dataframe with metadata}
+\title{Create a Dataframe with Metadata}
 \usage{
 create_mnirs_data(.data, metadata)
 }
@@ -15,6 +15,6 @@ create_mnirs_data(.data, metadata)
 a \link[tibble:tibble-package]{tibble}
 }
 \description{
-Learned from https://github.com/fmmattioni/whippr/blob/master/R/tbl.R
+Description
 }
 \keyword{internal}

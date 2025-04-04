@@ -2,7 +2,7 @@
 % Please edit documentation in R/read_data.R
 \name{read_data}
 \alias{read_data}
-\title{Read data from mNIRS device}
+\title{Read mNIRS Data From File}
 \usage{
 read_data(
   file_path,
@@ -14,43 +14,49 @@ read_data(
 )
 }
 \arguments{
-\item{file_path}{The local file path including extension (either \emph{".xlsx"},
+\item{file_path}{The file path including extension (either \emph{".xlsx"},
 \emph{".xls"}, or \emph{".csv"}) to import.}
 
 \item{nirs_columns}{A character vector indicating the mNIRS data columns
-to import from the target file. Must match exactly. Optionally, a named
-vector to rename the columns.}
+to import from the target file. Must match exactly. A named character vector
+can be used to rename columns.}
 
 \item{sample_column}{(optional) A character scalar indicating the name of
-the time or sample data column. Must match exactly. Default is \code{NULL}.
-Optionally, a named scalar to rename the column.}
+a time or sample data column. Must match exactly. A named character vector
+can be used to rename columns. Default is \code{NULL}.}
 
 \item{event_column}{(optional) A character scalar indicating the name of
-the event or lap data column. Must match exactly. Default is \code{NULL}.
-Optionally, a named scalar to rename the column.}
+an event or lap data column. Must match exactly. A named character vector
+can be used to rename columns. Default is \code{NULL}.}
 
-\item{.keep_all}{A logical, if \code{FALSE} (the default) will only include
-the target data columns. If \code{TRUE} will include all columns detected from
-the file.}
+\item{.keep_all}{A logical. \code{FALSE} (the default) will only include the
+explicitly indicated data columns. \code{TRUE} will include all columns detected
+from the file.}
 
-\item{...}{Additional arguments.}
+\item{...}{Additional arguments (see \emph{Details}).}
 }
 \value{
 A \link[tibble:tibble-package]{tibble}.
 }
 \description{
-This function reads and imports mNIRS data from file, and returns a
-dataframe.
+Reads mNIRS data from file, and returns a dataframe.
 }
 \details{
+Column names must match exactly, however in data files with duplicate column
+names (such as Train.Red .csv export), the column names will match in order
+of appearance. You may want to double check the correct columns have been
+assigned as intended.
+
 Additional arguments will accept \code{sample_rate} as an integer scalar for the
-data sample rate in Hz. This is required for certain functions. \code{sample_rate}
-will be estimated based on the mean difference between values in the
-\code{sample_column}. If \code{sample_column} is not specified, then \code{sample_rate}
-will be set to 1 Hz. If \code{sample_column} contains decimal or date-time
-values, \code{sample_rate} should be correctly estimated in Hz. If \code{sample_column}
-contains integer sample numbers, it will assume \code{sample_rate} is equal to
-1 Hz. If estimated incorrectly, \code{sample_rate} should be specified manually.
+recorded sample rate in Hz of the mNIRS file. This is required for certain
+functions. If not defined explicitly, \code{sample_rate} will be estimated based
+on the mean difference between values in the \code{sample_column}. If
+\code{sample_column} is not specified, then \code{sample_rate} will be set to 1 Hz.
+
+If \code{sample_column} contains decimal or date-time values, \code{sample_rate}
+should be correctly estimated in Hz. If \code{sample_column} contains integer
+sample numbers rather than time values, then \code{sample_rate} will be
+incorrectly estimated to be 1 Hz, and should be defined explicitly.
 
 A method has been included to correctly identify \code{sample_rate} for
 \emph{Artinis Oxysoft} files exported in English.

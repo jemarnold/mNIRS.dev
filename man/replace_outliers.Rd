@@ -7,8 +7,6 @@
 replace_outliers(x, k, t0 = 3, na.rm = FALSE, return = c("median", "NA"))
 }
 \arguments{
-\item{x}{A numeric vector representing a time series.}
-
 \item{k}{A numeric scalar for the window length of \verb{(2 × k + 1)} samples.}
 
 \item{t0}{A numeric scalar for the outlier threshold, default is 3
@@ -19,14 +17,16 @@ before the filter is applied.}
 
 \item{return}{Indicates whether outliers should be replaced with the
 local \emph{"median"} value (the default), or returned as \code{NA}.}
+
+\item{xA}{numeric vector of mNIRS data.}
 }
 \value{
 A list \code{L} with \code{L$y} the corrected time series and
 \code{L$idx} the indices of the values replaced.
 }
 \description{
-Hampel filter with median absolute deviation (MAD) outlier detection in time
-series which skips \code{NA} (modified from \code{\link[pracma:hampel]{pracma::hampel()}}).
+Hampel filter with median absolute deviation (MAD) to detect outliers in
+mNIRS vector data. Modified from \code{\link[pracma:hampel]{pracma::hampel()}} to skip \code{NA}s.
 }
 \details{
 The \emph{"median absolute deviation"} computation is done in the \verb{[-k...k]}

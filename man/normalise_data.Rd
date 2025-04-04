@@ -8,8 +8,8 @@ normalise_data(
   x,
   shift_to = 0,
   normalise_range = c(0, 100),
-  shift_by,
-  shift_position = c("minimum", "start value", "maximum"),
+  shift_by = NULL,
+  position = c("minimum", "first", "maximum"),
   mean_samples,
   ...
 )

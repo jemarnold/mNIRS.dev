@@ -40,7 +40,7 @@ A list \code{L} with \code{L$y} the corrected time series and
 }
 \description{
 Detect missing values within mNIRS vector data and replace via methods from
-the \code{{zoo}} package.
+the \link[zoo:na.approx]{zoo} package.
 }
 \details{
 For \code{method = "locf"}, if there are no earlier non-\code{NA}s, then the \code{NA} is either

@@ -10,9 +10,9 @@ filter_data(
   spar = NULL,
   n = 4,
   W = 0.1,
-  fc,
-  sr,
-  k = 15,
+  critical_frequency,
+  sample_rate,
+  width = 15,
   ...
 )
 }
@@ -55,18 +55,19 @@ also cause more distortion artefacts in the signal. General advice is to use
 the lowest order that sufficiently captures rapid step-changes in the data.
 
 The low frequencies to be passed through the filter are defined by a
-critical frequency. This can be defined by either \code{fc}, a numeric scalar
-representing the desired critical frequency in Hz, and \code{sr}, a numeric
-scalar reflecting the sample rate of the data in Hz together. Or by \code{W},
-a numeric scalar representing the desired fractional critical frequency
-between \verb{[0, 1]}, where \code{1} is the Nyquist frequency, i.e., half the sample
-rate of the data in Hz.
+critical frequency. This can be defined by either \code{critical_frequency}, a
+numeric scalar representing the desired critical frequency in Hz, and
+\code{sample_rate}, a numeric scalar reflecting the sample rate of the data in Hz
+together. Or by \code{W}, a numeric scalar representing the desired fractional
+critical frequency between \verb{[0, 1]}, where \code{1} is the Nyquist frequency,
+i.e., half the sample rate of the data in Hz.
 
-Defining both \code{fc} and \code{sr} explicitly will overwrite \code{W}.
+Defining both \code{critical_frequency} and \code{sample_rate} explicitly will
+overwrite \code{W}.
 
 \code{method = "moving-average"} applies a centred (two-way symmetrical) moving
 average filter from \code{\link[zoo:rollapply]{zoo::rollapply()}}. The moving-average is calculated
-over a window of width \code{k}, an integer scalar specifying the number of
-samples between \verb{[i - floor(k/2), i + floor(k/2)]}. A partial moving-average
-will be calculated at the edges of the existing data.
+over a window of width \code{width}, an integer scalar specifying the number of
+samples between \verb{[i - floor(width/2), i + floor(width/2)]}. A partial
+moving-average will be calculated at the edges of the existing data.
 }
