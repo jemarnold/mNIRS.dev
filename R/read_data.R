@@ -62,10 +62,10 @@ create_mnirs_data <- function(
 #' @param nirs_columns A character vector indicating the mNIRS data columns
 #' to import from the target file. Must match exactly. A named character vector
 #' can be used to rename columns.
-#' @param sample_column (optional) A character scalar indicating the name of
+#' @param sample_column *(optional)* A character scalar indicating the name of
 #' a time or sample data column. Must match exactly. A named character vector
 #' can be used to rename columns. Default is `NULL`.
-#' @param event_column (optional) A character scalar indicating the name of
+#' @param event_column *(optional)* A character scalar indicating the name of
 #' an event or lap data column. Must match exactly. A named character vector
 #' can be used to rename columns. Default is `NULL`.
 #' @param .keep_all A logical. `FALSE` (the default) will only include the

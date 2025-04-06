@@ -21,11 +21,11 @@ read_data(
 to import from the target file. Must match exactly. A named character vector
 can be used to rename columns.}
 
-\item{sample_column}{(optional) A character scalar indicating the name of
+\item{sample_column}{\emph{(optional)} A character scalar indicating the name of
 a time or sample data column. Must match exactly. A named character vector
 can be used to rename columns. Default is \code{NULL}.}
 
-\item{event_column}{(optional) A character scalar indicating the name of
+\item{event_column}{\emph{(optional)} A character scalar indicating the name of
 an event or lap data column. Must match exactly. A named character vector
 can be used to rename columns. Default is \code{NULL}.}
 

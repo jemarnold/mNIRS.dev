@@ -15,7 +15,7 @@ e.g. \code{fixed_values = c(0, 100)}.}
 \item{k}{A numeric scalar for the window length of \verb{(2 · k + 1)} samples.}
 
 \item{return}{Indicates whether outliers should be replaced with the
-local \emph{"median"} value (the default), or returned as \code{NA}.}
+local \emph{"median"} value \emph{(default)}, or returned as \code{NA}.}
 
 \item{...}{Additional arguments.}
 }

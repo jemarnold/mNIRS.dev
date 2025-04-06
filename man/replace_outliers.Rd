@@ -16,7 +16,7 @@ replace_outliers(x, k, t0 = 3, na.rm = FALSE, return = c("median", "NA"))
 before the filter is applied.}
 
 \item{return}{Indicates whether outliers should be replaced with the
-local \emph{"median"} value (the default), or returned as \code{NA}.}
+local \emph{"median"} value \emph{(default)}, or returned as \code{NA}.}
 
 \item{xA}{numeric vector of mNIRS data.}
 }
@@ -34,7 +34,7 @@ vicinity of each point at least \code{k} steps away from the end points of the
 interval. At the lower and upper end the time series values are preserved.
 
 A high threshold makes the filter more forgiving, a low one will declare
-more points to be outliers. \code{t0 = 3} (the default) corresponds to Ron
+more points to be outliers. \code{t0 = 3} \emph{(default)} corresponds to Ron
 Pearson's 3 sigma edit rule, \code{t0 = 0} to John Tukey's median filter.
 
 \code{NA} values in the numeric vector will cause an error unless

@@ -181,8 +181,7 @@ prepare_kinetics_data <- function(
             mean = signif(mean(nirs_fit_window, na.rm = TRUE), 3),
             peak = tidyr::replace_na(
                 nirs_fit_window == max & nirs_fit_window > mean, 0),
-            ## where no local peak exists, use the last fit_kinetics_window
-            ## value
+            ## where no local peak exists, use the last fit_kinetics_window value
             peak2 = (all(is.na(peak) | !peak) & display_index > 0 &
                          is.na(dplyr::lead(nirs_fit_window))) + peak,
             ## take the first peak value if multiple exist

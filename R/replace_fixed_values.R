@@ -8,7 +8,7 @@
 #' e.g. `fixed_values = c(0, 100)`.
 #' @param k A numeric scalar for the window length of `(2 · k + 1)` samples.
 #' @param return Indicates whether outliers should be replaced with the
-#' local *"median"* value (the default), or returned as `NA`.
+#' local *"median"* value *(default)*, or returned as `NA`.
 #' @param ... Additional arguments.
 #'
 #' @details

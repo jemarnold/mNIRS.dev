@@ -2,6 +2,7 @@
 #'
 #' Down-samples or up-samples mNIRS dataframe
 #'
+#' @param .data A dataframe containing mNIRS data.
 #' @param ... Additional arguments.
 #'
 #' @details

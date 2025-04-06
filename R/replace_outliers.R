@@ -3,14 +3,14 @@
 #' Hampel filter with median absolute deviation (MAD) to detect outliers in
 #' mNIRS vector data. Modified from [pracma::hampel()] to skip `NA`s.
 #'
-#' @param xA numeric vector of mNIRS data.
+#' @param x A numeric vector of mNIRS data.
 #' @param k A numeric scalar for the window length of `(2 × k + 1)` samples.
 #' @param t0 A numeric scalar for the outlier threshold, default is 3
 #' (Pearson's rule), see below.
 #' @param na.rm A logical indicating whether missing values should be ignored
 #' before the filter is applied.
 #' @param return Indicates whether outliers should be replaced with the
-#' local *"median"* value (the default), or returned as `NA`.
+#' local *"median"* value *(default)*, or returned as `NA`.
 #'
 #' @details
 #' The *"median absolute deviation"* computation is done in the `[-k...k]`
@@ -18,7 +18,7 @@
 #' interval. At the lower and upper end the time series values are preserved.
 #'
 #' A high threshold makes the filter more forgiving, a low one will declare
-#' more points to be outliers. `t0 = 3` (the default) corresponds to Ron
+#' more points to be outliers. `t0 = 3` *(default)* corresponds to Ron
 #' Pearson's 3 sigma edit rule, `t0 = 0` to John Tukey's median filter.
 #'
 #' `NA` values in the numeric vector will cause an error unless

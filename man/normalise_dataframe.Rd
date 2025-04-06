@@ -2,68 +2,39 @@
 % Please edit documentation in R/normalise_dataframe.R
 \name{normalise_dataframe}
 \alias{normalise_dataframe}
-\title{Normalise mNIRS data range}
+\title{Normalise data range}
 \usage{
-normalise_dataframe(
-  .data,
-  shift_minimum = c("none", "column", "global"),
-  shift_value = 0,
-  normalise = c("none", "column", "global"),
-  normalise_range = c(0, 100),
-  ...
-)
+normalise_dataframe(.data, nirs_columns = list(), normalise_range = c(0, 100))
 }
 \arguments{
-\item{shift_minimum}{Indicates whether and how the range of observed mNIRS
-data should be shifted, to return only positive data or to a specified
-starting baseline value. For example, can be used when mNIRS values are
-arbitrarily scaled from the starting value (e.g., Artinis Oxysoft).
-This does not change the scale of the data.
-\itemize{
-\item \emph{"none"} (the default) will not shift any data.
-\item \emph{"column"} will shift each NIRS column to it's own new baseline value.
-\item \emph{"global"} will shift all NIRS columns to a common baseline value, from
-the minimum value across all columns. Will preserve the relationship across
-NIRS columns.
-\item Alternatively, a list of character vectors of NIRS column names can be
-specified to shift across selected columns in groups, e.g. for left and
-right quadriceps and deltoid sites separately, such as
-\code{list(c("smo2_left", "smo2_right"), "smo2_delt")}.
-}}
-
-\item{shift_value}{A numeric scalar to which the minimum value from the
-specified NIRS data columns will be shifted to.}
-
-\item{normalise}{Indicates whether and how the range of observed mNIRS
-data should be re-scaled to between 0 and 100. For example, to be used when
-calibrating the data to an ischaemic occlusion (physiological range), or to
-the existing observed data (functional range).
-\itemize{
-\item \emph{"none"} (the default) will not normalise any data.
-\item \emph{"column"} will re-scale each NIRS column to 0-100 within it's own
-range.
-\item \emph{"global"} will re-scale all NIRS columns to a common 0-100 range, from
-the minimum to the maximum values across all columns. Will preserve the
-relationship across NIRS columns.
-\item Alternatively, a list of character vectors of NIRS column names can be
-specified to re-scale across selected columns in groups, e.g. for left and
-right quadriceps and deltoid sites separately, such as
-\code{list(c("smo2_left", "smo2_right"), "smo2_delt")}.
-}}
+\item{nirs_columns}{A \code{list()} of character vectors indicating the column
+names for data signals to be shifted. Columns grouped together in a vector
+will preserve relative scaling. Separate columns will shift to their own
+specified values. Should match column names in the dataframe exactly. See
+\emph{Details}.}
 
 \item{normalise_range}{A numeric vector in the form \code{c(min, max)},
-indicating the minimum and maximum values to which the specified NIRS
-data columns will be  re-scaled.}
-
-\item{...}{Additional arguments.}
+indicating the range of values to which the specified mNIRS data
+columns will be re-scaled.}
 }
 \value{
 A \link[tibble:tibble-package]{tibble}.
 }
 \description{
-Shifts the data range to be positive values, and normalise the dynamic
-range of data to 0-100.
+Normalise the range of mNIRS signals while preserving the relative
+scaling across columns.
 }
 \details{
-Additional arguments will accept ``
+\code{nirs_columns} can be used to group data columns together to preserve
+relative scaling across mNIRS signals.
+\itemize{
+\item \code{list(A, B, C)} will rescale each column separately. Relative values will
+be shifted between columns.
+\item \code{list(c(A, B, C))} will rescale all columns together to a common range.
+value. Relative scaling is preserved across the group of columns.
+\item \code{list(c(A, B), c(C, D))} will rescale columns \code{A} and \code{B} to a common
+range, and columns \code{C} and \code{D} to a separate common range. This is a way to
+create multiple groups of data columns where relative scaling is preserved
+within groups, but not across groups of mNIRS signals.
+}
 }
