@@ -4,9 +4,11 @@
 \alias{normalise_dataframe}
 \title{Normalise data range}
 \usage{
-normalise_dataframe(.data, nirs_columns = list(), normalise_range = c(0, 100))
+normalise_dataframe(data, nirs_columns = list(), normalise_range = c(0, 100))
 }
 \arguments{
+\item{data}{A dataframe containing mNIRS data.}
+
 \item{nirs_columns}{A \code{list()} of character vectors indicating the column
 names for data signals to be shifted. Columns grouped together in a vector
 will preserve relative scaling. Separate columns will shift to their own

@@ -9,7 +9,7 @@
 #' @param k A numeric scalar for the window length of `(2 · k + 1)` samples.
 #' @param return Indicates whether outliers should be replaced with the
 #' local *"median"* value *(default)*, or returned as `NA`.
-#' @param ... Additional arguments.
+#' @param ... Additional arguments (*currently not used*).
 #'
 #' @details
 #' ...
@@ -22,7 +22,8 @@ replace_fixed_values <- function(
         x,
         fixed_values, ## numeric vector
         k = 20, ## numeric scalar
-        return = c("median", "NA")
+        return = c("median", "NA"),
+        ...
 ) {
 
     return <- match.arg(return)

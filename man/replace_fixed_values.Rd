@@ -4,7 +4,7 @@
 \alias{replace_fixed_values}
 \title{Replace Fixed Values}
 \usage{
-replace_fixed_values(x, fixed_values, k = 20, return = c("median", "NA"))
+replace_fixed_values(x, fixed_values, k = 20, return = c("median", "NA"), ...)
 }
 \arguments{
 \item{x}{A numeric vector of mNIRS data.}
@@ -17,7 +17,7 @@ e.g. \code{fixed_values = c(0, 100)}.}
 \item{return}{Indicates whether outliers should be replaced with the
 local \emph{"median"} value \emph{(default)}, or returned as \code{NA}.}
 
-\item{...}{Additional arguments.}
+\item{...}{Additional arguments (\emph{currently not used}).}
 }
 \value{
 A list \code{L} with \code{L$y} the corrected time series and

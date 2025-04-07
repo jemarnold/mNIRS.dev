@@ -10,7 +10,7 @@
 #' - *"smooth-spline"* fits a cubic smoothing spline.
 #' - *"low-pass"* uses a centred Butterworth low-pass filter.
 #' - *"moving-average"* uses a centred moving average filter.
-#' @param ... Additional arguments.
+#' @param ... Additional arguments (*currently not used*).
 #'
 #' @details
 #' `method = "smooth-spline"` applies a non-parametric cubic smoothing spline

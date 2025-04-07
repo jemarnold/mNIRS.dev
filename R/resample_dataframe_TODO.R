@@ -2,7 +2,7 @@
 #'
 #' Down-samples or up-samples mNIRS dataframe
 #'
-#' @param .data A dataframe containing mNIRS data.
+#' @param data A dataframe containing mNIRS data.
 #' @param ... Additional arguments.
 #'
 #' @details
@@ -12,13 +12,13 @@
 #'
 #' @export
 resample_dataframe <- function(
-        .data,
+        data,
         sample_rate = 1,
         resample_rate = 1,
         resample_by
 ) {
 
-    metadata <- attributes(.data)
+    metadata <- attributes(data)
     ## validation: check for metadata to ensure `read_data()` has been run
     if (is.null(metadata$nirs_columns)) {
         cli::cli_abort(paste(

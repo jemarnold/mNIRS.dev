@@ -32,7 +32,7 @@ leading and/or trailing \code{NA}s, should these be removed (using na.trim)?}
 \item{maxgap}{A numeric scalar for the maximum number of consecutive \code{NA}s
 to fill. Any longer gaps will be left unchanged.}
 
-\item{...}{Additional arguments.}
+\item{...}{Additional arguments (\emph{currently not used}).}
 }
 \value{
 A list \code{L} with \code{L$y} the corrected time series and

@@ -11,6 +11,7 @@
 #' before the filter is applied.
 #' @param return Indicates whether outliers should be replaced with the
 #' local *"median"* value *(default)*, or returned as `NA`.
+#' @param ... Additional arguments (*currently not used*).
 #'
 #' @details
 #' The *"median absolute deviation"* computation is done in the `[-k...k]`
@@ -57,7 +58,8 @@ replace_outliers <- function(
         k,
         t0 = 3,
         na.rm = FALSE,
-        return = c("median", "NA")
+        return = c("median", "NA"),
+        ...
 ) {
 
     return <- match.arg(return)

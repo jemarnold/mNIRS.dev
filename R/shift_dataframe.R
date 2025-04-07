@@ -3,7 +3,7 @@
 #' Shift the data range of mNIRS signals (e.g. shift to positive values) while
 #' preserving the absolute dynamic range and relative scaling across columns.
 #'
-#' @param .data A dataframe containing mNIRS data.
+#' @param data A dataframe containing mNIRS data.
 #' @param nirs_columns A `list()` of character vectors indicating the column
 #' names for data signals to be shifted. Columns grouped together in a vector
 #' will preserve relative scaling. Separate columns will shift to their own
@@ -43,7 +43,7 @@
 #'
 #' @export
 shift_dataframe <- function(
-        .data,
+        data,
         nirs_columns = list(),
         shift_to = 0,
         position = c("minimum", "maximum", "first"),
@@ -52,23 +52,23 @@ shift_dataframe <- function(
 ) {
 
     position <- match.arg(position)
-    metadata <- attributes(.data)
+    metadata <- attributes(data)
 
     ## TODO convert sym(nirs_columns) to strings?
 
     if (
         length(nirs_columns) == 0 &
-        !is.null(attributes(.data)$nirs_columns)
+        !is.null(attributes(data)$nirs_columns)
     ) {
         ## "global" condition from metadata$nirs_columns
         nirs_columns <- names(metadata$nirs_columns)
     }
 
     ## validation: `nirs_columns` must match expected dataframe names
-    if (!all(unlist(nirs_columns) %in% names(.data))) {
+    if (!all(unlist(nirs_columns) %in% names(data))) {
         cli::cli_abort(paste(
             "{.arg nirs_columns} must be a list of names.",
-            "Make sure column names match exactly"))
+            "Make sure column names match exactly."))
     }
 
     ## validation: `shift_to` or `shift_by` must be numeric scalar
@@ -78,20 +78,20 @@ shift_dataframe <- function(
     ) {
         cli::cli_abort(paste(
             "Either {.arg shift_to} or {.arg shift_by} must be a single",
-            "{.cls numeric} scalar"))
+            "{.cls numeric} scalar."))
     }
 
     ## validation: `mean_samples` must be numeric scalar
     if (!rlang::is_double(mean_samples) | !length(mean_samples) == 1) {
         cli::cli_abort(paste(
-            "{.arg mean_samples} must be a single {.cls numeric} scalar"))
+            "{.arg mean_samples} must be a single {.cls numeric} scalar."))
     }
 
     ## shift range ================================
 
     if (position %in% c("minimum", "maximum")) {
 
-        shift_mean_value <- .data |>
+        shift_mean_value <- data |>
             dplyr::mutate(
                 dplyr::across(
                     dplyr::any_of(unlist(nirs_columns)),
@@ -111,7 +111,7 @@ shift_dataframe <- function(
 
     } else if (position == "first") {
 
-        shift_mean_value <- head(.data, mean_samples) |>
+        shift_mean_value <- head(data, mean_samples) |>
             dplyr::summarise(
                 dplyr::across(
                     dplyr::any_of(unlist(nirs_columns)),
@@ -125,7 +125,7 @@ shift_dataframe <- function(
             nirs_columns
         } else {list(nirs_columns)},
         \(.col)
-        .data |>
+        data |>
             dplyr::select(dplyr::any_of(.col)) |>
             dplyr::mutate(
                 dplyr::across(
@@ -152,9 +152,9 @@ shift_dataframe <- function(
             )
     ) |>
         dplyr::bind_cols(
-            dplyr::select(.data, -dplyr::any_of(unlist(nirs_columns)))
+            dplyr::select(data, -dplyr::any_of(unlist(nirs_columns)))
         ) |>
-        dplyr::relocate(names(.data))
+        dplyr::relocate(names(data))
 
     return(y)
 }
@@ -172,7 +172,7 @@ shift_dataframe <- function(
 # ) |> dplyr::slice(-1))
 #
 # y <- shift_dataframe(
-#     .data = df,
+#     data = df,
 #     nirs_columns = list(ICG_VL, ICG_SCM, smo2),
 #     shift_to = 0,
 #     position = "max",
@@ -199,17 +199,17 @@ shift_dataframe <- function(
 # ## test function to get `enquote(...)` method working
 # test <- function(..., shift_by = 1) {
 #     # A <- dplyr::enquo(A)
-#     # .data |> select(!!A)
+#     # data |> select(!!A)
 #
 #     args <- dplyr::enquos(...)
-#     # .data |> select(!!!args)
+#     # data |> select(!!!args)
 #
 #
 #
 #     y <- purrr::map(
 #         args,
 #         \(.col)
-#         .data |>
+#         data |>
 #             dplyr::select(!!.col) |>
 #             dplyr::mutate(
 #                 dplyr::across(
@@ -218,9 +218,9 @@ shift_dataframe <- function(
 #             )
 #     ) |>
 #         dplyr::bind_cols(
-#             dplyr::select(.data, -c(!!!args))
+#             dplyr::select(data, -c(!!!args))
 #         ) |>
-#         dplyr::relocate(names(.data))
+#         dplyr::relocate(names(data))
 #
 #     return(y)
 # }

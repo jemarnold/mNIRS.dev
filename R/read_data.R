@@ -2,23 +2,23 @@
 #'
 #' Description
 #'
-#' @param .data A dataframe.
+#' @param data A dataframe.
 #' @param metadata Metadata passed along with the dataframe.
 #'
 #' @return a [tibble][tibble::tibble-package]
 #'
 #' @keywords internal
 create_mnirs_data <- function(
-        .data,
+        data,
         metadata
 ) {
     ## from https://github.com/fmmattioni/whippr/blob/master/R/tbl.R
-    if (!is.data.frame(.data))
+    if (!is.data.frame(data))
         cli::cli_abort("You can only pass a data frame to this function.")
 
     nirs_data <- tibble::new_tibble(
-        x = .data,
-        nrow = nrow(.data),
+        x = data,
+        nrow = nrow(data),
         class = "mNIRS_data",
         read_data = metadata$read_data,
         processed_data = metadata$processed_data,
@@ -326,10 +326,7 @@ read_data <- function(
                     "%Y-%m-%d %H:%M:%OS", "%Y/%m/%d %H:%M:%OS", "%H:%M:%OS"),
                     format = "%H:%M:%OS")),
             ## adds a sequential index column
-            dplyr::across(
-                dplyr::any_of(names(nirs_columns[1])),
-                \(.x) seq_along(.x),
-                .names = "index"),
+            index = dplyr::row_number(),
         ) |>
         dplyr::relocate(index)
 

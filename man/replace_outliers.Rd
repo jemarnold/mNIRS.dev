@@ -4,9 +4,11 @@
 \alias{replace_outliers}
 \title{Replace Local Outliers}
 \usage{
-replace_outliers(x, k, t0 = 3, na.rm = FALSE, return = c("median", "NA"))
+replace_outliers(x, k, t0 = 3, na.rm = FALSE, return = c("median", "NA"), ...)
 }
 \arguments{
+\item{x}{A numeric vector of mNIRS data.}
+
 \item{k}{A numeric scalar for the window length of \verb{(2 × k + 1)} samples.}
 
 \item{t0}{A numeric scalar for the outlier threshold, default is 3
@@ -18,7 +20,7 @@ before the filter is applied.}
 \item{return}{Indicates whether outliers should be replaced with the
 local \emph{"median"} value \emph{(default)}, or returned as \code{NA}.}
 
-\item{xA}{numeric vector of mNIRS data.}
+\item{...}{Additional arguments (\emph{currently not used}).}
 }
 \value{
 A list \code{L} with \code{L$y} the corrected time series and

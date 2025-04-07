@@ -16,7 +16,7 @@
 #' leading and/or trailing `NA`s, should these be removed (using na.trim)?
 #' @param maxgap A numeric scalar for the maximum number of consecutive `NA`s
 #' to fill. Any longer gaps will be left unchanged.
-#' @param ... Additional arguments.
+#' @param ... Additional arguments (*currently not used*).
 #'
 #' @details
 #' For `method = "locf"`, if there are no earlier non-`NA`s, then the `NA` is either

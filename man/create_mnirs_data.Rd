@@ -4,10 +4,10 @@
 \alias{create_mnirs_data}
 \title{Create a Dataframe with Metadata}
 \usage{
-create_mnirs_data(.data, metadata)
+create_mnirs_data(data, metadata)
 }
 \arguments{
-\item{.data}{A dataframe.}
+\item{data}{A dataframe.}
 
 \item{metadata}{Metadata passed along with the dataframe.}
 }

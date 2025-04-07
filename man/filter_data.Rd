@@ -26,7 +26,7 @@ filter_data(
 \item \emph{"moving-average"} uses a centred moving average filter.
 }}
 
-\item{...}{Additional arguments.}
+\item{...}{Additional arguments (\emph{currently not used}).}
 }
 \value{
 A numeric vector of filtered data.

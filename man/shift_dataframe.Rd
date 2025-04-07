@@ -5,7 +5,7 @@
 \title{Shift Data Range}
 \usage{
 shift_dataframe(
-  .data,
+  data,
   nirs_columns = list(),
   shift_to = 0,
   position = c("minimum", "maximum", "first"),
@@ -14,6 +14,8 @@ shift_dataframe(
 )
 }
 \arguments{
+\item{data}{A dataframe containing mNIRS data.}
+
 \item{nirs_columns}{A \code{list()} of character vectors indicating the column
 names for data signals to be shifted. Columns grouped together in a vector
 will preserve relative scaling. Separate columns will shift to their own

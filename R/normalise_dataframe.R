@@ -3,7 +3,7 @@
 #' Normalise the range of mNIRS signals while preserving the relative
 #' scaling across columns.
 #'
-#' @param .data A dataframe containing mNIRS data.
+#' @param data A dataframe containing mNIRS data.
 #' @param nirs_columns A `list()` of character vectors indicating the column
 #' names for data signals to be shifted. Columns grouped together in a vector
 #' will preserve relative scaling. Separate columns will shift to their own
@@ -30,26 +30,26 @@
 #'
 #' @export
 normalise_dataframe <- function(
-        .data,
+        data,
         nirs_columns = list(),
         normalise_range = c(0, 100)
 ) {
 
-    metadata <- attributes(.data)
+    metadata <- attributes(data)
 
     if (
         length(nirs_columns) == 0 &
-        !is.null(attributes(.data)$nirs_columns)
+        !is.null(attributes(data)$nirs_columns)
     ) {
         ## "global" condition from metadata$nirs_columns
         nirs_columns <- names(metadata$nirs_columns)
     }
 
     ## validation: `nirs_columns` must match expected dataframe names
-    if (!all(unlist(nirs_columns) %in% names(.data))) {
+    if (!all(unlist(nirs_columns) %in% names(data))) {
         cli::cli_abort(paste(
             "{.arg nirs_columns} must be a list of names.",
-            "Make sure column names match exactly"))
+            "Make sure column names match exactly."))
     }
 
     ## validation: `normalise_range` must be numeric vector
@@ -66,7 +66,7 @@ normalise_dataframe <- function(
             nirs_columns
         } else {list(nirs_columns)},
         \(.col)
-        .data |>
+        data |>
             dplyr::select(dplyr::any_of(.col)) |>
             dplyr::mutate(
                 dplyr::across(
@@ -79,9 +79,9 @@ normalise_dataframe <- function(
             )
     ) |>
         dplyr::bind_cols(
-            dplyr::select(.data, -dplyr::any_of(unlist(nirs_columns)))
+            dplyr::select(data, -dplyr::any_of(unlist(nirs_columns)))
         ) |>
-        dplyr::relocate(names(.data))
+        dplyr::relocate(names(data))
 
     return(y)
 }
@@ -99,7 +99,7 @@ normalise_dataframe <- function(
 # ) |> dplyr::slice(-1))
 #
 # y <- normalise_dataframe(
-#     .data = df,
+#     data = df,
 #     nirs_columns = list(c("ICG_VL", "ICG_SCM")),
 #     normalise_range = c(0, 100)
 # ) |>
