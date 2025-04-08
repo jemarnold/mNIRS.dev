@@ -33,7 +33,8 @@
 #' - Alternatively, a list of numeric vectors can be specified to
 #' ensemble-average groups of kinetics events together. Such as
 #' `group_kinetics_events = list(c(1, 2), c(3, 4))` for two sets of
-#' repeated bouts.
+#' repeated bouts. Any bout numbers not listed explicity will return un-grouped
+#' dataframes.
 #' @param ... Additional arguments.
 #'
 #' @details
@@ -169,25 +170,6 @@ prepare_kinetics_data <- function(
             "{.cls numeric} scalar."))
 
     }
-
-    ## define & validation: inform `end_kinetics_window`
-    if (is.null(end_kinetics_window)) {
-
-        end_kinetics_window <-
-            pmin(pmax(round(fit_kinetics_window * 0.15/15)*15, 15), 30)
-
-        cli::cli_alert_info(paste(
-            "{.arg end_kinetics_window} set to {.val {end_kinetics_window}}",
-            "samples"
-        ))
-    } else if (!rlang::is_double(end_kinetics_window) |
-               !length(end_kinetics_window) == 1) {
-
-        cli::cli_abort(paste(
-            "{.arg end_kinetics_window} must be a single",
-            "{.cls numeric} scalar."))
-
-    }
     #
     ## Event Indices ===================================
 
@@ -234,9 +216,9 @@ prepare_kinetics_data <- function(
 
             dplyr::slice(data, indices) |>
                 dplyr::mutate(
-                    display_index = index - .x
+                    index = index - .x
                 ) |>
-                dplyr::relocate(display_index)
+                dplyr::relocate(index)
         }
     )
 
@@ -248,11 +230,11 @@ prepare_kinetics_data <- function(
 
         y <- dplyr::bind_rows(data_list) |>
             dplyr::select(
-                -c(index, dplyr::any_of(c(sample_column, event_column)))
+                -c(dplyr::any_of(c(sample_column, event_column)))
             ) |>
-            dplyr::arrange(display_index) |>
+            dplyr::arrange(index) |>
             dplyr::summarise(
-                .by = display_index,
+                .by = index,
                 dplyr::across(
                     dplyr::where(is.numeric),
                     \(.x) mean(.x, na.rm = TRUE))
@@ -276,11 +258,11 @@ prepare_kinetics_data <- function(
             \(.x) data_list[.x] |>
                 dplyr::bind_rows() |>
                 dplyr::select(
-                    -c(index, dplyr::any_of(c(sample_column, event_column)))
+                    -c(dplyr::any_of(c(sample_column, event_column)))
                 ) |>
-                dplyr::arrange(display_index) |>
+                dplyr::arrange(index) |>
                 dplyr::summarise(
-                    .by = display_index,
+                    .by = index,
                     dplyr::across(
                         dplyr::where(is.numeric),
                         \(.x) mean(.x, na.rm = TRUE))
