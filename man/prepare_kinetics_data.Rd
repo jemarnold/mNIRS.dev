@@ -88,7 +88,8 @@ data from all kinetics events (similar to pulmonary VO2 kinetics).
 \item Alternatively, a list of numeric vectors can be specified to
 ensemble-average groups of kinetics events together. Such as
 \code{group_kinetics_events = list(c(1, 2), c(3, 4))} for two sets of
-repeated bouts.
+repeated bouts. Any bout numbers not listed explicity will return un-grouped
+dataframes.
 }}
 }
 \value{

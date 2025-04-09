@@ -118,18 +118,18 @@ process_kinetics <- function(
     return(list(y = y, x = x))
 }
 #
-(data <- mNIRS::read_data(
-    file_path = "C:/OneDrive - UBC/Body Position Study/Raw Data/BP01-oxysoft-2025-04-01.xlsx",
-    nirs_columns = c("PS_O2Hb" = "2",
-                     "PS_HHb" = "3",
-                     "VL_O2Hb" = "5",
-                     "VL_HHb" = "6"),
-    sample_column = c("sample" = "1"),
-    event_column = c("event" = "10", "label" = "...11"),
-    .keep_all = FALSE))
-
-(data_list <- prepare_kinetics_data(
-    data,
-    event_label = c("end RP", "end UP", "end stage"),
-    group_kinetics_events = list(c(1, 2), c(3, 4)) #"distinct"
-))
+# (data <- mNIRS::read_data(
+#     file_path = "C:/OneDrive - UBC/Body Position Study/Raw Data/BP01-oxysoft-2025-04-01.xlsx",
+#     nirs_columns = c("PS_O2Hb" = "2",
+#                      "PS_HHb" = "3",
+#                      "VL_O2Hb" = "5",
+#                      "VL_HHb" = "6"),
+#     sample_column = c("sample" = "1"),
+#     event_column = c("event" = "10", "label" = "...11"),
+#     .keep_all = FALSE))
+#
+# (data_list <- prepare_kinetics_data(
+#     data,
+#     event_label = c("end RP", "end UP", "end stage"),
+#     group_kinetics_events = list(c(1, 2), c(3, 4)) #"distinct"
+# ))
