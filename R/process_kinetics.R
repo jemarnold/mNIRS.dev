@@ -3,6 +3,9 @@
 #'
 #'
 #' @param x A numeric vector of mNIRS data.
+#' @param end_kinetics_width A numeric scalar specifying the number of
+#' samples in which to look for a peak or nadir value indicating the kinetics
+#' plateau.
 #' @param ... Additional arguments (*currently not used*).
 #'
 #' @details
@@ -22,7 +25,7 @@ process_kinetics <- function(
 
     ## TODO
     ## intake nirs_column as vector
-    ## intake idx column as vector
+    ## intake idx column as vector?
     ## set end_kinetics_width
     ## choose kinetics models
     ## vector-wise processing
@@ -54,15 +57,13 @@ process_kinetics <- function(
             pmin(pmax(round(fit_kinetics_window * 0.15/15)*15, 15), 30)
 
         cli::cli_alert_info(paste(
-            "{.arg end_kinetics_width} set to {.val {end_kinetics_width}}",
-            "samples"
+            "{.arg end_kinetics_width} set to {.val {end_kinetics_width}} samples"
         ))
     } else if (!rlang::is_double(end_kinetics_width) |
                !length(end_kinetics_width) == 1) {
 
         cli::cli_abort(paste(
-            "{.arg end_kinetics_width} must be a single",
-            "{.cls numeric} scalar."))
+            "{.arg end_kinetics_width} must be a single {.cls numeric} scalar."))
 
     }
     #
@@ -118,18 +119,22 @@ process_kinetics <- function(
     return(list(y = y, x = x))
 }
 #
-# (data <- mNIRS::read_data(
-#     file_path = "C:/OneDrive - UBC/Body Position Study/Raw Data/BP01-oxysoft-2025-04-01.xlsx",
-#     nirs_columns = c("PS_O2Hb" = "2",
-#                      "PS_HHb" = "3",
-#                      "VL_O2Hb" = "5",
-#                      "VL_HHb" = "6"),
-#     sample_column = c("sample" = "1"),
-#     event_column = c("event" = "10", "label" = "...11"),
-#     .keep_all = FALSE))
+(data <- mNIRS::read_data(
+    file_path = "C:/OneDrive - UBC/Body Position Study/Raw Data/BP01-oxysoft-2025-04-01.xlsx",
+    nirs_columns = c("PS_O2Hb" = "2",
+                     "PS_HHb" = "3",
+                     "VL_O2Hb" = "5",
+                     "VL_HHb" = "6"),
+    sample_column = c("sample" = "1"),
+    event_column = c("event" = "10", "label" = "...11"),
+    .keep_all = FALSE))
 #
-# (data_list <- prepare_kinetics_data(
-#     data,
-#     event_label = c("end RP", "end UP", "end stage"),
-#     group_kinetics_events = list(c(1, 2), c(3, 4)) #"distinct"
-# ))
+(data_list <- mNIRS::prepare_kinetics_data(
+    data,
+    event_label = c("end RP", "end UP", "end stage"),
+    fit_baseline_window = 30,
+    fit_kinetics_window = 180,
+    display_baseline_window = NULL,
+    display_kinetics_window = 240,
+    group_kinetics_events = list(c(1, 3, 5), c(2, 4)) #"ensemble"
+))

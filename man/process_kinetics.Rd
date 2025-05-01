@@ -15,6 +15,10 @@ process_kinetics(
 \arguments{
 \item{x}{A numeric vector of mNIRS data.}
 
+\item{end_kinetics_width}{A numeric scalar specifying the number of
+samples in which to look for a peak or nadir value indicating the kinetics
+plateau.}
+
 \item{...}{Additional arguments (\emph{currently not used}).}
 }
 \value{

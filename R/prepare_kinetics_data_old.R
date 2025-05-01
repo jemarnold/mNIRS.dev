@@ -37,7 +37,7 @@
 #' @return A [tibble][tibble::tibble-package].
 #'
 #' @export
-prepare_kinetics_data <- function(
+prepare_kinetics_data_old <- function(
         .data,
         fit_baseline_window = 30,
         fit_kinetics_window = 180,

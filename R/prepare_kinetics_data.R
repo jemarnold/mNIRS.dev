@@ -20,9 +20,6 @@
 #' samples preceding to the kinetics events to include for display.
 #' @param display_kinetics_window A numeric scalar specifying the number of
 #' samples following to the kinetics events to include for display.
-#' @param end_kinetics_window A numeric scalar specifying the number of
-#' samples in which to look for a peak or nadir value indicating the kinetics
-#' plateau.
 #' @param group_kinetics_events Indicates whether kinetics events should
 #' be analysed separately or together.
 #'
@@ -52,7 +49,6 @@ prepare_kinetics_data <- function(
         fit_kinetics_window = 180,
         display_baseline_window = NULL,
         display_kinetics_window = NULL,
-        end_kinetics_window = NULL,
         group_kinetics_events = c("distinct", "ensemble"),
         ...
 ) {
@@ -205,7 +201,7 @@ prepare_kinetics_data <- function(
         c(event_index, event_sample_index, event_label_index))
 
     start_index <- -min(c(fit_baseline_window, display_baseline_window))
-    end_index <- min(c(fit_kinetics_window, display_kinetics_window))
+    end_index <- max(c(fit_kinetics_window, display_kinetics_window))
 
     data_list <- purrr::map(
         event_index_list,
