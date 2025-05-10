@@ -25,4 +25,5 @@ for display.
 \examples{
 signif_trailing(c(1, 1.3, 1.35), digits = 2, format = "f")
 signif_trailing(c(1, 1.3, 1.35), digits = 2, format = "fg")
+
 }

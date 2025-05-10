@@ -18,33 +18,10 @@ options(digits = 5, digits.secs = 3, scipen = 3,
 #   bg = "white")
 # camcorder::gg_stop_recording()
 #
-## Data Wrangling ================================
-# Generate sample data
-set.seed(123)
-x <- seq(0, 60, by = 2)
-true_A <- 10
-true_B <- 100
-true_TD <- 15
-true_tau <- 8
-y <- true_A + (true_B - true_A) * (1 - exp(-((x - true_TD)/true_tau))) * ifelse(x >= true_TD, 1, 0)
-y <- y + rnorm(length(x), 0, 3)  # Add noise
-data <- tibble(x = x, y = y)
-
-ggplot(data) +
-    {list( ## Settings
-        aes(x = x, y = y),
-        theme_JA(),
-        NULL)} + ## Settings
-    {list( ## Data
-        geom_line(),
-        geom_point(),
-        NULL)} ## Data
-
-
+## self start monoexp ====================================
 monoexp_equation <- function(x, A, B, TD, tau) {
     ifelse(x <= TD, A, A + (B-A) * (1 - exp((TD - x) / tau)))
 }
-
 
 monoexp_init <- function(
         mCall, LHS, data, ...
@@ -72,140 +49,209 @@ monoexp_init <- function(
     setNames(c(A, B, TD, tau), mCall[c("A", "B", "TD", "tau")])
 }
 
-
 SSmonoexp <- selfStart(
     ## nls fit function
     ## nls(y ~ SSmonoexp(x, A, B, TD, tau), data)
     model = monoexp_equation,
     initial = monoexp_init,
     parameters = c("A", "B", "TD", "tau"))
+#
+## Data Wrangling ================================
+# Generate sample data
+set.seed(13)
+true_x <- seq(0, 60, by = 2)
+true_A <- 10
+true_B <- 100
+true_TD <- 15
+true_tau <- 8
+true_y <- monoexp_equation(true_x, true_A, true_B, true_TD, true_tau)
+true_y <- true_y + rnorm(length(true_x), 0, 3)  # Add noise
+true_data <- tibble(x = true_x, y = true_y)
+
+plot <- ggplot(true_data) +
+    {list( ## Settings
+        aes(x, y),
+        scale_y_continuous(
+            limits = c(0, NA),
+            breaks = scales::breaks_pretty(),
+        ),
+        theme_JA(),
+        NULL)} + ## Settings
+    {list( ## Data
+        geom_hline(yintercept = 10, linetype = "dotted"),
+        geom_line(),
+        geom_point(),
+        NULL)} ## Data
+
+plot
+#
+
+## update model ===========================================
+# nls(y ~ SSmonoexp(x, A, B, TD, tau), data = data)
+# nls(y ~ monoexp_equation(x, A, B, TD, tau), data = data,
+#     start = list(A = 10, B = 100, TD = 15, tau = 10))
+#
+# nls(y ~ SSmonoexp(x, A, B, TD, tau), data = data) |>
+#     (\(.x) update(
+#         object = .x,
+#         y ~ SSmonoexp(x, A = 10, B, TD, tau),
+#         start = within(as.list(.x$m$getPars()), rm(A))))()
+# nls(y ~ monoexp_equation(x, A, B, TD, tau), data = data,
+#     start = list(A = 10, B = 100, TD = 15, tau = 10)) |>
+#     mNIRS::update_fixed_coefs(A = 10)
+#
+# nls(y ~ SSlogis(x, Asym, xmid, scal), data = data) |>
+#     mNIRS::update_fixed_coefs()
+#
+## monoexp kinetics function ============================
+
+## intake vector NIRS data
+## intake vector SAMPLE/TIME
+## intake scalar sample number == 0
+## ...
+## output fitted values
+## output model
+## output coefs
+## output fit criteria
+
+# process_kinetics_test <- function(
+#         x,
+#         y = NULL,
+#         x0 = 0,
+#         method = c("monoexponential", "logistic", "half-time", "peak-slope"),
+#         ...
+# ) {
+#
+#     ## set c(x, y) when y missing
+#     if (is.null(y)) {
+#         y <- x
+#         x <- seq_along(y)
+#     }
+#
+#     ## construct the dataframe
+#     x <- x - x0
+#     df <- data.frame(x = x, y = y)
+#
+#     ## create the model and update for any fixed coefs
+#     model <- nls(y ~ SSmonoexp(x, A, B, TD, tau), data = df) |>
+#         update_fixed_coefs(...)
+#
+#     fitted <- as.vector(fitted(model))
+#     coefs <- c(..., coef(model))
+#     coefs <- coefs[match(c("A", "B", "TD", "tau"), names(coefs))]
+#     AIC <- AIC(model)
+#     BIC <- BIC(model)
+#     R2 <- 1 - sum((y - fitted)^2)/sum((y - mean(y, na.rm = TRUE))^2)
+#     RMSE <- sqrt(mean(summary(model)$residuals^2))
+#     RSE <- summary(model)$sigma
+#     MAE <- mean(abs(summary(model)$residuals))
+#     MAPE <- mean(abs(summary(model)$residuals/y)) * 100
+#
+#     structure(
+#         list(
+#             model = model,
+#             fitted = fitted,
+#             coefs = coefs,
+#             fit_criteria = c(
+#                 AIC = AIC, BIC = BIC, R2 = R2, RMSE = RMSE,
+#                 RSE = RSE, MAE = MAE, MAPE = MAPE),
+#             call = match.call()),
+#         class = "mNIRS.kinetics")
+# }
+
+# process_kinetics_test(true_x, true_y, x0 = true_x[8], method = "monoexp", B = 100, Q = 100)
+#
+# process_kinetics_test(x = true_y)
 
 
+fit_monoexp <- mNIRS::process_kinetics(
+    true_x, true_y, x0 = true_x[8], method = "monoexp", Q = 100)$model
 
 
+(fitted <- predict(fit_monoexp, newdata = data.frame(
+    x = JAPackage::SeqRange(range(true_x)-true_x[8], by = 0.1))))
+
+(plot2 <- plot +
+    geom_line(
+        data = tibble(),
+        aes(x = JAPackage::SeqRange(range(true_x), by = 0.1),
+            y = fitted,
+            colour = "monoexp"))
+)
 
 
-nls(y ~ SSmonoexp(x, A, B, TD, tau), data = data)
-nls(y ~ SSmonoexp(x, A, B, TD, tau), data = data) |>
-    (\(.x) update(
-        object = .x,
-        y ~ monoexp_equation(x, A = 10, B, TD, tau),
-        start = within(as.list(.x$m$getPars()), rm(A))))()
-nls(y ~ monoexp_equation(x, A=10, B, TD, tau), data = data,
-    start = list(B = 100, TD = 15, tau = 10))
-
-# nls.multstart::nls_multstart(
-#     formula = y ~ monoexp_equation(x, A, B, TD, tau),
-#     data = data,
-#     start_lower = c(A = 0, B = 0, TD = 0, tau = 0),
-#     start_upper = c(A = 100, B = 100, TD = 60, tau = 100),
-#     iter = 100,
-#     # supp_errors = "Y"
-# )
-
-
-
-
-
-# Create a modified self-starting function system that supports fixed parameters
-create_SSmonoexp <- function(fixed_params = list()) {
-
-
-    # Create a version of the formula with only free parameters
-    param_names <- c("A", "B", "TD", "tau")
-    free_params <- setdiff(param_names, names(fixed_params))
-
-    monoexp_eq_wrapper <- function(x, B, TD, tau) {
-        list2env(fixed_params, envir = .GlobalEnv)
-        ifelse(x <= TD, A, A + (B-A) * (1 - exp((TD - x) / tau)))
-    }
-
-    # Initial parameter estimation function that only estimates free parameters
-    monoexp_init <- function(
-        mCall, LHS, data, ...
-    ) {
-        ## self-start parameters for nls of monoexponential fit function
-        ## https://www.statforbiology.com/2020/stat_nls_selfstarting/#and-what-about-nls
-        xy <- sortedXyData(mCall[["x"]], LHS, data)
-        x <- xy[, "x"]
-        y <- xy[, "y"]
-
-        ## TRUE == UP, FALSE == DOWN
-        direction <- mean(head(y, length(y) / 4)) < mean(tail(y, length(y) / 4))
-
-        A <- min(y) * direction + max(y) * !direction
-        B <- max(y) * direction + min(y) * !direction
-        ## TD finds the first x value > 0 and where y has changed by
-        ## greater than 10% of the B-A amplitude in the appropriate direction
-        TD <- x[min(which(x > 0 & abs(y - A) > abs(B - A) / 10))]
-        ## tau finds the greater of either x > 0 or
-        ## the nearest x value to 63.2% of the B-A amplitude
-        tau <- abs(TD - x[max(c(
-            min(which(x > 0)),
-            which.min(abs(y - (A + 0.632 * (B - A))))))])
-
-        # All initial estimates
-        all_inits <- c(A = A, B = B, TD = TD, tau = tau)
-
-        # Only return estimates for free parameters
-        setNames(all_inits[free_params], mCall[free_params])
-    }
-
-    # Create and return a selfStart function
-    selfStart(monoexp_eq_wrapper, monoexp_init, parameters = free_params)
-}
-
-# Create a model where A is fixed to 10
-SSmonoexp_fixedA <- create_SSmonoexp(fixed_params = list(A = 10))
-
-# Use it in nls
-(fit <- nls(y ~ SSmonoexp_fixedA(x, B, TD, tau), data = data))
+# (spl <- smooth.spline(true_x, true_y))
+# str(spl)
+# structure(
+#     list(
+#         x = ux,
+#         y = fit$ty,
+#         w = wbar,
+#         yin = ybar,
+#         tol = tol,
+#         data = if (keep.data) list(x = x, y = y, w = w),
+#         no.weights = no.wgts,
+#         n = n,
+#         lev = lev,
+#         cv = cv,
+#         cv.crit = cv.crit,
+#         pen.crit = sum(wbar * (ybar - fit$ty)^2),
+#         crit = fit$crit,
+#         df = df,
+#         spar = if (spar.is.lambda) NA else fit$spar,
+#         ratio = if (spar.is.lambda) NA else fit$parms[["ratio"]],
+#         lambda = fit$parms[["low"]],
+#         iparms = c(fit$iparms, errorI = if (fit$ier) fit$ier else NA),
+#         auxM = if (keep.stuff) list(
+#             XWy = fit$scratch[seq_len(nk)],
+#             XWX = fit$scratch[nk + seq_len(4 * nk)],
+#             Sigma = fit$scratch[5 * nk + seq_len(4 * nk)],
+#             R = fit$scratch[9 * nk + seq_len(4 * nk)]),
+#         fit = structure(list(knot = knot, nk = nk, min = ux[1L], range = r.ux, coef = fit$coef),
+#                         class = "smooth.spline.fit"),
+#         call = match.call()),
+#     class = "smooth.spline")
+#
+## half-time ========================================
 
 
+# process_kinetics.half_time <- function(
+#         x,
+#         y = NULL,
+#         x0 = 0,
+#         method = c("monoexponential", "logistic", "half-time", "peak-slope"),
+#         ...
+# ) {
+#
+#     ## set c(x, y) when y missing
+#     if (is.null(y)) {
+#         y <- x
+#         x <- seq_along(y)
+#     }
+#
+#     x <- x - x0
+#
+#     ## TRUE == UP, FALSE == DOWN
+#     (direction <- mean(head(y, length(y) / 4)) < mean(tail(y, length(y) / 4)))
+#
+#     (A <- mean(y[ifelse(all(x >= 1), x[1], which(x < 1))]))
+#     (B <- ifelse(direction, max(y), min(y)))
+#     (peak_sample <- x[y == B])
+#     (half_value <- A + diff(c(A, B))/2)
+#     (half_time <- ifelse(direction, x[y > half_value][1], x[y < half_value][1]))
+#
+#     coefs <- c(A = A, B = B, half_time = half_time, half_value = half_value)
+#
+#     structure(
+#         list(
+#             coefs = coefs,
+#             call = match.call()),
+#         class = "mNIRS.kinetics")
+# }
 
+mNIRS::process_kinetics(true_x, true_y, x0 = true_x[8], method = "half_time")
+(half_data <- mNIRS::process_kinetics(x=true_x, y=true_y, method = "half_time")$coefs)
 
-
-SSmonoexp_fixed <- function(x, B, TD, tau) SSmonoexp(x, A = 10, B, TD, tau, data = data)
-nls(formula = y ~ SSmonoexp_fixed(x, B, TD, tau), start = list(B = 100, TD = 15, tau = 15),
-    control = list(maxiter = 50, tol = 5e-8, warnOnly = TRUE), algorithm = "port",
-    weights = sqrt(y), na.action = na.exclude, lower = 0, upper = 1)
-
-
-
-test <- function(x, ...) {
-    # list2env(fixed_params, envir = .GlobalEnv)
-    args <- list(...)
-    # list2env(args, envir = .GlobalEnv)
-    args
-}
-test(A=10)
-
-
-
-SSmonoexp <- function(x, A, B, TD, tau) {
-    # The main model function
-    ifelse(x <= TD, A, A + (B-A) * (1 - exp((TD - x) / tau)))
-}
-
-# Function to create the initial estimates
-.SSmonoexp.init <- function(mCall, LHS, data, ...) {
-    xy <- sortedXyData(mCall[["x"]], LHS, data)
-    x <- xy[, "x"]
-    y <- xy[, "y"]
-
-    ## TRUE == UP, FALSE == DOWN
-    direction <- mean(head(y, length(y) / 4)) < mean(tail(y, length(y) / 4))
-
-    A <- min(y) * direction + max(y) * !direction
-    B <- max(y) * direction + min(y) * !direction
-    TD <- x[min(which(x > 0 & abs(y - A) > abs(B - A) / 10))]
-    tau <- abs(TD - x[max(c(
-        min(which(x > 0)),
-        which.min(abs(y - (A + 0.632 * (B - A))))))])
-
-    setNames(c(A, B, TD, tau), mCall[c("A", "B", "TD", "tau")])
-}
-
-# Create a selfStart version
-SSmonoexp <- selfStart(SSmonoexp, .SSmonoexp.init, parameters = c("A", "B", "TD", "tau"))
-nls(y ~ SSmonoexp(x, A = 10, B, TD, tau), data = data)
+plot2 +
+    geom_hline(yintercept = half_data["half_value"], linetype = "dotted") +
+    geom_vline(xintercept = half_data["half_time"], linetype = "dotted")

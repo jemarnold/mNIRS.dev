@@ -11,11 +11,11 @@
 #'
 #' @return A character vector.
 #'
-#' @export
-#'
 #' @examples
 #' signif_trailing(c(1, 1.3, 1.35), digits = 2, format = "f")
 #' signif_trailing(c(1, 1.3, 1.35), digits = 2, format = "fg")
+#'
+#' @export
 signif_trailing <- function(x, digits = 2, format = c("f", "fg")) {
     ## format = "f" for decimal place; "fg" for signif
     format = match.arg(format)

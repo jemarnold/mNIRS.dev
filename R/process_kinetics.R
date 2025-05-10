@@ -1,169 +1,185 @@
 #' Process Kinetics
 #'
+#' Fit an mNIRS kinetics event with parametric or non-parametric models.
 #'
+#' @param x A numeric vector giving the predictor variable for `y` if `y` is
+#' specified. Otherwise, `x` is assumed to specify the response variable.
+#' @param y A numeric vector giving the response variable. If `y` is missing
+#' or NULL, the predictor variable is assumed to be specified by `x`, with
+#' `seq_along(x)` as the index predictor variable.
+#' @param x0 A numeric scalar indicating the value of the predictor variable `x`
+#' or index `seq_along(x)` representing the beginning of the kinetics event.
+#' @param method Indicates how to process the kinetics.
+#' - *"monoexponential"* ...
+#' - *"logistic"* ...
+#' - *"half_time"* ...
+#' - *"peak_slope"* ...
+#' @param ... Additional arguments. Used to define fixed parameters which will
+#' not be optimised by the kinetics methods. e.g. `A = 10` will define `SSmonoexp(x, A = 10, B, TD, tau)`
 #'
-#' @param x A numeric vector of mNIRS data.
-#' @param end_kinetics_width A numeric scalar specifying the number of
-#' samples in which to look for a peak or nadir value indicating the kinetics
-#' plateau.
-#' @param ... Additional arguments (*currently not used*).
+#' @return A list `L` of class `mNIRS.kinetics` with components `L$...`:
+#' - `model` The model object.
+#' - `data` A dataframe of the input and fitted model data.
+#' - `fitted` A dataframe of the fitted values returned by the model.
+#' - `coefs` A dataframe of the model coefficients, including manually fixed
+#' parameters.
+#' - `fit_criteria` A vector of the model fit criteria (e.g. `AIC`, `BIC`,
+#' `RMSE`, etc.).
 #'
-#' @details
+#' @examples
 #' ...
-#'
-#' @return A list `L` with `L$y` the kinetics time series and `L$x` the
-#' raw data...
 #'
 #' @export
 process_kinetics <- function(
-        data,
-        method = c("monoexponential", "logistic", "half-time", "peak-slope"),
-        end_kinetics_width,
+        x,
+        y = NULL,
+        x0 = 0,
+        method = c("monoexponential", "logistic", "half_time", "peak_slope"),
         ...
 ) {
 
-    ## TODO
-    ## intake nirs_column as vector
-    ## intake idx column as vector?
-    ## set end_kinetics_width
-    ## choose kinetics models
-    ## vector-wise processing
-    ## return:
-    ## - models
-    ## - model coefficients values
-    ## - model fit criteria (n_samples, AIC, BIC, r^2, RMSE, ...)
-    ## - fitted values
-    ## metadata on vector?
-    ## list(
-    ##     x = x,
-    ##     model_monoexp = list(
-    ##         table = model_monoexp,
-    ##         values = data.frame(A, B, C),
-    ##         fit criteria = data.frame(
-    ##             n, AIC, BIC, R2, RMSE),
-    ##         y = fitted.values),
-    ##     model_logistic = list(...),
-    ##     ...)
+    method <- match.arg(method)
 
+    class(x) <- method
 
-    ## Validation =================================
-    args <- list(...)
-
-    ## define & validation: inform `end_kinetics_width`
-    if (is.null(end_kinetics_width)) {
-
-        end_kinetics_width <- pmin(pmax(round(nrow(data) * 0.15/15)*15, 15), 30)
-
-        cli::cli_alert_info(paste(
-            "{.arg end_kinetics_width} set to {.val {end_kinetics_width}} samples"
-        ))
-
-    } else if (!rlang::is_double(end_kinetics_width) |
-               !length(end_kinetics_width) == 1) {
-
-        cli::cli_abort(paste(
-            "{.arg end_kinetics_width} must be a single {.cls numeric} scalar."))
-
-    }
-    #
-    ## Processing ===================================
-
-    # x <- dplyr::filter(data, !is.na(fit_index))$VL_HHb
-    #
-    # max <- zoo::rollapply(
-    #     x,
-    #     width = 2 * end_kinetics_width + 1,
-    #     FUN = max,
-    #     align = "center",
-    #     partial = TRUE,
-    #     na.rm = TRUE) |> print()
-    #
-    # mean <- mean(x, na.rm = TRUE) |> print()
-    #
-    # peak <- dplyr::na_if((dplyr::near(x, max) & x > mean) * x, 0) |> print()
-
-    # prepared_kinetics_data <-
-        # data |>
-        # dplyr::mutate(
-        #     ## local peak values with no greater value within 30 samples in
-        #     ## either direction
-        #     ## TODO stress test centred rolling max window
-        #     max = zoo::rollapply(
-        #         x,
-        #         width = 2 * end_kinetics_width + 1,
-        #         FUN = max,
-        #         align = "center",
-        #         partial = TRUE,
-        #         na.rm = TRUE) *
-        #         dplyr::if_else(
-        #             !is.na(fit_index) & fit_index >= 0, 1, NA),
-        #
-        #     # ## highest value preserved forward (top to bottom)
-        #     # max_right = zoo::rollapplyr(
-        #     #     nirs_fit_window,
-        #     #     width = end_kinetics_width,
-        #     #     FUN = max,
-        #     #     partial = TRUE,
-        #     #     na.rm = TRUE),
-        #     # ## highest value preserved backward (bottom to top)
-        #     # max_left = zoo::rollapply(
-        #     #     nirs_fit_window,
-        #     #     width = end_kinetics_width,
-        #     #     FUN = max,
-        #     #     align = "left",
-        #     #     partial = TRUE,
-        #     #     na.rm = TRUE),
-        #     ## ensure the peak must be above the mean data within
-        #     ## fit_kinetics_window. I think to avoid early peaks?
-        #     mean = mean(x, na.rm = TRUE),
-        #     peak = dplyr::na_if(
-        #         (dplyr::near(x, max) & x > mean) * x, 0),
-        #     ## where no local peak exists, use the last fit_kinetics_window value
-        #     peak2 = (all(is.na(peak) | !peak) &
-        #                  is.na(dplyr::lead(x))) + peak,
-        # ) |> print(n=Inf)
-        #     ## take the first peak value if multiple exist
-        #     first_peak = cumsum(peak2) - ((peak2 == 0) * cumsum(peak2)) == 1,
-        #
-        #     ## convert Inf or NaN values to NA
-        #     dplyr::across(
-        #         dplyr::where(is.numeric),
-        #         \(.x) dplyr::if_else(
-        #             is.infinite(.x) | is.nan(.x), NA_real_, .x)),
-        # ) |>
-        # suppressWarnings()
-
-
-
-
-
-
-    return(list(y = y, x = x))
+    UseMethod("process_kinetics", x)
 }
-#
-# (data <- mNIRS::read_data(
-#     file_path = "C:/OneDrive - UBC/Body Position Study/Raw Data/BP01-oxysoft-2025-04-01.xlsx",
-#     nirs_columns = c("PS_O2Hb" = "2",
-#                      "PS_HHb" = "3",
-#                      "VL_O2Hb" = "5",
-#                      "VL_HHb" = "6"),
-#     sample_column = c("sample" = "1"),
-#     event_column = c("label" = "...11"),
-#     .keep_all = FALSE))
-# # attributes(data)
-# # # #
-# (data_list <- mNIRS::prepare_kinetics_data(
-#     data,
-#     nirs_columns = c("PS_HHb", "VL_HHb"),
-#     # sample_column = NULL,
-#     event_column = "label",
-#     # event_index = NULL,
-#     # event_sample = NULL,
-#     event_label = c("end RP", "end UP", "end stage"),
-#     fit_baseline_window = 30,
-#     fit_kinetics_window = 180,
-#     display_baseline_window = 40,
-#     display_kinetics_window = 240,
-#     group_kinetics_events = list(c(1, 3, 5), c(2, 4)) #"ensemble"
-# ))
-# (data <- data_list[[1]] |> dplyr::mutate(x = VL_HHb))
+
+
+
+
+
+#' @export
+process_kinetics.monoexponential <- function(
+        x,
+        y = NULL,
+        x0 = 0,
+        method = c("monoexponential", "logistic", "half_time", "peak_slope"),
+        ...
+) {
+
+    ## set c(x, y) when y missing
+    if (is.null(y)) {
+        y <- x
+        x <- seq_along(y)
+    }
+
+    ## construct the dataframe
+    df <- data.frame(x = x - x0, y)
+
+    ## create the model and update for any fixed coefs
+    model <- nls(y ~ SSmonoexp(x, A, B, TD, tau), data = df) |>
+        mNIRS::update_fixed_coefs(...)
+
+    fitted <- as.vector(fitted(model))
+    df$fitted <- fitted
+    coefs <- c(..., coef(model))
+    coefs <- coefs[match(c("A", "B", "TD", "tau"), names(coefs))]
+    AIC <- AIC(model)
+    BIC <- BIC(model)
+    R2 <- 1 - sum((y - fitted)^2)/sum((y - mean(y, na.rm = TRUE))^2)
+    RMSE <- sqrt(mean(summary(model)$residuals^2))
+    RSE <- summary(model)$sigma
+    MAE <- mean(abs(summary(model)$residuals))
+    MAPE <- mean(abs(summary(model)$residuals/y)) * 100
+
+    structure(
+        list(
+            model = model,
+            data = df,
+            fitted = fitted,
+            coefs = data.frame(coefs),
+            fit_criteria = data.frame(
+                AIC = AIC, BIC = BIC, R2 = R2, RMSE = RMSE,
+                RSE = RSE, MAE = MAE, MAPE = MAPE),
+            call = match.call()),
+        class = "mNIRS.kinetics")
+}
+
+
+
+
+#' @export
+process_kinetics.logistic <- function(
+        x,
+        y = NULL,
+        x0 = 0,
+        method = c("monoexponential", "logistic", "half_time", "peak_slope"),
+        ...
+) {
+
+    ## set c(x, y) when y missing
+    if (is.null(y)) {
+        y <- x
+        x <- seq_along(y)
+    }
+
+    ## construct the dataframe
+    df <- data.frame(x = x - x0, y)
+
+    ## create the model and update for any fixed coefs
+    model <- nls(y ~ SSlogis(x, Asym, xmid, scal), data = df) |>
+        mNIRS::update_fixed_coefs(...)
+
+    fitted <- as.vector(fitted(model))
+    df$fitted <- fitted
+    coefs <- c(..., coef(model))
+    coefs <- coefs[match(c("Asym", "xmid", "scal"), names(coefs))]
+    AIC <- AIC(model)
+    BIC <- BIC(model)
+    R2 <- 1 - sum((y - fitted)^2)/sum((y - mean(y, na.rm = TRUE))^2)
+    RMSE <- sqrt(mean(summary(model)$residuals^2))
+    RSE <- summary(model)$sigma
+    MAE <- mean(abs(summary(model)$residuals))
+    MAPE <- mean(abs(summary(model)$residuals/y)) * 100
+
+    structure(
+        list(
+            model = model,
+            data = df,
+            fitted = fitted,
+            coefs = data.frame(coefs),
+            fit_criteria = data.frame(
+                AIC = AIC, BIC = BIC, R2 = R2, RMSE = RMSE,
+                RSE = RSE, MAE = MAE, MAPE = MAPE),
+            call = match.call()),
+        class = "mNIRS.kinetics")
+}
+
+
+
+
+#' @export
+process_kinetics.half_time <- function(
+        x,
+        y = NULL,
+        x0 = 0,
+        method = c("monoexponential", "logistic", "half_time", "peak_slope"),
+        ...
+) {
+
+    ## set c(x, y) when y missing
+    if (is.null(y)) {
+        y <- x
+        x <- seq_along(y)
+    }
+
+    x <- x - x0
+
+    ## TRUE == UP, FALSE == DOWN
+    (direction <- mean(head(y, length(y) / 4)) < mean(tail(y, length(y) / 4)))
+
+    (A <- mean(y[ifelse(all(x >= 1), x[1], which(x < 1))]))
+    (B <- ifelse(direction, max(y), min(y)))
+    (peak_sample <- x[y == B])
+    (half_value <- A + diff(c(A, B))/2)
+    (half_time <- ifelse(direction, x[y > half_value][1], x[y < half_value][1]))
+
+    coefs <- c(A = A, B = B, half_time = half_time, half_value = half_value)
+
+    structure(
+        list(
+            coefs = coefs,
+            call = match.call()),
+        class = "mNIRS.kinetics")
+}

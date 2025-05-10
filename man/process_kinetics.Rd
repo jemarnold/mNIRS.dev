@@ -6,28 +6,50 @@
 \usage{
 process_kinetics(
   x,
-  idx = "index",
-  method = c("monoexponential", "logistic", "half-time", "peak-slope"),
-  end_kinetics_width,
+  y = NULL,
+  x0 = 0,
+  method = c("monoexponential", "logistic", "half_time", "peak_slope"),
   ...
 )
 }
 \arguments{
-\item{x}{A numeric vector of mNIRS data.}
+\item{x}{A numeric vector giving the predictor variable for \code{y} if \code{y} is
+specified. Otherwise, \code{x} is assumed to specify the response variable.}
 
-\item{end_kinetics_width}{A numeric scalar specifying the number of
-samples in which to look for a peak or nadir value indicating the kinetics
-plateau.}
+\item{y}{A numeric vector giving the response variable. If \code{y} is missing
+or NULL, the predictor variable is assumed to be specified by \code{x}, with
+\code{seq_along(x)} as the index predictor variable.}
 
-\item{...}{Additional arguments (\emph{currently not used}).}
+\item{x0}{A numeric scalar indicating the value of the predictor variable \code{x}
+or index \code{seq_along(x)} representing the beginning of the kinetics event.}
+
+\item{method}{Indicates how to process the kinetics.
+\itemize{
+\item \emph{"monoexponential"} ...
+\item \emph{"logistic"} ...
+\item \emph{"half_time"} ...
+\item \emph{"peak_slope"} ...
+}}
+
+\item{...}{Additional arguments. Used to define fixed parameters which will
+not be optimised by the kinetics methods. e.g. \code{A = 10} will define \code{SSmonoexp(x, A = 10, B, TD, tau)}}
 }
 \value{
-A list \code{L} with \code{L$y} the kinetics time series and \code{L$x} the
-raw data...
+A list \code{L} of class \code{mNIRS.kinetics} with components \code{L$...}:
+\itemize{
+\item \code{model} The model object.
+\item \code{data} A dataframe of the input and fitted model data.
+\item \code{fitted} A dataframe of the fitted values returned by the model.
+\item \code{coefs} A dataframe of the model coefficients, including manually fixed
+parameters.
+\item \code{fit_criteria} A vector of the model fit criteria (e.g. \code{AIC}, \code{BIC},
+\code{RMSE}, etc.).
+}
 }
 \description{
-Process Kinetics
+Fit an mNIRS kinetics event with parametric or non-parametric models.
 }
-\details{
+\examples{
 ...
+
 }
