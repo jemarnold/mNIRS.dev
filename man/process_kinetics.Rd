@@ -39,17 +39,13 @@ A list \code{L} of class \code{mNIRS.kinetics} with components \code{L$...}:
 \itemize{
 \item \code{model} The model object.
 \item \code{data} A dataframe of the input and fitted model data.
-\item \code{fitted} A dataframe of the fitted values returned by the model.
+\item \code{fitted} A vector of the fitted values returned by the model.
 \item \code{coefs} A dataframe of the model coefficients, including manually fixed
 parameters.
-\item \code{fit_criteria} A vector of the model fit criteria (e.g. \code{AIC}, \code{BIC},
-\code{RMSE}, etc.).
+\item \code{fit_criteria} A dataframe of the model fit criteria (\code{AIC}, \code{BIC}, \code{R^2},
+\code{RMSE}, \code{RSE}, \code{MAE}, \code{MAPE}).
 }
 }
 \description{
 Fit an mNIRS kinetics event with parametric or non-parametric models.
-}
-\examples{
-...
-
 }

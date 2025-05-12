@@ -66,9 +66,39 @@ true_TD <- 15
 true_tau <- 8
 true_y <- monoexp_equation(true_x, true_A, true_B, true_TD, true_tau)
 true_y <- true_y + rnorm(length(true_x), 0, 3)  # Add noise
+## singular_data
+{
+    singular_data <- tibble(
+        xs = -30:180,
+        ys = c(21.49, 21.73, 21.84, 21.72, 21.6, 21.79, 21.97, 22.13, 22.04,
+              22.01, 21.91, 21.82, 21.74, 21.81, 21.84, 21.74, 21.46, 21.36,
+              21.35, 21.36, 21.44, 21.32, 21.36, 21.5, 21.69, 21.77, 21.86,
+              22, 21.82, 21.67, 21.79, 21.74, 21.35, 21.3, 21.36, 21.34, 21.22,
+              20.93, 20.81, 20.78, 20.73, 20.58, 20.55, 20.48, 20.47, 20.4,
+              20.28, 20.25, 20.26, 20.26, 20.29, 20.15, 20.27, 20.19, 20.14,
+              19.96, 19.97, 19.95, 19.95, 19.96, 19.94, 19.9, 19.92, 19.92,
+              19.9, 19.86, 19.84, 19.88, 19.87, 19.91, 19.93, 19.83, 19.99,
+              20.06, 19.83, 19.96, 19.89, 19.98, 19.91, 19.97, 19.98, 19.97,
+              19.98, 20.02, 20.05, 20.18, 20.1, 20.13, 20.12, 20.16, 20.16,
+              20.18, 20.24, 20.24, 20.31, 20.35, 20.24, 20.41, 20.41, 20.46,
+              20.45, 20.51, 20.58, 20.62, 20.55, 20.6, 20.55, 20.65, 20.63,
+              20.6, 20.56, 20.52, 20.5, 20.48, 20.38, 20.31, 20.3, 20.27, 20.22,
+              20.27, 20.12, 20.18, 20.18, 20.16, 20.16, 20.19, 20.27, 20.15,
+              20.23, 20.27, 20.32, 20.2, 20.23, 20.25, 20.26, 20.32, 20.31,
+              20.25, 20.34, 20.27, 20.23, 20.35, 20.33, 20.41, 20.34, 20.4,
+              20.4, 20.36, 20.43, 20.34, 20.38, 20.36, 20.35, 20.49, 20.45,
+              20.44, 20.49, 20.5, 20.59, 20.56, 20.42, 20.45, 20.43, 20.46,
+              20.42, 20.48, 20.46, 20.57, 20.58, 20.58, 20.6, 20.64, 20.69,
+              20.69, 20.7, 20.7, 20.68, 20.61, 20.58, 20.52, 20.46, 20.45,
+              20.42, 20.47, 20.62, 20.67, 20.69, 20.74, 20.7, 20.69, 20.7,
+              20.73, 20.65, 20.63, 20.6, 20.68, 20.62, 20.65, 20.71, 20.78,
+              20.65, 20.7, 20.76, 20.81, 20.79, 20.82, 20.86, 20.94, 20.91,
+              20.84, 20.93),
+    )
+} ## singular_data
 true_data <- tibble(x = true_x, y = true_y)
 
-plot <- ggplot(true_data) +
+plot <- ggplot(singular_data) +
     {list( ## Settings
         aes(x, y),
         scale_y_continuous(
@@ -114,52 +144,104 @@ plot
 ## output coefs
 ## output fit criteria
 
-# process_kinetics_test <- function(
-#         x,
-#         y = NULL,
-#         x0 = 0,
-#         method = c("monoexponential", "logistic", "half-time", "peak-slope"),
-#         ...
-# ) {
-#
-#     ## set c(x, y) when y missing
-#     if (is.null(y)) {
-#         y <- x
-#         x <- seq_along(y)
-#     }
-#
-#     ## construct the dataframe
-#     x <- x - x0
-#     df <- data.frame(x = x, y = y)
-#
-#     ## create the model and update for any fixed coefs
-#     model <- nls(y ~ SSmonoexp(x, A, B, TD, tau), data = df) |>
-#         update_fixed_coefs(...)
-#
-#     fitted <- as.vector(fitted(model))
-#     coefs <- c(..., coef(model))
-#     coefs <- coefs[match(c("A", "B", "TD", "tau"), names(coefs))]
-#     AIC <- AIC(model)
-#     BIC <- BIC(model)
-#     R2 <- 1 - sum((y - fitted)^2)/sum((y - mean(y, na.rm = TRUE))^2)
-#     RMSE <- sqrt(mean(summary(model)$residuals^2))
-#     RSE <- summary(model)$sigma
-#     MAE <- mean(abs(summary(model)$residuals))
-#     MAPE <- mean(abs(summary(model)$residuals/y)) * 100
-#
-#     structure(
-#         list(
-#             model = model,
-#             fitted = fitted,
-#             coefs = coefs,
-#             fit_criteria = c(
-#                 AIC = AIC, BIC = BIC, R2 = R2, RMSE = RMSE,
-#                 RSE = RSE, MAE = MAE, MAPE = MAPE),
-#             call = match.call()),
-#         class = "mNIRS.kinetics")
-# }
+process_kinetics_test <- function(
+        x,
+        y = NULL,
+        data = NULL,
+        x0 = 0,
+        method = c("monoexponential", "logistic", "half_time", "peak_slope"),
+        ...
+) {
 
-# process_kinetics_test(true_x, true_y, x0 = true_x[8], method = "monoexp", B = 100, Q = 100)
+    if (!(is.null(data) | missing(data)) & !is.data.frame(data)) {
+
+        cli::cli_abort("{.arg data} must be a dataframe")
+
+    } else if (!(is.null(data) | missing(data)) & is.data.frame(data)) {
+
+        if (is.null(y) | missing(y)) {
+
+            df <- dplyr::select(data, x = {{x}}) |>
+                dplyr::mutate(
+                    y = x,
+                    x = seq_along(y) - x0
+                )
+        } else {
+
+            df <- dplyr::select(data, x = {{x}}, y = {{y}}) |>
+                dplyr::mutate(x = x - x0)
+        }
+
+    } else if (is.null(data) | missing(data)) {
+
+        if (is.null(y) | missing(y)) {
+            y <- x
+            x <- seq_along(y)
+        }
+
+        df <- data.frame(x = x - x0, y)
+    }
+
+    out <- structure(
+        list(
+            model = NA,
+            data = df,
+            fitted = NA,
+            coefs = NA,
+            fit_criteria = NA,
+            call = match.call()),
+        class = "mNIRS.kinetics")
+
+    ## create the model and update for any fixed coefs
+    model <- tryCatch(
+        nls(y ~ SSmonoexp(x, A, B, TD, tau), data = df), #|>
+        # mNIRS::update_fixed_coefs(...),
+        error = function(e) {
+            cat("Error in nls(y ~ SSmonoexp(x, A, B, TD, tau), data = df) :",
+                conditionMessage(e), "\n")
+            NA})
+
+    if (is.na(model)) {
+        return(out)
+    }
+
+    fitted <- as.vector(fitted(model))
+    df$fitted <- fitted
+    coefs <- c(..., coef(model))
+    coefs <- coefs[match(c("A", "B", "TD", "tau"), names(coefs))]
+    AIC <- AIC(model)
+    BIC <- BIC(model)
+    R2 <- 1 - sum((y - fitted)^2)/sum((y - mean(y, na.rm = TRUE))^2)
+    RMSE <- sqrt(mean(summary(model)$residuals^2))
+    RSE <- summary(model)$sigma
+    MAE <- mean(abs(summary(model)$residuals))
+    MAPE <- mean(abs(summary(model)$residuals/y)) * 100
+
+    out <- structure(
+        list(
+            model = model,
+            data = tibble::tibble(df),
+            fitted = fitted,
+            coefs = tibble::tibble(coefs),
+            fit_criteria = tibble::tibble(
+                AIC = AIC, BIC = BIC, R2 = R2, RMSE = RMSE,
+                RSE = RSE, MAE = MAE, MAPE = MAPE),
+            call = match.call()),
+        class = "mNIRS.kinetics")
+
+    return(out)
+
+}
+# rlang::sym(!!x)
+process_kinetics_test(
+    # x = singular_data$x,
+    # y = singular_data$y,
+    x = "xs",
+    y = "ys",
+    data = singular_data,
+    x0 = 0,
+    method = "monoexp",
+    B = 100, Q = 100)#$fitted
 #
 # process_kinetics_test(x = true_y)
 

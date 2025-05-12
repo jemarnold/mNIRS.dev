@@ -235,10 +235,15 @@ prepare_kinetics_data <- function(
 
     if (head(group_kinetics_events, 1) == "distinct") {
 
-        y <- data_list |>
-            dplyr::relocate(
-                display_index, fit_index,
-                dplyr::any_of(c(sample_column, event_column, nirs_columns)))
+        y <- purrr::map(
+            data_list,
+            \(.df)
+            .df |>
+                dplyr::relocate(
+                    display_index, fit_index,
+                    dplyr::any_of(
+                        c(sample_column, event_column, nirs_columns)))
+        )
 
     } else if (head(group_kinetics_events, 1) == "ensemble") {
 

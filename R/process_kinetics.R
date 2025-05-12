@@ -20,14 +20,11 @@
 #' @return A list `L` of class `mNIRS.kinetics` with components `L$...`:
 #' - `model` The model object.
 #' - `data` A dataframe of the input and fitted model data.
-#' - `fitted` A dataframe of the fitted values returned by the model.
+#' - `fitted` A vector of the fitted values returned by the model.
 #' - `coefs` A dataframe of the model coefficients, including manually fixed
 #' parameters.
-#' - `fit_criteria` A vector of the model fit criteria (e.g. `AIC`, `BIC`,
-#' `RMSE`, etc.).
-#'
-#' @examples
-#' ...
+#' - `fit_criteria` A dataframe of the model fit criteria (`AIC`, `BIC`, `R^2`,
+#' `RMSE`, `RSE`, `MAE`, `MAPE`).
 #'
 #' @export
 process_kinetics <- function(
@@ -67,9 +64,28 @@ process_kinetics.monoexponential <- function(
     ## construct the dataframe
     df <- data.frame(x = x - x0, y)
 
+    out <- structure(
+        list(
+            model = NA,
+            data = df,
+            fitted = NA_real_,
+            coefs = NA_real_,
+            fit_criteria = NA_real_,
+            call = match.call()),
+        class = "mNIRS.kinetics")
+
     ## create the model and update for any fixed coefs
-    model <- nls(y ~ SSmonoexp(x, A, B, TD, tau), data = df) |>
-        mNIRS::update_fixed_coefs(...)
+    model <- tryCatch(
+        nls(y ~ SSmonoexp(x, A, B, TD, tau), data = df) |>
+            mNIRS::update_fixed_coefs(...),
+        error = function(e) {
+            cat("Error in nls(y ~ SSmonoexp(x, A, B, TD, tau), data = df) :",
+                conditionMessage(e), "\n")
+            NA})
+
+    if (is.na(model[1])) {
+        return(out)
+    }
 
     fitted <- as.vector(fitted(model))
     df$fitted <- fitted
@@ -83,17 +99,19 @@ process_kinetics.monoexponential <- function(
     MAE <- mean(abs(summary(model)$residuals))
     MAPE <- mean(abs(summary(model)$residuals/y)) * 100
 
-    structure(
+    out <- structure(
         list(
             model = model,
-            data = df,
+            data = tibble::tibble(df),
             fitted = fitted,
-            coefs = data.frame(coefs),
-            fit_criteria = data.frame(
+            coefs = tibble::tibble(coefs),
+            fit_criteria = tibble::tibble(
                 AIC = AIC, BIC = BIC, R2 = R2, RMSE = RMSE,
                 RSE = RSE, MAE = MAE, MAPE = MAPE),
             call = match.call()),
         class = "mNIRS.kinetics")
+
+    return(out)
 }
 
 
@@ -117,9 +135,28 @@ process_kinetics.logistic <- function(
     ## construct the dataframe
     df <- data.frame(x = x - x0, y)
 
+    out <- structure(
+        list(
+            model = NA,
+            data = df,
+            fitted = NA_real_,
+            coefs = NA_real_,
+            fit_criteria = NA_real_,
+            call = match.call()),
+        class = "mNIRS.kinetics")
+
     ## create the model and update for any fixed coefs
-    model <- nls(y ~ SSlogis(x, Asym, xmid, scal), data = df) |>
-        mNIRS::update_fixed_coefs(...)
+    model <- tryCatch(
+        nls(y ~ SSlogis(x, Asym, xmid, scal), data = df) |>
+            mNIRS::update_fixed_coefs(...),
+        error = function(e) {
+            cat("Error in nls(y ~ SSlogis(x, Asym, xmid, scal), data = df) :",
+                conditionMessage(e), "\n")
+            NA})
+
+    if (is.na(model[1])) {
+        return(out)
+    }
 
     fitted <- as.vector(fitted(model))
     df$fitted <- fitted
@@ -133,17 +170,19 @@ process_kinetics.logistic <- function(
     MAE <- mean(abs(summary(model)$residuals))
     MAPE <- mean(abs(summary(model)$residuals/y)) * 100
 
-    structure(
+    out <- structure(
         list(
             model = model,
-            data = df,
+            data = tibble::tibble(df),
             fitted = fitted,
-            coefs = data.frame(coefs),
-            fit_criteria = data.frame(
+            coefs = tibble::tibble(coefs),
+            fit_criteria = tibble::tibble(
                 AIC = AIC, BIC = BIC, R2 = R2, RMSE = RMSE,
                 RSE = RSE, MAE = MAE, MAPE = MAPE),
             call = match.call()),
         class = "mNIRS.kinetics")
+
+    return(out)
 }
 
 
@@ -177,9 +216,11 @@ process_kinetics.half_time <- function(
 
     coefs <- c(A = A, B = B, half_time = half_time, half_value = half_value)
 
-    structure(
+    out <- structure(
         list(
-            coefs = coefs,
+            coefs = data.frame(coefs),
             call = match.call()),
         class = "mNIRS.kinetics")
+
+    return(out)
 }
