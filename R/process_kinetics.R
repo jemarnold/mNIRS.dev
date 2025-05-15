@@ -39,9 +39,12 @@ process_kinetics <- function(
 
     method <- match.arg(method)
 
-    class(x) <- method
+    x_exp <- substitute(x)
+    x_name <- deparse(x_exp)
 
-    UseMethod("process_kinetics", x)
+    class(x_name) <- method
+
+    UseMethod("process_kinetics", x_name)
 }
 
 
@@ -100,7 +103,8 @@ process_kinetics.monoexponential <- function(
         }
     }
 
-    df <- tibble::tibble(x = x - x0, y)
+    x <- x - x0
+    df <- tibble::tibble(x, y)
 
     ## create the model and update for any fixed coefs
     model <- tryCatch(
@@ -132,7 +136,7 @@ process_kinetics.monoexponential <- function(
             model = model,
             data = tibble::tibble(df),
             fitted = fitted,
-            coefs = tibble::tibble(coefs),
+            coefs = tibble::as_tibble(as.list(coefs)),
             fit_criteria = tibble::tibble(
                 AIC = AIC, BIC = BIC, R2 = R2, RMSE = RMSE,
                 RSE = RSE, MAE = MAE, MAPE = MAPE),
@@ -197,7 +201,8 @@ process_kinetics.logistic <- function(
         }
     }
 
-    df <- tibble::tibble(x = x - x0, y)
+    x <- x - x0
+    df <- tibble::tibble(x, y)
 
     ## create the model and update for any fixed coefs
     model <- tryCatch(
@@ -229,7 +234,7 @@ process_kinetics.logistic <- function(
             model = model,
             data = tibble::tibble(df),
             fitted = fitted,
-            coefs = tibble::tibble(coefs),
+            coefs = tibble::as_tibble(as.list(coefs)),
             fit_criteria = tibble::tibble(
                 AIC = AIC, BIC = BIC, R2 = R2, RMSE = RMSE,
                 RSE = RSE, MAE = MAE, MAPE = MAPE),
@@ -251,14 +256,51 @@ process_kinetics.half_time <- function(
         method = c("monoexponential", "logistic", "half_time", "peak_slope"),
         ...
 ) {
+    x_exp <- substitute(x)
+    x_name <- deparse(x_exp)
+    y_exp <- substitute(y)
+    y_name <- deparse(y_exp)
 
-    ## set c(x, y) when y missing
-    if (is.null(y)) {
-        y <- x
-        x <- seq_along(y)
+    if (!(is.null(data) | missing(data)) & !is.data.frame(data)) {
+        ## data must be a dataframe
+        cli::cli_abort("{.arg data} must be a dataframe")
+
+    } else if (!(is.null(data) | missing(data)) & is.data.frame(data)) {
+        if (x_name %in% names(data)) {
+            ## deparse(substitute(x)) works for unquoted x
+            x <- data[[x_name]]
+        } else if (x_exp %in% names(data)) {
+            ## substitute(x) works for quoted x, fails for unquoted x
+            x <- data[[x_exp]]
+        } else {
+            cli::cli_abort("{.arg x} not found in {.arg data}")
+        }
+
+        if (is.null(y_exp) | missing(y_exp)) {
+            y <- x
+            x <- seq_along(y)
+        } else if (y_name %in% names(data)) {
+            ## deparse(substitute(y)) works for unquoted y
+            y <- data[[y_name]]
+        } else if (y_exp %in% names(data)) {
+            ## substitute(y) works for quoted y, fails for unquoted y
+            y <- data[[y_exp]]
+        } else {
+            cli::cli_abort("{.arg y} not found in {.arg data}")
+        }
+
+    } else if (is.null(data) | missing(data)) {
+        if (is.null(y) | missing(y)) {
+            y <- x
+            x <- seq_along(y)
+        } else {
+            x <- x
+            y <- y
+        }
     }
 
     x <- x - x0
+    df <- tibble::tibble(x, y)
 
     ## TRUE == UP, FALSE == DOWN
     (direction <- mean(head(y, length(y) / 4)) < mean(tail(y, length(y) / 4)))
@@ -273,6 +315,7 @@ process_kinetics.half_time <- function(
 
     out <- structure(
         list(
+            data = tibble::tibble(df),
             coefs = data.frame(coefs),
             call = match.call()),
         class = "mNIRS.kinetics")

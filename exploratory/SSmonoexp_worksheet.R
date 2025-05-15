@@ -245,18 +245,18 @@ process_kinetics_test <- function(
 
 }
 
-process_kinetics_test(
-# mNIRS::process_kinetics(
+# process_kinetics_test(
+mNIRS::process_kinetics(
     # x = true_data$x,
     # y = true_data$y,
-    # x = true_x,
+    # x = true_y,
     # y = true_y,
-    x = x,
-    y = y,
+    x = y,
+    # y = y,
     # x = "x",
     # y = "y",
     data = true_data,
-    x0 = true_x[8],
+    x0 = 8, #true_x[8],
     method = "monoexp"#,
     # B = 100, Q = 100
     )$model
