@@ -7,6 +7,7 @@
 #' @param y A numeric vector giving the response variable. If `y` is missing
 #' or NULL, the predictor variable is assumed to be specified by `x`, with
 #' `seq_along(x)` as the index predictor variable.
+#' @param data A dataframe containing at least `x` or `x` and `y`...
 #' @param x0 A numeric scalar indicating the value of the predictor variable `x`
 #' or index `seq_along(x)` representing the beginning of the kinetics event.
 #' @param method Indicates how to process the kinetics.
@@ -30,6 +31,7 @@
 process_kinetics <- function(
         x,
         y = NULL,
+        data = NULL,
         x0 = 0,
         method = c("monoexponential", "logistic", "half_time", "peak_slope"),
         ...
@@ -50,29 +52,55 @@ process_kinetics <- function(
 process_kinetics.monoexponential <- function(
         x,
         y = NULL,
+        data = NULL,
         x0 = 0,
         method = c("monoexponential", "logistic", "half_time", "peak_slope"),
         ...
 ) {
+    x_exp <- substitute(x)
+    x_name <- deparse(x_exp)
+    y_exp <- substitute(y)
+    y_name <- deparse(y_exp)
 
-    ## set c(x, y) when y missing
-    if (is.null(y)) {
-        y <- x
-        x <- seq_along(y)
+    if (!(is.null(data) | missing(data)) & !is.data.frame(data)) {
+        ## data must be a dataframe
+        cli::cli_abort("{.arg data} must be a dataframe")
+
+    } else if (!(is.null(data) | missing(data)) & is.data.frame(data)) {
+        if (x_name %in% names(data)) {
+            ## deparse(substitute(x)) works for unquoted x
+            x <- data[[x_name]]
+        } else if (x_exp %in% names(data)) {
+            ## substitute(x) works for quoted x, fails for unquoted x
+            x <- data[[x_exp]]
+        } else {
+            cli::cli_abort("{.arg x} not found in {.arg data}")
+        }
+
+        if (is.null(y_exp) | missing(y_exp)) {
+            y <- x
+            x <- seq_along(y)
+        } else if (y_name %in% names(data)) {
+            ## deparse(substitute(y)) works for unquoted y
+            y <- data[[y_name]]
+        } else if (y_exp %in% names(data)) {
+            ## substitute(y) works for quoted y, fails for unquoted y
+            y <- data[[y_exp]]
+        } else {
+            cli::cli_abort("{.arg y} not found in {.arg data}")
+        }
+
+    } else if (is.null(data) | missing(data)) {
+        if (is.null(y) | missing(y)) {
+            y <- x
+            x <- seq_along(y)
+        } else {
+            x <- x
+            y <- y
+        }
     }
 
-    ## construct the dataframe
-    df <- data.frame(x = x - x0, y)
-
-    out <- structure(
-        list(
-            model = NA,
-            data = df,
-            fitted = NA_real_,
-            coefs = NA_real_,
-            fit_criteria = NA_real_,
-            call = match.call()),
-        class = "mNIRS.kinetics")
+    df <- tibble::tibble(x = x - x0, y)
 
     ## create the model and update for any fixed coefs
     model <- tryCatch(
@@ -84,7 +112,7 @@ process_kinetics.monoexponential <- function(
             NA})
 
     if (is.na(model[1])) {
-        return(out)
+        return(NA)
     }
 
     fitted <- as.vector(fitted(model))
@@ -121,29 +149,55 @@ process_kinetics.monoexponential <- function(
 process_kinetics.logistic <- function(
         x,
         y = NULL,
+        data = NULL,
         x0 = 0,
         method = c("monoexponential", "logistic", "half_time", "peak_slope"),
         ...
 ) {
+    x_exp <- substitute(x)
+    x_name <- deparse(x_exp)
+    y_exp <- substitute(y)
+    y_name <- deparse(y_exp)
 
-    ## set c(x, y) when y missing
-    if (is.null(y)) {
-        y <- x
-        x <- seq_along(y)
+    if (!(is.null(data) | missing(data)) & !is.data.frame(data)) {
+        ## data must be a dataframe
+        cli::cli_abort("{.arg data} must be a dataframe")
+
+    } else if (!(is.null(data) | missing(data)) & is.data.frame(data)) {
+        if (x_name %in% names(data)) {
+            ## deparse(substitute(x)) works for unquoted x
+            x <- data[[x_name]]
+        } else if (x_exp %in% names(data)) {
+            ## substitute(x) works for quoted x, fails for unquoted x
+            x <- data[[x_exp]]
+        } else {
+            cli::cli_abort("{.arg x} not found in {.arg data}")
+        }
+
+        if (is.null(y_exp) | missing(y_exp)) {
+            y <- x
+            x <- seq_along(y)
+        } else if (y_name %in% names(data)) {
+            ## deparse(substitute(y)) works for unquoted y
+            y <- data[[y_name]]
+        } else if (y_exp %in% names(data)) {
+            ## substitute(y) works for quoted y, fails for unquoted y
+            y <- data[[y_exp]]
+        } else {
+            cli::cli_abort("{.arg y} not found in {.arg data}")
+        }
+
+    } else if (is.null(data) | missing(data)) {
+        if (is.null(y) | missing(y)) {
+            y <- x
+            x <- seq_along(y)
+        } else {
+            x <- x
+            y <- y
+        }
     }
 
-    ## construct the dataframe
-    df <- data.frame(x = x - x0, y)
-
-    out <- structure(
-        list(
-            model = NA,
-            data = df,
-            fitted = NA_real_,
-            coefs = NA_real_,
-            fit_criteria = NA_real_,
-            call = match.call()),
-        class = "mNIRS.kinetics")
+    df <- tibble::tibble(x = x - x0, y)
 
     ## create the model and update for any fixed coefs
     model <- tryCatch(
@@ -155,7 +209,7 @@ process_kinetics.logistic <- function(
             NA})
 
     if (is.na(model[1])) {
-        return(out)
+        return(NA)
     }
 
     fitted <- as.vector(fitted(model))
@@ -192,6 +246,7 @@ process_kinetics.logistic <- function(
 process_kinetics.half_time <- function(
         x,
         y = NULL,
+        data = NULL,
         x0 = 0,
         method = c("monoexponential", "logistic", "half_time", "peak_slope"),
         ...

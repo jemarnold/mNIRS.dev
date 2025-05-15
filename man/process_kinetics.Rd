@@ -7,6 +7,7 @@
 process_kinetics(
   x,
   y = NULL,
+  data = NULL,
   x0 = 0,
   method = c("monoexponential", "logistic", "half_time", "peak_slope"),
   ...
@@ -19,6 +20,8 @@ specified. Otherwise, \code{x} is assumed to specify the response variable.}
 \item{y}{A numeric vector giving the response variable. If \code{y} is missing
 or NULL, the predictor variable is assumed to be specified by \code{x}, with
 \code{seq_along(x)} as the index predictor variable.}
+
+\item{data}{A dataframe containing at least \code{x} or \code{x} and \code{y}...}
 
 \item{x0}{A numeric scalar indicating the value of the predictor variable \code{x}
 or index \code{seq_along(x)} representing the beginning of the kinetics event.}

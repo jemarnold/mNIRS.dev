@@ -1,6 +1,7 @@
 ## Setup ==========================================================
 suppressPackageStartupMessages({
     library(JAPackage)
+    library(mNIRS)
     library(tidyverse)
 })
 
@@ -19,42 +20,42 @@ options(digits = 5, digits.secs = 3, scipen = 3,
 # camcorder::gg_stop_recording()
 #
 ## self start monoexp ====================================
-monoexp_equation <- function(x, A, B, TD, tau) {
-    ifelse(x <= TD, A, A + (B-A) * (1 - exp((TD - x) / tau)))
-}
-
-monoexp_init <- function(
-        mCall, LHS, data, ...
-) {
-    ## self-start parameters for nls of monoexponential fit function
-    ## https://www.statforbiology.com/2020/stat_nls_selfstarting/#and-what-about-nls
-    xy <- sortedXyData(mCall[["x"]], LHS, data)
-    x <- xy[, "x"] ## na.omit(xy[, "x"])?
-    y <- xy[, "y"] ## na.omit(xy[, "y"])?
-
-    ## TRUE == UP, FALSE == DOWN
-    direction <- mean(head(y, length(y) / 4)) < mean(tail(y, length(y) / 4))
-
-    A <- min(y) * direction + max(y) * !direction
-    B <- max(y) * direction + min(y) * !direction
-    ## TD finds the first x value > 0 and where y has changed by
-    ## greater than 10% of the B-A amplitude in the appropriate direction
-    TD <- x[min(which(x > 0 & abs(y - A) > abs(B - A) / 10))]
-    ## tau finds the greater of either x > 0 or
-    ## the nearest x value to 63.2% of the B-A amplitude
-    tau <- abs(TD - x[max(c(
-        min(which(x > 0)),
-        which.min(abs(y - (A + 0.632 * (B - A))))))])
-
-    setNames(c(A, B, TD, tau), mCall[c("A", "B", "TD", "tau")])
-}
-
-SSmonoexp <- selfStart(
-    ## nls fit function
-    ## nls(y ~ SSmonoexp(x, A, B, TD, tau), data)
-    model = monoexp_equation,
-    initial = monoexp_init,
-    parameters = c("A", "B", "TD", "tau"))
+# monoexp_equation <- function(x, A, B, TD, tau) {
+#     ifelse(x <= TD, A, A + (B-A) * (1 - exp((TD - x) / tau)))
+# }
+#
+# monoexp_init <- function(
+#         mCall, LHS, data, ...
+# ) {
+#     ## self-start parameters for nls of monoexponential fit function
+#     ## https://www.statforbiology.com/2020/stat_nls_selfstarting/#and-what-about-nls
+#     xy <- sortedXyData(mCall[["x"]], LHS, data)
+#     x <- xy[, "x"] ## na.omit(xy[, "x"])?
+#     y <- xy[, "y"] ## na.omit(xy[, "y"])?
+#
+#     ## TRUE == UP, FALSE == DOWN
+#     direction <- mean(head(y, length(y) / 4)) < mean(tail(y, length(y) / 4))
+#
+#     A <- min(y) * direction + max(y) * !direction
+#     B <- max(y) * direction + min(y) * !direction
+#     ## TD finds the first x value > 0 and where y has changed by
+#     ## greater than 10% of the B-A amplitude in the appropriate direction
+#     TD <- x[min(which(x > 0 & abs(y - A) > abs(B - A) / 10))]
+#     ## tau finds the greater of either x > 0 or
+#     ## the nearest x value to 63.2% of the B-A amplitude
+#     tau <- abs(TD - x[max(c(
+#         min(which(x > 0)),
+#         which.min(abs(y - (A + 0.632 * (B - A))))))])
+#
+#     setNames(c(A, B, TD, tau), mCall[c("A", "B", "TD", "tau")])
+# }
+#
+# SSmonoexp <- selfStart(
+#     ## nls fit function
+#     ## nls(y ~ SSmonoexp(x, A, B, TD, tau), data)
+#     model = monoexp_equation,
+#     initial = monoexp_init,
+#     parameters = c("A", "B", "TD", "tau"))
 #
 ## Data Wrangling ================================
 # Generate sample data
@@ -64,7 +65,7 @@ true_A <- 10
 true_B <- 100
 true_TD <- 15
 true_tau <- 8
-true_y <- monoexp_equation(true_x, true_A, true_B, true_TD, true_tau)
+true_y <- mNIRS::monoexponential(true_x, true_A, true_B, true_TD, true_tau)
 true_y <- true_y + rnorm(length(true_x), 0, 3)  # Add noise
 ## singular_data
 {
@@ -98,7 +99,7 @@ true_y <- true_y + rnorm(length(true_x), 0, 3)  # Add noise
 } ## singular_data
 true_data <- tibble(x = true_x, y = true_y)
 
-plot <- ggplot(singular_data) +
+plot <- ggplot(true_data) +
     {list( ## Settings
         aes(x, y),
         scale_y_continuous(
@@ -152,57 +153,63 @@ process_kinetics_test <- function(
         method = c("monoexponential", "logistic", "half_time", "peak_slope"),
         ...
 ) {
+    x_exp <- substitute(x)
+    x_name <- deparse(x_exp)
+    y_exp <- substitute(y)
+    y_name <- deparse(y_exp)
 
     if (!(is.null(data) | missing(data)) & !is.data.frame(data)) {
-
+        ## data must be a dataframe
         cli::cli_abort("{.arg data} must be a dataframe")
 
     } else if (!(is.null(data) | missing(data)) & is.data.frame(data)) {
-
-        if (is.null(y) | missing(y)) {
-
-            df <- dplyr::select(data, x = {{x}}) |>
-                dplyr::mutate(
-                    y = x,
-                    x = seq_along(y) - x0
-                )
+        if (x_name %in% names(data)) {
+            ## deparse(substitute(x)) works for unquoted x
+            x <- data[[x_name]]
+        } else if (x_exp %in% names(data)) {
+            ## substitute(x) works for quoted x, fails for unquoted x
+            x <- data[[x_exp]]
         } else {
+            cli::cli_abort("{.arg x} not found in {.arg data}")
+        }
 
-            df <- dplyr::select(data, x = {{x}}, y = {{y}}) |>
-                dplyr::mutate(x = x - x0)
+        if (is.null(y_exp) | missing(y_exp)) {
+            y <- x
+            x <- seq_along(y)
+        } else if (y_name %in% names(data)) {
+            ## deparse(substitute(y)) works for unquoted y
+            y <- data[[y_name]]
+        } else if (y_exp %in% names(data)) {
+            ## substitute(y) works for quoted y, fails for unquoted y
+            y <- data[[y_exp]]
+        } else {
+            cli::cli_abort("{.arg y} not found in {.arg data}")
         }
 
     } else if (is.null(data) | missing(data)) {
-
         if (is.null(y) | missing(y)) {
             y <- x
             x <- seq_along(y)
+        } else {
+            x <- x
+            y <- y
         }
-
-        df <- data.frame(x = x - x0, y)
     }
 
-    out <- structure(
-        list(
-            model = NA,
-            data = df,
-            fitted = NA,
-            coefs = NA,
-            fit_criteria = NA,
-            call = match.call()),
-        class = "mNIRS.kinetics")
+    df <- tibble::tibble(x = x - x0, y)
 
     ## create the model and update for any fixed coefs
     model <- tryCatch(
-        nls(y ~ SSmonoexp(x, A, B, TD, tau), data = df), #|>
-        # mNIRS::update_fixed_coefs(...),
+        nls(y ~ SSmonoexp(x, A, B, TD, tau), data = df) |>
+            mNIRS::update_fixed_coefs(...),
         error = function(e) {
             cat("Error in nls(y ~ SSmonoexp(x, A, B, TD, tau), data = df) :",
                 conditionMessage(e), "\n")
             NA})
 
-    if (is.na(model)) {
-        return(out)
+    if (is.na(model[1])) {
+        ## TODO fix error condition output for non-fitting model
+        return(NA)
     }
 
     fitted <- as.vector(fitted(model))
@@ -217,6 +224,12 @@ process_kinetics_test <- function(
     MAE <- mean(abs(summary(model)$residuals))
     MAPE <- mean(abs(summary(model)$residuals/y)) * 100
 
+    # Save call
+    # model_call <- model
+    # call2 = match.call()
+    #
+    # call2$model_call = model_call
+
     out <- structure(
         list(
             model = model,
@@ -225,26 +238,67 @@ process_kinetics_test <- function(
             coefs = tibble::tibble(coefs),
             fit_criteria = tibble::tibble(
                 AIC = AIC, BIC = BIC, R2 = R2, RMSE = RMSE,
-                RSE = RSE, MAE = MAE, MAPE = MAPE),
-            call = match.call()),
+                RSE = RSE, MAE = MAE, MAPE = MAPE)),
         class = "mNIRS.kinetics")
 
     return(out)
 
 }
-# rlang::sym(!!x)
+
 process_kinetics_test(
-    # x = singular_data$x,
-    # y = singular_data$y,
-    x = "xs",
-    y = "ys",
-    data = singular_data,
-    x0 = 0,
-    method = "monoexp",
-    B = 100, Q = 100)#$fitted
+# mNIRS::process_kinetics(
+    # x = true_data$x,
+    # y = true_data$y,
+    # x = true_x,
+    # y = true_y,
+    x = x,
+    y = y,
+    # x = "x",
+    # y = "y",
+    data = true_data,
+    x0 = true_x[8],
+    method = "monoexp"#,
+    # B = 100, Q = 100
+    )$model
 #
 # process_kinetics_test(x = true_y)
 
+tst <- function(q, data = NULL) {
+    q_exp <- substitute(q)
+    q_name <- deparse(q_exp)
+    tryCatch(
+        cat("q =", q, "\n"),
+        error = function(e) {
+            cat(q_exp, "not found\n")
+        })
+    cat("q_exp =", q_exp, "\n")
+    cat("q_name =", q_name, "\n")
+    #
+    # tryCatch(
+    #     q %in% names(data),
+    #     error = function(e) {
+    #         cat(q_exp, "not found in names(data)\n")
+    #     })
+
+    if (!(is.null(data) | missing(data)) & !is.data.frame(data)) {
+        ## data must be a dataframe
+        cli::cli_abort("{.arg data} must be a dataframe")
+    } else if (!(is.null(data) | missing(data)) & is.data.frame(data)) {
+        if (q_name %in% names(data)) {
+            ## deparse(substitute(q)) works for unquoted q
+            data[[q_name]]
+        } else if (q_exp %in% names(data)) {
+            ## substitute(q) works for quoted q, fails for unquoted q
+            data[[q_exp]]
+        } else {
+            cli::cli_abort("{.arg q} not found in {.arg data}")
+        }
+    } else if (is.null(data) | missing(data)) {
+        q
+    }
+}
+
+tst(q = "x", data = true_data)
 
 fit_monoexp <- mNIRS::process_kinetics(
     true_x, true_y, x0 = true_x[8], method = "monoexp", Q = 100)$model
