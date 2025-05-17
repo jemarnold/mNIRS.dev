@@ -65,7 +65,7 @@ replace_outliers <- function(
     return <- match.arg(return)
 
     ## validation: `k` must be a numeric scalar
-    if (!rlang::is_double(k) | length(k) > 1) {
+    if (!is.numeric(k) | length(k) > 1) {
         cli::cli_abort(paste("{.arg k} must be a {.cls numeric} scalar."))
     }
 
@@ -75,7 +75,7 @@ replace_outliers <- function(
     }
 
     ## validation: `t0` must be a numeric scalar
-    if (!rlang::is_double(t0) | length(t0) > 1) {
+    if (!is.numeric(t0) | length(t0) > 1) {
         cli::cli_abort(paste("{.arg t0} must be a {.cls numeric} scalar."))
     }
 

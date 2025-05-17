@@ -131,7 +131,7 @@ prepare_kinetics_data <- function(
     ## validation: `fit_windows` must be numeric scalar
     purrr::map(
         c(fit_baseline_window, fit_kinetics_window),
-        \(.x) if (!rlang::is_double(.x) | !length(.x) == 1) {
+        \(.x) if (!is.numeric(.x) | !length(.x) == 1) {
 
             cli::cli_abort(paste(
                 "{.arg fit_windows} must each be a single",
@@ -144,7 +144,7 @@ prepare_kinetics_data <- function(
 
         display_baseline_window <- fit_baseline_window
 
-    } else if (!rlang::is_double(display_baseline_window) |
+    } else if (!is.numeric(display_baseline_window) |
                !length(display_baseline_window) == 1) {
 
         cli::cli_abort(paste(
@@ -158,7 +158,7 @@ prepare_kinetics_data <- function(
 
         display_kinetics_window <- fit_kinetics_window
 
-    } else if (!rlang::is_double(display_kinetics_window) |
+    } else if (!is.numeric(display_kinetics_window) |
                !length(display_kinetics_window) == 1) {
 
         cli::cli_abort(paste(
@@ -267,7 +267,7 @@ prepare_kinetics_data <- function(
                 display_index, fit_index,
                 dplyr::any_of(c(sample_column, event_column, nirs_columns)))
 
-    } else if (rlang::is_double(unlist(group_kinetics_events))) {
+    } else if (is.numeric(unlist(group_kinetics_events))) {
 
         ungrouped_events <- setdiff(
             1:length(data_list), unlist(group_kinetics_events))

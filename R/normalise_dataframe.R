@@ -53,7 +53,7 @@ normalise_dataframe <- function(
     }
 
     ## validation: `normalise_range` must be numeric vector
-    if (!rlang::is_double(normalise_range) | !length(normalise_range) == 2) {
+    if (!is.numeric(normalise_range) | !length(normalise_range) == 2) {
         cli::cli_abort(paste(
             "{.arg normalise_range} must be a {.cls numeric} vector with",
             "{.val c(minimum, maximum)} values."))

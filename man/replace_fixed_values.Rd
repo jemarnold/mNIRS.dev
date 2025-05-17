@@ -4,7 +4,7 @@
 \alias{replace_fixed_values}
 \title{Replace Fixed Values}
 \usage{
-replace_fixed_values(x, fixed_values, k = 20, return = c("median", "NA"), ...)
+replace_fixed_values(x, fixed_values, k, return = c("median", "NA"), ...)
 }
 \arguments{
 \item{x}{A numeric vector of mNIRS data.}

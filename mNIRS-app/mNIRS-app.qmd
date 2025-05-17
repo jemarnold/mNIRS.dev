@@ -1,0 +1,369 @@
+---
+title: "mNIRS Processing"
+date: last-modified
+language: 
+    title-block-published: "App Updated"
+author:
+    - name: Jem Arnold
+      orcid: 0000-0003-3908-9447
+      email: jem.arnold@ubc.ca
+format: 
+    dashboard:
+        nav-buttons: 
+            - icon: twitter
+              href: https://x.com/jem_arnold
+            - icon: github
+              href: https://github.com/jemarnold
+    #     embed-resources: true
+server: shiny
+editor: source
+execute:
+    echo: false
+    message: false
+    warning: false
+    output: true
+---
+
+```{r}
+#| context: setup
+
+suppressPackageStartupMessages({
+    # library(JAPackage)
+    library(glue)
+    library(bslib)
+    # library(plotly)
+    # library(ggpubr)
+    library(shiny)
+    # library(readxl)
+    library(DT)
+    library(mNIRS)
+    library(tidyverse)
+})
+
+options(digits = 5, digits.secs = 3, scipen = 3,
+        dplyr.summarise.inform = FALSE,
+        tibble.print_min = 20)
+
+text_size <- 12
+theme_set(
+    theme_bw(base_size = text_size, base_family = "Merriweather Sans") +
+        theme(
+            text = element_text(colour = "black"),
+            plot.title = ggtext::element_textbox(size = rel(1.2), lineheight = 1.1),
+            plot.subtitle = ggtext::element_textbox(lineheight = 1.1),
+            plot.caption = ggtext::element_textbox(colour = "grey50", halign = 1),
+            panel.border = element_blank(),
+            axis.line = element_line(),
+            # panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            axis.title = element_text(size = rel(1.2), face = "bold"),
+            legend.position = "none",
+            legend.justification = "right",
+            legend.margin = margin(rep(1, 4)),
+            legend.box.spacing = unit(text_size/4, "pt"),
+            strip.background = element_rect(fill = "grey95"),
+            strip.text = element_text(margin = margin(rep(text_size/4, 4))),
+        ))
+
+string_to_named_vector <- function(x) {
+    vec <- unlist(strsplit(x, "\\s*,\\s*"))
+    lst <- strsplit(vec, "\\s*=\\s*")
+    setNames(sapply(lst, \(.x) trimws(.x[2])),
+             sapply(lst, \(.x) trimws(.x[1])))
+}
+
+```
+
+## User Input {.sidebar}
+
+```{r setup}
+
+## Upload file
+fileInput(
+    "upload_file",
+    label = NULL,
+    buttonLabel = "Upload File",
+    accept = c('.xlsx', '.csv'),
+)
+
+# br()
+
+## Tell it which columns are which
+textInput(
+    "nirs_columns", 
+    label = "NIRS Column Names (multiple)", 
+    placeholder = "newname = oldname, newname2 = oldname2, ...")
+textInput(
+    "sample_column", 
+    label = "Sample Column Name (single)", 
+    placeholder = "newname = oldname")
+textInput(
+    "event_column", 
+    label = "Lap/Event Column Name (single)", 
+    placeholder = "newname = oldname")
+## record sample rate
+numericInput("sample_rate", label = "Sample Rate", value = 50)
+
+checkboxInput("keep_all", "Keep all columns in data file")
+
+## Replace missing values (column wise)
+checkboxInput("replace_missing", "Replace missing values")
+
+## Replace fixed values (column wise)
+textInput(
+    "fixed_values",
+    label = "Replace Fixed Values",
+    placeholder = "0, 100, ...")
+
+## Replace outliers (column wise)
+checkboxInput("replace_outliers", "Replace outliers")
+
+## remove head/tail rows
+numericInput("slice_head", label = "Remove head rows", value = 0, step = 1)
+numericInput("slice_tail", label = "Remove tail rows", value = 0, step = 1)
+
+## Filter/smooth data (column wise)
+selectInput(
+    "filter_method",
+    label = "Digital Filter Method",
+    choices = c("none", "low-pass", "smooth-spline", "moving-average")
+)
+
+uiOutput("filter_method_ui")
+
+
+
+## Shift data (dataframe)
+## (Maybe) Normalise (dataframe)
+## Slice into laps/events (lapwise list of dataframes)
+## Start & end of work with padding to each side
+## Define work baseline; end-work mean; reoxygenation peak (lapwise)
+## Process reoxy kinetics (lapwise)
+## Generate plots (lapwise)
+
+
+downloadButton("download_data", "Download Data")
+
+```
+
+# Plot
+
+```{r}
+
+plotOutput("plot")
+```
+
+# Data
+
+```{r}
+
+DT::DTOutput("nirs_table")
+```
+
+
+
+```{r}
+#| context: server
+
+# Data upload and processing
+raw_data <- reactive({
+    # req(input$upload_file, input$nirs_columns, input$sample_column)
+    
+    # upload_file <- input$upload_file$datapath
+    upload_file <- r"(C:\R-Projects\mNIRS\mNIRS-app\Oxysoft-example.xlsx)"
+    
+    data <- mNIRS::read_data(
+        file_path = upload_file,
+        nirs_columns = string_to_named_vector("O2Hb_VL = 2, HHb_VL = 3"),
+        sample_column = string_to_named_vector("sample = 1"),
+        # nirs_columns = string_to_named_vector(input$nirs_columns),
+        # sample_column = string_to_named_vector(input$sample_column),
+        event_column = string_to_named_vector(input$event_column),
+        sample_rate = input$sample_rate,
+        .keep_all = input$keep_all)
+    
+    # raw_data <- mNIRS::read_data(
+    #     r"(C:\R-Projects\mNIRS\mNIRS-app\Oxysoft-example.xlsx)",
+    #     nirs_columns = c(O2Hb_VL = "2",
+    #                      HHb_VL = "3"),
+    #     sample_column = c(sample = "1"),
+    #     event_column = c(event = "...11"),
+    #     .keep_all = FALSE)
+    
+    return(data)
+})
+
+# Create dynamic UI based on the selected method
+output$filter_method_ui <- renderUI({
+    req(raw_data(), input$filter_method)
+    
+    raw_data <- raw_data()
+    sample_rate <- attributes(raw_data)$sample_rate
+    
+    # Different UI based on selection
+    if (input$filter_method == "low-pass") {
+        tagList(
+            numericInput(
+                inputId = "n",
+                label = "Filter Order (n)",
+                value = 4,
+                min = 1,
+                max = 10,
+                step = 1
+            ),
+            # numericInput(
+            #   inputId = "W",
+            #   label = "Fractional Critical Frequency (W)",
+            #   value = 0.1,
+            #   min = 0,
+            #   max = 1,
+            #   step = 0.01
+            # ),
+            numericInput(
+                inputId = "critical_frequency",
+                label = "Critical Frequency (Hz)",
+                value = 0.5,
+                min = 0,
+                max = sample_rate/2,
+                step = 0.05
+            )
+        )
+    } else if (input$filter_method == "moving-average") {
+        tagList(
+            numericInput(
+                inputId = "width",
+                label = "width",
+                value = 15,
+                min = 1,
+                step = 1
+            )
+        )
+    } else {
+        NULL
+    }
+})
+
+nirs_data <- reactive({
+    req(raw_data())
+    
+    raw_data <- raw_data()
+    nirs_columns <- names(attributes(raw_data)$nirs_columns)
+    sample_rate <- attributes(raw_data)$sample_rate
+    fixed_values <- strsplit(input$fixed_values, split = "\\s*,\\s*")[[1]] |> 
+        as.numeric()
+    
+    nirs_data <- raw_data |> 
+                ## remove the head rows
+        (\(.df) if (input$slice_head > 0) {
+            slice_tail(.data = .df, n = -input$slice_head)
+        } else {.df})() |> 
+        ## remove the tail rows
+        (\(.df) if (input$slice_tail > 0) {
+            slice_head(.data = .df, n = -input$slice_tail)
+        } else {.df})() |> 
+        mutate(
+            if (input$replace_missing) {
+                across(
+                    any_of(nirs_columns),
+                    \(.x) mNIRS::replace_missing_values(.x, "linear")$y)
+            },
+            if (input$replace_outliers) {
+                across(
+                    any_of(nirs_columns),
+                    \(.x) mNIRS::replace_outliers(.x, k = sample_rate)$y)
+            },
+            if (!is.null(fixed_values)) {
+                across(
+                    any_of(nirs_columns),
+                    \(.x) mNIRS::replace_fixed_values(
+                        .x, fixed_values, k = sample_rate)$y)
+            },
+            if (input$filter_method == "low-pass") {
+                across(
+                    any_of(nirs_columns),
+                    \(.x) mNIRS::filter_data(
+                        .x, method = input$filter_method, 
+                        n = input$n,
+                        critical_frequency = input$critical_frequency,
+                        sample_rate = sample_rate))
+            },
+            if (input$filter_method == "smooth-spline") {
+                across(
+                    any_of(nirs_columns),
+                    \(.x) mNIRS::filter_data(
+                        .x, method = input$filter_method))
+            },
+            if (input$filter_method == "moving-average") {
+                across(
+                    any_of(nirs_columns),
+                    \(.x) mNIRS::filter_data(
+                        .x, method = input$filter_method, 
+                        width = input$width))
+            },
+        ) |> 
+        mutate(
+            across(any_of(nirs_columns), \(.x) round(.x, 4))
+        )
+    
+    return(nirs_data)
+    
+})
+
+
+output$nirs_table <- DT::renderDT({
+    req(nirs_data())
+    
+    nirs_columns <- names(attributes(nirs_data)$nirs_columns)
+    
+    # display_data <- nirs_data() |> 
+    #     mutate(
+    #         across(
+    #             any_of(nirs_columns), 
+    #             \(.x) mNIRS::signif_trailing(.x, 3, "fg"))
+    #     )
+    
+    table <- DT::datatable(
+        nirs_data(),
+        options = list(
+            pageLength = 25,
+            scrollX = TRUE,
+            searchHighlight = TRUE
+        ))
+    
+    return(table)
+})
+
+
+
+output$plot <- renderPlot({
+    req(nirs_data())
+    
+    nirs_data <- nirs_data()
+    nirs_columns <- names(attributes(nirs_data)$nirs_columns)
+    sample_column <- names(attributes(nirs_data)$sample_column)
+    event_column <- names(attributes(nirs_data)$event_column)
+    
+    plot <- ggplot(nirs_data) +
+        aes(x = .data[[sample_column]]) +
+        lapply(nirs_columns,
+               \(.x) geom_line(aes(y = .data[[.x]], colour = .x))) +
+        NULL
+    
+    return(plot)
+})
+
+
+
+output$download_data <- downloadHandler(
+    
+    filename = function() {
+        glue("mNIRS_{Sys.time()}_processed.xlsx")
+    },
+    
+    content = function(file) {
+        writexl::write_xlsx(nirs_data(), path = file)
+    }
+)
+
+```
+

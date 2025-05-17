@@ -21,7 +21,7 @@
 replace_fixed_values <- function(
         x,
         fixed_values, ## numeric vector
-        k = 20, ## numeric scalar
+        k, ## numeric scalar
         return = c("median", "NA"),
         ...
 ) {
@@ -29,7 +29,7 @@ replace_fixed_values <- function(
     return <- match.arg(return)
 
     ## validation: `k` must be a numeric scalar
-    if (!rlang::is_double(k) | length(k) > 1) {
+    if (!is.numeric(k) | length(k) > 1) {
         cli::cli_abort(paste("{.arg k} must be a {.cls numeric} scalar."))
     }
 
@@ -39,7 +39,7 @@ replace_fixed_values <- function(
     }
 
     ## validation: `fixed_values` must be a numeric vector
-    if (!rlang::is_double(fixed_values)) {
+    if (!is.numeric(fixed_values)) {
         cli::cli_abort(paste(
             "{.arg fixed_values} must be a {.cls numeric} vector."))
     }

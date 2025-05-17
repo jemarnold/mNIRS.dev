@@ -73,7 +73,7 @@ shift_dataframe <- function(
 
     ## validation: `shift_to` or `shift_by` must be numeric scalar
     if (
-        !(rlang::is_double(shift_to) | rlang::is_double(shift_by)) |
+        !(is.numeric(shift_to) | is.numeric(shift_by)) |
         !(length(shift_to) == 1 | length(shift_by) == 1)
     ) {
         cli::cli_abort(paste(
@@ -82,7 +82,7 @@ shift_dataframe <- function(
     }
 
     ## validation: `mean_samples` must be numeric scalar
-    if (!rlang::is_double(mean_samples) | !length(mean_samples) == 1) {
+    if (!is.numeric(mean_samples) | !length(mean_samples) == 1) {
         cli::cli_abort(paste(
             "{.arg mean_samples} must be a single {.cls numeric} scalar."))
     }
