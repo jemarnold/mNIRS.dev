@@ -36,13 +36,14 @@ from the file.}
 \item{...}{Additional arguments (see \emph{Details}).}
 }
 \value{
-A \link[tibble:tibble-package]{tibble}.
+A \link[tibble:tibble-package]{tibble} of class \code{mNIRS.data} with
+metadata available with \code{attributes()}.
 }
 \description{
 Reads mNIRS data from file, and returns a dataframe.
 }
 \details{
-Column names must match exactly, however in data files with duplicate column
+Column names must match exactly. In data files with duplicate column
 names (such as Train.Red .csv export), the column names will match in order
 of appearance. You may want to double check the correct columns have been
 assigned as intended.

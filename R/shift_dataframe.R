@@ -58,10 +58,10 @@ shift_dataframe <- function(
 
     if (
         length(nirs_columns) == 0 &
-        !is.null(attributes(data)$nirs_columns)
+        !is.null(metadata$nirs_columns)
     ) {
         ## "global" condition from metadata$nirs_columns
-        nirs_columns <- names(metadata$nirs_columns)
+        nirs_columns <- metadata$nirs_columns
     }
 
     ## validation: `nirs_columns` must match expected dataframe names
@@ -88,6 +88,35 @@ shift_dataframe <- function(
     }
 
     ## shift range ================================
+    ## TODO NOT IN USE; only marginally faster than more trustworthy
+    ## ZOO::rollapply option
+    # rolling_mean_fast <- function(x, width) {
+    #     n <- length(x)
+    #     half_width <- floor(width / 2)
+    #
+    #     # Create index matrix for vectorised operations
+    #     indices <- outer(
+    #         seq_len(n), seq_len(width),
+    #         \(i, j) {
+    #             idx <- i - half_width + j - 1
+    #             ifelse(idx >= 1 & idx <= n, idx, NA)
+    #         })
+    #
+    #     # Extract values using matrix indexing
+    #     values <- matrix(x[indices], nrow = n)
+    #
+    #     # Calculate means with na.rm = TRUE
+    #     result <- apply(
+    #         values, 1,
+    #         \(row) {
+    #             valid_vals <- row[!is.na(row)]
+    #             if (length(valid_vals) > 0) {
+    #                 mean(valid_vals)
+    #             } else {NA}
+    #         })
+    #
+    #     return(result)
+    # }
 
     if (position %in% c("minimum", "maximum")) {
 
@@ -98,6 +127,7 @@ shift_dataframe <- function(
                     \(.x) zoo::rollapply(
                         .x, width = mean_samples, FUN = mean,
                         align = "center", partial = TRUE, na.rm = TRUE)),
+                    # \(.x) rolling_mean_fast(.x, mean_samples)),
             ) |>
             dplyr::summarise(
                 dplyr::across(
@@ -156,6 +186,12 @@ shift_dataframe <- function(
         ) |>
         dplyr::relocate(names(data))
 
+    ## Metadata =================================
+    metadata$nirs_columns <- unique(
+        c(metadata$nirs_columns, unlist(nirs_columns)))
+
+    y <- create_mnirs_data(y, metadata)
+
     return(y)
 }
 #
@@ -172,14 +208,16 @@ shift_dataframe <- function(
 # ) |> dplyr::slice(-1))
 #
 # y <- shift_dataframe(
+#     # data = tibble(ICG_VL = 1:10, ICG_SCM = -10:-1),
 #     data = df,
-#     nirs_columns = list(ICG_VL, ICG_SCM, smo2),
+#     nirs_columns = list("ICG_VL", "ICG_SCM", "smo2"),
 #     shift_to = 0,
 #     position = "max",
 #     mean_samples = 100,
 #     shift_by = NULL
 # ) |>
 #     print()
+# attributes(y)
 #
 # ggplot(y) +
 #     {list( ## Settings

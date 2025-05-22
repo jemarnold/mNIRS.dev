@@ -14,9 +14,10 @@
 #' @export
 resample_dataframe <- function(
         data,
-        sample_rate,
-        resample_rate=NULL, ## 10 Hz
-        resample_time=NULL, ## 0.01 s
+        sample_column,
+        sample_rate = NULL,
+        resample_rate = NULL, ## 10 Hz
+        resample_time = NULL, ## 0.01 s
         ...
 ) {
     ## pass through =============================
@@ -25,40 +26,17 @@ resample_dataframe <- function(
         return(data)
     }
 
-
     ## Validation =================================
     metadata <- attributes(data)
     args <- list(...)
 
-    ## define `nirs_columns`
-    if ("nirs_columns" %in% names(args)) {
-        ## priority is manually defined columns
-        nirs_columns <- args$nirs_columns
-
-    } else if (!is.null(metadata$nirs_columns) &
-               !"nirs_columns" %in% names(args)) {
-        ## otherwise take existing metadata columns
-        nirs_columns <- names(metadata$nirs_columns)
-
-    }
-
-    ## validation: `nirs_columns` must match expected dataframe names
-    if (!all(unlist(nirs_columns) %in% names(data))) {
-        cli::cli_abort(paste(
-            "{.arg nirs_columns} must be a list of names.",
-            "Make sure column names match exactly."))
-    }
-
     ## define `sample_column`
-    if ("sample_column" %in% names(args)) {
-        ## priority is manually defined columns
-        sample_column <- args$sample_column
-
-    } else if (!is.null(metadata$sample_column) &
-               !"sample_column" %in% names(args)) {
-        ## otherwise take existing metadata columns
-        sample_column <- names(metadata$sample_column)
-
+    ## priority is manually defined
+    if (
+        (missing(sample_column) | is.null(sample_column)) &
+        !is.null(metadata$sample_column)
+    ) {
+        sample_column <- metadata$sample_column
     }
 
     ## validation: `sample_column` must match expected dataframe names
@@ -71,11 +49,13 @@ resample_dataframe <- function(
     sample_vector <- as.numeric(data[[sample_column]])
 
     ## define `sample_rate`
-    if (!is.null(metadata$sample_rate)) {
-
+    ## priority is manually defined
+    if (
+        (missing(sample_rate) | is.null(sample_rate)) &
+        !is.null(metadata$sample_rate)
+    ) {
         sample_rate <- metadata$sample_rate
-
-    } else {
+    } else if (missing(sample_rate) | is.null(sample_rate)) {
 
         ## samples per second
         sample_rate <- head(diff(sample_vector), 100) |>
@@ -92,7 +72,6 @@ resample_dataframe <- function(
     ## Processing ===================================
 
     y <- data |>
-        dplyr::select(-dplyr::matches("index")) |>
         dplyr::mutate(
             dplyr::across(
                 dplyr::any_of(sample_column),
@@ -117,13 +96,13 @@ resample_dataframe <- function(
         ) |>
         dplyr::summarise(
             .by = dplyr::any_of(sample_column),
-            ## weighted mean value for specified `nirs_columns`
+            ## weighted mean value for numeric columns
             dplyr::across(
-                dplyr::any_of(nirs_columns),
+                dplyr::where(is.numeric),
                 \(.x) weighted.mean(.x, delta_sample, na.rm = TRUE)),
             ## take the first non-na value from other columns
             dplyr::across(
-                !dplyr::any_of(nirs_columns),
+                !dplyr::where(is.numeric),
                 \(.x) dplyr::first(na.omit(.x))),
         ) |>
         dplyr::select(-delta_sample) |>
@@ -147,15 +126,16 @@ resample_dataframe <- function(
         dplyr::arrange(dplyr::pick(dplyr::any_of(sample_column))) |>
         dplyr::mutate(
             dplyr::across(
-                dplyr::any_of(nirs_columns),
+                where(is.numeric),
                 \(.x) mNIRS::replace_missing_values(
                     .x, method = "linear", na.rm = TRUE)$y),
-            ## take the first non-na value from other columns
-            dplyr::across(
-                !dplyr::any_of(nirs_columns),
-                \(.x) mNIRS::replace_missing_values(
-                    .x, method = "locf", na.rm = FALSE)$y),
         )
+    ## TODO CONTINUE
+    #
+    ## Metadata =================================
+    metadata$sample_column <- unlist(sample_column)
+
+    y <- create_mnirs_data(y, metadata)
 
     return(y)
 }
@@ -172,8 +152,11 @@ resample_dataframe <- function(
 # (y <- resample_dataframe(
 #     data = data,
 #     resample_rate = 10, ## 10 Hz
-#     resample_time = NULL
+#     resample_time = NULL,
+#     nirs_columns,
+#     sample_columns,
 # ))
+# attributes(y)
 #
 # library(tidyverse)
 # library(JAPackage)

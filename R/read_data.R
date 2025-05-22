@@ -5,7 +5,8 @@
 #' @param data A dataframe.
 #' @param metadata Metadata passed along with the dataframe.
 #'
-#' @return a [tibble][tibble::tibble-package]
+#' @return A [tibble][tibble::tibble-package] of class `mNIRS.data` with
+#' metadata available with `attributes()`.
 #'
 #' @keywords internal
 create_mnirs_data <- function(
@@ -17,30 +18,17 @@ create_mnirs_data <- function(
         cli::cli_abort("You can only pass a data frame to this function.")
 
     nirs_data <- tibble::new_tibble(
-        x = data,
-        nrow = nrow(data),
-        class = "mNIRS_data",
-        read_data = metadata$read_data,
-        processed_data = metadata$processed_data,
-        data_status = metadata$data_status,
+        data,
+        class = "mNIRS.data",
         nirs_device = metadata$nirs_device,
-        file_path = metadata$file_path,
         nirs_columns = metadata$nirs_columns,
         sample_column = metadata$sample_column,
         event_column = metadata$event_column,
-        event_indices = metadata$event_indices,
         sample_rate = metadata$sample_rate, ## samples per second
-        baseline_fit_window = metadata$baseline_fit_window, ## 0-30 sec
-        kinetics_fit_window = metadata$kinetics_fit_window, ## 10-300 sec
-        baseline_display_window = metadata$baseline_display_window, ## 0-30 sec
-        kinetics_display_window = metadata$kinetics_display_window, ## 10-300 sec
+        event_sample_list = metadata$event_sample_list, ##
+        fit_window = metadata$fit_window, ## c(-baseline, +kinetics)
+        display_window = metadata$display_window, ## c(-baseline, +kinetics)
         end_kinetics_window = metadata$end_kinetics_window, ## c(10, 15, 30) sec or 1/10 kinetics_window
-        fixed_values_removed = metadata$fixed_values_removed, ## c(0, 100)
-        outliers_removed = metadata$outliers_removed, ## logical
-        missing_indices = metadata$missing_indices, ## indices of missing data (NA)
-        filtered = metadata$filtered, ## filter_method
-        shifted = metadata$shifted, ## character scalar or list of vectors
-        normalised = metadata$normalised, ## character scalar or list of vectors
     )
 
     tibble::validate_tibble(nirs_data)
@@ -74,7 +62,7 @@ create_mnirs_data <- function(
 #' @param ... Additional arguments (see *Details*).
 #'
 #' @details
-#' Column names must match exactly, however in data files with duplicate column
+#' Column names must match exactly. In data files with duplicate column
 #' names (such as Train.Red .csv export), the column names will match in order
 #' of appearance. You may want to double check the correct columns have been
 #' assigned as intended.
@@ -93,7 +81,8 @@ create_mnirs_data <- function(
 #' A method has been included to correctly identify `sample_rate` for
 #' *Artinis Oxysoft* files exported in English.
 #'
-#' @return A [tibble][tibble::tibble-package].
+#' @return A [tibble][tibble::tibble-package] of class `mNIRS.data` with
+#' metadata available with `attributes()`.
 #'
 #' @export
 read_data <- function(
@@ -128,7 +117,7 @@ read_data <- function(
     ## report error when file is open and cannot be opened by readxl
     if (grepl("xls(x)?", tools::file_ext(file_path))) {
 
-        raw_data_pre <- tryCatch({
+        data_pre <- tryCatch({
             readxl::read_excel(
                 path = file_path, col_names = FALSE, col_types = "text",
                 n_max = 1000) |>
@@ -146,7 +135,7 @@ read_data <- function(
         ## detect row where nirs_columns exists, assuming this is common header
         ## row for dataframe
         header_row <- which(apply(
-            raw_data_pre[1:1000, ], 1,
+            data_pre[1:1000, ], 1,
             \(row) all(nirs_columns %in% row)))
 
     } else if (grepl("csv", tools::file_ext(file_path))) {
@@ -156,7 +145,7 @@ read_data <- function(
         header_row <- which(
             Reduce(`&`, lapply(nirs_columns, grepl, x = all_lines)))
 
-        raw_data_pre <- data.table::fread(file_path, fill = Inf) |>
+        data_pre <- data.table::fread(file_path, fill = Inf) |>
             tibble::as_tibble()
     }
 
@@ -180,7 +169,7 @@ read_data <- function(
     ## re-read the data at the proper row to extract the dataframe
     if (stringr::str_ends(file_path, ".xls|.xlsx")) {
 
-        raw_data_trimmed <- readxl::read_excel(
+        data_trimmed <- readxl::read_excel(
             path = file_path, skip = header_row - 1,
             guess_max = 50000, na = c("", "NA")
         ) |>
@@ -194,14 +183,14 @@ read_data <- function(
 
     } else if (stringr::str_ends(file_path, ".csv")) {
 
-        raw_data_trimmed <- utils::read.csv(
+        data_trimmed <- utils::read.csv(
             file = file_path, skip = header_row - 1,
             check.names = FALSE, na.strings = c("", "NA")
         ) |>
             tibble::as_tibble(.name_repair = "unique") |>
-            ## drops columns where all NA or 0
-            dplyr::select(dplyr::where(\(.x) !all(is.na(.x) | .x == 0))) |>
-            ## drops rows where all NA
+            ## drops empty columns where all NA
+            dplyr::select(dplyr::where(\(.x) !all(is.na(.x)))) |>
+            ## drops empty rows where all NA
             dplyr::filter(
                 dplyr::if_any(dplyr::everything(), \(.x) !is.na(.x))
             ) |>
@@ -226,14 +215,14 @@ read_data <- function(
 
     ## validation: check that sample_column and event_column
     if (!is.null(sample_column)) {
-        if (!all(sample_column %in% names(raw_data_trimmed))) {
+        if (!all(sample_column %in% names(data_trimmed))) {
             cli::cli_abort(paste(
                 "{.arg sample_column} = `{.val {sample_column}}` not detected.",
                 "Column names are case sensitive and should match exactly."))
         }}
 
     if (!is.null(event_column)) {
-        if (!all(event_column %in% names(raw_data_trimmed))) {
+        if (!all(event_column %in% names(data_trimmed))) {
             cli::cli_abort(paste(
                 "{.arg event_column} = `{.val {event_column}}` not detected.",
                 "Column names are case sensitive and should match exactly."))
@@ -242,7 +231,7 @@ read_data <- function(
     match_columns <- function(name_vector) {
         ## Get the base names (without suffixes) of dataframe columns
         base_names <- gsub("(?<!^)\\.\\.\\.[0-9]+$", "",
-                           names(raw_data_trimmed),
+                           names(data_trimmed),
                            perl = TRUE)
 
         ## Initialize result vector
@@ -250,7 +239,7 @@ read_data <- function(
             setNames(names(name_vector))
 
         ## Track which columns have been matched already
-        used_cols <- logical(length(names(raw_data_trimmed)))
+        used_cols <- logical(length(names(data_trimmed)))
 
         ## For each name in the input vector
         for (i in seq_along(name_vector)) {
@@ -262,7 +251,7 @@ read_data <- function(
 
             if (length(matching_indices) > 0) {
                 ## Take the first available match
-                matched_cols[i] <- names(raw_data_trimmed)[matching_indices[1]]
+                matched_cols[i] <- names(data_trimmed)[matching_indices[1]]
                 ## Mark this column as used
                 used_cols[matching_indices[1]] <- TRUE
             } else {
@@ -278,7 +267,7 @@ read_data <- function(
     sample_column <- match_columns(sample_column)
     event_column <- match_columns(event_column)
 
-    raw_data_prepared <- raw_data_trimmed |>
+    data_prepared <- data_trimmed |>
         ## keep_all selects everything, else only manual columns
         dplyr::select(
             dplyr::any_of(c(
@@ -294,8 +283,8 @@ read_data <- function(
                 sample_column,
                 event_column))
         ) |>
-        ## drops columns where all(is.na()) or all(.==0) values
-        dplyr::select(dplyr::where(\(.x) !all(is.na(.x) | .x == 0))) |>
+        ## drops empty columns where all NA
+        dplyr::select(dplyr::where(\(.x) !all(is.na(.x)))) |>
         dplyr::mutate(
             ## convert blank values to NA
             dplyr::across(
@@ -317,8 +306,6 @@ read_data <- function(
             ## convert sample column to unique numeric values in seconds
             ## https://github.com/fmmattioni/whippr/blob/master/R/read-data.R
             ## detects either character or dttm formats
-            ## tested on Moxy, PerfPro, Oxysoft, VMPro x2
-            ## TODO test on Train.Red, NNOXX, Graspor, Oxysoft csv, ...
             dplyr::across(
                 dplyr::any_of(names(sample_column)) &
                     dplyr::where(is.character),
@@ -333,12 +320,12 @@ read_data <- function(
     ## Soft check sample values if sample_column is present
     if (!is.null(names(sample_column))) {
 
-        sample_vector <- as.numeric(raw_data_prepared[[names(sample_column)]])
+        sample_vector <- as.numeric(data_prepared[[names(sample_column)]])
 
         ## validation: soft check whether sample_column has non-sequential or
         ## repeating values
         if (any(c(diff(sample_vector) <= 0, FALSE) | duplicated(sample_vector))) {
-            repeated_samples <- raw_data_prepared |>
+            repeated_samples <- data_prepared |>
                 dplyr::filter(
                     c(diff(get(names(sample_column))) <= 0, FALSE) |
                         duplicated(get(names(sample_column)))
@@ -349,9 +336,11 @@ read_data <- function(
                 "{.arg sample_column} = {.val {names(sample_column)}} has",
                 "non-sequential or repeating values. Consider investigating at",
                 if (length(repeated_samples) > 5) {
-                    paste("sample(s)",
-                          "{paste(head(repeated_samples, 3), collapse = ', ')}, and",
-                          "{.val {length(tail(repeated_samples, -3))}} more samples.")
+                    paste(
+                        "sample(s)",
+                        "{paste(head(repeated_samples, 3), collapse = ', ')},",
+                        "and {.val {length(tail(repeated_samples, -3))}} more",
+                        "samples.")
                 } else {
                     "sample(s) {repeated_samples}."
                 }))
@@ -359,7 +348,7 @@ read_data <- function(
 
         ## validation: soft check gap in sample_column > 1 hr
         if (any(diff(sample_vector) > 3600)) {
-            big_gap <- raw_data_prepared |>
+            big_gap <- data_prepared |>
                 dplyr::filter(
                     c(diff(get(names(sample_column))) > 3600, FALSE)
                 ) |>
@@ -379,16 +368,16 @@ read_data <- function(
 
     } else if (
         any(apply(
-            raw_data_pre[1:1000, ], 1,
+            data_pre[1:1000, ], 1,
             \(row) all("Export sample rate" %in% row)))
     ) {
 
         ## manually extract Oxysoft sample rate
         oxysoft_sample_row <- which(apply(
-            raw_data_pre[1:1000, ], 1,
+            data_pre[1:1000, ], 1,
             \(row) all("Export sample rate" %in% row)))
 
-        sample_rate <- as.numeric(raw_data_pre[oxysoft_sample_row, 2])
+        sample_rate <- as.numeric(data_pre[oxysoft_sample_row, 2])
 
         cli::cli_alert_info(paste(
             "Estimated sample rate is {.val {sample_rate}} Hz.",
@@ -419,46 +408,46 @@ read_data <- function(
     }
 
     metadata <- list(
-        file_path = stringr::str_replace_all(file_path, "\\\\", "/"),
-        nirs_columns = nirs_columns,
-        sample_column = if (!is.null(sample_column)) sample_column else NA,
-        event_column = if (!is.null(event_column)) event_column else NA,
-        missing_data = any(is.na(raw_data_prepared[names(nirs_columns)])),
+        # TODO detect NIRS device nirs_device = nirs_device,
+        nirs_columns = names(nirs_columns),
+        sample_column = if (!is.null(sample_column)) names(sample_column) else NA,
+        event_column = if (!is.null(event_column)) names(event_column) else NA,
         sample_rate = sample_rate)
 
-    raw_data <- create_mnirs_data(raw_data_prepared, metadata)
-    # attributes(raw_data)
+    mNIRS_data <- create_mnirs_data(data_prepared, metadata)
 
-    return(raw_data)
+    return(mNIRS_data)
 } ## read_data
 #
 
 
 ## troubleshooting ===============================
+## Train.Red
+# mNIRS::read_data(
+#     file_path = r"(C:\OneDrive - UBC\Body Position Study\Raw Data\BP02-TrainRed-2025-05-06.csv)",
+#     nirs_columns = c(SmO2_VL = "SmO2 unfiltered",
+#                      SmO2_PS = "SmO2 unfiltered"),
+#     sample_column = c(time = "Timestamp (seconds passed)"),
+#     event_column = NULL,
+#     .keep_all = FALSE)
+
 # ## Moxy
-# (raw_data <-
-#      read_data(
-#          file_path = r"(C:\OneDrive - UBC\5-1 Assessments\Processed Data\03-2_2021-08-10-data.xlsx)",
-#          nirs_columns = c("smo2_right_VL", "smo2_left_VL"),
-#          sample_column = "Time",
-#          event_column = NULL) |>
-#      dplyr::mutate(event = dplyr::if_else(index %in% c(3009), "reoxy", NA)) |>
-#      # dplyr::filter(index >= 2340, index <= 2590) |>
-#      dplyr::filter(index >= 2980, index <= 3050) |> ## reoxy
-#      dplyr::mutate(index = index - dplyr::first(index))
-#  )
-# #
+# read_data(
+#     file_path = r"(C:\OneDrive - UBC\5-1 Assessments\Processed Data\03-2_2021-08-10-data.xlsx)",
+#     nirs_columns = c("smo2_right_VL", "smo2_left_VL"),
+#     sample_column = "Time",
+#     event_column = NULL)
 #
 # ## Moxy
 # read_data(
-#     file_path = r"(C:\OneDrive - UBC\Group Projects\JAData\1619.csv)",
+#     file_path = r"(C:\OneDrive - UBC\JAData\1619.csv)",
 #     nirs_columns = c("SmO2 Live", "SmO2 Averaged", "THb"),
 #     sample_column = c("time" = "hh:mm:ss"),
 #     event_column = NULL)
 # #
 # # ## PerfPro
 # read_data(
-#     file_path = r"(C:\OneDrive - UBC\Group Projects\JAData\Treadmill-VO2max-PerfPro-2024-12-16.xlsx)",
+#     file_path = r"(C:\OneDrive - UBC\JAData\Treadmill-VO2max-PerfPro-2024-12-16.xlsx)",
 #     nirs_columns = "smo2_left_VL",
 #     sample_column = "Time",
 #     event_column = NULL)
@@ -472,7 +461,7 @@ read_data <- function(
 # #
 # # ## VMPro
 # mNIRS::read_data(
-#     file_path = r"(C:\OneDrive - UBC\Group Projects\JAData\DataAverage-VMPro-2023-05-17.xlsx)",
+#     file_path = r"(C:\OneDrive - UBC\JAData\DataAverage-VMPro-2023-05-17.xlsx)",
 #     nirs_columns = c("right_smo2" = "SmO2[%]",
 #                      "left_smo2" = "SmO2 -  2[%]",
 #                      "thb" = "THb[THb]"),
@@ -482,11 +471,11 @@ read_data <- function(
 # #
 # # ## VMPro
 # mNIRS::read_data(
-#     file_path = r"(C:\OneDrive - UBC\Group Projects\JAData\MoxyUnit-VMPro-2023-05-17.xlsx)",
+#     file_path = r"(C:\OneDrive - UBC\JAData\MoxyUnit-VMPro-2023-05-17.xlsx)",
 #     nirs_columns = c("right_smo2" = "SmO2[%]",
 #                      "left_smo2" = "SmO2 -  2[%]",
 #                      "thb" = "THb[THb]"),
-#     sample_column = c("time" = "Time[s]"),
+#     sample_column = c("time" = "Time[hh:mm:ss]"),
 #     event_column = NULL)
 # # #
 #

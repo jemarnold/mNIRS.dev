@@ -39,10 +39,10 @@ normalise_dataframe <- function(
 
     if (
         length(nirs_columns) == 0 &
-        !is.null(attributes(data)$nirs_columns)
+        !is.null(metadata$nirs_columns)
     ) {
         ## "global" condition from metadata$nirs_columns
-        nirs_columns <- names(metadata$nirs_columns)
+        nirs_columns <- metadata$nirs_columns
     }
 
     ## validation: `nirs_columns` must match expected dataframe names
@@ -83,12 +83,17 @@ normalise_dataframe <- function(
         ) |>
         dplyr::relocate(names(data))
 
+    ## Metadata =================================
+    metadata$nirs_columns <- unique(
+        c(metadata$nirs_columns, unlist(nirs_columns)))
+
+    y <- create_mnirs_data(y, metadata)
+
     return(y)
 }
 #
 ## troubleshooting ===================================
-# library(tidyverse)
-# library(JAPackage)
+# library(ggplot2)
 # library(mNIRS)
 # #
 # (df <- read_data(
@@ -97,19 +102,19 @@ normalise_dataframe <- function(
 #     sample_column = c("Sample" = "1"),
 #     # event_column = c("Event" = "11"),
 # ) |> dplyr::slice(-1))
-#
+# #
 # y <- normalise_dataframe(
 #     data = df,
 #     nirs_columns = list(c("ICG_VL", "ICG_SCM")),
 #     normalise_range = c(0, 100)
-# ) |>
-#     print()
+# ) |> print()
+# attributes(y)
 #
 # ggplot(y) +
 #     {list( ## Settings
 #         aes(x = Sample),
 #         # coord_cartesian(xlim = c(NA, 200)),
-#         theme_JA(legend.position = "top"),
+#         JAPackage::theme_JA(legend.position = "top"),
 #         NULL)} + ## Settings
 #     {list( ## Data
 #         geom_hline(yintercept = 0, linetype = "dotted"),

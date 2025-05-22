@@ -12,7 +12,8 @@ create_mnirs_data(data, metadata)
 \item{metadata}{Metadata passed along with the dataframe.}
 }
 \value{
-a \link[tibble:tibble-package]{tibble}
+A \link[tibble:tibble-package]{tibble} of class \code{mNIRS.data} with
+metadata available with \code{attributes()}.
 }
 \description{
 Description

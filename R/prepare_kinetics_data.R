@@ -79,7 +79,7 @@ prepare_kinetics_data <- function(
     } else if (!is.null(metadata$nirs_columns) &
                !"nirs_columns" %in% names(args)) {
         ## otherwise take existing metadata columns
-        nirs_columns <- names(metadata$nirs_columns)
+        nirs_columns <- metadata$nirs_columns
 
     }
 
@@ -98,7 +98,7 @@ prepare_kinetics_data <- function(
     } else if (!is.null(metadata$sample_column) &
                !"sample_column" %in% names(args)) {
         ## otherwise take existing metadata columns
-        sample_column <- names(metadata$sample_column)
+        sample_column <- metadata$sample_column
 
     } else {sample_column <- NULL}
 
@@ -117,7 +117,7 @@ prepare_kinetics_data <- function(
     } else if (!is.null(metadata$event_column) &
                !"event_column" %in% names(args)) {
         ## otherwise take existing metadata columns
-        event_column <- names(metadata$event_column)
+        event_column <- metadata$event_column
 
     } else {event_column <- NULL}
 
@@ -128,6 +128,7 @@ prepare_kinetics_data <- function(
             "match exactly."))
     }
 
+    ## fit windows ========================================
     ## validation: `fit_windows` must be numeric scalar
     purrr::map(
         c(fit_baseline_window, fit_kinetics_window),
@@ -170,53 +171,71 @@ prepare_kinetics_data <- function(
     ## Event Indices ===================================
 
     ## re-define `index`
-    data_intake <- data |>
-        dplyr::select(
-            dplyr::any_of(c(sample_column, event_column, nirs_columns))) |>
-        dplyr::mutate(index = dplyr::row_number())
+    # data_intake <- data |>
+    #     dplyr::select(
+    #         dplyr::any_of(c(sample_column, event_column, nirs_columns))) |>
+    #     dplyr::mutate(index = dplyr::row_number())
 
-    if (!is.null(event_sample)) {
+    if (!is.null(event_index)) {
 
-        event_sample_index <- dplyr::filter(
-            data_intake,
-            dplyr::if_any(
-                dplyr::any_of(sample_column),
-                \(.x) .x %in% event_sample
-            )) |>
-            dplyr::pull(index)
+        event_index_sample <- data |>
+            dplyr::mutate(index = dplyr::row_number()) |>
+            dplyr::filter(index %in% event_index) |>
+            dplyr::pull(dplyr::any_of(sample_column))
 
-    } else {event_sample_index <- NULL}
+    } else {event_index_sample <- NULL}
+
+    # if (!is.null(event_sample)) {
+    #
+    #     event_sample_sample <- data |>
+    #         dplyr::filter(dplyr::if_any(
+    #             dplyr::any_of(sample_column),
+    #             \(.x) .x %in% event_sample
+    #         )) |>
+    #         dplyr::pull(dplyr::any_of(sample_column))
+    #
+    # } else {event_sample_sample <- NULL}
 
     if (!is.null(event_label)) {
 
-        event_label_index <- dplyr::filter(
-            data_intake,
-            dplyr::if_any(
+        event_label_sample <- data |>
+            dplyr::filter(dplyr::if_any(
                 dplyr::any_of(event_column),
                 \(.x) grepl(paste(event_label, collapse = "|"),
                             .x, ignore.case = TRUE)
             )) |>
-            dplyr::pull(index)
+            dplyr::pull(dplyr::any_of(sample_column))
 
-    } else {event_label_index <- NULL}
+    } else {event_label_sample <- NULL}
 
-    event_index_list <- sort(
-        c(event_index, event_sample_index, event_label_index))
+    event_sample_list <- sort(
+        c(event_index_sample, event_sample, event_label_sample))
 
     fit_baseline_window <- -max(abs(fit_baseline_window))
     display_baseline_window <- -max(abs(display_baseline_window))
     start_index <- min(c(fit_baseline_window, display_baseline_window))
     end_index <- max(c(fit_kinetics_window, display_kinetics_window))
 
+    ## Metadata =================================
+    metadata$nirs_columns <- unique(
+        c(metadata$nirs_columns, nirs_columns))
+    metadata$sample_column <- sample_column
+    metadata$event_column <- event_column
+    metadata$event_sample_list <- event_sample_list
+    metadata$fit_window <- c(fit_baseline_window,
+                             fit_kinetics_window)
+    metadata$display_window <- c(display_baseline_window,
+                                 display_kinetics_window)
+
+    ## data list =================================
     data_list <- purrr::map(
-        event_index_list,
+        event_sample_list,
         \(.x) {
             indices <- pmin(
                 pmax(.x + start_index:end_index, 1),
-                nrow(data_intake)) |> unique()
+                nrow(data)) |> unique()
 
-            data_intake |>
-                dplyr::select(-index) |>
+            data |>
                 dplyr::mutate(
                     display_index = dplyr::row_number() - .x,
                 ) |>
@@ -235,20 +254,22 @@ prepare_kinetics_data <- function(
 
     if (head(group_kinetics_events, 1) == "distinct") {
 
-        y <- purrr::map(
+        kinetics_data <- purrr::map(
             data_list,
             \(.df)
             .df |>
-                dplyr::relocate(
-                    display_index, fit_index,
-                    dplyr::any_of(
-                        c(sample_column, event_column, nirs_columns)))
+                dplyr::relocate(display_index, fit_index)
         )
+
+        kinetics_data <- create_mnirs_data(kinetics_data, metadata)
 
     } else if (head(group_kinetics_events, 1) == "ensemble") {
 
-        y <- data_list |>
+        kinetics_data <- data_list |>
             dplyr::bind_rows() |>
+            dplyr::select(
+                -dplyr::any_of(c(sample_column, event_column))
+            ) |>
             dplyr::summarise(
                 .by = display_index,
                 dplyr::across(
@@ -263,61 +284,55 @@ prepare_kinetics_data <- function(
                     dplyr::where(is.numeric),
                     \(.x) ifelse(.x %in% c(Inf, -Inf, NaN), NA_real_, .x)),
             ) |>
-            dplyr::relocate(
-                display_index, fit_index,
-                dplyr::any_of(c(sample_column, event_column, nirs_columns)))
+            dplyr::relocate(display_index, fit_index)
+
+        kinetics_data <- create_mnirs_data(kinetics_data, metadata)
 
     } else if (is.numeric(unlist(group_kinetics_events))) {
 
         ungrouped_events <- setdiff(
             1:length(data_list), unlist(group_kinetics_events))
 
-
         for (i in seq_along(ungrouped_events)) {
             group_kinetics_events[[length(group_kinetics_events)+1]] <-
                 ungrouped_events[i]
         }
 
-        y <- purrr::map(
+        kinetics_data <- purrr::map(
             if (is.list(group_kinetics_events)) {
                 group_kinetics_events
             } else {list(group_kinetics_events)},
-            \(.x) data_list[.x] |>
-                dplyr::bind_rows() |>
-                dplyr::summarise(
-                    .by = display_index,
-                    dplyr::across(
-                        dplyr::where(is.numeric),
-                        \(.x) mean(.x, na.rm = TRUE)),
-                    dplyr::across(
-                        !dplyr::where(is.numeric),
-                        \(.x) dplyr::first(na.omit(.x))),
-                ) |>
-                dplyr::mutate(
-                    dplyr::across(
-                        dplyr::where(is.numeric),
-                        \(.x) ifelse(.x %in% c(Inf, -Inf, NaN), NA_real_, .x)),
-                ) |>
-                dplyr::relocate(
-                    display_index, fit_index,
-                    dplyr::any_of(c(sample_column, event_column, nirs_columns)))
-        )
-    }
-    #
-    ## metadata =======================================
-    # attributes(y[[1]])
-    # # metadata$nirs_columns <-
-    # # metadata$sample_column <-
-    # # metadata$event_column <-
-    # metadata$event_index <- event_index_list
-    # metadata$fit_window <- c(
-    #     -abs(fit_baseline_window), fit_kinetics_window)
-    # metadata$display_window <- c(
-    #     -abs(display_baseline_window), display_kinetics_window)
-    # #
-    # processed_data <- create_mnirs_data(y, metadata)
+            \(.x) {
+                y <- data_list[.x] |>
+                    dplyr::bind_rows() |>
+                    dplyr::select(
+                        -dplyr::any_of(c(sample_column, event_column))
+                    ) |>
+                    dplyr::summarise(
+                        .by = display_index,
+                        dplyr::across(
+                            dplyr::where(is.numeric),
+                            \(.x) mean(.x, na.rm = TRUE)),
+                        dplyr::across(
+                            !dplyr::where(is.numeric),
+                            \(.x) dplyr::first(na.omit(.x))),
+                    ) |>
+                    dplyr::mutate(
+                        dplyr::across(
+                            dplyr::where(is.numeric),
+                            \(.x) ifelse(.x %in% c(Inf, -Inf, NaN), NA_real_, .x)),
+                    ) |>
+                    dplyr::relocate(
+                        display_index, fit_index,
+                        dplyr::any_of(c(sample_column, event_column, nirs_columns)))
 
-    return(y)
+                kinetics_data <- create_mnirs_data(y, metadata)
+                # attributes(y)
+
+            })
+    }
+
+    return(kinetics_data)
 }
 #
 # (data <- mNIRS::read_data(
@@ -330,13 +345,14 @@ prepare_kinetics_data <- function(
 #     event_column = c("label" = "...11"),
 #     .keep_all = FALSE))
 # attributes(data)
-# # #
+# # # # #
 # (data_list <- mNIRS::prepare_kinetics_data(
 #     data,
 #     nirs_columns = c("PS_HHb", "VL_HHb"),
-#     # sample_column = NULL,
-#     # event_column = "label",
-#     # event_index = c(1000),
+#     sample_column = "sample",
+#     event_column = "label",
+#     event_index = NULL,
+#     event_sample = NULL,
 #     event_label = c("end RP", "end UP", "end stage"),
 #     fit_baseline_window = 30,
 #     fit_kinetics_window = 180,
@@ -344,3 +360,4 @@ prepare_kinetics_data <- function(
 #     display_kinetics_window = 240,
 #     group_kinetics_events = list(c(1, 3, 5), c(2, 4)) #"ensemble"
 # ))
+# attributes(data_list[[1]])

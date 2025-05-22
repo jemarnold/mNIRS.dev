@@ -14,7 +14,6 @@ format:
               href: https://x.com/jem_arnold
             - icon: github
               href: https://github.com/jemarnold
-    #     embed-resources: true
 server: shiny
 editor: source
 execute:
@@ -171,6 +170,7 @@ raw_data <- reactive({
     
     # upload_file <- input$upload_file$datapath
     upload_file <- r"(C:\R-Projects\mNIRS\mNIRS-app\Oxysoft-example.xlsx)"
+    upload_file <- r"(C:\OneDrive - UBC\Body Position Study\Raw Data\BP02-TrainRed-2025-05-06.csv)"
     
     data <- mNIRS::read_data(
         file_path = upload_file,
@@ -182,13 +182,13 @@ raw_data <- reactive({
         sample_rate = input$sample_rate,
         .keep_all = input$keep_all)
     
-    # raw_data <- mNIRS::read_data(
-    #     r"(C:\R-Projects\mNIRS\mNIRS-app\Oxysoft-example.xlsx)",
-    #     nirs_columns = c(O2Hb_VL = "2",
-    #                      HHb_VL = "3"),
-    #     sample_column = c(sample = "1"),
-    #     event_column = c(event = "...11"),
-    #     .keep_all = FALSE)
+    raw_data <- mNIRS::read_data(
+        upload_file,
+        nirs_columns = c(SmO2_VL = "SmO2 unfiltered",
+                         SmO2_PS = "SmO2 unfiltered"),
+        sample_column = c(time = "Timestamp (seconds passed)"),
+        # event_column = c(event = "...11"),
+        .keep_all = FALSE)
     
     return(data)
 })
