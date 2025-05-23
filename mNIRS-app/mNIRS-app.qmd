@@ -169,26 +169,30 @@ raw_data <- reactive({
     # req(input$upload_file, input$nirs_columns, input$sample_column)
     
     # upload_file <- input$upload_file$datapath
-    upload_file <- r"(C:\R-Projects\mNIRS\mNIRS-app\Oxysoft-example.xlsx)"
+    # upload_file <- r"(C:\R-Projects\mNIRS\mNIRS-app\Oxysoft-example.xlsx)"
     upload_file <- r"(C:\OneDrive - UBC\Body Position Study\Raw Data\BP02-TrainRed-2025-05-06.csv)"
     
     data <- mNIRS::read_data(
         file_path = upload_file,
-        nirs_columns = string_to_named_vector("O2Hb_VL = 2, HHb_VL = 3"),
-        sample_column = string_to_named_vector("sample = 1"),
+        nirs_columns = string_to_named_vector(c(
+            "SmO2_VL = SmO2 unfiltered",
+            "SmO2_PS = SmO2 unfiltered")),
+        sample_column = string_to_named_vector(
+            "time = Timestamp (seconds passed)"
+        ),
         # nirs_columns = string_to_named_vector(input$nirs_columns),
         # sample_column = string_to_named_vector(input$sample_column),
         event_column = string_to_named_vector(input$event_column),
         sample_rate = input$sample_rate,
         .keep_all = input$keep_all)
     
-    raw_data <- mNIRS::read_data(
-        upload_file,
-        nirs_columns = c(SmO2_VL = "SmO2 unfiltered",
-                         SmO2_PS = "SmO2 unfiltered"),
-        sample_column = c(time = "Timestamp (seconds passed)"),
-        # event_column = c(event = "...11"),
-        .keep_all = FALSE)
+    # raw_data <- mNIRS::read_data(
+    #     upload_file,
+    #     nirs_columns = c(SmO2_VL = "SmO2 unfiltered",
+    #                      SmO2_PS = "SmO2 unfiltered"),
+    #     sample_column = c(time = "Timestamp (seconds passed)"),
+    #     # event_column = c(event = "...11"),
+    #     .keep_all = FALSE)
     
     return(data)
 })
@@ -247,7 +251,7 @@ nirs_data <- reactive({
     req(raw_data())
     
     raw_data <- raw_data()
-    nirs_columns <- names(attributes(raw_data)$nirs_columns)
+    nirs_columns <- attributes(raw_data)$nirs_columns
     sample_rate <- attributes(raw_data)$sample_rate
     fixed_values <- strsplit(input$fixed_values, split = "\\s*,\\s*")[[1]] |> 
         as.numeric()
@@ -279,6 +283,8 @@ nirs_data <- reactive({
                         .x, fixed_values, k = sample_rate)$y)
             },
             if (input$filter_method == "low-pass") {
+                req(input$n, input$critical_frequency)
+                
                 across(
                     any_of(nirs_columns),
                     \(.x) mNIRS::filter_data(
@@ -294,6 +300,8 @@ nirs_data <- reactive({
                         .x, method = input$filter_method))
             },
             if (input$filter_method == "moving-average") {
+                req(input$width)
+                
                 across(
                     any_of(nirs_columns),
                     \(.x) mNIRS::filter_data(
@@ -302,7 +310,7 @@ nirs_data <- reactive({
             },
         ) |> 
         mutate(
-            across(any_of(nirs_columns), \(.x) round(.x, 4))
+            across(any_of(nirs_columns), \(.x) round(.x, 2))
         )
     
     return(nirs_data)
@@ -313,7 +321,7 @@ nirs_data <- reactive({
 output$nirs_table <- DT::renderDT({
     req(nirs_data())
     
-    nirs_columns <- names(attributes(nirs_data)$nirs_columns)
+    nirs_columns <- attributes(nirs_data)$nirs_columns
     
     # display_data <- nirs_data() |> 
     #     mutate(
@@ -339,9 +347,9 @@ output$plot <- renderPlot({
     req(nirs_data())
     
     nirs_data <- nirs_data()
-    nirs_columns <- names(attributes(nirs_data)$nirs_columns)
-    sample_column <- names(attributes(nirs_data)$sample_column)
-    event_column <- names(attributes(nirs_data)$event_column)
+    nirs_columns <- attributes(nirs_data)$nirs_columns
+    sample_column <- attributes(nirs_data)$sample_column
+    event_column <- attributes(nirs_data)$event_column
     
     plot <- ggplot(nirs_data) +
         aes(x = .data[[sample_column]]) +
