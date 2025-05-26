@@ -9,7 +9,8 @@
 #' @details
 #' ...
 #'
-#' @return A [tibble][tibble::tibble-package].
+#' @return A [tibble][tibble::tibble-package] of class `mNIRS.data` with
+#' metadata available with `attributes()`.
 #'
 #' @export
 resample_dataframe <- function(

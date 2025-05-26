@@ -20,7 +20,8 @@ indicating the range of values to which the specified mNIRS data
 columns will be re-scaled.}
 }
 \value{
-A \link[tibble:tibble-package]{tibble}.
+A \link[tibble:tibble-package]{tibble} of class \code{mNIRS.data} with
+metadata available with \code{attributes()}.
 }
 \description{
 Normalise the range of mNIRS signals while preserving the relative

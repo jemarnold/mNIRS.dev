@@ -18,13 +18,13 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-`mNIRS` is a package to allow for importing, processing, and analysing data from muscle 
-near-infrared spectroscopy (mNIRS) devices.
+`mNIRS` is a package to allow for importing, processing, and analysing data 
+from muscle near-infrared spectroscopy (mNIRS) devices.
 
 ## Installation
 
-You can install the development version of `mNIRS` from [GitHub](https://github.com/jemarnold/mNIRS) 
-with:
+You can install the development version of `mNIRS` from
+[GitHub](https://github.com/jemarnold/mNIRS) with:
 
 ``` r
 # install.packages("remotes")
@@ -41,9 +41,10 @@ devtools::install_github("jemarnold/mNIRS")
 
 ## mNIRS Device Compatibility
 
-This package is designed to recognise mNIRS data exported as *.xlsx*, *.xls*, or *.csv* files.
-It should be flexible for use with many different mNIRS devices, and compatibility will improve
-with continued development.
+This package is designed to recognise mNIRS data exported as *.xlsx*, *.xls*, 
+or *.csv* files.
+It should be flexible for use with many different mNIRS devices, and 
+compatibility will improve with continued development.
 
 This package have been tested successfully with the following mNIRS devices:
 
@@ -51,8 +52,8 @@ This package have been tested successfully with the following mNIRS devices:
 * [Train.Red](https://train.red/) FYER and Plus
 * [Artinis](https://www.artinis.com/nirs-devices) Portamon and Oxymon
 
-This package have been tested successfully with mNIRS data exported from the following devices
-and apps:
+This package have been tested successfully with mNIRS data exported from the 
+following devices and apps:
 
 * [Moxy](https://www.moxymonitor.com/) onboard recording (.csv)
 * [Train.Red](https://train.red/) app export (.filetype)

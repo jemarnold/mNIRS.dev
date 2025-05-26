@@ -42,7 +42,8 @@ use the mean of the lowest, highest, or first \code{30} samples.}
 amount.}
 }
 \value{
-A \link[tibble:tibble-package]{tibble}.
+A \link[tibble:tibble-package]{tibble} of class \code{mNIRS.data} with
+metadata available with \code{attributes()}.
 }
 \description{
 Shift the data range of mNIRS signals (e.g. shift to positive values) while

@@ -39,7 +39,8 @@
 #' multiple groups of data columns where relative scaling is preserved within
 #' groups, but not across groups of mNIRS signals.
 #'
-#' @return A [tibble][tibble::tibble-package].
+#' @return A [tibble][tibble::tibble-package] of class `mNIRS.data` with
+#' metadata available with `attributes()`.
 #'
 #' @export
 shift_dataframe <- function(

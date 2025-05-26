@@ -13,7 +13,7 @@ prepare_kinetics_data(
   fit_kinetics_window = 180,
   display_baseline_window = NULL,
   display_kinetics_window = NULL,
-  group_kinetics_events = c("distinct", "ensemble"),
+  group_kinetics_events = list(c("distinct", "ensemble")),
   ...
 )
 }
@@ -55,14 +55,15 @@ data from all kinetics events (similar to pulmonary VO2 kinetics).
 \item Alternatively, a list of numeric vectors can be specified to
 ensemble-average groups of kinetics events together. Such as
 \code{group_kinetics_events = list(c(1, 2), c(3, 4))} for two sets of
-repeated bouts. Any bout numbers not listed explicity will return un-grouped
-dataframes.
+repeated bouts. Any bout numbers not listed explicitly will return
+un-grouped dataframes.
 }}
 
 \item{...}{Additional arguments.}
 }
 \value{
-A \link[tibble:tibble-package]{tibble}.
+A list of \link[tibble:tibble-package]{tibbles} of class \code{mNIRS.data} with
+metadata available with \code{attributes()}.
 }
 \description{
 Processes a dataframe for kinetics analysis

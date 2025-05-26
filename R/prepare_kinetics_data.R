@@ -30,14 +30,15 @@
 #' - Alternatively, a list of numeric vectors can be specified to
 #' ensemble-average groups of kinetics events together. Such as
 #' `group_kinetics_events = list(c(1, 2), c(3, 4))` for two sets of
-#' repeated bouts. Any bout numbers not listed explicity will return un-grouped
-#' dataframes.
+#' repeated bouts. Any bout numbers not listed explicitly will return
+#' un-grouped dataframes.
 #' @param ... Additional arguments.
 #'
 #' @details
 #' ...
 #'
-#' @return A [tibble][tibble::tibble-package].
+#' @return A list of [tibbles][tibble::tibble-package] of class `mNIRS.data`
+#' with metadata available with `attributes()`.
 #'
 #' @export
 prepare_kinetics_data <- function(
@@ -49,24 +50,9 @@ prepare_kinetics_data <- function(
         fit_kinetics_window = 180,
         display_baseline_window = NULL,
         display_kinetics_window = NULL,
-        group_kinetics_events = c("distinct", "ensemble"),
+        group_kinetics_events = list(c("distinct", "ensemble")),
         ...
 ) {
-
-    ## functionality
-    ## TODO
-    ## define nirs_columns (or metadata)
-    ## define sample column (or metadata)
-    ## define event column (or metadata)
-    ## define kinetics event
-    ## - by sample number, index, or event label
-    ## split into list of dataframes
-    ## - or ensemble average
-
-    ## if group_kinetics_events == "distinct", output is a list of dataframes
-    ## if == "ensemble", output is a single dataframe with all ensembled
-    ## if == list(c(1, 2), c(3, 4)), output is a list of ensembled dataframes
-
     ## Validation =================================
     metadata <- attributes(data)
     args <- list(...)
@@ -252,18 +238,20 @@ prepare_kinetics_data <- function(
         }
     )
 
-    if (head(group_kinetics_events, 1) == "distinct") {
+    if (head(unlist(group_kinetics_events), 1) == "distinct") {
 
-        kinetics_data <- purrr::map(
+        kinetics_data_list <- purrr::map(
             data_list,
-            \(.df)
-            .df |>
-                dplyr::relocate(display_index, fit_index)
-        )
+            \(.df) {
+                kinetics_data <- .df |>
+                    dplyr::relocate(display_index, fit_index)
 
-        kinetics_data <- create_mnirs_data(kinetics_data, metadata)
+                kinetics_data <- create_mnirs_data(kinetics_data, metadata)
 
-    } else if (head(group_kinetics_events, 1) == "ensemble") {
+                return(kinetics_data)
+            })
+
+    } else if (head(unlist(group_kinetics_events), 1) == "ensemble") {
 
         kinetics_data <- data_list |>
             dplyr::bind_rows() |>
@@ -286,7 +274,7 @@ prepare_kinetics_data <- function(
             ) |>
             dplyr::relocate(display_index, fit_index)
 
-        kinetics_data <- create_mnirs_data(kinetics_data, metadata)
+        kinetics_data_list <- list(create_mnirs_data(kinetics_data, metadata))
 
     } else if (is.numeric(unlist(group_kinetics_events))) {
 
@@ -298,12 +286,12 @@ prepare_kinetics_data <- function(
                 ungrouped_events[i]
         }
 
-        kinetics_data <- purrr::map(
+        kinetics_data_list <- purrr::map(
             if (is.list(group_kinetics_events)) {
                 group_kinetics_events
             } else {list(group_kinetics_events)},
             \(.x) {
-                y <- data_list[.x] |>
+                kinetics_data <- data_list[.x] |>
                     dplyr::bind_rows() |>
                     dplyr::select(
                         -dplyr::any_of(c(sample_column, event_column))
@@ -326,38 +314,39 @@ prepare_kinetics_data <- function(
                         display_index, fit_index,
                         dplyr::any_of(c(sample_column, event_column, nirs_columns)))
 
-                kinetics_data <- create_mnirs_data(y, metadata)
-                # attributes(y)
+                kinetics_data <- create_mnirs_data(kinetics_data, metadata)
 
+                return(kinetics_data)
             })
     }
 
-    return(kinetics_data)
+    return(kinetics_data_list)
 }
 #
-# (data <- mNIRS::read_data(
-#     file_path = "C:/OneDrive - UBC/Body Position Study/Raw Data/BP01-oxysoft-2025-04-01.xlsx",
-#     nirs_columns = c("PS_O2Hb" = "2",
-#                      "PS_HHb" = "3",
-#                      "VL_O2Hb" = "5",
-#                      "VL_HHb" = "6"),
-#     sample_column = c("sample" = "1"),
-#     event_column = c("label" = "...11"),
-#     .keep_all = FALSE))
-# attributes(data)
-# # # # #
-# (data_list <- mNIRS::prepare_kinetics_data(
-#     data,
-#     nirs_columns = c("PS_HHb", "VL_HHb"),
-#     sample_column = "sample",
-#     event_column = "label",
-#     event_index = NULL,
-#     event_sample = NULL,
-#     event_label = c("end RP", "end UP", "end stage"),
-#     fit_baseline_window = 30,
-#     fit_kinetics_window = 180,
-#     display_baseline_window = 40,
-#     display_kinetics_window = 240,
-#     group_kinetics_events = list(c(1, 3, 5), c(2, 4)) #"ensemble"
-# ))
-# attributes(data_list[[1]])
+(data <- mNIRS::read_data(
+    file_path = "C:/OneDrive - UBC/Body Position Study/Raw Data/BP01-oxysoft-2025-04-01.xlsx",
+    nirs_columns = c("PS_O2Hb" = "2",
+                     "PS_HHb" = "3",
+                     "VL_O2Hb" = "5",
+                     "VL_HHb" = "6"),
+    sample_column = c("sample" = "1"),
+    event_column = c("label" = "...11"),
+    .keep_all = FALSE))
+# # attributes(data)
+# # # # # #
+(data_list <- mNIRS::prepare_kinetics_data(
+    data,
+    nirs_columns = c("PS_HHb", "VL_HHb"),
+    sample_column = "sample",
+    event_column = "label",
+    event_index = NULL,
+    event_sample = NULL,
+    event_label = c("end RP", "end UP", "end stage"),
+    fit_baseline_window = 30,
+    fit_kinetics_window = 180,
+    display_baseline_window = 40,
+    display_kinetics_window = 240,
+    group_kinetics_events = "ensemble"
+    # group_kinetics_events = list(c(1, 3, 5), c(2, 4)) #"ensemble"
+))
+attributes(data_list[[1]])

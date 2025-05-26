@@ -130,10 +130,10 @@ selectInput(
 
 uiOutput("filter_method_ui")
 
-
-
 ## Shift data (dataframe)
-## (Maybe) Normalise (dataframe)
+
+## Normalise (dataframe)
+
 ## Slice into laps/events (lapwise list of dataframes)
 ## Start & end of work with padding to each side
 ## Define work baseline; end-work mean; reoxygenation peak (lapwise)
