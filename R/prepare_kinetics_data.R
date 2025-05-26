@@ -50,7 +50,7 @@ prepare_kinetics_data <- function(
         fit_kinetics_window = 180,
         display_baseline_window = NULL,
         display_kinetics_window = NULL,
-        group_kinetics_events = list(c("distinct", "ensemble")),
+        group_kinetics_events = list("distinct", "ensemble"),
         ...
 ) {
     ## Validation =================================
@@ -323,30 +323,30 @@ prepare_kinetics_data <- function(
     return(kinetics_data_list)
 }
 #
-(data <- mNIRS::read_data(
-    file_path = "C:/OneDrive - UBC/Body Position Study/Raw Data/BP01-oxysoft-2025-04-01.xlsx",
-    nirs_columns = c("PS_O2Hb" = "2",
-                     "PS_HHb" = "3",
-                     "VL_O2Hb" = "5",
-                     "VL_HHb" = "6"),
-    sample_column = c("sample" = "1"),
-    event_column = c("label" = "...11"),
-    .keep_all = FALSE))
-# # attributes(data)
-# # # # # #
-(data_list <- mNIRS::prepare_kinetics_data(
-    data,
-    nirs_columns = c("PS_HHb", "VL_HHb"),
-    sample_column = "sample",
-    event_column = "label",
-    event_index = NULL,
-    event_sample = NULL,
-    event_label = c("end RP", "end UP", "end stage"),
-    fit_baseline_window = 30,
-    fit_kinetics_window = 180,
-    display_baseline_window = 40,
-    display_kinetics_window = 240,
-    group_kinetics_events = "ensemble"
-    # group_kinetics_events = list(c(1, 3, 5), c(2, 4)) #"ensemble"
-))
-attributes(data_list[[1]])
+# (data <- mNIRS::read_data(
+#     file_path = "C:/OneDrive - UBC/Body Position Study/Raw Data/BP01-oxysoft-2025-04-01.xlsx",
+#     nirs_columns = c("PS_O2Hb" = "2",
+#                      "PS_HHb" = "3",
+#                      "VL_O2Hb" = "5",
+#                      "VL_HHb" = "6"),
+#     sample_column = c("sample" = "1"),
+#     event_column = c("label" = "...11"),
+#     .keep_all = FALSE))
+# # # attributes(data)
+# # # # # # #
+# (data_list <- mNIRS::prepare_kinetics_data(
+#     data,
+#     nirs_columns = c("PS_HHb", "VL_HHb"),
+#     sample_column = "sample",
+#     event_column = "label",
+#     event_index = NULL,
+#     event_sample = NULL,
+#     event_label = c("end RP", "end UP", "end stage"),
+#     fit_baseline_window = 30,
+#     fit_kinetics_window = 180,
+#     display_baseline_window = 40,
+#     display_kinetics_window = 240,
+#     group_kinetics_events = "ensemble"
+#     # group_kinetics_events = list(c(1, 3, 5), c(2, 4)) #"ensemble"
+# ))
+# attributes(data_list[[1]])

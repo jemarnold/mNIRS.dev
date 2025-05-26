@@ -13,7 +13,7 @@ prepare_kinetics_data(
   fit_kinetics_window = 180,
   display_baseline_window = NULL,
   display_kinetics_window = NULL,
-  group_kinetics_events = list(c("distinct", "ensemble")),
+  group_kinetics_events = list("distinct", "ensemble"),
   ...
 )
 }
@@ -62,8 +62,8 @@ un-grouped dataframes.
 \item{...}{Additional arguments.}
 }
 \value{
-A list of \link[tibble:tibble-package]{tibbles} of class \code{mNIRS.data} with
-metadata available with \code{attributes()}.
+A list of \link[tibble:tibble-package]{tibbles} of class \code{mNIRS.data}
+with metadata available with \code{attributes()}.
 }
 \description{
 Processes a dataframe for kinetics analysis

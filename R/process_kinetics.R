@@ -316,7 +316,7 @@ process_kinetics.half_time <- function(
     out <- structure(
         list(
             data = tibble::tibble(df),
-            coefs = data.frame(coefs),
+            coefs = tibble::as_tibble(as.list(coefs)),
             call = match.call()),
         class = "mNIRS.kinetics")
 
