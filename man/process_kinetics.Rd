@@ -35,18 +35,19 @@ or index \code{seq_along(x)} representing the beginning of the kinetics event.}
 }}
 
 \item{...}{Additional arguments. Used to define fixed parameters which will
-not be optimised by the kinetics methods. e.g. \code{A = 10} will define \code{SSmonoexp(x, A = 10, B, TD, tau)}}
+not be optimised by the kinetics methods. e.g. \code{A = 10} will define
+\code{SSmonoexp(x, A = 10, B, TD, tau)}}
 }
 \value{
 A list \code{L} of class \code{mNIRS.kinetics} with components \code{L$...}:
-\itemize{
-\item \code{model} The model object.
-\item \code{data} A dataframe of the input and fitted model data.
-\item \code{fitted} A vector of the fitted values returned by the model.
-\item \code{coefs} A dataframe of the model coefficients, including manually fixed
-parameters.
-\item \code{fit_criteria} A dataframe of the model fit criteria (\code{AIC}, \code{BIC}, \code{R^2},
-\code{RMSE}, \code{RSE}, \code{MAE}, \code{MAPE}).
+\describe{
+\item{\code{model}}{The model object.}
+\item{\code{data}}{A dataframe of the input and fitted model data.}
+\item{\code{fitted}}{A vector of the fitted values returned by the model.}
+\item{\code{coefs}}{A dataframe of the model coefficients, including manually
+fixed parameters.}
+\item{\code{fit_criteria}}{A dataframe of the model fit criteria
+(\code{AIC}, \code{BIC}, \code{R2}, \code{RMSE}, \code{RSE}, \code{MAE}, \code{MAPE}).}
 }
 }
 \description{

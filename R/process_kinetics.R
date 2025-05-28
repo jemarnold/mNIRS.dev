@@ -16,16 +16,19 @@
 #' - *"half_time"* ...
 #' - *"peak_slope"* ...
 #' @param ... Additional arguments. Used to define fixed parameters which will
-#' not be optimised by the kinetics methods. e.g. `A = 10` will define `SSmonoexp(x, A = 10, B, TD, tau)`
+#' not be optimised by the kinetics methods. e.g. `A = 10` will define
+#' `SSmonoexp(x, A = 10, B, TD, tau)`
 #'
 #' @return A list `L` of class `mNIRS.kinetics` with components `L$...`:
-#' - `model` The model object.
-#' - `data` A dataframe of the input and fitted model data.
-#' - `fitted` A vector of the fitted values returned by the model.
-#' - `coefs` A dataframe of the model coefficients, including manually fixed
-#' parameters.
-#' - `fit_criteria` A dataframe of the model fit criteria (`AIC`, `BIC`, `R^2`,
-#' `RMSE`, `RSE`, `MAE`, `MAPE`).
+#' \describe{
+#'   \item{`model`}{The model object.}
+#'   \item{`data`}{A dataframe of the input and fitted model data.}
+#'   \item{`fitted`}{A vector of the fitted values returned by the model.}
+#'   \item{`coefs`}{A dataframe of the model coefficients, including manually
+#'   fixed parameters.}
+#'   \item{`fit_criteria`}{A dataframe of the model fit criteria
+#'   (`AIC`, `BIC`, `R2`, `RMSE`, `RSE`, `MAE`, `MAPE`).}
+#' }
 #'
 #' @export
 process_kinetics <- function(
@@ -93,6 +96,10 @@ process_kinetics.monoexponential <- function(
             cli::cli_abort("{.arg y} not found in {.arg data}")
         }
 
+        data_exp <- substitute(data)
+        data_name <- deparse(data_exp)
+        data <- data[c(x_name, y_name)]
+
     } else if (is.null(data) | missing(data)) {
         if (is.null(y) | missing(y)) {
             y <- x
@@ -101,6 +108,9 @@ process_kinetics.monoexponential <- function(
             x <- x
             y <- y
         }
+
+        data_name <- NA_character_
+        data <- tibble::tibble(!!x_name := x, !!y_name := y)
     }
 
     x <- x - x0
@@ -113,36 +123,53 @@ process_kinetics.monoexponential <- function(
             na.action = na.exclude) |>
             mNIRS::update_fixed_coefs(...),
         error = function(e) {
-            cat("Error in nls(y ~ SSmonoexp(x, A, B, TD, tau), data = df) :",
-                conditionMessage(e), "\n")
+            cat("Error in nls(", y_exp, " ~ SSmonoexp(", x_exp,
+                ", A, B, TD, tau)) : ", e$message, "\n", sep = "")
             NA})
 
     if (is.na(model[1])) {
-        return(NA)
+        fitted <- NA_real_
+        data$fitted <- NA_real_
+        coefs <- NA_real_
+        fit_criteria <- tibble::tibble(
+            AIC = NA_real_, BIC = NA_real_, R2 = NA_real_, RMSE = NA_real_,
+            RSE = NA_real_, MAE = NA_real_, MAPE = NA_real_)
+    } else {
+        fitted <- as.vector(fitted(model))
+        data$fitted <- fitted
+        coefs <- c(..., coef(model))
+        coefs <- coefs[match(c("A", "B", "TD", "tau"), names(coefs))]
+        coefs <- tibble::as_tibble(as.list(coefs))
+
+        fit_criteria <- tibble::tibble(
+            AIC = AIC(model),
+            BIC = BIC(model),
+            R2 = 1 - sum((y - fitted)^2)/sum((y - mean(y, na.rm = TRUE))^2),
+            RMSE = sqrt(mean(summary(model)$residuals^2)),
+            RSE = summary(model)$sigma,
+            MAE = mean(abs(summary(model)$residuals)),
+            MAPE = mean(abs(summary(model)$residuals/y)) * 100,
+        )
     }
 
-    fitted <- as.vector(fitted(model))
-    df$fitted <- fitted
-    coefs <- c(..., coef(model))
-    coefs <- coefs[match(c("A", "B", "TD", "tau"), names(coefs))]
-    AIC <- AIC(model)
-    BIC <- BIC(model)
-    R2 <- 1 - sum((y - fitted)^2)/sum((y - mean(y, na.rm = TRUE))^2)
-    RMSE <- sqrt(mean(summary(model)$residuals^2))
-    RSE <- summary(model)$sigma
-    MAE <- mean(abs(summary(model)$residuals))
-    MAPE <- mean(abs(summary(model)$residuals/y)) * 100
+    ## save call
+    model_formula <- list(call = list(formula = as.formula(
+        y_exp ~ A + (B - A) * (1 - exp((TD - x_exp) / tau))
+    )))
+    return_call <- match.call()
+    return_call$model_formula <- model_formula
+    return_call$x0 <- x0
 
     out <- structure(
         list(
+            method = "monoexponential",
             model = model,
-            data = tibble::tibble(df),
+            data_name = data_name,
+            data = data,
             fitted = fitted,
-            coefs = tibble::as_tibble(as.list(coefs)),
-            fit_criteria = tibble::tibble(
-                AIC = AIC, BIC = BIC, R2 = R2, RMSE = RMSE,
-                RSE = RSE, MAE = MAE, MAPE = MAPE),
-            call = match.call()),
+            coefs = coefs,
+            fit_criteria = fit_criteria,
+            call = return_call),
         class = "mNIRS.kinetics")
 
     return(out)
@@ -193,6 +220,10 @@ process_kinetics.logistic <- function(
             cli::cli_abort("{.arg y} not found in {.arg data}")
         }
 
+        data_exp <- substitute(data)
+        data_name <- deparse(data_exp)
+        data <- data[c(x_name, y_name)]
+
     } else if (is.null(data) | missing(data)) {
         if (is.null(y) | missing(y)) {
             y <- x
@@ -201,6 +232,9 @@ process_kinetics.logistic <- function(
             x <- x
             y <- y
         }
+
+        data_name <- NA_character_
+        data <- tibble::tibble(!!x_name := x, !!y_name := y)
     }
 
     x <- x - x0
@@ -208,39 +242,59 @@ process_kinetics.logistic <- function(
 
     ## create the model and update for any fixed coefs
     model <- tryCatch(
-        nls(y ~ SSlogis(x, Asym, xmid, scal), data = df) |>
+        nls(y ~ SSlogis(x, Asym, xmid, scal),
+            data = df,
+            na.action = na.exclude) |>
             mNIRS::update_fixed_coefs(...),
         error = function(e) {
-            cat("Error in nls(y ~ SSlogis(x, Asym, xmid, scal), data = df) :",
-                conditionMessage(e), "\n")
+            cat("Error in nls(", y_exp, " ~ SSlogis(", x_exp,
+                ", Asym, xmid, scal)) : ", e$message, "\n", sep = "")
             NA})
 
     if (is.na(model[1])) {
-        return(NA)
+        ## define return components as NA for errored model
+        fitted <- NA_real_
+        df$fitted <- NA_real_
+        coefs <- NA_real_
+        fit_criteria <- tibble::tibble(
+            AIC = NA_real_, BIC = NA_real_, R2 = NA_real_, RMSE = NA_real_,
+            RSE = NA_real_, MAE = NA_real_, MAPE = NA_real_)
+    } else {
+        fitted <- as.vector(fitted(model))
+        df$fitted <- fitted
+        coefs <- c(..., coef(model))
+        coefs <- coefs[match(c("Asym", "xmid", "scal"), names(coefs))]
+        coefs <- tibble::as_tibble(as.list(coefs))
+
+        fit_criteria <- tibble::tibble(
+            AIC = AIC(model),
+            BIC = BIC(model),
+            R2 = 1 - sum((y - fitted)^2)/sum((y - mean(y, na.rm = TRUE))^2),
+            RMSE = sqrt(mean(summary(model)$residuals^2)),
+            RSE = summary(model)$sigma,
+            MAE = mean(abs(summary(model)$residuals)),
+            MAPE = mean(abs(summary(model)$residuals/y)) * 100,
+        )
     }
 
-    fitted <- as.vector(fitted(model))
-    df$fitted <- fitted
-    coefs <- c(..., coef(model))
-    coefs <- coefs[match(c("Asym", "xmid", "scal"), names(coefs))]
-    AIC <- AIC(model)
-    BIC <- BIC(model)
-    R2 <- 1 - sum((y - fitted)^2)/sum((y - mean(y, na.rm = TRUE))^2)
-    RMSE <- sqrt(mean(summary(model)$residuals^2))
-    RSE <- summary(model)$sigma
-    MAE <- mean(abs(summary(model)$residuals))
-    MAPE <- mean(abs(summary(model)$residuals/y)) * 100
+    ## save call
+    model_formula <- list(call = list(formula = as.formula(
+        y_exp ~ Asym / (1 + exp((xmid - x_exp) / scal))
+    )))
+    return_call <- match.call()
+    return_call$model_formula <- model_formula
+    return_call$x0 <- x0
 
     out <- structure(
         list(
+            method = "logistic",
             model = model,
-            data = tibble::tibble(df),
+            data_name = data_name,
+            data = data,
             fitted = fitted,
-            coefs = tibble::as_tibble(as.list(coefs)),
-            fit_criteria = tibble::tibble(
-                AIC = AIC, BIC = BIC, R2 = R2, RMSE = RMSE,
-                RSE = RSE, MAE = MAE, MAPE = MAPE),
-            call = match.call()),
+            coefs = coefs,
+            fit_criteria = fit_criteria,
+            call = return_call),
         class = "mNIRS.kinetics")
 
     return(out)
@@ -291,6 +345,10 @@ process_kinetics.half_time <- function(
             cli::cli_abort("{.arg y} not found in {.arg data}")
         }
 
+        data_exp <- substitute(data)
+        data_name <- deparse(data_exp)
+        data <- data[c(x_name, y_name)]
+
     } else if (is.null(data) | missing(data)) {
         if (is.null(y) | missing(y)) {
             y <- x
@@ -299,6 +357,9 @@ process_kinetics.half_time <- function(
             x <- x
             y <- y
         }
+
+        data_name <- NA_character_
+        data <- tibble::tibble(!!x_name := x, !!y_name := y)
     }
 
     x <- x - x0
@@ -313,13 +374,33 @@ process_kinetics.half_time <- function(
     (half_value <- A + diff(c(A, B))/2)
     (half_time <- ifelse(direction, x[y > half_value][1], x[y < half_value][1]))
 
+    model = NA
+    fitted <- NA_real_
+    data$fitted <- NA_real_
     coefs <- c(A = A, B = B, half_time = half_time, half_value = half_value)
+    coefs <- tibble::as_tibble(as.list(coefs))
+    fit_criteria <- tibble::tibble(
+        AIC = NA_real_, BIC = NA_real_, R2 = NA_real_, RMSE = NA_real_,
+        RSE = NA_real_, MAE = NA_real_, MAPE = NA_real_)
+
+    ## save call
+    model_formula <- list(call = list(formula = as.formula(
+        TODO ~ add + half_time + formula
+    )))
+    return_call <- match.call()
+    return_call$model_formula <- model_formula
+    return_call$x0 <- x0
 
     out <- structure(
         list(
-            data = tibble::tibble(df),
-            coefs = tibble::as_tibble(as.list(coefs)),
-            call = match.call()),
+            method = "half_time",
+            model = model,
+            data_name = data_name,
+            data = data,
+            fitted = fitted,
+            coefs = coefs,
+            fit_criteria = fit_criteria,
+            call = return_call),
         class = "mNIRS.kinetics")
 
     return(out)
