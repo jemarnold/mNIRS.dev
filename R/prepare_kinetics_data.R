@@ -156,12 +156,6 @@ prepare_kinetics_data <- function(
     #
     ## Event Indices ===================================
 
-    ## re-define `index`
-    # data_intake <- data |>
-    #     dplyr::select(
-    #         dplyr::any_of(c(sample_column, event_column, nirs_columns))) |>
-    #     dplyr::mutate(index = dplyr::row_number())
-
     if (!is.null(event_index)) {
 
         event_index_sample <- data |>
@@ -170,17 +164,6 @@ prepare_kinetics_data <- function(
             dplyr::pull(dplyr::any_of(sample_column))
 
     } else {event_index_sample <- NULL}
-
-    # if (!is.null(event_sample)) {
-    #
-    #     event_sample_sample <- data |>
-    #         dplyr::filter(dplyr::if_any(
-    #             dplyr::any_of(sample_column),
-    #             \(.x) .x %in% event_sample
-    #         )) |>
-    #         dplyr::pull(dplyr::any_of(sample_column))
-    #
-    # } else {event_sample_sample <- NULL}
 
     if (!is.null(event_label)) {
 
@@ -199,8 +182,11 @@ prepare_kinetics_data <- function(
 
     fit_baseline_window <- -max(abs(fit_baseline_window))
     display_baseline_window <- -max(abs(display_baseline_window))
-    start_index <- min(c(fit_baseline_window, display_baseline_window))
-    end_index <- max(c(fit_kinetics_window, display_kinetics_window))
+    start_sample <- min(c(fit_baseline_window, display_baseline_window))
+    end_sample <- max(c(fit_kinetics_window, display_kinetics_window))
+
+    display_column <- paste0("display_", sample_column)
+    fit_column <- paste0("fit_", sample_column)
 
     ## Metadata =================================
     metadata$nirs_columns <- unique(
@@ -216,26 +202,30 @@ prepare_kinetics_data <- function(
     ## data list =================================
     data_list <- purrr::map(
         event_sample_list,
-        \(.x) {
-            indices <- pmin(
-                pmax(.x + start_index:end_index, 1),
-                nrow(data)) |> unique()
-
-            data |>
-                dplyr::mutate(
-                    display_index = dplyr::row_number() - .x,
-                ) |>
-                dplyr::slice(indices) |>
-                dplyr::mutate(
-                    fit_index = dplyr::if_else(
+        \(.x) data |>
+            dplyr::mutate(
+                dplyr::across(
+                    dplyr::any_of(sample_column),
+                    \(.xx) .xx - .x,
+                    .names = display_column)
+            ) |>
+            dplyr::filter(
+                dplyr::if_any(
+                    dplyr::any_of(display_column),
+                    \(.xx) dplyr::between(.xx, start_sample, end_sample))
+            ) |>
+            dplyr::mutate(
+                dplyr::across(
+                    dplyr::any_of(display_column),
+                    \(.xx) dplyr::if_else(
                         dplyr::between(
-                            display_index,
+                            .xx,
                             fit_baseline_window,
                             fit_kinetics_window),
-                        display_index, NA),
-                ) |>
-                dplyr::relocate(display_index, fit_index)
-        }
+                        .xx, NA),
+                    .names = fit_column),
+            ) |>
+            dplyr::relocate(dplyr::any_of(c(display_column, fit_column)))
     )
 
     if (head(unlist(group_kinetics_events), 1) == "distinct") {
@@ -244,7 +234,9 @@ prepare_kinetics_data <- function(
             data_list,
             \(.df) {
                 kinetics_data <- .df |>
-                    dplyr::relocate(display_index, fit_index)
+                    dplyr::relocate(dplyr::any_of(c(
+                        display_column, fit_column,
+                        sample_column, event_column, nirs_columns)))
 
                 kinetics_data <- create_mnirs_data(kinetics_data, metadata)
 
@@ -259,7 +251,7 @@ prepare_kinetics_data <- function(
                 -dplyr::any_of(c(sample_column, event_column))
             ) |>
             dplyr::summarise(
-                .by = display_index,
+                .by = dplyr::any_of(display_column),
                 dplyr::across(
                     dplyr::where(is.numeric),
                     \(.x) mean(.x, na.rm = TRUE)),
@@ -272,7 +264,7 @@ prepare_kinetics_data <- function(
                     dplyr::where(is.numeric),
                     \(.x) ifelse(.x %in% c(Inf, -Inf, NaN), NA_real_, .x)),
             ) |>
-            dplyr::relocate(display_index, fit_index)
+            dplyr::relocate(dplyr::any_of(c(display_column, fit_column)))
 
         kinetics_data_list <- list(create_mnirs_data(kinetics_data, metadata))
 
@@ -297,7 +289,7 @@ prepare_kinetics_data <- function(
                         -dplyr::any_of(c(sample_column, event_column))
                     ) |>
                     dplyr::summarise(
-                        .by = display_index,
+                        .by = dplyr::any_of(display_column),
                         dplyr::across(
                             dplyr::where(is.numeric),
                             \(.x) mean(.x, na.rm = TRUE)),
@@ -310,9 +302,7 @@ prepare_kinetics_data <- function(
                             dplyr::where(is.numeric),
                             \(.x) ifelse(.x %in% c(Inf, -Inf, NaN), NA_real_, .x)),
                     ) |>
-                    dplyr::relocate(
-                        display_index, fit_index,
-                        dplyr::any_of(c(sample_column, event_column, nirs_columns)))
+                    dplyr::relocate(dplyr::any_of(c(display_column, fit_column)))
 
                 kinetics_data <- create_mnirs_data(kinetics_data, metadata)
 

@@ -108,7 +108,9 @@ process_kinetics.monoexponential <- function(
 
     ## create the model and update for any fixed coefs
     model <- tryCatch(
-        nls(y ~ SSmonoexp(x, A, B, TD, tau), data = df) |>
+        nls(y ~ SSmonoexp(x, A, B, TD, tau),
+            data = df,
+            na.action = na.exclude) |>
             mNIRS::update_fixed_coefs(...),
         error = function(e) {
             cat("Error in nls(y ~ SSmonoexp(x, A, B, TD, tau), data = df) :",
