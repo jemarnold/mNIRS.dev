@@ -63,46 +63,72 @@ process_kinetics.monoexponential <- function(
         method = c("monoexponential", "logistic", "half_time", "peak_slope"),
         ...
 ) {
-    x_exp <- substitute(x)
-    x_name <- deparse(x_exp)
-    y_exp <- substitute(y)
-    y_name <- deparse(y_exp)
-
     if (!(is.null(data) | missing(data)) & !is.data.frame(data)) {
         ## data must be a dataframe
         cli::cli_abort("{.arg data} must be a dataframe")
 
     } else if (!(is.null(data) | missing(data)) & is.data.frame(data)) {
+
+        ## deparse(substitute()) works for unquoted
+        x_exp <- substitute(x)
+        x_name <- tryCatch(
+            ## as_name() works for quoted
+            rlang::as_name(x),
+            error = \(e) {
+                ## for unquoted "object not found" error:
+                if (grepl("object", e$message)) {
+                    ## deparse() works for unquoted
+                    gsub('^"|"$', '', deparse(x_exp))
+                }})
+
         if (x_name %in% names(data)) {
-            ## deparse(substitute(x)) works for unquoted x
             x <- data[[x_name]]
-        } else if (x_exp %in% names(data)) {
-            ## substitute(x) works for quoted x, fails for unquoted x
-            x <- data[[x_exp]]
         } else {
             cli::cli_abort("{.arg x} not found in {.arg data}")
         }
 
-        if (is.null(y_exp) | missing(y_exp)) {
+        if (is.null(y) | missing(y)) {
+            y_name <- x_name
+            x_name <- "index"
             y <- x
             x <- seq_along(y)
-        } else if (y_name %in% names(data)) {
-            ## deparse(substitute(y)) works for unquoted y
-            y <- data[[y_name]]
-        } else if (y_exp %in% names(data)) {
-            ## substitute(y) works for quoted y, fails for unquoted y
-            y <- data[[y_exp]]
+
+            data[[x_name]] <- x
+
         } else {
-            cli::cli_abort("{.arg y} not found in {.arg data}")
+            ## deparse(substitute()) works for unquoted
+            y_exp <- substitute(y)
+            y_name <- tryCatch(
+                ## as_name() works for quoted
+                rlang::as_name(y),
+                error = \(e) {
+                    ## for unquoted "object not found" error:
+                    if (grepl("object", e$message)) {
+                        ## deparse() works for unquoted
+                        gsub('^"|"$', '', deparse(y_exp))
+                    }})
+
+            if (y_name %in% names(data)) {
+                y <- data[[y_name]]
+            } else {
+                cli::cli_abort("{.arg y} not found in {.arg data}")
+            }
         }
 
         data <- data[c(x_name, y_name)]
 
     } else if (is.null(data) | missing(data)) {
         if (is.null(y) | missing(y)) {
+            x_name <- "index"
+            y_exp <- substitute(x)
+            y_name <- deparse(y_exp)
             y <- x
             x <- seq_along(y)
         } else {
+            x_exp <- substitute(x)
+            x_name <- deparse(x_exp)
+            y_exp <- substitute(y)
+            y_name <- deparse(y_exp)
             x <- x
             y <- y
         }
@@ -112,6 +138,7 @@ process_kinetics.monoexponential <- function(
 
     x <- x - x0
     df <- tibble::tibble(x, y)
+    fitted_name <- paste0(y_name, "_fitted")
 
     ## create the model and update for any fixed coefs
     model <- tryCatch(
@@ -126,14 +153,14 @@ process_kinetics.monoexponential <- function(
 
     if (is.na(model[1])) {
         fitted <- NA_real_
-        data$fitted <- NA_real_
+        data[[fitted_name]] <- NA_real_
         coefs <- NA_real_
         fit_criteria <- tibble::tibble(
             AIC = NA_real_, BIC = NA_real_, R2 = NA_real_, RMSE = NA_real_,
             RSE = NA_real_, MAE = NA_real_, MAPE = NA_real_)
     } else {
         fitted <- as.vector(fitted(model))
-        data$fitted <- fitted
+        data[[fitted_name]] <- fitted
         coefs <- c(..., coef(model))
         coefs <- coefs[match(c("A", "B", "TD", "tau"), names(coefs))]
         coefs <- tibble::as_tibble(as.list(coefs))
@@ -182,46 +209,72 @@ process_kinetics.logistic <- function(
         method = c("monoexponential", "logistic", "half_time", "peak_slope"),
         ...
 ) {
-    x_exp <- substitute(x)
-    x_name <- deparse(x_exp)
-    y_exp <- substitute(y)
-    y_name <- deparse(y_exp)
-
     if (!(is.null(data) | missing(data)) & !is.data.frame(data)) {
         ## data must be a dataframe
         cli::cli_abort("{.arg data} must be a dataframe")
 
     } else if (!(is.null(data) | missing(data)) & is.data.frame(data)) {
+
+        ## deparse(substitute()) works for unquoted
+        x_exp <- substitute(x)
+        x_name <- tryCatch(
+            ## as_name() works for quoted
+            rlang::as_name(x),
+            error = \(e) {
+                ## for unquoted "object not found" error:
+                if (grepl("object", e$message)) {
+                    ## deparse() works for unquoted
+                    gsub('^"|"$', '', deparse(x_exp))
+                }})
+
         if (x_name %in% names(data)) {
-            ## deparse(substitute(x)) works for unquoted x
             x <- data[[x_name]]
-        } else if (x_exp %in% names(data)) {
-            ## substitute(x) works for quoted x, fails for unquoted x
-            x <- data[[x_exp]]
         } else {
             cli::cli_abort("{.arg x} not found in {.arg data}")
         }
 
-        if (is.null(y_exp) | missing(y_exp)) {
+        if (is.null(y) | missing(y)) {
+            y_name <- x_name
+            x_name <- "index"
             y <- x
             x <- seq_along(y)
-        } else if (y_name %in% names(data)) {
-            ## deparse(substitute(y)) works for unquoted y
-            y <- data[[y_name]]
-        } else if (y_exp %in% names(data)) {
-            ## substitute(y) works for quoted y, fails for unquoted y
-            y <- data[[y_exp]]
+
+            data[[x_name]] <- x
+
         } else {
-            cli::cli_abort("{.arg y} not found in {.arg data}")
+            ## deparse(substitute()) works for unquoted
+            y_exp <- substitute(y)
+            y_name <- tryCatch(
+                ## as_name() works for quoted
+                rlang::as_name(y),
+                error = \(e) {
+                    ## for unquoted "object not found" error:
+                    if (grepl("object", e$message)) {
+                        ## deparse() works for unquoted
+                        gsub('^"|"$', '', deparse(y_exp))
+                    }})
+
+            if (y_name %in% names(data)) {
+                y <- data[[y_name]]
+            } else {
+                cli::cli_abort("{.arg y} not found in {.arg data}")
+            }
         }
 
         data <- data[c(x_name, y_name)]
 
     } else if (is.null(data) | missing(data)) {
         if (is.null(y) | missing(y)) {
+            x_name <- "index"
+            y_exp <- substitute(x)
+            y_name <- deparse(y_exp)
             y <- x
             x <- seq_along(y)
         } else {
+            x_exp <- substitute(x)
+            x_name <- deparse(x_exp)
+            y_exp <- substitute(y)
+            y_name <- deparse(y_exp)
             x <- x
             y <- y
         }
@@ -231,6 +284,7 @@ process_kinetics.logistic <- function(
 
     x <- x - x0
     df <- tibble::tibble(x, y)
+    fitted_name <- paste0(y_name, "_fitted")
 
     ## create the model and update for any fixed coefs
     model <- tryCatch(
@@ -246,14 +300,14 @@ process_kinetics.logistic <- function(
     if (is.na(model[1])) {
         ## define return components as NA for errored model
         fitted <- NA_real_
-        df$fitted <- NA_real_
+        df[[fitted]] <- NA_real_
         coefs <- NA_real_
         fit_criteria <- tibble::tibble(
             AIC = NA_real_, BIC = NA_real_, R2 = NA_real_, RMSE = NA_real_,
             RSE = NA_real_, MAE = NA_real_, MAPE = NA_real_)
     } else {
         fitted <- as.vector(fitted(model))
-        df$fitted <- fitted
+        df[[fitted]] <- fitted
         coefs <- c(..., coef(model))
         coefs <- coefs[match(c("Asym", "xmid", "scal"), names(coefs))]
         coefs <- tibble::as_tibble(as.list(coefs))
@@ -302,46 +356,72 @@ process_kinetics.half_time <- function(
         method = c("monoexponential", "logistic", "half_time", "peak_slope"),
         ...
 ) {
-    x_exp <- substitute(x)
-    x_name <- deparse(x_exp)
-    y_exp <- substitute(y)
-    y_name <- deparse(y_exp)
-
     if (!(is.null(data) | missing(data)) & !is.data.frame(data)) {
         ## data must be a dataframe
         cli::cli_abort("{.arg data} must be a dataframe")
 
     } else if (!(is.null(data) | missing(data)) & is.data.frame(data)) {
+
+        ## deparse(substitute()) works for unquoted
+        x_exp <- substitute(x)
+        x_name <- tryCatch(
+            ## as_name() works for quoted
+            rlang::as_name(x),
+            error = \(e) {
+                ## for unquoted "object not found" error:
+                if (grepl("object", e$message)) {
+                    ## deparse() works for unquoted
+                    gsub('^"|"$', '', deparse(x_exp))
+                }})
+
         if (x_name %in% names(data)) {
-            ## deparse(substitute(x)) works for unquoted x
             x <- data[[x_name]]
-        } else if (x_exp %in% names(data)) {
-            ## substitute(x) works for quoted x, fails for unquoted x
-            x <- data[[x_exp]]
         } else {
             cli::cli_abort("{.arg x} not found in {.arg data}")
         }
 
-        if (is.null(y_exp) | missing(y_exp)) {
+        if (is.null(y) | missing(y)) {
+            y_name <- x_name
+            x_name <- "index"
             y <- x
             x <- seq_along(y)
-        } else if (y_name %in% names(data)) {
-            ## deparse(substitute(y)) works for unquoted y
-            y <- data[[y_name]]
-        } else if (y_exp %in% names(data)) {
-            ## substitute(y) works for quoted y, fails for unquoted y
-            y <- data[[y_exp]]
+
+            data[[x_name]] <- x
+
         } else {
-            cli::cli_abort("{.arg y} not found in {.arg data}")
+            ## deparse(substitute()) works for unquoted
+            y_exp <- substitute(y)
+            y_name <- tryCatch(
+                ## as_name() works for quoted
+                rlang::as_name(y),
+                error = \(e) {
+                    ## for unquoted "object not found" error:
+                    if (grepl("object", e$message)) {
+                        ## deparse() works for unquoted
+                        gsub('^"|"$', '', deparse(y_exp))
+                    }})
+
+            if (y_name %in% names(data)) {
+                y <- data[[y_name]]
+            } else {
+                cli::cli_abort("{.arg y} not found in {.arg data}")
+            }
         }
 
         data <- data[c(x_name, y_name)]
 
     } else if (is.null(data) | missing(data)) {
         if (is.null(y) | missing(y)) {
+            x_name <- "index"
+            y_exp <- substitute(x)
+            y_name <- deparse(y_exp)
             y <- x
             x <- seq_along(y)
         } else {
+            x_exp <- substitute(x)
+            x_name <- deparse(x_exp)
+            y_exp <- substitute(y)
+            y_name <- deparse(y_exp)
             x <- x
             y <- y
         }
