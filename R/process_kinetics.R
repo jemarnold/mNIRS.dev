@@ -96,8 +96,6 @@ process_kinetics.monoexponential <- function(
             cli::cli_abort("{.arg y} not found in {.arg data}")
         }
 
-        data_exp <- substitute(data)
-        data_name <- deparse(data_exp)
         data <- data[c(x_name, y_name)]
 
     } else if (is.null(data) | missing(data)) {
@@ -109,7 +107,6 @@ process_kinetics.monoexponential <- function(
             y <- y
         }
 
-        data_name <- NA_character_
         data <- tibble::tibble(!!x_name := x, !!y_name := y)
     }
 
@@ -153,20 +150,18 @@ process_kinetics.monoexponential <- function(
     }
 
     ## save call
-    model_formula <- list(call = list(formula = as.formula(
-        y_exp ~ A + (B - A) * (1 - exp((TD - x_exp) / tau))
-    )))
+    model_equation <- as.formula(y ~ A + (B - A) * (1 - exp((TD - x) / tau)))
     return_call <- match.call()
-    return_call$model_formula <- model_formula
-    return_call$x0 <- x0
+    return_call$model_equation <- list(call = list(formula = model_equation))
 
     out <- structure(
         list(
             method = "monoexponential",
             model = model,
-            data_name = data_name,
+            model_equation = model_equation,
             data = data,
             fitted = fitted,
+            x0 = x0,
             coefs = coefs,
             fit_criteria = fit_criteria,
             call = return_call),
@@ -220,8 +215,6 @@ process_kinetics.logistic <- function(
             cli::cli_abort("{.arg y} not found in {.arg data}")
         }
 
-        data_exp <- substitute(data)
-        data_name <- deparse(data_exp)
         data <- data[c(x_name, y_name)]
 
     } else if (is.null(data) | missing(data)) {
@@ -233,7 +226,6 @@ process_kinetics.logistic <- function(
             y <- y
         }
 
-        data_name <- NA_character_
         data <- tibble::tibble(!!x_name := x, !!y_name := y)
     }
 
@@ -278,20 +270,18 @@ process_kinetics.logistic <- function(
     }
 
     ## save call
-    model_formula <- list(call = list(formula = as.formula(
-        y_exp ~ Asym / (1 + exp((xmid - x_exp) / scal))
-    )))
+    model_equation <- as.formula(y ~ Asym / (1 + exp((xmid - x) / scal)))
     return_call <- match.call()
-    return_call$model_formula <- model_formula
-    return_call$x0 <- x0
+    return_call$model_equation <- list(call = list(formula = model_equation))
 
     out <- structure(
         list(
             method = "logistic",
             model = model,
-            data_name = data_name,
+            model_equation = model_equation,
             data = data,
             fitted = fitted,
+            x0 = x0,
             coefs = coefs,
             fit_criteria = fit_criteria,
             call = return_call),
@@ -345,8 +335,6 @@ process_kinetics.half_time <- function(
             cli::cli_abort("{.arg y} not found in {.arg data}")
         }
 
-        data_exp <- substitute(data)
-        data_name <- deparse(data_exp)
         data <- data[c(x_name, y_name)]
 
     } else if (is.null(data) | missing(data)) {
@@ -358,7 +346,6 @@ process_kinetics.half_time <- function(
             y <- y
         }
 
-        data_name <- NA_character_
         data <- tibble::tibble(!!x_name := x, !!y_name := y)
     }
 
@@ -384,20 +371,18 @@ process_kinetics.half_time <- function(
         RSE = NA_real_, MAE = NA_real_, MAPE = NA_real_)
 
     ## save call
-    model_formula <- list(call = list(formula = as.formula(
-        TODO ~ add + half_time + formula
-    )))
+    model_equation <- as.formula(TODO ~ add + half_time + formula)
     return_call <- match.call()
-    return_call$model_formula <- model_formula
-    return_call$x0 <- x0
+    return_call$model_equation <- list(call = list(formula = model_equation))
 
     out <- structure(
         list(
             method = "half_time",
             model = model,
-            data_name = data_name,
+            model_equation = model_equation,
             data = data,
             fitted = fitted,
+            x0 = x0,
             coefs = coefs,
             fit_criteria = fit_criteria,
             call = return_call),
