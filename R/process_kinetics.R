@@ -150,9 +150,9 @@ process_kinetics.monoexponential <- function(
     }
 
     ## save call
-    model_equation <- as.formula(y ~ A + (B - A) * (1 - exp((TD - x) / tau)))
     return_call <- match.call()
-    return_call$model_equation <- list(call = list(formula = model_equation))
+    model_equation <- as.formula(y ~ A + (B - A) * (1 - exp((TD - x) / tau)))
+    # return_call$model_equation <- list(call = list(formula = model_equation))
 
     out <- structure(
         list(
@@ -270,9 +270,9 @@ process_kinetics.logistic <- function(
     }
 
     ## save call
-    model_equation <- as.formula(y ~ Asym / (1 + exp((xmid - x) / scal)))
     return_call <- match.call()
-    return_call$model_equation <- list(call = list(formula = model_equation))
+    model_equation <- as.formula(y ~ Asym / (1 + exp((xmid - x) / scal)))
+    # return_call$model_equation <- list(call = list(formula = model_equation))
 
     out <- structure(
         list(
@@ -371,9 +371,9 @@ process_kinetics.half_time <- function(
         RSE = NA_real_, MAE = NA_real_, MAPE = NA_real_)
 
     ## save call
-    model_equation <- as.formula(TODO ~ add + half_time + formula)
     return_call <- match.call()
-    return_call$model_equation <- list(call = list(formula = model_equation))
+    model_equation <- as.formula(TODO ~ add + half_time + formula)
+    # return_call$model_equation <- list(call = list(formula = model_equation))
 
     out <- structure(
         list(
