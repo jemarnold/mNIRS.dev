@@ -72,7 +72,6 @@ string_to_named_vector <- function(x) {
              sapply(lst, \(.x) trimws(.x[1])))
 }
 
-
 ```
 
 # Plot
@@ -81,6 +80,18 @@ string_to_named_vector <- function(x) {
 
 ```{r setup}
 
+
+## TODO 
+## instructions
+## action button
+## split into laps by Lap/Event column
+## -- either from one non-NA event value to the next, 
+## -- or for all same lap values
+## export laps to excel sheets
+## kinetics stuff
+
+br()
+
 ## Upload file
 fileInput(
     "upload_file",
@@ -88,8 +99,6 @@ fileInput(
     buttonLabel = "Upload File",
     accept = c('.xlsx', '.csv'),
 )
-
-# br()
 
 ## Tell it which columns are which
 textInput(
@@ -104,10 +113,17 @@ textInput(
     "event_column", 
     label = "Lap/Event Column Name (single)", 
     placeholder = "newname = oldname")
-## record sample rate
-numericInput("sample_rate", label = "Sample Rate", value = 50)
 
-checkboxInput("keep_all", "Keep all columns in data file")
+numericInput("sample_rate", label = "Sample Rate", value = 1)
+
+numericInput("resample_rate", label = "Resample Rate", value = 0)
+
+## remove head/tail rows
+numericInput("slice_head", label = "Remove head rows", value = 0, step = 1)
+numericInput("slice_tail", label = "Remove tail rows", value = 0, step = 1)
+
+## Replace outliers (column wise)
+checkboxInput("replace_outliers", "Replace outliers")
 
 ## Replace missing values (column wise)
 checkboxInput("replace_missing", "Replace missing values")
@@ -118,20 +134,11 @@ textInput(
     label = "Replace Fixed Values",
     placeholder = "0, 100, ...")
 
-## Replace outliers (column wise)
-checkboxInput("replace_outliers", "Replace outliers")
-    
-## remove head/tail rows
-numericInput("slice_head", label = "Remove head rows", value = 0, step = 1)
-numericInput("slice_tail", label = "Remove tail rows", value = 0, step = 1)
-
 ## Filter/smooth data (column wise)
 selectInput(
     "filter_method",
     label = "Digital Filter Method",
-    choices = c("low-pass", "smooth-spline", "moving-average", "none")
-)
-
+    choices = c("none", "low-pass", "smooth-spline", "moving-average"))
 uiOutput("filter_method_ui")
 
 ## Shift data (dataframe)
@@ -141,6 +148,8 @@ uiOutput("shift_data_ui")
 ## Normalise (dataframe)
 checkboxInput("normalise_logical", "Normalise Data")
 uiOutput("normalise_data_ui")
+
+checkboxInput("keep_all", "Keep all columns in data file")
 
 downloadButton("download_data", "Download Data")
 
@@ -167,8 +176,6 @@ DT::DTOutput("nirs_table")
 ```{r}
 
 
-
-
 ## Slice into laps/events (lapwise list of dataframes)
 ## Start & end of work with padding to each side
 ## Define work baseline; end-work mean; reoxygenation peak (lapwise)
@@ -182,9 +189,13 @@ DT::DTOutput("nirs_table")
 ```{r}
 #| context: server
 
+nirs_columns_debounced <- debounce(reactive(input$nirs_columns), 2000)
+sample_column_debounced <- debounce(reactive(input$sample_column), 2000)
+event_column_debounced <- debounce(reactive(input$event_column), 2000)
+
 # Data upload and processing
 raw_data <- reactive({
-    req(input$upload_file, input$nirs_columns, input$sample_column)
+    req(input$upload_file, nirs_columns_debounced(), sample_column_debounced())
     
     upload_file <- input$upload_file$datapath
     # upload_file <- r"(C:\R-Projects\mNIRS\mNIRS-app\Oxysoft-example.xlsx)"
@@ -197,9 +208,9 @@ raw_data <- reactive({
         #     "SmO2_PS = SmO2 unfiltered")),
         # sample_column = string_to_named_vector(
         #     "time = Timestamp (seconds passed)"),
-        nirs_columns = string_to_named_vector(input$nirs_columns),
-        sample_column = string_to_named_vector(input$sample_column),
-        event_column = string_to_named_vector(input$event_column),
+        nirs_columns = string_to_named_vector(nirs_columns_debounced()),
+        sample_column = string_to_named_vector(sample_column_debounced()),
+        event_column = string_to_named_vector(event_column_debounced()),
         sample_rate = input$sample_rate,
         .keep_all = input$keep_all)
     
@@ -216,7 +227,8 @@ raw_data <- reactive({
 
 ## Create dynamic UI for filter method
 output$filter_method_ui <- renderUI({
-    req(raw_data(), input$filter_method)
+    req(raw_data(), input$filter_method,
+        nirs_columns_debounced(), sample_column_debounced())
     
     raw_data <- raw_data()
     sample_rate <- attributes(raw_data)$sample_rate
@@ -266,7 +278,8 @@ output$filter_method_ui <- renderUI({
 
 ## Create dynamic UI for shift option
 output$shift_data_ui <- renderUI({
-    req(raw_data(), input$shift_logical)
+    req(raw_data(), input$shift_logical,
+        nirs_columns_debounced(), sample_column_debounced())
     
     # Different UI based on selection
     if (input$shift_logical) {
@@ -293,7 +306,8 @@ output$shift_data_ui <- renderUI({
 
 ## Create dynamic UI for normalise option
 output$normalise_data_ui <- renderUI({
-    req(raw_data(), input$normalise_logical)
+    req(raw_data(), input$normalise_logical,
+        nirs_columns_debounced(), sample_column_debounced())
     
     # Different UI based on selection
     if (input$normalise_logical) {
@@ -315,16 +329,23 @@ output$normalise_data_ui <- renderUI({
 })
 
 nirs_data <- reactive({
-    req(raw_data())
+    req(raw_data(), nirs_columns_debounced(), sample_column_debounced())
     
     raw_data <- raw_data()
     nirs_columns <- attributes(raw_data)$nirs_columns
+    sample_column <- attributes(raw_data)$sample_column
     sample_rate <- attributes(raw_data)$sample_rate
     fixed_values <- strsplit(input$fixed_values, split = "\\s*,\\s*")[[1]] |> 
         as.numeric()
     
     nirs_data <- raw_data |> 
-                ## remove the head rows
+        mNIRS::resample_dataframe(
+            data = _,
+            sample_column = sample_column,
+            sample_rate = sample_rate,
+            resample_rate = input$resample_rate
+        ) |> 
+        ## remove the head rows
         (\(.df) if (input$slice_head > 0) {
             slice_tail(.data = .df, n = -input$slice_head)
         } else {.df})() |> 
@@ -394,7 +415,7 @@ nirs_data <- reactive({
                 mean_samples = input$shift_samples,
             )
         } else {.df})() |> 
-                (\(.df) if (input$normalise_logical) {
+        (\(.df) if (input$normalise_logical) {
             req(input$normalise_min, input$normalise_max, 
                 input$normalise_which_cols)
             
@@ -445,7 +466,7 @@ output$nirs_table <- DT::renderDT({
 
 
 output$plot <- renderPlot({
-    req(nirs_data())
+    req(nirs_data(), nirs_columns_debounced(), sample_column_debounced())
     
     nirs_data <- nirs_data()
     nirs_columns <- attributes(nirs_data)$nirs_columns
@@ -467,7 +488,7 @@ output$plot <- renderPlot({
 output$download_data <- downloadHandler(
     
     filename = function() {
-        glue("mNIRS_{Sys.time()}_processed.xlsx")
+        glue("mNIRS_processed_{Sys.time()}.xlsx")
     },
     
     content = function(file) {

@@ -314,10 +314,7 @@ read_data <- function(
                 \(.x) as.POSIXct(.x, tryFormats = c(
                     "%Y-%m-%d %H:%M:%OS", "%Y/%m/%d %H:%M:%OS", "%H:%M:%OS"),
                     format = "%H:%M:%OS")),
-            ## adds a sequential index column
-            index = dplyr::row_number(),
-        ) |>
-        dplyr::relocate(index)
+        )
 
     ## Soft check sample values if sample_column is present
     if (!is.null(names(sample_column))) {
@@ -326,13 +323,15 @@ read_data <- function(
 
         ## validation: soft check whether sample_column has non-sequential or
         ## repeating values
-        if (any(c(diff(sample_vector) <= 0, FALSE) | duplicated(sample_vector))) {
+        if (
+            any(c(diff(sample_vector) <= 0, FALSE) | duplicated(sample_vector))
+        ) {
             repeated_samples <- data_prepared |>
                 dplyr::filter(
                     c(diff(get(names(sample_column))) <= 0, FALSE) |
                         duplicated(get(names(sample_column)))
                 ) |>
-                dplyr::pull(index)
+                dplyr::row_number()
 
             cli::cli_warn(paste(
                 "{.arg sample_column} = {.val {names(sample_column)}} has",
@@ -354,7 +353,7 @@ read_data <- function(
                 dplyr::filter(
                     c(diff(get(names(sample_column))) > 3600, FALSE)
                 ) |>
-                dplyr::pull(index)
+                dplyr::row_number()
 
             cli::cli_warn(paste(
                 "{.arg sample_column} = {.val {names(sample_column)}} has a gap",

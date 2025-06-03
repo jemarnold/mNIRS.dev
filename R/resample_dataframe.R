@@ -36,7 +36,8 @@ resample_dataframe <- function(
 ) {
     ## pass through =============================
 
-    if (is.null(resample_rate) & is.null(resample_time)) {
+    if ((is.null(resample_rate) & is.null(resample_time)) |
+        any(c(resample_rate, resample_time) == 0)) {
         return(data)
     }
 
@@ -103,7 +104,8 @@ resample_dataframe <- function(
                 .names = "delta_sample"),
             dplyr::across(
                 dplyr::any_of(sample_column),
-                \(.x) floor(.x * resample_rate) / resample_rate),
+                \(.x) floor(round(.x / sample_rate) * resample_rate) /
+                    resample_rate),
         ) |>
         dplyr::summarise(
             .by = dplyr::any_of(sample_column),
@@ -116,26 +118,7 @@ resample_dataframe <- function(
                 !dplyr::where(is.numeric),
                 \(.x) dplyr::first(na.omit(.x))),
         ) |>
-        dplyr::select(-delta_sample) |>
-        dplyr::full_join(
-            tibble::tibble(
-                !!sample_column := seq(
-                    floor(min(sample_vector, na.rm = TRUE)
-                          * sample_rate) / sample_rate,
-                    ceiling(max(sample_vector, na.rm = TRUE)
-                            * sample_rate) / sample_rate,
-                    by = 1 / resample_rate),
-            ),
-            by = sample_column
-        ) |>
-        dplyr::arrange(dplyr::pick(dplyr::any_of(sample_column))) |>
-        dplyr::mutate(
-            dplyr::across(
-                where(is.numeric),
-                \(.x) mNIRS::replace_missing_values(
-                    .x, method = "linear", na.rm = TRUE)$y),
-        )
-    ## TODO CONTINUE
+        dplyr::select(-delta_sample)
     #
     ## Metadata =================================
     metadata$sample_column <- unlist(sample_column)
@@ -154,29 +137,35 @@ resample_dataframe <- function(
 #                      "smo2_right" = "SmO2 unfiltered"),
 #     sample_column = c("time" = "Timestamp (seconds passed)"),
 #     event_column = c("Lap" = "Lap/Event")))
-# # attributes(data)
+# (data <- mNIRS::read_data(
+#     file_path = r"(C:\OneDrive - UBC\Body Position Study\Raw Data\Eva-pilot-Oxy-2025-05-27.xlsx)",
+#     nirs_columns = c(VL_O2Hb = 5, VL_HHb = 6),
+#     sample_column = c(sample = 1),
+#     # event_column = c(event = "...11"),
+#     .keep_all = FALSE))
+# attributes(data)
 #
 # (y <- mNIRS::resample_dataframe(
 #     data = data,
 #     # sample_column = "time",
-#     # resample_rate = 100, ## 10 Hz
-#     resample_time = 0.01,
-#     # nirs_columns,
+#     # sample_rate = 50,
+#     resample_rate = 1, ## 10 Hz
+#     # resample_time = 0.01
 # ))
 # attributes(y)
 #
-# library(tidyverse)
+# library(ggplot2)
 # library(JAPackage)
 #
-# ggplot(y) +
+# ggplot(data) +
 #     {list( ## Settings
-#         aes(x = time, y = smo2_left),
-#         coord_cartesian(
-#             xlim = c(NA, 20),
-#             ylim = c(0, 40)),
+#         aes(x = sample, y = VL_O2Hb),
+#         # coord_cartesian(
+#         #     xlim = c(NA, 20),
+#         #     ylim = c(0, 40)),
 #         theme_JA(),
 #         NULL)} + ## Settings
 #     {list( ## Data
 #         geom_line(),
-#         geom_point(),
+#         # geom_point(),
 #         NULL)} ## Data
