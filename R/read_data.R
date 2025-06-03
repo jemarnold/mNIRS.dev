@@ -104,7 +104,7 @@ read_data <- function(
     }
 
     ## validation: confirm recognised file types
-    if (!stringr::str_ends(file_path, ".xls|.xlsx|.csv")) {
+    if (!stringr::str_ends(file_path, ".xls|.xlsx|.csv|.CSV")) {
         cli::cli_abort(paste(
             "{.arg file_path} = {.file {file_path}}.",
             "Unrecognised file type. Only {.arg .xls/.xlsx} or",

@@ -97,7 +97,7 @@ fileInput(
     "upload_file",
     label = NULL,
     buttonLabel = "Upload File",
-    accept = c('.xlsx', '.csv'),
+    accept = c('.xlsx', '.xls', '.csv', '.CSV'),
 )
 
 ## Tell it which columns are which
@@ -357,7 +357,8 @@ nirs_data <- reactive({
             if (input$replace_missing) {
                 across(
                     any_of(nirs_columns),
-                    \(.x) mNIRS::replace_missing_values(.x, "linear")$y)
+                    \(.x) mNIRS::replace_missing_values(
+                        .x, method = "linear", na.rm = TRUE)$y)
             },
             if (input$replace_outliers) {
                 across(

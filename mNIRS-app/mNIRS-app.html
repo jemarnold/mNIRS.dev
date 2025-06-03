@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Jem Arnold">
-<meta name="dcterms.date" content="2025-06-02">
+<meta name="dcterms.date" content="2025-06-03">
 
 <title>mNIRS Processing</title>
 <style>
@@ -101,7 +101,7 @@ grid-auto-rows: minmax(0, 1fr);">
 <label class="input-group-btn input-group-prepend">
 <span class="btn btn-default btn-file">
 Upload File
-<input id="upload_file" class="shiny-input-file" name="upload_file" type="file" style="position: absolute !important; top: -99999px !important; left: -99999px !important;" accept=".xlsx,.csv">
+<input id="upload_file" class="shiny-input-file" name="upload_file" type="file" style="position: absolute !important; top: -99999px !important; left: -99999px !important;" accept=".xlsx,.xls,.csv,.CSV">
 </span>
 </label>
 <input type="text" class="form-control" placeholder="No file selected" readonly="readonly">
@@ -334,6 +334,16 @@ string_to_named_vector <- function(x) {
  
 <script type="application/shiny-prerendered" data-context="server-start">
 
+
+## TODO 
+## instructions
+## action button
+## split into laps by Lap/Event column
+## -- either from one non-NA event value to the next, 
+## -- or for all same lap values
+## export laps to excel sheets
+## kinetics stuff
+
 br()
 
 ## Upload file
@@ -341,11 +351,10 @@ fileInput(
     "upload_file",
     label = NULL,
     buttonLabel = "Upload File",
-    accept = c('.xlsx', '.csv'),
+    accept = c('.xlsx', '.xls', '.csv', '.CSV'),
 )
 
 ## Tell it which columns are which
-## TODO instructions
 textInput(
     "nirs_columns", 
     label = "NIRS Column Names (multiple)", 
@@ -569,7 +578,8 @@ nirs_data <- reactive({
             if (input$replace_missing) {
                 across(
                     any_of(nirs_columns),
-                    \(.x) mNIRS::replace_missing_values(.x, "linear")$y)
+                    \(.x) mNIRS::replace_missing_values(
+                        .x, method = "linear", na.rm = TRUE)$y)
             },
             if (input$replace_outliers) {
                 across(
@@ -700,7 +710,7 @@ output$plot <- renderPlot({
 output$download_data <- downloadHandler(
     
     filename = function() {
-        glue("mNIRS_{Sys.time()}_processed.xlsx")
+        glue("mNIRS_processed_{Sys.time()}.xlsx")
     },
     
     content = function(file) {
