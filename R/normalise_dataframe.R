@@ -17,14 +17,17 @@
 #' `nirs_columns` can be used to group data columns together to preserve
 #' relative scaling across mNIRS signals.
 #'
-#' - `list(A, B, C)` will rescale each column separately. Relative values will
-#' be shifted between columns.
-#' - `list(c(A, B, C))` will rescale all columns together to a common range.
-#' value. Relative scaling is preserved across the group of columns.
-#' - `list(c(A, B), c(C, D))` will rescale columns `A` and `B` to a common
-#' range, and columns `C` and `D` to a separate common range. This is a way to
-#' create multiple groups of data columns where relative scaling is preserved
-#' within groups, but not across groups of mNIRS signals.
+#' \describe{
+#'   \item{`list(A, B, C)`}{will rescale each column separately.
+#'   Relative values will be shifted between columns.}
+#'   \item{`list(c(A, B, C))`}{will rescale all columns together to a common
+#'   range. Relative scaling is preserved across the group of columns.}
+#'   \item{`list(c(A, B), c(C, D))`}{will rescale columns `A` and `B` to a
+#'   common range, and columns `C` and `D` to a separate common range.
+#'   This is a way to create multiple groups of data columns where relative
+#'   scaling is preserved within groups, but not across groups of
+#'   mNIRS signals.}
+#' }
 #'
 #' @return A [tibble][tibble::tibble-package] of class `mNIRS.data` with
 #' metadata available with `attributes()`.

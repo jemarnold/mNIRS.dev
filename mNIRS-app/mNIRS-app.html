@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Jem Arnold">
-<meta name="dcterms.date" content="2025-05-24">
+<meta name="dcterms.date" content="2025-06-02">
 
 <title>mNIRS Processing</title>
 <style>
@@ -68,45 +68,14 @@ ul.task-list li input[type="checkbox"] {
 <div id="dashboard-collapse" class="navbar-collapse collapse"><ul class="navbar-nav navbar-nav-scroll me-auto" role="tablist"><li class="nav-item" role="presentation"><a id="tab-plot" class="nav-link active" data-bs-toggle="tab" role="tab" data-bs-target="#plot" data-scrolling="false" href="#plot" aria-controls="plot" aria-selected="true"><span class="nav-link-text">Plot</span></a></li><li class="nav-item" role="presentation"><a id="tab-data" class="nav-link" data-bs-toggle="tab" role="tab" data-bs-target="#data" data-scrolling="false" href="#data" aria-controls="data" aria-selected="false"><span class="nav-link-text">Data</span></a></li><li class="nav-item" role="presentation"><a id="tab-kinetics" class="nav-link" data-bs-toggle="tab" role="tab" data-bs-target="#kinetics" data-scrolling="false" href="#kinetics" aria-controls="kinetics" aria-selected="false"><span class="nav-link-text">Kinetics</span></a></li></ul><div class="quarto-dashboard-links"><a class="quarto-dashboard-link" href="https://x.com/jem_arnold"><i class="bi bi-twitter"></i></a><a class="quarto-dashboard-link" href="https://github.com/jemarnold"><i class="bi bi-github"></i></a></div></div></div>
 </nav>
 </header>
-<div class="page-layout-custom quarto-dashboard-content bslib-gap-spacing html-fill-container bslib-page-fill quarto-dashboard-pages dashboard-sidebar-container">  
+<div class="page-layout-custom quarto-dashboard-content bslib-gap-spacing html-fill-container bslib-page-fill quarto-dashboard-pages">  
 
+<div class="bslib-grid-item html-fill-item tab-content bslib-grid" data-layout="fill" style="display: grid; grid-template-rows: minmax(3em, 1fr); grid-auto-columns: minmax(0, 1fr);">
+<div id="plot" class="dashboard-page tab-pane show active html-fill-item html-fill-container dashboard-sidebar-container" data-orientation="rows" aria-labelledby="tab-plot">
 <div class="bslib-sidebar-layout html-fill-item html-fill-container" data-bslib-sidebar-open="desktop" data-bslib-sidebar-init="true" data-bslib-sidebar-border="false" data-bslib-sidebar-border-radius="false"><div class="main html-fill-container html-fill-item"><div class="sidebar-content html-fill-item html-fill-container">
-<div class="tab-content bslib-grid html-fill-item html-fill-container" style="display: grid; grid-template-columns: minmax(3em, 1fr);
-grid-auto-rows: minmax(0, 1fr);">
-<div id="plot" class="dashboard-page tab-pane show active html-fill-item html-fill-container" data-orientation="rows" aria-labelledby="tab-plot">
-<div class="html-fill-item html-fill-container bslib-grid" style="display: grid; grid-template-rows: minmax(3em, 1fr); grid-auto-columns: minmax(0, 1fr);">
-<div class="card cell html-fill-item html-fill-container bslib-card" data-bslib-card-init="" data-require-bs-caller="card()" data-full-screen="false">
-<div class="card-body html-fill-item html-fill-container">
-<div class="cell-output-display html-fill-item html-fill-container">
-<div class="shiny-plot-output html-fill-item html-fill-container" id="plot" style="width:100%;height:400px;"></div>
-</div>
-</div>
-<bslib-tooltip placement="auto" bsoptions="[]" data-require-bs-version="5" data-require-bs-caller="tooltip()">
-    <template>Expand</template>
-    <span class="bslib-full-screen-enter badge rounded-pill">
-        <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24" style="height:1em;width:1em;" aria-hidden="true" role="img"><path d="M20 5C20 4.4 19.6 4 19 4H13C12.4 4 12 3.6 12 3C12 2.4 12.4 2 13 2H21C21.6 2 22 2.4 22 3V11C22 11.6 21.6 12 21 12C20.4 12 20 11.6 20 11V5ZM4 19C4 19.6 4.4 20 5 20H11C11.6 20 12 20.4 12 21C12 21.6 11.6 22 11 22H3C2.4 22 2 21.6 2 21V13C2 12.4 2.4 12 3 12C3.6 12 4 12.4 4 13V19Z"></path></svg>
-    </span>
-</bslib-tooltip><script data-bslib-card-init="">bslib.Card.initializeAllCards();</script></div>
-</div>
-</div><div id="data" class="dashboard-page tab-pane grid-skip html-fill-item html-fill-container" data-orientation="rows" aria-labelledby="tab-data">
-<div class="html-fill-item html-fill-container bslib-grid" style="display: grid; grid-template-rows: minmax(3em, 1fr); grid-auto-columns: minmax(0, 1fr);">
-<div class="card cell html-fill-item html-fill-container bslib-card" data-bslib-card-init="" data-require-bs-caller="card()" data-full-screen="false">
-<div class="card-body html-fill-item html-fill-container">
-<div class="cell-output-display html-fill-item html-fill-container">
-<div class="datatables html-widget html-widget-output shiny-report-size html-fill-item html-fill-container" id="nirs_table" style="width:100%;height:auto;"></div>
-</div>
-</div>
-<bslib-tooltip placement="auto" bsoptions="[]" data-require-bs-version="5" data-require-bs-caller="tooltip()">
-    <template>Expand</template>
-    <span class="bslib-full-screen-enter badge rounded-pill">
-        <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24" style="height:1em;width:1em;" aria-hidden="true" role="img"><path d="M20 5C20 4.4 19.6 4 19 4H13C12.4 4 12 3.6 12 3C12 2.4 12.4 2 13 2H21C21.6 2 22 2.4 22 3V11C22 11.6 21.6 12 21 12C20.4 12 20 11.6 20 11V5ZM4 19C4 19.6 4.4 20 5 20H11C11.6 20 12 20.4 12 21C12 21.6 11.6 22 11 22H3C2.4 22 2 21.6 2 21V13C2 12.4 2.4 12 3 12C3.6 12 4 12.4 4 13V19Z"></path></svg>
-    </span>
-</bslib-tooltip><script data-bslib-card-init="">bslib.Card.initializeAllCards();</script></div>
-</div>
-</div><div id="kinetics" class="dashboard-page tab-pane grid-skip html-fill-item html-fill-container dashboard-sidebar-container" data-orientation="rows" aria-labelledby="tab-kinetics">
-<div class="bslib-sidebar-layout html-fill-item sidebar-right html-fill-container" data-bslib-sidebar-open="desktop" data-bslib-sidebar-init="true"><div class="main html-fill-container html-fill-item"><div class="sidebar-content html-fill-item html-fill-container">
 <div class="html-fill-item html-fill-container bslib-grid" style="display: grid; grid-template-columns: minmax(3em, 1fr);
 grid-auto-rows: minmax(0, 1fr);">
+<div class="html-fill-item html-fill-container bslib-grid" style="display: grid; grid-template-rows: minmax(3em, 1fr); grid-auto-columns: minmax(0, 1fr);">
 <div class="card cell html-fill-item html-fill-container bslib-card" data-bslib-card-init="" data-require-bs-caller="card()" data-full-screen="false">
 <div class="card-body html-fill-item html-fill-container">
 <div class="cell-output-display html-fill-item html-fill-container">
@@ -120,29 +89,8 @@ grid-auto-rows: minmax(0, 1fr);">
     </span>
 </bslib-tooltip><script data-bslib-card-init="">bslib.Card.initializeAllCards();</script></div>
 </div>
-</div></div><aside id="bslib-sidebar-2" class="sidebar html-fill-container html-fill-item"><div class="html-fill-item html-fill-container">
-<div class="cell-output-display">
-<div class="form-group shiny-input-container">
-<label class="control-label" id="fixed_values-label" for="fixed_values">Replace Fixed Values</label>
-<input id="fixed_values" type="text" class="shiny-input-text form-control" value="" placeholder="0, 100, ...">
 </div>
-</div>
-<div id="3ade8a4a-fb1d-4a6c-8409-ac45482d5fc9" class="hidden">
-
-</div>
-</div></aside>
-<button class="collapse-toggle" type="button" title="Toggle sidebar" aria-expanded="true" aria-controls="bslib-sidebar-2">
-    <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 16 16" class="bi bi-chevron-left collapse-icon" style="fill:currentColor;" aria-hidden="true" role="img">
-      <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"></path>
-    </svg>
-</button>
-<script data-bslib-sidebar-init="">
-bslib.Sidebar.initCollapsibleAll()
-</script>
-</div>
-</div>
-</div>
-</div></div><aside id="bslib-sidebar-1" class="sidebar html-fill-container html-fill-item"><div class="html-fill-container html-fill-item">
+</div></div><aside id="bslib-sidebar-1" class="sidebar html-fill-container html-fill-item"><div class="html-fill-item html-fill-container">
 <div class="cell-output-display">
 <div class="form-group shiny-input-container">
 <label class="control-label shiny-label-null" for="upload_file" id="upload_file-label"></label>
@@ -236,16 +184,42 @@ Upload File
 <div class="form-group shiny-input-container">
 <label class="control-label" id="filter_method-label" for="filter_method">Digital Filter Method</label>
 <div>
-<select id="filter_method" class="shiny-input-select"><option value="none" selected="">none</option>
-<option value="low-pass">low-pass</option>
+<select id="filter_method" class="shiny-input-select"><option value="low-pass" selected="">low-pass</option>
 <option value="smooth-spline">smooth-spline</option>
-<option value="moving-average">moving-average</option></select>
+<option value="moving-average">moving-average</option>
+<option value="none">none</option></select>
 <script type="application/json" data-for="filter_method" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
 </div>
 <div class="cell-output-display no-overflow-x">
 <div id="filter_method_ui" class="shiny-html-output"></div>
+</div>
+<div class="cell-output-display">
+<div class="form-group shiny-input-container">
+<div class="checkbox">
+<label>
+<input id="shift_logical" type="checkbox" class="shiny-input-checkbox">
+<span>Shift Data</span>
+</label>
+</div>
+</div>
+</div>
+<div class="cell-output-display no-overflow-x">
+<div id="shift_data_ui" class="shiny-html-output"></div>
+</div>
+<div class="cell-output-display">
+<div class="form-group shiny-input-container">
+<div class="checkbox">
+<label>
+<input id="normalise_logical" type="checkbox" class="shiny-input-checkbox">
+<span>Normalise Data</span>
+</label>
+</div>
+</div>
+</div>
+<div class="cell-output-display no-overflow-x">
+<div id="normalise_data_ui" class="shiny-html-output"></div>
 </div>
 <div class="cell-output-display">
 <a id="download_data" class="btn btn-default shiny-download-link disabled" href="" target="_blank" download="" aria-disabled="true" tabindex="-1">
@@ -262,6 +236,42 @@ Download Data
 <script data-bslib-sidebar-init="">
 bslib.Sidebar.initCollapsibleAll()
 </script>
+</div>
+</div>
+<div id="data" class="dashboard-page tab-pane grid-skip html-fill-item html-fill-container" data-orientation="rows" aria-labelledby="tab-data">
+<div class="html-fill-item html-fill-container bslib-grid" style="display: grid; grid-template-rows: minmax(3em, 1fr); grid-auto-columns: minmax(0, 1fr);">
+<div class="card cell html-fill-item html-fill-container bslib-card" data-bslib-card-init="" data-require-bs-caller="card()" data-full-screen="false">
+<div class="card-body html-fill-item html-fill-container">
+<div class="cell-output-display html-fill-item html-fill-container">
+<div class="datatables html-widget html-widget-output shiny-report-size html-fill-item html-fill-container" id="nirs_table" style="width:100%;height:auto;"></div>
+</div>
+</div>
+<bslib-tooltip placement="auto" bsoptions="[]" data-require-bs-version="5" data-require-bs-caller="tooltip()">
+    <template>Expand</template>
+    <span class="bslib-full-screen-enter badge rounded-pill">
+        <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24" style="height:1em;width:1em;" aria-hidden="true" role="img"><path d="M20 5C20 4.4 19.6 4 19 4H13C12.4 4 12 3.6 12 3C12 2.4 12.4 2 13 2H21C21.6 2 22 2.4 22 3V11C22 11.6 21.6 12 21 12C20.4 12 20 11.6 20 11V5ZM4 19C4 19.6 4.4 20 5 20H11C11.6 20 12 20.4 12 21C12 21.6 11.6 22 11 22H3C2.4 22 2 21.6 2 21V13C2 12.4 2.4 12 3 12C3.6 12 4 12.4 4 13V19Z"></path></svg>
+    </span>
+</bslib-tooltip><script data-bslib-card-init="">bslib.Card.initializeAllCards();</script></div>
+</div>
+</div>
+<div id="kinetics" class="dashboard-page tab-pane grid-skip html-fill-item html-fill-container dashboard-sidebar-container" data-orientation="rows" aria-labelledby="tab-kinetics">
+<div class="bslib-sidebar-layout html-fill-item html-fill-container" data-bslib-sidebar-open="desktop" data-bslib-sidebar-init="true"><div class="main html-fill-container html-fill-item"><div class="sidebar-content html-fill-item html-fill-container">
+
+</div></div><aside id="bslib-sidebar-2" class="sidebar html-fill-container html-fill-item"><div class="html-fill-item html-fill-container">
+<div id="3ade8a4a-fb1d-4a6c-8409-ac45482d5fc9" class="hidden">
+
+</div>
+</div></aside>
+<button class="collapse-toggle" type="button" title="Toggle sidebar" aria-expanded="true" aria-controls="bslib-sidebar-2">
+    <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 16 16" class="bi bi-chevron-left collapse-icon" style="fill:currentColor;" aria-hidden="true" role="img">
+      <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"></path>
+    </svg>
+</button>
+<script data-bslib-sidebar-init="">
+bslib.Sidebar.initCollapsibleAll()
+</script>
+</div>
+</div>
 </div>
 <p>
 <script type="application/shiny-prerendered" data-context="server-start">
@@ -280,7 +290,8 @@ suppressPackageStartupMessages({
 
 options(digits = 5, digits.secs = 3, scipen = 3,
         dplyr.summarise.inform = FALSE,
-        tibble.print_min = 20)
+        tibble.print_min = 20,
+        shiny.maxRequestSize=50*1024^2)
 
 text_size <- 12
 theme_set(
@@ -310,27 +321,94 @@ string_to_named_vector <- function(x) {
              sapply(lst, \(.x) trimws(.x[1])))
 }
 
+
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server-start">
+
+## Upload file
+fileInput(
+    "upload_file",
+    label = NULL,
+    buttonLabel = "Upload File",
+    accept = c('.xlsx', '.csv'),
+)
+
+# br()
+
+## Tell it which columns are which
+textInput(
+    "nirs_columns", 
+    label = "NIRS Column Names (multiple)", 
+    placeholder = "newname = oldname, newname2 = oldname2, ...")
+textInput(
+    "sample_column", 
+    label = "Sample Column Name (single)", 
+    placeholder = "newname = oldname")
+textInput(
+    "event_column", 
+    label = "Lap/Event Column Name (single)", 
+    placeholder = "newname = oldname")
+## record sample rate
+numericInput("sample_rate", label = "Sample Rate", value = 50)
+
+checkboxInput("keep_all", "Keep all columns in data file")
+
+## Replace missing values (column wise)
+checkboxInput("replace_missing", "Replace missing values")
+
+## Replace fixed values (column wise)
+textInput(
+    "fixed_values",
+    label = "Replace Fixed Values",
+    placeholder = "0, 100, ...")
+
+## Replace outliers (column wise)
+checkboxInput("replace_outliers", "Replace outliers")
+    
+## remove head/tail rows
+numericInput("slice_head", label = "Remove head rows", value = 0, step = 1)
+numericInput("slice_tail", label = "Remove tail rows", value = 0, step = 1)
+
+## Filter/smooth data (column wise)
+selectInput(
+    "filter_method",
+    label = "Digital Filter Method",
+    choices = c("low-pass", "smooth-spline", "moving-average", "none")
+)
+
+uiOutput("filter_method_ui")
+
+## Shift data (dataframe)
+checkboxInput("shift_logical", "Shift Data")
+uiOutput("shift_data_ui")
+
+## Normalise (dataframe)
+checkboxInput("normalise_logical", "Normalise Data")
+uiOutput("normalise_data_ui")
+
+downloadButton("download_data", "Download Data")
+
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
 # Data upload and processing
 raw_data <- reactive({
-    # req(input$upload_file, input$nirs_columns, input$sample_column)
+    req(input$upload_file, input$nirs_columns, input$sample_column)
     
-    # upload_file <- input$upload_file$datapath
+    upload_file <- input$upload_file$datapath
     # upload_file <- r"(C:\R-Projects\mNIRS\mNIRS-app\Oxysoft-example.xlsx)"
-    upload_file <- r"(C:\OneDrive - UBC\Body Position Study\Raw Data\BP02-TrainRed-2025-05-06.csv)"
+    # upload_file <- r"(C:\OneDrive - UBC\Body Position Study\Raw Data\BP05-TrainRed-2025-05-06.csv)"
     
     data <- mNIRS::read_data(
         file_path = upload_file,
-        nirs_columns = string_to_named_vector(c(
-            "SmO2_VL = SmO2 unfiltered",
-            "SmO2_PS = SmO2 unfiltered")),
-        sample_column = string_to_named_vector(
-            "time = Timestamp (seconds passed)"
-        ),
-        # nirs_columns = string_to_named_vector(input$nirs_columns),
-        # sample_column = string_to_named_vector(input$sample_column),
+        # nirs_columns = string_to_named_vector(c(
+        #     "SmO2_VL = SmO2 unfiltered",
+        #     "SmO2_PS = SmO2 unfiltered")),
+        # sample_column = string_to_named_vector(
+        #     "time = Timestamp (seconds passed)"),
+        nirs_columns = string_to_named_vector(input$nirs_columns),
+        sample_column = string_to_named_vector(input$sample_column),
         event_column = string_to_named_vector(input$event_column),
         sample_rate = input$sample_rate,
         .keep_all = input$keep_all)
@@ -346,7 +424,7 @@ raw_data <- reactive({
     return(data)
 })
 
-# Create dynamic UI based on the selected method
+## Create dynamic UI for filter method
 output$filter_method_ui <- renderUI({
     req(raw_data(), input$filter_method)
     
@@ -357,7 +435,7 @@ output$filter_method_ui <- renderUI({
     if (input$filter_method == "low-pass") {
         tagList(
             numericInput(
-                inputId = "n",
+                "n",
                 label = "Filter Order (n)",
                 value = 4,
                 min = 1,
@@ -365,7 +443,7 @@ output$filter_method_ui <- renderUI({
                 step = 1
             ),
             # numericInput(
-            #   inputId = "W",
+            #   "W",
             #   label = "Fractional Critical Frequency (W)",
             #   value = 0.1,
             #   min = 0,
@@ -373,9 +451,9 @@ output$filter_method_ui <- renderUI({
             #   step = 0.01
             # ),
             numericInput(
-                inputId = "critical_frequency",
+                "critical_frequency",
                 label = "Critical Frequency (Hz)",
-                value = 0.5,
+                value = 0.1,
                 min = 0,
                 max = sample_rate/2,
                 step = 0.05
@@ -384,7 +462,7 @@ output$filter_method_ui <- renderUI({
     } else if (input$filter_method == "moving-average") {
         tagList(
             numericInput(
-                inputId = "width",
+                "width",
                 label = "width",
                 value = 15,
                 min = 1,
@@ -393,6 +471,56 @@ output$filter_method_ui <- renderUI({
         )
     } else {
         NULL
+    }
+})
+
+## Create dynamic UI for shift option
+output$shift_data_ui <- renderUI({
+    req(raw_data(), input$shift_logical)
+    
+    # Different UI based on selection
+    if (input$shift_logical) {
+        tagList(
+            numericInput(
+                "shift_value",
+                label = "Value to Shift",
+                value = 0),
+            selectInput(
+                "shift_which_cols",
+                label = "Columns to Shift",
+                choices = c("ensemble", "distinct")),
+            selectInput(
+                "shift_position",
+                label = "Position to Shift",
+                choices = c("minimum", "maximum", "first")),
+            numericInput(
+                "shift_samples",
+                label = "Samples to Shift",
+                value = 1),
+        )
+    }
+})
+
+## Create dynamic UI for normalise option
+output$normalise_data_ui <- renderUI({
+    req(raw_data(), input$normalise_logical)
+    
+    # Different UI based on selection
+    if (input$normalise_logical) {
+        tagList(
+            numericInput(
+                "normalise_min",
+                label = "Normalise Range Minimum",
+                value = 0),
+            numericInput(
+                "normalise_max",
+                label = "Normalise Range Maximum",
+                value = 100),
+            selectInput(
+                "normalise_which_cols",
+                label = "Columns to normalise",
+                choices = c("ensemble", "distinct")),
+        )
     }
 })
 
@@ -458,6 +586,40 @@ nirs_data <- reactive({
                         width = input$width))
             },
         ) |> 
+        (\(.df) if (input$shift_logical) {
+            req(input$shift_value, input$shift_position, 
+                input$shift_which_cols, input$shift_samples)
+            
+            if (input$shift_which_cols == "ensemble") {
+                shift_nirs_columns <- nirs_columns
+            } else if (input$shift_which_cols == "distinct") {
+                shift_nirs_columns <- as.list(nirs_columns)
+            }
+            
+            mNIRS::shift_dataframe(
+                data = .df,
+                nirs_columns = shift_nirs_columns,
+                shift_to = input$shift_value,
+                position = input$shift_position,
+                mean_samples = input$shift_samples,
+            )
+        } else {.df})() |> 
+                (\(.df) if (input$normalise_logical) {
+            req(input$normalise_min, input$normalise_max, 
+                input$normalise_which_cols)
+            
+            if (input$normalise_which_cols == "ensemble") {
+                normalise_nirs_columns <- nirs_columns
+            } else if (input$normalise_which_cols == "distinct") {
+                normalise_nirs_columns <- as.list(nirs_columns)
+            }
+            
+            mNIRS::normalise_dataframe(
+                data = .df,
+                nirs_columns = normalise_nirs_columns,
+                normalise_range = c(input$normalise_min, input$normalise_max)
+            )
+        } else {.df})() |> 
         mutate(
             across(any_of(nirs_columns), \(.x) round(.x, 2))
         )
@@ -506,6 +668,7 @@ output$plot <- renderPlot({
                \(.x) geom_line(aes(y = .data[[.x]], colour = .x))) +
         NULL
     
+    
     return(plot)
 })
 
@@ -553,7 +716,7 @@ ojs_define <- function(..., .session = shiny::getDefaultReactiveDomain()) {
 </p>
 <!--html_preserve-->
 <script type="application/shiny-prerendered" data-context="dependencies">
-{"type":"list","attributes":{},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["selectize"]},{"type":"character","attributes":{},"value":["0.15.2"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www/shared/selectize"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["js/selectize.min.js","accessibility/js/selectize-plugin-a11y.min.js"]},{"type":"character","attributes":{},"value":["css/selectize.bootstrap3.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["shiny"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.10.0"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["font-awesome"]},{"type":"character","attributes":{},"value":["6.5.2"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["fontawesome"]}]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["css/all.min.css","css/v4-shims.min.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["fontawesome"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.5.3"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["htmltools-fill"]},{"type":"character","attributes":{},"value":["0.5.8.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["fill"]}]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["fill.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["htmltools"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.5.8.1"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["htmltools-fill"]},{"type":"character","attributes":{},"value":["0.5.8.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["fill"]}]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["fill.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["htmltools"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.5.8.1"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets"]},{"type":"character","attributes":{},"value":["1.6.4"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["htmlwidgets.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["htmlwidgets"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.6.4"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["datatables-css"]},{"type":"character","attributes":{},"value":["0.0.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets/css"]}]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["datatables-crosstalk.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["DT"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.33"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["datatables-binding"]},{"type":"character","attributes":{},"value":["0.33"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["datatables.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["DT"]},{"type":"logical","attributes":{},"value":[false]},{"type":"character","attributes":{},"value":["0.33"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["jquery"]},{"type":"character","attributes":{},"value":["3.5.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/jquery"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquery.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["crosstalk"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.2.1"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["crosstalk"]},{"type":"character","attributes":{},"value":["1.2.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["js/crosstalk.min.js"]},{"type":"character","attributes":{},"value":["css/crosstalk.min.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["crosstalk"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.2.1"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["htmltools-fill"]},{"type":"character","attributes":{},"value":["0.5.8.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["fill"]}]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["fill.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["htmltools"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.5.8.1"]}]}]}
+{"type":"list","attributes":{},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["selectize"]},{"type":"character","attributes":{},"value":["0.15.2"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www/shared/selectize"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["js/selectize.min.js","accessibility/js/selectize-plugin-a11y.min.js"]},{"type":"character","attributes":{},"value":["css/selectize.bootstrap3.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["shiny"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.10.0"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["font-awesome"]},{"type":"character","attributes":{},"value":["6.5.2"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["fontawesome"]}]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["css/all.min.css","css/v4-shims.min.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["fontawesome"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.5.3"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["htmltools-fill"]},{"type":"character","attributes":{},"value":["0.5.8.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["fill"]}]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["fill.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["htmltools"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.5.8.1"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["htmltools-fill"]},{"type":"character","attributes":{},"value":["0.5.8.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["fill"]}]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["fill.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["htmltools"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.5.8.1"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets"]},{"type":"character","attributes":{},"value":["1.6.4"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["htmlwidgets.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["htmlwidgets"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.6.4"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["datatables-css"]},{"type":"character","attributes":{},"value":["0.0.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets/css"]}]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["datatables-crosstalk.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["DT"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.33"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["datatables-binding"]},{"type":"character","attributes":{},"value":["0.33"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["datatables.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["DT"]},{"type":"logical","attributes":{},"value":[false]},{"type":"character","attributes":{},"value":["0.33"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["jquery"]},{"type":"character","attributes":{},"value":["3.5.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/jquery"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquery.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["crosstalk"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.2.1"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["crosstalk"]},{"type":"character","attributes":{},"value":["1.2.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["js/crosstalk.min.js"]},{"type":"character","attributes":{},"value":["css/crosstalk.min.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["crosstalk"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.2.1"]}]}]}
 </script>
 <!--/html_preserve-->
 <!--html_preserve-->

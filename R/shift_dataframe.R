@@ -12,11 +12,13 @@
 #' @param shift_to A numeric scalar to which the specified data columns
 #' will be shifted to.
 #' @param position Indicates how to shift values.
-#'
-#' - `"minimum"` *(default)* will shift selected columns' minimum values to the
-#' specified `shift_to` value.
-#' - `"maximum"` will shift selected columns by their maximum values.
-#' - `"first"` will shift selected columns by their first existing values.
+#' \describe{
+#'   \item{`"minimum"`}{*(default)* will shift selected columns' minimum values
+#'   to the specified `shift_to` value.}
+#'   \item{`"maximum"`}{will shift selected columns by their maximum values.}
+#'   \item{`"first"`}{will shift selected columns by their first existing
+#'   values.}
+#' }
 #' @param mean_samples An integer scalar representing the number of samples
 #' over which the `position` is determined. e.g., `mean_samples = 1` looks for
 #' the single minimum, maximum, or first value. `mean_samples = 30` would
@@ -28,16 +30,19 @@
 #' `nirs_columns` can be used to group data columns together to preserve
 #' relative scaling across mNIRS signals.
 #'
-#' - `list(A, B, C)` will shift each column separately within their own
-#' values. Absolute dynamic range is preserved, but relative values will be
-#' shifted between columns.
-#' - `list(c(A, B, C))` will shift all columns together to a common specified
-#' value. Absolute dynamic range and relative scaling are both preserved
-#' across the group of columns.
-#' - `list(c(A, B), c(C, D))` will shift columns `A` and `B` to a common value,
-#' and columns `C` and `D` to a separate common value. This is a way to create
-#' multiple groups of data columns where relative scaling is preserved within
-#' groups, but not across groups of mNIRS signals.
+#' \describe{
+#'   \item{`list(A, B, C)`}{will shift each column separately within their own
+#'   values. Absolute dynamic range is preserved, but relative values will be
+#'   shifted between columns.}
+#'   \item{`list(c(A, B, C))`}{will shift all columns together to a common
+#'   specified value. Absolute dynamic range and relative scaling are both
+#'   preserved across the group of columns.}
+#'   \item{`list(c(A, B), c(C, D))`}{will shift columns `A` and `B` to a
+#'   common value, and columns `C` and `D` to a separate common value.
+#'   This is a way to create multiple groups of data columns where relative
+#'   scaling is preserved within groups, but not across groups of mNIRS
+#'   signals.}
+#' }
 #'
 #' @return A [tibble][tibble::tibble-package] of class `mNIRS.data` with
 #' metadata available with `attributes()`.

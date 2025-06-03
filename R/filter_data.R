@@ -7,42 +7,47 @@
 #'
 #' @param x A numeric vector of mNIRS data.
 #' @param method Indicates how to digitally filter the data.
-#' - *"smooth-spline"* fits a cubic smoothing spline.
-#' - *"low-pass"* uses a centred Butterworth low-pass filter.
-#' - *"moving-average"* uses a centred moving average filter.
+#' \describe{
+#'   \item{`"smooth-spline"`}{fits a cubic smoothing spline.}
+#'   \item{`"low-pass"`}{uses a centred Butterworth low-pass filter.}
+#'   \item{`"moving-average"`}{uses a centred moving average filter.}
+#' }
 #' @param ... Additional arguments (*currently not used*).
 #'
 #' @details
-#' `method = "smooth-spline"` applies a non-parametric cubic smoothing spline
-#' from [stats::smooth.spline()]. Smoothing is defined by the parameter
-#' `spar`, a numeric scalar which can be left blank and automatically
-#' determined via penalised log liklihood. This usually works well for
-#' smoothing responses occuring on the order of minutes or longer. Or `spar`
-#' can be defined explicitly, typically (but not necessarily) `spar = [0, 1]`.
+#' \describe{
+#'   \item{`method = "smooth-spline"`}{applies a non-parametric cubic
+#'   smoothing spline from [stats::smooth.spline()]. Smoothing is defined by
+#'   the parameter `spar`, a numeric scalar which can be left blank and
+#'   automatically determined via penalised log liklihood. This usually works
+#'   well for smoothing responses occuring on the order of minutes or longer.
+#'   Or `spar` can be defined explicitly, typically (but not necessarily)
+#'   `spar = [0, 1]`.}
+#'   \item{`method = "low-pass"`}{applies a centred (two-pass symmetrical)
+#'   Butterworth low-pass digital filter from [signal::butter()] and
+#'   [signal::filtfilt()]. The filter order is defined by `n`, an integer
+#'   scalar typically `n = [1, 10]`. Higher filter orders tend to capture
+#'   rapid changes in amplitude better, but also cause more distortion
+#'   artefacts in the signal. General advice is to use the lowest order which
+#'   sufficiently captures rapid step-changes in the data.
 #'
-#' `method = "low-pass"` applies a centred (two-pass symmetrical) Butterworth
-#' low-pass digital filter from [signal::butter()] and [signal::filtfilt()].
-#' The filter order is defined by `n`, an integer scalar typically `n = [1, 10]`.
-#' Higher filter orders tend to capture rapid changes in amplitude better, but
-#' also cause more distortion artefacts in the signal. General advice is to use
-#' the lowest order that sufficiently captures rapid step-changes in the data.
+#'   The low frequencies to be passed through the filter are defined by a
+#'   critical frequency. This can be defined by either `critical_frequency`, a
+#'   numeric scalar representing the desired critical frequency in Hz, and
+#'   `sample_rate`, a numeric scalar reflecting the sample rate of the data in
+#'   Hz together. Or by `W`, a numeric scalar representing the desired
+#'   fractional critical frequency between `[0, 1]`, where `1` is the Nyquist
+#'   frequency, i.e., half the sample rate of the data in Hz.
 #'
-#' The low frequencies to be passed through the filter are defined by a
-#' critical frequency. This can be defined by either `critical_frequency`, a
-#' numeric scalar representing the desired critical frequency in Hz, and
-#' `sample_rate`, a numeric scalar reflecting the sample rate of the data in Hz
-#' together. Or by `W`, a numeric scalar representing the desired fractional
-#' critical frequency between `[0, 1]`, where `1` is the Nyquist frequency,
-#' i.e., half the sample rate of the data in Hz.
-#'
-#' Defining both `critical_frequency` and `sample_rate` explicitly will
-#' overwrite `W`.
-#'
-#' `method = "moving-average"` applies a centred (two-way symmetrical) moving
-#' average filter from [zoo::rollapply()]. The moving-average is calculated
-#' over a window of width `width`, an integer scalar specifying the number of
-#' samples between `[i - floor(width/2), i + floor(width/2)]`. A partial
-#' moving-average will be calculated at the edges of the existing data.
+#'   Defining both `critical_frequency` and `sample_rate` explicitly will
+#'   overwrite `W`.}
+#'   \item{`method = "moving-average"`}{applies a centred (two-way symmetrical)
+#'   moving average filter from [zoo::rollapply()]. The moving-average is
+#'   calculated over a window of width `width`, an integer scalar specifying
+#'   the number of samples between `[i - floor(width/2), i + floor(width/2)]`.
+#'   A partial moving-average will be calculated at the edges of the existing
+#'   data.}
+#' }
 #'
 #' @return A numeric vector of filtered data.
 #'

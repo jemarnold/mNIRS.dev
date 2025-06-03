@@ -3,9 +3,12 @@
 \name{mNIRS.kinetics-methods}
 \alias{mNIRS.kinetics-methods}
 \alias{print.mNIRS.kinetics}
+\alias{plot.mNIRS.kinetics}
 \title{Methods for mNIRS.kinetics objects}
 \usage{
 \method{print}{mNIRS.kinetics}(x, ...)
+
+\method{plot}{mNIRS.kinetics}(x, ...)
 }
 \arguments{
 \item{x}{object of class \code{mNIRS.kinetics} as returned from
@@ -17,7 +20,7 @@ for details.}
 \value{
 \describe{
 \item{\code{print}}{Prints the mNIRS kinetics model summary}
-\item{\code{plot}}{Returns a plot of mNIRS kinetics}
+\item{\code{plot}}{Returns a plot of mNIRS kinetics (CURRENTLY NOT WORKING)}
 }
 }
 \description{

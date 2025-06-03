@@ -30,14 +30,16 @@ scaling across columns.
 \details{
 \code{nirs_columns} can be used to group data columns together to preserve
 relative scaling across mNIRS signals.
-\itemize{
-\item \code{list(A, B, C)} will rescale each column separately. Relative values will
-be shifted between columns.
-\item \code{list(c(A, B, C))} will rescale all columns together to a common range.
-value. Relative scaling is preserved across the group of columns.
-\item \code{list(c(A, B), c(C, D))} will rescale columns \code{A} and \code{B} to a common
-range, and columns \code{C} and \code{D} to a separate common range. This is a way to
-create multiple groups of data columns where relative scaling is preserved
-within groups, but not across groups of mNIRS signals.
+
+\describe{
+\item{\code{list(A, B, C)}}{will rescale each column separately.
+Relative values will be shifted between columns.}
+\item{\code{list(c(A, B, C))}}{will rescale all columns together to a common
+range. Relative scaling is preserved across the group of columns.}
+\item{\code{list(c(A, B), c(C, D))}}{will rescale columns \code{A} and \code{B} to a
+common range, and columns \code{C} and \code{D} to a separate common range.
+This is a way to create multiple groups of data columns where relative
+scaling is preserved within groups, but not across groups of
+mNIRS signals.}
 }
 }

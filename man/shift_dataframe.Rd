@@ -26,11 +26,12 @@ specified values. Should match column names in the dataframe exactly. See
 will be shifted to.}
 
 \item{position}{Indicates how to shift values.
-\itemize{
-\item \code{"minimum"} \emph{(default)} will shift selected columns' minimum values to the
-specified \code{shift_to} value.
-\item \code{"maximum"} will shift selected columns by their maximum values.
-\item \code{"first"} will shift selected columns by their first existing values.
+\describe{
+\item{\code{"minimum"}}{\emph{(default)} will shift selected columns' minimum values
+to the specified \code{shift_to} value.}
+\item{\code{"maximum"}}{will shift selected columns by their maximum values.}
+\item{\code{"first"}}{will shift selected columns by their first existing
+values.}
 }}
 
 \item{mean_samples}{An integer scalar representing the number of samples
@@ -52,16 +53,18 @@ preserving the absolute dynamic range and relative scaling across columns.
 \details{
 \code{nirs_columns} can be used to group data columns together to preserve
 relative scaling across mNIRS signals.
-\itemize{
-\item \code{list(A, B, C)} will shift each column separately within their own
+
+\describe{
+\item{\code{list(A, B, C)}}{will shift each column separately within their own
 values. Absolute dynamic range is preserved, but relative values will be
-shifted between columns.
-\item \code{list(c(A, B, C))} will shift all columns together to a common specified
-value. Absolute dynamic range and relative scaling are both preserved
-across the group of columns.
-\item \code{list(c(A, B), c(C, D))} will shift columns \code{A} and \code{B} to a common value,
-and columns \code{C} and \code{D} to a separate common value. This is a way to create
-multiple groups of data columns where relative scaling is preserved within
-groups, but not across groups of mNIRS signals.
+shifted between columns.}
+\item{\code{list(c(A, B, C))}}{will shift all columns together to a common
+specified value. Absolute dynamic range and relative scaling are both
+preserved across the group of columns.}
+\item{\code{list(c(A, B), c(C, D))}}{will shift columns \code{A} and \code{B} to a
+common value, and columns \code{C} and \code{D} to a separate common value.
+This is a way to create multiple groups of data columns where relative
+scaling is preserved within groups, but not across groups of mNIRS
+signals.}
 }
 }

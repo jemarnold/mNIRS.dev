@@ -10,7 +10,7 @@
 #' @return
 #' \describe{
 #'   \item{`print`}{Prints the mNIRS kinetics model summary}
-#'   \item{`plot`}{Returns a plot of mNIRS kinetics}
+#'   \item{`plot`}{Returns a plot of mNIRS kinetics (CURRENTLY NOT WORKING)}
 #' }
 #'
 #' @name mNIRS.kinetics-methods

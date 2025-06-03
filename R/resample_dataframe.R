@@ -1,13 +1,26 @@
 #' Resample Data
 #'
-#' Resamples mNIRS data using either time-weighted or linear
-#' interpolation
+#' Resamples mNIRS data using time-weighted interpolation.
 #'
 #' @param data A dataframe containing mNIRS data.
-#' @param ... Additional arguments.
+#' @param sample_column A character scalar indicating the name of
+#' the time or sample data column. Must match exactly.
+#' @param sample_rate An integer scalar for the sample rate in Hz of the
+#' dataframe.
+#' @param resample_rate An integer scalar indicating the desired output sample
+#' rate (in Hz) to convert the file to.
+#' @param resample_time A numeric scalar indicating the desired sample time
+#' (in seconds) to convert the file to.
+#' @param ... Additional arguments (currently not used).
 #'
 #' @details
-#' ...
+#' `sample_column` will be taken from metadata for an mNIRS dataframe.
+#'
+#' If not defined explicitly, `sample_rate` will be estimated based
+#' on the mean difference between values in the `sample_column`. If
+#' `sample_column` contains integer sample numbers rather than time values,
+#' then `sample_rate` will be incorrectly estimated to be 1 Hz, and should
+#' be defined explicitly.
 #'
 #' @return A [tibble][tibble::tibble-package] of class `mNIRS.data` with
 #' metadata available with `attributes()`.
@@ -15,7 +28,7 @@
 #' @export
 resample_dataframe <- function(
         data,
-        sample_column,
+        sample_column = NULL,
         sample_rate = NULL,
         resample_rate = NULL, ## 10 Hz
         resample_time = NULL, ## 0.01 s
@@ -72,6 +85,16 @@ resample_dataframe <- function(
     #
     ## Processing ===================================
 
+    resample_rate <- if (!is.null(resample_rate) & is.null(resample_time)) {
+        resample_rate
+    } else if (!is.null(resample_time) & is.null(resample_rate)) {
+        1 / resample_time
+    } else {
+        cli::cli_abort(paste(
+            "Either {.arg sample_rate} or {.arg sample_time}",
+            "should be defined, not both."))
+    }
+
     y <- data |>
         dplyr::mutate(
             dplyr::across(
@@ -80,20 +103,7 @@ resample_dataframe <- function(
                 .names = "delta_sample"),
             dplyr::across(
                 dplyr::any_of(sample_column),
-                \(.x) if (!is.null(resample_rate) & is.null(resample_time)) {
-
-                    floor(.x * resample_rate) / resample_rate
-
-                } else if (!is.null(resample_time) & is.null(resample_rate)) {
-
-                    floor(.x / resample_time) * resample_time
-
-                } else {
-
-                    cli::cli_abort(paste(
-                        "Either {.arg sample_rate} or {.arg sample_time} should",
-                        "be defined, not both."))
-                })
+                \(.x) floor(.x * resample_rate) / resample_rate),
         ) |>
         dplyr::summarise(
             .by = dplyr::any_of(sample_column),
@@ -114,13 +124,7 @@ resample_dataframe <- function(
                           * sample_rate) / sample_rate,
                     ceiling(max(sample_vector, na.rm = TRUE)
                             * sample_rate) / sample_rate,
-                    by = if (!is.null(resample_rate) &
-                             is.null(resample_time)) {
-                        1 / resample_rate
-                    } else if (!is.null(resample_time) &
-                               is.null(resample_rate)) {
-                        resample_time
-                    })
+                    by = 1 / resample_rate),
             ),
             by = sample_column
         ) |>
@@ -135,6 +139,7 @@ resample_dataframe <- function(
     #
     ## Metadata =================================
     metadata$sample_column <- unlist(sample_column)
+    metadata$sample_rate <- resample_rate
 
     y <- create_mnirs_data(y, metadata)
 
@@ -149,13 +154,14 @@ resample_dataframe <- function(
 #                      "smo2_right" = "SmO2 unfiltered"),
 #     sample_column = c("time" = "Timestamp (seconds passed)"),
 #     event_column = c("Lap" = "Lap/Event")))
+# # attributes(data)
 #
-# (y <- resample_dataframe(
+# (y <- mNIRS::resample_dataframe(
 #     data = data,
-#     resample_rate = 10, ## 10 Hz
-#     resample_time = NULL,
-#     nirs_columns,
-#     sample_columns,
+#     # sample_column = "time",
+#     # resample_rate = 100, ## 10 Hz
+#     resample_time = 0.01,
+#     # nirs_columns,
 # ))
 # attributes(y)
 #

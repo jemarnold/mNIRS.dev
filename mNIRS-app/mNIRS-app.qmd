@@ -41,7 +41,8 @@ suppressPackageStartupMessages({
 
 options(digits = 5, digits.secs = 3, scipen = 3,
         dplyr.summarise.inform = FALSE,
-        tibble.print_min = 20)
+        tibble.print_min = 20,
+        shiny.maxRequestSize=50*1024^2)
 
 text_size <- 12
 theme_set(
@@ -71,7 +72,10 @@ string_to_named_vector <- function(x) {
              sapply(lst, \(.x) trimws(.x[1])))
 }
 
+
 ```
+
+# Plot
 
 ## User Input {.sidebar}
 
@@ -116,7 +120,7 @@ textInput(
 
 ## Replace outliers (column wise)
 checkboxInput("replace_outliers", "Replace outliers")
-
+    
 ## remove head/tail rows
 numericInput("slice_head", label = "Remove head rows", value = 0, step = 1)
 numericInput("slice_tail", label = "Remove tail rows", value = 0, step = 1)
@@ -125,27 +129,24 @@ numericInput("slice_tail", label = "Remove tail rows", value = 0, step = 1)
 selectInput(
     "filter_method",
     label = "Digital Filter Method",
-    choices = c("none", "low-pass", "smooth-spline", "moving-average")
+    choices = c("low-pass", "smooth-spline", "moving-average", "none")
 )
 
 uiOutput("filter_method_ui")
 
 ## Shift data (dataframe)
+checkboxInput("shift_logical", "Shift Data")
+uiOutput("shift_data_ui")
 
 ## Normalise (dataframe)
-
-## Slice into laps/events (lapwise list of dataframes)
-## Start & end of work with padding to each side
-## Define work baseline; end-work mean; reoxygenation peak (lapwise)
-## Process reoxy kinetics (lapwise)
-## Generate plots (lapwise)
-
+checkboxInput("normalise_logical", "Normalise Data")
+uiOutput("normalise_data_ui")
 
 downloadButton("download_data", "Download Data")
 
 ```
 
-# Plot
+## Plot
 
 ```{r}
 
@@ -159,6 +160,23 @@ plotOutput("plot")
 DT::DTOutput("nirs_table")
 ```
 
+# Kinetics
+
+## User Input {.sidebar}
+
+```{r}
+
+
+
+
+## Slice into laps/events (lapwise list of dataframes)
+## Start & end of work with padding to each side
+## Define work baseline; end-work mean; reoxygenation peak (lapwise)
+## Process reoxy kinetics (lapwise)
+## Generate plots (lapwise)
+
+```
+
 
 
 ```{r}
@@ -166,22 +184,21 @@ DT::DTOutput("nirs_table")
 
 # Data upload and processing
 raw_data <- reactive({
-    # req(input$upload_file, input$nirs_columns, input$sample_column)
+    req(input$upload_file, input$nirs_columns, input$sample_column)
     
-    # upload_file <- input$upload_file$datapath
+    upload_file <- input$upload_file$datapath
     # upload_file <- r"(C:\R-Projects\mNIRS\mNIRS-app\Oxysoft-example.xlsx)"
-    upload_file <- r"(C:\OneDrive - UBC\Body Position Study\Raw Data\BP02-TrainRed-2025-05-06.csv)"
+    # upload_file <- r"(C:\OneDrive - UBC\Body Position Study\Raw Data\BP05-TrainRed-2025-05-06.csv)"
     
     data <- mNIRS::read_data(
         file_path = upload_file,
-        nirs_columns = string_to_named_vector(c(
-            "SmO2_VL = SmO2 unfiltered",
-            "SmO2_PS = SmO2 unfiltered")),
-        sample_column = string_to_named_vector(
-            "time = Timestamp (seconds passed)"
-        ),
-        # nirs_columns = string_to_named_vector(input$nirs_columns),
-        # sample_column = string_to_named_vector(input$sample_column),
+        # nirs_columns = string_to_named_vector(c(
+        #     "SmO2_VL = SmO2 unfiltered",
+        #     "SmO2_PS = SmO2 unfiltered")),
+        # sample_column = string_to_named_vector(
+        #     "time = Timestamp (seconds passed)"),
+        nirs_columns = string_to_named_vector(input$nirs_columns),
+        sample_column = string_to_named_vector(input$sample_column),
         event_column = string_to_named_vector(input$event_column),
         sample_rate = input$sample_rate,
         .keep_all = input$keep_all)
@@ -197,7 +214,7 @@ raw_data <- reactive({
     return(data)
 })
 
-# Create dynamic UI based on the selected method
+## Create dynamic UI for filter method
 output$filter_method_ui <- renderUI({
     req(raw_data(), input$filter_method)
     
@@ -208,7 +225,7 @@ output$filter_method_ui <- renderUI({
     if (input$filter_method == "low-pass") {
         tagList(
             numericInput(
-                inputId = "n",
+                "n",
                 label = "Filter Order (n)",
                 value = 4,
                 min = 1,
@@ -216,7 +233,7 @@ output$filter_method_ui <- renderUI({
                 step = 1
             ),
             # numericInput(
-            #   inputId = "W",
+            #   "W",
             #   label = "Fractional Critical Frequency (W)",
             #   value = 0.1,
             #   min = 0,
@@ -224,9 +241,9 @@ output$filter_method_ui <- renderUI({
             #   step = 0.01
             # ),
             numericInput(
-                inputId = "critical_frequency",
+                "critical_frequency",
                 label = "Critical Frequency (Hz)",
-                value = 0.5,
+                value = 0.1,
                 min = 0,
                 max = sample_rate/2,
                 step = 0.05
@@ -235,7 +252,7 @@ output$filter_method_ui <- renderUI({
     } else if (input$filter_method == "moving-average") {
         tagList(
             numericInput(
-                inputId = "width",
+                "width",
                 label = "width",
                 value = 15,
                 min = 1,
@@ -244,6 +261,56 @@ output$filter_method_ui <- renderUI({
         )
     } else {
         NULL
+    }
+})
+
+## Create dynamic UI for shift option
+output$shift_data_ui <- renderUI({
+    req(raw_data(), input$shift_logical)
+    
+    # Different UI based on selection
+    if (input$shift_logical) {
+        tagList(
+            numericInput(
+                "shift_value",
+                label = "Value to Shift",
+                value = 0),
+            selectInput(
+                "shift_which_cols",
+                label = "Columns to Shift",
+                choices = c("ensemble", "distinct")),
+            selectInput(
+                "shift_position",
+                label = "Position to Shift",
+                choices = c("minimum", "maximum", "first")),
+            numericInput(
+                "shift_samples",
+                label = "Samples to Shift",
+                value = 1),
+        )
+    }
+})
+
+## Create dynamic UI for normalise option
+output$normalise_data_ui <- renderUI({
+    req(raw_data(), input$normalise_logical)
+    
+    # Different UI based on selection
+    if (input$normalise_logical) {
+        tagList(
+            numericInput(
+                "normalise_min",
+                label = "Normalise Range Minimum",
+                value = 0),
+            numericInput(
+                "normalise_max",
+                label = "Normalise Range Maximum",
+                value = 100),
+            selectInput(
+                "normalise_which_cols",
+                label = "Columns to normalise",
+                choices = c("ensemble", "distinct")),
+        )
     }
 })
 
@@ -309,6 +376,40 @@ nirs_data <- reactive({
                         width = input$width))
             },
         ) |> 
+        (\(.df) if (input$shift_logical) {
+            req(input$shift_value, input$shift_position, 
+                input$shift_which_cols, input$shift_samples)
+            
+            if (input$shift_which_cols == "ensemble") {
+                shift_nirs_columns <- nirs_columns
+            } else if (input$shift_which_cols == "distinct") {
+                shift_nirs_columns <- as.list(nirs_columns)
+            }
+            
+            mNIRS::shift_dataframe(
+                data = .df,
+                nirs_columns = shift_nirs_columns,
+                shift_to = input$shift_value,
+                position = input$shift_position,
+                mean_samples = input$shift_samples,
+            )
+        } else {.df})() |> 
+                (\(.df) if (input$normalise_logical) {
+            req(input$normalise_min, input$normalise_max, 
+                input$normalise_which_cols)
+            
+            if (input$normalise_which_cols == "ensemble") {
+                normalise_nirs_columns <- nirs_columns
+            } else if (input$normalise_which_cols == "distinct") {
+                normalise_nirs_columns <- as.list(nirs_columns)
+            }
+            
+            mNIRS::normalise_dataframe(
+                data = .df,
+                nirs_columns = normalise_nirs_columns,
+                normalise_range = c(input$normalise_min, input$normalise_max)
+            )
+        } else {.df})() |> 
         mutate(
             across(any_of(nirs_columns), \(.x) round(.x, 2))
         )
@@ -356,6 +457,7 @@ output$plot <- renderPlot({
         lapply(nirs_columns,
                \(.x) geom_line(aes(y = .data[[.x]], colour = .x))) +
         NULL
+    
     
     return(plot)
 })
