@@ -104,8 +104,7 @@ resample_dataframe <- function(
                 .names = "delta_sample"),
             dplyr::across(
                 dplyr::any_of(sample_column),
-                \(.x) floor(round(.x / sample_rate) * resample_rate) /
-                    resample_rate),
+                \(.x) round(.x * sample_rate)/resample_rate)
         ) |>
         dplyr::summarise(
             .by = dplyr::any_of(sample_column),
@@ -118,7 +117,14 @@ resample_dataframe <- function(
                 !dplyr::where(is.numeric),
                 \(.x) dplyr::first(na.omit(.x))),
         ) |>
-        dplyr::select(-delta_sample)
+        dplyr::select(-delta_sample) |>
+        ## remove last row with all NA
+        dplyr::filter(
+            dplyr::if_all(
+                !dplyr::any_of(sample_column) & dplyr::where(is.numeric),
+            \(.x) !is.na(.x))
+        )
+
     #
     ## Metadata =================================
     metadata$sample_column <- unlist(sample_column)
@@ -148,9 +154,9 @@ resample_dataframe <- function(
 # (y <- mNIRS::resample_dataframe(
 #     data = data,
 #     # sample_column = "time",
-#     # sample_rate = 50,
-#     resample_rate = 1, ## 10 Hz
-#     # resample_time = 0.01
+#     # sample_rate = 10,
+#     resample_rate = 10, ## 10 Hz
+#     # resample_time = NULL
 # ))
 # attributes(y)
 #
