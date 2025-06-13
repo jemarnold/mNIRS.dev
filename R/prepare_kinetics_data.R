@@ -206,7 +206,7 @@ prepare_kinetics_data <- function(
             dplyr::mutate(
                 dplyr::across(
                     dplyr::any_of(sample_column),
-                    \(.xx) .xx - .x,
+                    \(.xx) signif(.xx - .x, 5),
                     .names = display_column)
             ) |>
             dplyr::filter(
