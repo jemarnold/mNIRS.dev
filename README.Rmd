@@ -6,14 +6,15 @@ output: github_document
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  fig.path = "man/figures/README-",
-  out.width = "100%"
+    collapse = TRUE,
+    comment = "#>",
+    fig.path = "man/figures/README-",
+    out.width = "100%"
 )
 ```
 
-# mNIRS
+# mNIRS 
+<!-- # mNIRS <img src='man/figures/logo.png' align="right" height="240" /> -->
 
 <!-- badges: start -->
 <!-- badges: end -->
@@ -37,7 +38,118 @@ devtools::install_github("jemarnold/mNIRS")
 
 ## Usage
 
-...
+### Read data from file
+
+```{r}
+library(mNIRS)
+
+## {mNIRS} includes some sample files from Moxy and Train.Red
+file_path <- system.file("example_moxy.xlsx", package = "mNIRS")
+
+## rename columns in the format "new_name" = "original_name"
+## where "original_name" should match the file column name exactly
+data_raw <- read_data(file_path = file_path,
+                      nirs_columns = c(),
+                      sample_column = c(),
+                      event_column = c(),
+                      .keep_all = TRUE)
+
+data_raw
+```
+
+
+### Replace missing data, outliers, and fixed values
+
+```{r}
+library(dplyr)
+
+## metadata are stored in dataframe attributes
+nirs_columns <- attributes(data_raw)$nirs_columns
+sample_rate <- attributes(data_raw)$sample_rate
+
+data_cleaned <- data_raw |> 
+    mutate(
+        across(nirs_columns, 
+               \(.x) replace_outliers(x = .x,
+                                      k = 20 * sample_rate, ## 20 sec median window
+                                      t0 = 3,
+                                      na.rm = TRUE,
+                                      return = "median")$y
+        ),
+        across(nirs_columns, 
+               \(.x) replace_missing_values(x = .x,
+                                            method = "linear",
+                                            na.rm = FALSE,
+                                            maxgap = Inf)$y
+        ),
+        across(nirs_columns, 
+               \(.x) replace_fixed_values(x = .x,
+                                          fixed_values = c(0, 100),
+                                          k = 20 * sample_rate,
+                                          return = "median")$y
+        )
+    )
+
+data_cleaned
+```
+
+
+### Resample data
+
+```{r}
+
+sample_column <- attributes(data_cleaned)$sample_column
+
+data_resampled <- data_cleaned |> 
+    resample_dataframe(sample_column = sample_column,
+                       sample_rate = sample_rate,
+                       resample_rate = 1) ## resample to 1 Hz
+
+data_resampled
+
+```
+
+
+### Filter (smooth) data
+
+```{r}
+data_filtered <- data_resampled |> 
+    mutate(
+        across(nirs_columns,
+               \(.x) filter_data(x = .x,
+                                 method = "moving-average",
+                                 width = 15)
+        )
+    )
+
+data_filtered
+
+```
+
+
+### Shift and normalise data
+
+```{r}
+data_shifted <- data_filtered |> 
+    shift_dataframe(nirs_columns = as.list(nirs_columns), ## convert vector to list to shift each column separately
+                    shift_to = 0,
+                    position = "first",
+                    mean_samples = 30) ## shift the mean first 30 sec equal to zero
+
+data_shifted
+
+data_normalised <- data_filtered |> 
+    normalise_dataframe(nirs_columns = list(nirs_columns), ## wrap vector in list to shift all columns together
+                        normalise_range = c(0, 100))
+
+data_normalised
+
+```
+
+
+### Process kinetics
+
+> under development
 
 ## mNIRS Device Compatibility
 
@@ -55,8 +167,8 @@ This package have been tested successfully with the following mNIRS devices:
 This package have been tested successfully with mNIRS data exported from the 
 following devices and apps:
 
-* [Moxy](https://www.moxymonitor.com/) onboard recording (.csv)
-* [Train.Red](https://train.red/) app export (.filetype)
-* [Artinis Oxysoft](https://www.artinis.com/oxysoft) (.csv and .xlsx)
-* [VO2 Master Manager](https://vo2master.com/features/) (.xlsx)
-* [PerfPro](https://perfprostudio.com/) (.xlsx)
+* [Moxy](https://www.moxymonitor.com/) onboard export (.csv)
+* [Train.Red](https://train.red/) app (.csv)
+* [Artinis Oxysoft](https://www.artinis.com/oxysoft) software (.csv and .xlsx)
+* [VO2 Master Manager](https://vo2master.com/features/) app (.xlsx)
+* [PerfPro](https://perfprostudio.com/) software (.xlsx)
