@@ -17,10 +17,12 @@ RoxygenNote: 7.3.2
 Imports:
     cli,
     dplyr,
+    ggplot2,
     lubridate,
     purrr,
     readxl,
     rlang,
+    scales,
     signal,
     stats,
     stringr,

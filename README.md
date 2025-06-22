@@ -49,6 +49,13 @@ data_raw <- read_data(file_path = file_path,
 #> = 1952, 1952, 1952, 2924.01, and 2924.01.
 #> ℹ Estimated sample rate is 2 Hz. Overwrite this by re-running with `sample_rate = X`
 
+plot(data_raw)
+```
+
+<img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
+
+``` r
+
 data_raw
 #> # A tibble: 2,203 × 4
 #>     time event smo2_left smo2_right
@@ -105,6 +112,13 @@ data_cleaned <- data_raw |>
                                           return = "median")$y
         )
     )
+
+plot(data_cleaned)
+```
+
+<img src="man/figures/README-unnamed-chunk-3-1.png" width="100%" />
+
+``` r
 
 data_cleaned
 #> # A tibble: 2,203 × 4
@@ -167,6 +181,13 @@ data_filtered <- data_resampled |>
 #> ℹ Moving-average: width = 15.
 #> ℹ Moving-average: width = 15.
 
+plot(data_filtered)
+```
+
+<img src="man/figures/README-unnamed-chunk-5-1.png" width="100%" />
+
+``` r
+
 data_filtered
 #> # A tibble: 2,189 × 4
 #>     time smo2_left smo2_right event
@@ -193,6 +214,13 @@ data_shifted <- data_filtered |>
                     position = "first",
                     mean_samples = 30) ## shift the mean first 30 sec equal to zero
 
+plot(data_shifted)
+```
+
+<img src="man/figures/README-unnamed-chunk-6-1.png" width="100%" />
+
+``` r
+
 data_shifted
 #> # A tibble: 2,189 × 4
 #>     time smo2_left smo2_right event
@@ -212,6 +240,13 @@ data_shifted
 data_normalised <- data_filtered |> 
     normalise_dataframe(nirs_columns = as.list(nirs_columns), ## convert vector to list to shift each column separately
                         normalise_range = c(0, 100))
+
+plot(data_normalised)
+```
+
+<img src="man/figures/README-unnamed-chunk-6-2.png" width="100%" />
+
+``` r
 
 data_normalised
 #> # A tibble: 2,189 × 4
