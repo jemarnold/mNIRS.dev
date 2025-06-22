@@ -16,6 +16,31 @@ A \link[tibble:tibble-package]{tibble} of class \code{mNIRS.data} with
 metadata available with \code{attributes()}.
 }
 \description{
-Description
+Used to manually add mNIRS metadata to an existing dataframe.
 }
-\keyword{internal}
+\examples{
+## currently implemented metadata
+metadata <- list(nirs_device = NULL,
+                 nirs_columns = NULL,
+                 sample_column = NULL,
+                 event_column = NULL,
+                 sample_rate = NULL,
+                 event_sample_list = NULL,
+                 fit_window = NULL,
+                 display_window = NULL,
+                 end_kinetics_window = NULL)
+
+df <- data.frame(A = 1:3,
+                 B = seq(10, 30, 10),
+                 C = seq(11, 33, 11))
+attributes(df)
+
+nirs_data <- create_mnirs_data(
+    df,
+    metadata = list(nirs_columns = c("B", "C"),
+                    sample_column = "A",
+                    sample_rate = 1)
+)
+attributes(nirs_data)
+
+}

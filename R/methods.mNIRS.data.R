@@ -1,6 +1,18 @@
-# Custom plot method for mNIRS.data
+#' Methods for mNIRS.data objects
+#'
+#' Methods defined for objects returned from [create_mnirs_data()].
+#'
+#' @param x object of class `mNIRS.data` as returned from [create_mnirs_data()]
+#' @param ... further arguments passed through, see description of return value
+#' for details.
+#'
+#' @return
+#' \describe{
+#'   \item{`plot`}{Returns a simple plot of mNIRS data with
+#'   [ggplot2][ggplot2::ggplot()].}
+#' }
+#'
 #' @export
-#' @import ggplot2
 plot.mNIRS.data <- function(x, ...) {
 
     if (!requireNamespace("ggplot2", quietly = TRUE)) {
