@@ -1,5 +1,5 @@
 Package: mNIRS
-Title: Methods for Muscle Near-Infrared Spectroscopy Analysis
+Title: Methods for Muscle Near-Infrared Spectroscopy Processing and Analysis
 Version: 0.0.0.9000
 Authors@R: c(
     person("Jem", 
@@ -17,6 +17,7 @@ RoxygenNote: 7.3.2
 Imports:
     cli,
     dplyr,
+    lubridate,
     purrr,
     readxl,
     rlang,

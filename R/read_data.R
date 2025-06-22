@@ -56,6 +56,8 @@ create_mnirs_data <- function(
 #' @param event_column *(optional)* A character scalar indicating the name of
 #' an event or lap data column. Must match exactly. A named character vector
 #' can be used to rename columns. Default is `NULL`.
+#' @param time_to_numeric A logical. `TRUE` (the default) will convert
+#' date-time formatted columns to numeric values in seconds.
 #' @param .keep_all A logical. `FALSE` (the default) will only include the
 #' explicitly indicated data columns. `TRUE` will include all columns detected
 #' from the file.
@@ -90,6 +92,7 @@ read_data <- function(
         nirs_columns,
         sample_column = NULL,
         event_column = NULL,
+        time_to_numeric = TRUE,
         .keep_all = FALSE,
         ...
 ) {
@@ -314,6 +317,12 @@ read_data <- function(
                 \(.x) as.POSIXct(.x, tryFormats = c(
                     "%Y-%m-%d %H:%M:%OS", "%Y/%m/%d %H:%M:%OS", "%H:%M:%OS"),
                     format = "%H:%M:%OS")),
+            if (time_to_numeric) dplyr::across(
+                dplyr::any_of(names(sample_column)) &
+                    dplyr::where(\(.x) lubridate::is.POSIXct(.x)),
+                \(.x) lubridate::hour(.x) * 3600 +
+                    lubridate::minute(.x) * 60 +
+                    lubridate::second(.x)),
         )
 
     ## Soft check sample values if sample_column is present
