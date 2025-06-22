@@ -43,10 +43,10 @@ data_raw <- read_data(file_path = file_path,
                                        smo2_right = "smo2_right_VL"),
                       sample_column = c(time = "Time"),
                       event_column = c(event = "Event"),
-                      time_to_numeric = TRUE,
+                      numeric_time = TRUE,
                       .keep_all = TRUE)
-#> Warning: `sample_column` = "time" has non-sequential or repeating values. Consider
-#> investigating at sample(s) NA, NA, NA, NA, and NA.
+#> Warning: "time" has non-sequential or repeating values. Consider investigating at "time"
+#> = 1952, 1952, 1952, 2924.01, and 2924.01.
 #> ℹ Estimated sample rate is 2 Hz. Overwrite this by re-running with `sample_rate = X`
 
 data_raw

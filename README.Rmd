@@ -53,7 +53,7 @@ data_raw <- read_data(file_path = file_path,
                                        smo2_right = "smo2_right_VL"),
                       sample_column = c(time = "Time"),
                       event_column = c(event = "Event"),
-                      time_to_numeric = TRUE,
+                      numeric_time = TRUE,
                       .keep_all = TRUE)
 
 data_raw

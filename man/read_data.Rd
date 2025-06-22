@@ -9,7 +9,7 @@ read_data(
   nirs_columns,
   sample_column = NULL,
   event_column = NULL,
-  time_to_numeric = TRUE,
+  numeric_time = TRUE,
   .keep_all = FALSE,
   ...
 )
@@ -30,7 +30,7 @@ can be used to rename columns. Default is \code{NULL}.}
 an event or lap data column. Must match exactly. A named character vector
 can be used to rename columns. Default is \code{NULL}.}
 
-\item{time_to_numeric}{A logical. \code{TRUE} (the default) will convert
+\item{numeric_time}{A logical. \code{TRUE} (the default) will convert
 date-time formatted columns to numeric values in seconds.}
 
 \item{.keep_all}{A logical. \code{FALSE} (the default) will only include the

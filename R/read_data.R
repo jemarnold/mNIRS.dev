@@ -56,7 +56,7 @@ create_mnirs_data <- function(
 #' @param event_column *(optional)* A character scalar indicating the name of
 #' an event or lap data column. Must match exactly. A named character vector
 #' can be used to rename columns. Default is `NULL`.
-#' @param time_to_numeric A logical. `TRUE` (the default) will convert
+#' @param numeric_time A logical. `TRUE` (the default) will convert
 #' date-time formatted columns to numeric values in seconds.
 #' @param .keep_all A logical. `FALSE` (the default) will only include the
 #' explicitly indicated data columns. `TRUE` will include all columns detected
@@ -92,7 +92,7 @@ read_data <- function(
         nirs_columns,
         sample_column = NULL,
         event_column = NULL,
-        time_to_numeric = TRUE,
+        numeric_time = TRUE,
         .keep_all = FALSE,
         ...
 ) {
@@ -290,15 +290,6 @@ read_data <- function(
         ) |>
         ## drops empty columns where all NA
         dplyr::select(dplyr::where(\(.x) !all(is.na(.x)))) |>
-        dplyr::mutate(
-            ## convert blank values to NA
-            dplyr::across(
-                dplyr::where(is.numeric),
-                \(.x) ifelse(.x %in% c(Inf, -Inf, NaN), NA_real_, .x)),
-            dplyr::across(
-                dplyr::where(is.character),
-                \(.x) ifelse(.x %in% c("", "NA"), NA_character_, .x)),
-        ) |>
         ( \(df) {
             ## drops rows after the first row where all(is.na())
             ## c(..., 0) ensures the last row will be taken when no rows
@@ -317,12 +308,23 @@ read_data <- function(
                 \(.x) as.POSIXct(.x, tryFormats = c(
                     "%Y-%m-%d %H:%M:%OS", "%Y/%m/%d %H:%M:%OS", "%H:%M:%OS"),
                     format = "%H:%M:%OS")),
-            if (time_to_numeric) dplyr::across(
+            if (numeric_time) dplyr::across(
                 dplyr::any_of(names(sample_column)) &
-                    dplyr::where(\(.x) lubridate::is.POSIXct(.x)),
+                    dplyr::where(lubridate::is.POSIXct),
                 \(.x) lubridate::hour(.x) * 3600 +
                     lubridate::minute(.x) * 60 +
                     lubridate::second(.x)),
+
+            ## convert blank values to NA
+            dplyr::across(
+                dplyr::where(is.numeric),
+                \(.x) ifelse(.x %in% c(Inf, -Inf, NaN), NA_real_, .x)),
+            dplyr::across(
+                dplyr::where(is.numeric),
+                \(.x) round(.x, 3)),
+            dplyr::across(
+                dplyr::where(is.character),
+                \(.x) ifelse(.x %in% c("", "NA"), NA_character_, .x)),
         )
 
     ## Soft check sample values if sample_column is present
@@ -340,19 +342,19 @@ read_data <- function(
                     c(diff(get(names(sample_column))) <= 0, FALSE) |
                         duplicated(get(names(sample_column)))
                 ) |>
-                dplyr::row_number()
+                dplyr::pull(dplyr::any_of(names(sample_column)))
 
             cli::cli_warn(paste(
-                "{.arg sample_column} = {.val {names(sample_column)}} has",
-                "non-sequential or repeating values. Consider investigating at",
+                "{.val {names(sample_column)}} has non-sequential or",
+                "repeating values. Consider investigating at",
                 if (length(repeated_samples) > 5) {
                     paste(
-                        "sample(s)",
+                        "{.val {names(sample_column)}} =",
                         "{paste(head(repeated_samples, 3), collapse = ', ')},",
                         "and {.val {length(tail(repeated_samples, -3))}} more",
                         "samples.")
                 } else {
-                    "sample(s) {repeated_samples}."
+                    "{.val {names(sample_column)}} = {repeated_samples}."
                 }))
         }
 
@@ -362,12 +364,12 @@ read_data <- function(
                 dplyr::filter(
                     c(diff(get(names(sample_column))) > 3600, FALSE)
                 ) |>
-                dplyr::row_number()
+                dplyr::pull(dplyr::any_of(names(sample_column)))
 
             cli::cli_warn(paste(
-                "{.arg sample_column} = {.val {names(sample_column)}} has a gap",
-                "greater than 60 minutes. Consider investigating at sample(s)",
-                "{big_gap}."))
+                "{.val {names(sample_column)}} has a gap",
+                "greater than 60 minutes. Consider investigating at",
+                "{.val {names(sample_column)}} = {big_gap}."))
         }
     }
 
