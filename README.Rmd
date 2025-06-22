@@ -56,9 +56,9 @@ data_raw <- read_data(file_path = file_path,
                       numeric_time = TRUE,
                       .keep_all = TRUE)
 
-plot(data_raw)
-
 data_raw
+
+plot(data_raw)
 ```
 
 
@@ -94,9 +94,9 @@ data_cleaned <- data_raw |>
         )
     )
 
-plot(data_cleaned)
-
 data_cleaned
+
+plot(data_cleaned)
 ```
 
 
@@ -109,11 +109,11 @@ sample_column <- attributes(data_cleaned)$sample_column
 data_resampled <- data_cleaned |> 
     resample_dataframe(sample_column = sample_column,
                        sample_rate = sample_rate,
-                       resample_rate = 1
-                       ) ## resample to 1 Hz
+                       resample_rate = 1) ## resample to 1 Hz
 
 data_resampled
 
+plot(data_resampled)
 ```
 
 
@@ -129,9 +129,9 @@ data_filtered <- data_resampled |>
         )
     )
 
-plot(data_filtered)
-
 data_filtered
+
+plot(data_filtered)
 ```
 
 
@@ -139,22 +139,24 @@ data_filtered
 
 ```{r}
 data_shifted <- data_filtered |> 
-    shift_dataframe(nirs_columns = list(nirs_columns), ## wrap vector in list to shift all columns together
+    ## wrap `nirs_columns` vector in list to shift all columns together
+    shift_dataframe(nirs_columns = list(nirs_columns), 
                     shift_to = 0,
                     position = "first",
                     mean_samples = 30) ## shift the mean first 30 sec equal to zero
 
-plot(data_shifted)
-
 data_shifted
 
+plot(data_shifted)
+
 data_normalised <- data_filtered |> 
-    normalise_dataframe(nirs_columns = as.list(nirs_columns), ## convert vector to list to shift each column separately
+    ## convert `nirs_columns` vector to list to shift each column separately
+    normalise_dataframe(nirs_columns = as.list(nirs_columns), 
                         normalise_range = c(0, 100))
 
-plot(data_normalised)
-
 data_normalised
+
+plot(data_normalised)
 ```
 
 
