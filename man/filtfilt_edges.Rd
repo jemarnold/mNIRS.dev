@@ -2,44 +2,74 @@
 % Please edit documentation in R/filtfilt_edges.R
 \name{filtfilt_edges}
 \alias{filtfilt_edges}
-\title{Apply a Butterworth filter with better edge detection}
+\title{Apply a Butterworth Filter with Better Edge Detection}
 \usage{
-filtfilt_edges(x, n = 1, W = 0.1, edges = c("rev", "rep1", "none"))
+filtfilt_edges(
+  x,
+  n = 1,
+  W,
+  type = c("low", "high", "stop", "pass"),
+  edges = c("rev", "rep1", "none")
+)
 }
 \arguments{
 \item{x}{A numeric vector.}
 
-\item{n}{An integer scalar specifying the filter order number. Passed
-through to \code{\link[signal:butter]{signal::butter()}}.}
+\item{n}{An integer scalar defining the filter order number.}
 
-\item{W}{A numeric scalar between 0 and 1 specifying the relative cutoff
-frequency, where 1 is the Nyquist frequency (half of the sample frequency
-in Hz).}
+\item{W}{A numeric scalar or two-element vector defining the fractional
+critical frequency of the filter (see \emph{Details}).}
+
+\item{type}{Digital filter type (see \emph{Details}).
+\describe{
+\item{\code{type = "low"}}{For a \emph{low-pass} filter (\emph{default}).}
+\item{\code{type = "high"}}{For a \emph{high-pass} filter.}
+\item{\code{type = "stop"}}{For a \emph{stop-band} (band-reject) filter.}
+\item{\code{type = "pass"}}{For a \emph{pass-band} filter.}
+}}
 
 \item{edges}{Indicates how to pad \code{x}.
-\itemize{
-\item \emph{"rev"} (the default) will pad \code{x} with the preceding 10\% data in reverse
-sequence.
-\item \emph{"rep1"} will pad \code{x} with the last preceding value.
-\item \emph{"none"} will return the default \code{\link[signal:filtfilt]{signal::filtfilt()}} output.
+\describe{
+\item{\code{edges = "rev"}}{Will pad \code{x} with the preceding 10\%
+data in reverse sequence (\emph{default}).}
+\item{\code{edges = "rep1"}}{Will pad \code{x} with the last preceding value.}
+\item{\code{edges = "none"}}{Will return the default \code{\link[signal:filtfilt]{signal::filtfilt()}} output.}
 }}
 }
 \value{
-A numeric vector of filtered data.
+A numeric vector of the same length as \code{x}.
 }
 \description{
-Custom Butterworth filtering function from \code{\link[signal:butter]{signal::butter()}} and
-\code{\link[signal:filtfilt]{signal::filtfilt()}} which handles data 'edges' better at the start and
-end of data.
+Generate Butterworth digital filter imported from \code{\link[signal:butter]{signal::butter()}} and
+\code{\link[signal:filtfilt]{signal::filtfilt()}} which handles 'edges' better at the start and end of
+the data.
+}
+\details{
+Applies a centred (two-pass symmetrical) Butterworth digital filter from
+\code{\link[signal:butter]{signal::butter()}} and \code{\link[signal:filtfilt]{signal::filtfilt()}}.
+
+The filter order is defined by \code{n}, an integer scalar typically in the
+range \verb{n = [1, 10]}.
+
+The critical (cutoff) frequency is defined by \code{W}, a numeric scalar for
+\emph{low-pass} and \emph{high-pass} filters, or a two-element vector \code{c(low, high)}
+defining the lower and upper bands for \emph{stop-band} and \emph{pass-band} filters.
+
+\emph{Low-pass} and \emph{high-pass} filters allow only frequencies \emph{lower} or \emph{higher}
+than the critical frequency \code{W} to be passed through as the output signal,
+respectively. \emph{Stop-band} defines a critical range of frequencies which are
+rejected from the output signal. \emph{Pass-band} defines a critical range of
+frequencies which are passed through as the output signal.
 }
 \examples{
 set.seed(13)
-sin <- sin(2 * pi * 1:500 / 50) * 20 + 40
-noise <- rnorm(500, mean = 0, sd = 6)
+sin <- sin(2 * pi * 1:150 / 50) * 20 + 40
+noise <- rnorm(150, mean = 0, sd = 6)
 noisy_sin <- sin + noise
 filt_without_edge <- filtfilt_edges(x = noisy_sin, n = 2, W = 0.1, edges = "none")
 filt_with_edge <- filtfilt_edges(x = noisy_sin, n = 2, W = 0.1, edges = "rep1")
 plot(noisy_sin, type = "l")
 lines(filt_without_edge, col = "red", lwd = 4)
 lines(filt_with_edge, col = "blue", lwd = 4)
+
 }

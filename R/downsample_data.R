@@ -3,14 +3,14 @@
 #' Downsample a dataframe using time-weighted averaging.
 #'
 #' @param data A dataframe.
-#' @param sample_column *(optional)* A character scalar indicating the name of
+#' @param sample_column *(Optional)*. A character scalar indicating the name of
 #' the time or sample data column. Must match exactly.
-#' @param sample_rate *(optional)* A numeric scalar for the sample rate in Hz.
-#' @param downsample_rate *(optional)* A numeric scalar indicating the desired
+#' @param sample_rate *(Optional)*. A numeric scalar for the sample rate in Hz.
+#' @param downsample_rate *(Optional)*. A numeric scalar indicating the desired
 #' output sample rate (in Hz) to convert the dataframe.
-#' @param downsample_time *(optional)* A numeric scalar indicating the desired
+#' @param downsample_time *(Optional)*. A numeric scalar indicating the desired
 #' sample time (in seconds) to convert the dataframe.
-#' @param .verbose A logical. `TRUE` *(default)* will return warnings and
+#' @param .verbose A logical. `TRUE` (*default*) will return warnings and
 #' messages which can be used for data error checking. `FALSE` will silence these
 #' messages. Errors will always be returned.
 #'
@@ -109,12 +109,12 @@ downsample_data <- function(
         dplyr::mutate(
             ## calculate time difference for weighting
             dplyr::across(
-                dplyr::any_of(sample_column),
+                tidyselect::any_of(sample_column),
                 \(.x) c(diff(.x), tail(diff(.x), 1)),
                 .names = "delta_sample"),
             ## Round to nearest downsample rate
             dplyr::across(
-                dplyr::any_of(sample_column),
+                tidyselect::any_of(sample_column),
                 \(.x) if (empirical_sample_rate == sample_rate) {
                     ## if `sample_column` is time values and `sample_rate` is
                     ## estimated correctly, should output correct time values
@@ -127,16 +127,16 @@ downsample_data <- function(
                 }),
         ) |>
         dplyr::summarise(
-            .by = dplyr::any_of(sample_column),
+            .by = tidyselect::any_of(sample_column),
             ## weighted mean value for numeric columns
             dplyr::across(
-                dplyr::where(is.numeric),
-                \(.x) weighted.mean(.x, delta_sample, na.rm = TRUE)),
+                tidyselect::where(is.numeric),
+                \(.x) stats::weighted.mean(.x, delta_sample, na.rm = TRUE)),
             ## take the first non-na value from other columns
             ## TODO 2025-06-23 is this robust enough if multiple event strings
             ## are present within one downsample bin?
             dplyr::across(
-                !dplyr::where(is.numeric),
+                !tidyselect::where(is.numeric),
                 \(.x) dplyr::first(na.omit(.x))),
         ) |>
         dplyr::select(-delta_sample)

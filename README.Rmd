@@ -135,7 +135,7 @@ plot(data_filtered)
 ```
 
 
-### Shift and normalise data
+### Shift and rescale data
 
 ```{r}
 data_shifted <- data_filtered |> 
@@ -149,14 +149,14 @@ data_shifted
 
 plot(data_shifted)
 
-data_normalised <- data_filtered |> 
+data_rescaled <- data_filtered |> 
     ## convert `nirs_columns` vector to list to shift each column separately
-    normalise_data(nirs_columns = as.list(nirs_columns), 
-                        normalise_range = c(0, 100))
+    rescale_data(nirs_columns = as.list(nirs_columns), 
+                        rescale_range = c(0, 100))
 
-data_normalised
+data_rescaled
 
-plot(data_normalised)
+plot(data_rescaled)
 ```
 
 

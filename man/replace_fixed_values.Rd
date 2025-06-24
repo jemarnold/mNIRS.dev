@@ -15,7 +15,7 @@ replace_fixed_values(x, fixed_values, width, return = c("NA", "median"))
 \item{width}{A numeric scalar for the window length of \verb{(2 · width + 1)} samples.}
 
 \item{return}{Indicates whether outliers should be replaced with \code{NA}
-\emph{(default)} or the local \emph{"median"} value.}
+(\emph{default}) or the local \code{"median"} value.}
 }
 \value{
 A numeric vector of filtered data.

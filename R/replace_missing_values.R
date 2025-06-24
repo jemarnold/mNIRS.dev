@@ -71,8 +71,8 @@ replace_missing_values <- function(
 
     } else if (method == "omit") {
 
-        x.all <- setNames(x, seq_along(x))
-        y <- na.omit(x.all)[names(na.omit(x.all))]
+        x.all <- stats::setNames(x, seq_along(x))
+        y <- stats::na.omit(x.all)[names(na.omit(x.all))]
 
     }
 

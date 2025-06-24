@@ -4,9 +4,17 @@
 \name{mNIRS-package}
 \alias{mNIRS}
 \alias{mNIRS-package}
-\title{mNIRS: Methods for Muscle Near-Infrared Spectroscopy Processing and Analysis}
+\title{mNIRS: Muscle Near-Infrared Spectroscopy Processing & Analysis}
 \description{
-Methods for importing, processing, and analysis data from muscle near-infrared spectroscopy (mNIRS) devices.
+Methods for importing, processing, and analysing data from muscle near-infrared spectroscopy (mNIRS) devices.
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/jemarnold/mNIRS}
+  \item Report bugs at \url{https://github.com/jemarnold/mNIRS/issues}
+}
+
 }
 \author{
 \strong{Maintainer}: Jem Arnold \email{jem.arnold@ubc.com} (\href{https://orcid.org/0000-0003-3908-9447}{ORCID})

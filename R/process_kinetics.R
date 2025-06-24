@@ -3,9 +3,9 @@
 #' Fit an mNIRS kinetics event with parametric or non-parametric models.
 #'
 #' @param x A numeric vector giving the predictor variable for `y` if `y` is
-#' specified. Otherwise, `x` is assumed to specify the response variable.
+#' defined Otherwise, `x` is assumed to define the response variable.
 #' @param y A numeric vector giving the response variable. If `y` is missing
-#' or NULL, the predictor variable is assumed to be specified by `x`, with
+#' or NULL, the predictor variable is assumed to be defined by `x`, with
 #' `seq_along(x)` as the index predictor variable.
 #' @param data A dataframe containing at least `x` or `x` and `y`...
 #' @param x0 A numeric scalar indicating the value of the predictor variable `x`

@@ -23,27 +23,27 @@ read_data(
 to import from the target file. Must match exactly. A named character vector
 can be used to rename columns (see \emph{Details}).}
 
-\item{sample_column}{\emph{(optional)} A character scalar indicating the name of
+\item{sample_column}{(\emph{Optional}). A character scalar indicating the name of
 a time or sample data column. Must match exactly. A named character vector
 can be used to rename columns.}
 
-\item{event_column}{\emph{(optional)} A character scalar indicating the name of
+\item{event_column}{(\emph{Optional}). A character scalar indicating the name of
 an event or lap data column. Must match exactly. A named character vector
 can be used to rename columns.}
 
-\item{sample_rate}{\emph{(optional)} A numeric scalar for the sample rate in Hz.
+\item{sample_rate}{(\emph{Optional}). A numeric scalar for the sample rate in Hz.
 If not defined explicitly, will be estimated from the file data
 (see \emph{Details}).}
 
-\item{.numeric_time}{A logical. \code{TRUE} \emph{(default)} will convert
+\item{.numeric_time}{A logical. \code{TRUE} (\emph{default}) will convert
 date-time formatted columns to numeric values in seconds. \code{FALSE} will retain
 these columns formatted as date-time in the format of the original file.}
 
-\item{.keep_all}{A logical. \code{FALSE} \emph{(default)} will only include the
+\item{.keep_all}{A logical. \code{FALSE} (\emph{default}) will only include the
 explicitly indicated data columns. \code{TRUE} will include all columns detected
 from the file.}
 
-\item{.verbose}{A logical. \code{TRUE} \emph{(default)} will return warnings and
+\item{.verbose}{A logical. \code{TRUE} (\emph{default}) will return warnings and
 messages which can be used for data error checking. \code{FALSE} will silence these
 messages. Errors will always be returned.}
 }
@@ -67,7 +67,7 @@ Columns can be renamed in the format \code{c("new_name" = "original_name")}, whe
 \code{sample_rate} is required for certain \code{{mNIRS}} functions. If it is not
 defined explicitly, \code{sample_rate} will be estimated based
 on the mean difference between values in the \code{sample_column}. If
-\code{sample_column} is not specified, then \code{sample_rate} will be set to 1 Hz.
+\code{sample_column} is not defined, then \code{sample_rate} will be set to 1 Hz.
 If \code{sample_column} in the data file contains integer row numbers, then
 \code{sample_rate} will be incorrectly estimated to be 1 Hz, and should be
 defined explicitly.

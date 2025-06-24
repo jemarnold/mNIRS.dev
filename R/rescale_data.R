@@ -1,13 +1,13 @@
-#' Normalise Data Range
+#' Rescale Data Range
 #'
-#' Normalise the range of data channels to a new dynamic range, while preserving
+#' Rescale the range of data channels to a new dynamic range, while preserving
 #' the relative scaling across columns. e.g. rescale the range of data to
 #' `c(0,100)`.
 #'
 #' @param data A dataframe.
 #' @param nirs_columns A `list()` of character vectors indicating the column
 #' names for data channels to be rescaled (see *Details*).
-#' @param normalise_range A numeric vector in the form `c(min, max)`,
+#' @param rescale_range A numeric vector in the form `c(min, max)`,
 #' indicating the range of output values to which data channels will be rescaled.
 #'
 #' @details
@@ -15,7 +15,6 @@
 #' relative scaling. channels grouped together in a vector will preserve
 #' relative scaling across channels. Should match column names in the dataframe
 #' exactly.
-#'
 #' \describe{
 #'   \item{`nirs_columns = list("A", "B", "C")`}{will rescale each column
 #'   separately. Relative scaling will be lost between data channels.}
@@ -30,10 +29,10 @@
 #' metadata available with `attributes()`.
 #'
 #' @export
-normalise_data <- function(
+rescale_data <- function(
         data,
         nirs_columns = list(),
-        normalise_range = c(0, 100)
+        rescale_range = c(0, 100)
 ) {
 
     metadata <- attributes(data)
@@ -53,34 +52,34 @@ normalise_data <- function(
             "Make sure column names match exactly."))
     }
 
-    ## validation: `normalise_range` must be numeric vector
-    if (!is.numeric(normalise_range) | !length(normalise_range) == 2) {
+    ## validation: `rescale_range` must be numeric vector
+    if (!is.numeric(rescale_range) | !length(rescale_range) == 2) {
         cli::cli_abort(paste(
-            "{.arg normalise_range} must be a {.cls numeric} vector with",
-            "{.val c(minimum, maximum)} values."))
+            "{.arg rescale_range} must be a {.cls numeric} vector with",
+            "{.val c(min, max)} values."))
     }
 
-    ## normalise range ================================
+    ## rescale range ================================
 
-    y <- purrr::map(
+    y <- lapply(
         if (is.list(nirs_columns)) {
             nirs_columns
         } else {list(nirs_columns)},
-        \(.col)
-        data |>
-            dplyr::select(dplyr::any_of(.col)) |>
-            dplyr::mutate(
-                dplyr::across(
-                    dplyr::any_of(.col),
-                    \(.x) (.x - min(dplyr::pick(dplyr::any_of(.col)),
-                                    na.rm = TRUE)) /
-                        diff(range(dplyr::pick(dplyr::any_of(.col)),
-                                   na.rm = TRUE)) *
-                        diff(normalise_range) + min(normalise_range)),
-            )
-    ) |>
+        \(.col) {
+            data |>
+                dplyr::select(tidyselect::any_of(.col)) |>
+                dplyr::mutate(
+                    dplyr::across(
+                        tidyselect::any_of(.col),
+                        \(.x) (.x - min(dplyr::pick(tidyselect::any_of(.col)),
+                                        na.rm = TRUE)) /
+                            diff(range(dplyr::pick(tidyselect::any_of(.col)),
+                                       na.rm = TRUE)) *
+                            diff(rescale_range) + min(rescale_range)),
+                )
+        }) |>
         dplyr::bind_cols(
-            dplyr::select(data, -dplyr::any_of(unlist(nirs_columns)))
+            dplyr::select(data, -tidyselect::any_of(unlist(nirs_columns)))
         ) |>
         dplyr::relocate(names(data))
 
@@ -104,10 +103,10 @@ normalise_data <- function(
 #     # event_column = c("Event" = "11"),
 # ) |> dplyr::slice(-1))
 # #
-# y <- normalise_data(
+# y <- rescale_data(
 #     data = df,
 #     nirs_columns = list(c("ICG_VL", "ICG_SCM")),
-#     normalise_range = c(0, 100)
+#     rescale_range = c(0, 100)
 # ) |> print()
 # attributes(y)
 #

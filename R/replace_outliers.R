@@ -11,7 +11,7 @@
 #' @param na.rm A logical indicating whether missing values should be ignored
 #' before the filter is applied (see *Details*).
 #' @param return Indicates whether outliers should be replaced with the
-#' local *"median"* value *(default)*, or returned as `NA`.
+#' local *"median"* value (*default*), or returned as `NA`.
 #'
 #' @details
 #' The *"median absolute deviation"* computation is done in the `[-width...width]`
@@ -19,7 +19,7 @@
 #' interval. At the lower and upper end the time series values are preserved.
 #'
 #' A high threshold makes the filter more forgiving, a low one will declare
-#' more points to be outliers. `t0 = 3` *(default)* corresponds to Pearson's
+#' more points to be outliers. `t0 = 3` (*default*) corresponds to Pearson's
 #' 3 sigma edit rule, `t0 = 0` to Tukey's median filter.
 #'
 #' `NA` values in the numeric vector will cause an error unless `na.rm = TRUE`.

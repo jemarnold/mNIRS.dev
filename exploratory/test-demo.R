@@ -39,3 +39,10 @@ devtools::build_readme()
 # usethis::use_import_from("tidyr", "any_of")
 devtools::check()
 
+# usethis::use_package_doc()
+# usethis::use_github_links()
+# usethis::use_tidy_description()
+usethis::use_package("rlang")
+usethis::use_package("purrr", type = "suggest")
+
+usethis::use_import_from("tibble", "new_tibble")

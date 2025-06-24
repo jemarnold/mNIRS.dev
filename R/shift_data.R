@@ -11,8 +11,8 @@
 #' will be shifted to.
 #' @param position Indicates how to shift values.
 #' \describe{
-#'   \item{`"minimum"`}{*(default)* will shift selected channels' minimum values
-#'   to the specified `shift_to` value.}
+#'   \item{`"minimum"`}{will shift selected channels' minimum values
+#'   to the specified `shift_to` value (*default*).}
 #'   \item{`"maximum"`}{will shift selected channels by their maximum values.}
 #'   \item{`"first"`}{will shift selected channels by their first values.}
 #' }
@@ -20,8 +20,8 @@
 #' over which the `position` is determined. e.g., `mean_samples = 1` looks for
 #' the single minimum, maximum, or first value. `mean_samples = 30` would
 #' use the mean of the lowest, highest, or first `30` samples.
-#' @param shift_by *(optional)* specified data channels can be shifted by a set
-#' amount.
+#' @param shift_by (*Optional*). A numeric scalar by which the data signals can
+#' be shifted by a set amount.
 #'
 #' @details
 #' `nirs_columns = list()` can be used to group data columns to preserve
@@ -131,7 +131,7 @@ shift_data <- function(
                     \(.x) zoo::rollapply(
                         .x, width = mean_samples, FUN = mean,
                         align = "center", partial = TRUE, na.rm = TRUE)),
-                    # \(.x) rolling_mean_fast(.x, mean_samples)),
+                # \(.x) rolling_mean_fast(.x, mean_samples)),
             ) |>
             dplyr::summarise(
                 dplyr::across(
@@ -154,39 +154,38 @@ shift_data <- function(
 
     }
 
-    y <- purrr::map(
+    y <- lapply(
         if (is.list(nirs_columns)) {
             nirs_columns
         } else {list(nirs_columns)},
-        \(.col)
-        data |>
-            dplyr::select(dplyr::any_of(.col)) |>
-            dplyr::mutate(
-                dplyr::across(
-                    dplyr::any_of(.col),
-                    \(.x) if (!is.null(shift_by) & is.null(shift_to)) {
+        \(.col) {
+            data |>
+                dplyr::select(tidyselect::any_of(.col)) |>
+                dplyr::mutate(
+                    dplyr::across(
+                        tidyselect::any_of(.col),
+                        \(.x) if (!is.null(shift_by) & is.null(shift_to)) {
 
-                        .x + shift_by
+                            .x + shift_by
 
-                    } else if (position == "minimum") {
+                        } else if (position == "minimum") {
 
-                        .x - min(shift_mean_value[.col]) + shift_to
+                            .x - min(shift_mean_value[.col]) + shift_to
 
-                    } else if (position == "maximum") {
+                        } else if (position == "maximum") {
 
-                        .x - max(shift_mean_value[.col]) + shift_to
+                            .x - max(shift_mean_value[.col]) + shift_to
 
-                    } else if (position == "first") {
+                        } else if (position == "first") {
 
-                        .x - dplyr::first(
-                            rowMeans(shift_mean_value[.col])) + shift_to
-
-                    }
-                ),
-            )
-    ) |>
+                            .x - dplyr::first(
+                                rowMeans(shift_mean_value[.col])) + shift_to
+                        }
+                    ),
+                )
+        }) |>
         dplyr::bind_cols(
-            dplyr::select(data, -dplyr::any_of(unlist(nirs_columns)))
+            dplyr::select(data, -tidyselect::any_of(unlist(nirs_columns)))
         ) |>
         dplyr::relocate(names(data))
 
@@ -200,41 +199,37 @@ shift_data <- function(
 }
 #
 ## troubleshooting ===================================
-# library(tidyverse)
-# library(JAPackage)
-# library(mNIRS)
-# #
-# (df <- read_data(
+# (data <- read_data(
 #     file_path = r"(C:\OneDrive - UBC\Body Position Study\Raw Data\SRLB02-Oxysoft-2024-12-20.xlsx)",
-#     nirs_columns = c("ICG_VL" = "9", "ICG_SCM" = "10", "smo2" = "7"),
-#     sample_column = c("Sample" = "1"),
-#     # event_column = c("Event" = "11"),
+#     nirs_columns = c(ICG_VL = "9", ICG_SCM = "10", smo2 = "7"),
+#     sample_column = c(Sample = "1"),
+#     # event_column = c(Event = "11"),
 # ) |> dplyr::slice(-1))
-#
+# #
 # y <- shift_data(
 #     # data = tibble(ICG_VL = 1:10, ICG_SCM = -10:-1),
-#     data = df,
+#     data = data,
 #     nirs_columns = list("ICG_VL", "ICG_SCM", "smo2"),
 #     shift_to = 0,
-#     position = "max",
-#     mean_samples = 100,
+#     position = "maximum",
+#     mean_samples = 1,
 #     shift_by = NULL
 # ) |>
 #     print()
-# attributes(y)
-#
-# ggplot(y) +
+# # attributes(y)
+# #
+# ggplot2::ggplot(y) +
 #     {list( ## Settings
-#         aes(x = Sample),
+#         ggplot2::aes(x = Sample),
 #         # coord_cartesian(xlim = c(NA, 200)),
-#         theme_JA(legend.position = "top"),
+#         # theme_JA(legend.position = "top"),
 #         NULL)} + ## Settings
 #     {list( ## Data
-#         geom_hline(yintercept = 0, linetype = "dotted"),
-#         geom_hline(yintercept = 10, linetype = "dotted"),
-#         geom_line(aes(y = ICG_VL, colour = "VL")),
-#         geom_line(aes(y = ICG_SCM, colour = "SCM")),
-#         geom_line(aes(y = smo2, colour = "smo2")),
+#         ggplot2::geom_hline(yintercept = 0, linetype = "dotted"),
+#         ggplot2::geom_hline(yintercept = 10, linetype = "dotted"),
+#         ggplot2::geom_line(ggplot2::aes(y = ICG_VL, colour = "VL")),
+#         ggplot2::geom_line(ggplot2::aes(y = ICG_SCM, colour = "SCM")),
+#         ggplot2::geom_line(ggplot2::aes(y = smo2, colour = "smo2")),
 #         NULL)} ## Data
 
 

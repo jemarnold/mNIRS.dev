@@ -197,7 +197,7 @@ plot(data_filtered)
 
 <img src="man/figures/README-unnamed-chunk-5-1.png" width="100%" />
 
-### Shift and normalise data
+### Shift and rescale data
 
 ``` r
 data_shifted <- data_filtered |> 
@@ -230,12 +230,12 @@ plot(data_shifted)
 
 ``` r
 
-data_normalised <- data_filtered |> 
+data_rescaled <- data_filtered |> 
     ## convert `nirs_columns` vector to list to shift each column separately
-    normalise_data(nirs_columns = as.list(nirs_columns), 
-                        normalise_range = c(0, 100))
+    rescale_data(nirs_columns = as.list(nirs_columns), 
+                        rescale_range = c(0, 100))
 
-data_normalised
+data_rescaled
 #> # A tibble: 1,209 × 4
 #>     time smo2_left smo2_right event
 #>    <dbl>     <dbl>      <dbl> <chr>
@@ -251,7 +251,7 @@ data_normalised
 #> 10  1749      75.0       65.3 <NA> 
 #> # ℹ 1,199 more rows
 
-plot(data_normalised)
+plot(data_rescaled)
 ```
 
 <img src="man/figures/README-unnamed-chunk-6-2.png" width="100%" />

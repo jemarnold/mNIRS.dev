@@ -6,9 +6,10 @@
 \usage{
 filter_data(
   x,
-  method = c("smooth-spline", "low-pass", "moving-average"),
+  method = c("smooth-spline", "butter", "moving-average"),
+  type = c("low", "high", "stop", "pass"),
   spar = NULL,
-  n,
+  n = 1,
   W,
   critical_frequency,
   sample_rate,
@@ -18,27 +19,37 @@ filter_data(
 \arguments{
 \item{x}{A numeric vector.}
 
-\item{method}{Indicates how to digitally filter the data (see \emph{Details}).
+\item{method}{Indicates how to filter the data (see \emph{Details}).
 \describe{
 \item{\code{"smooth-spline"}}{fits a cubic smoothing spline.}
-\item{\code{"low-pass"}}{uses a centred Butterworth low-pass filter.}
+\item{\code{"butter"}}{uses a centred Butterworth digital filter. \code{type} should
+be defined (see \emph{Details}).}
 \item{\code{"moving-average"}}{uses a centred moving average filter.}
+}}
+
+\item{type}{Specify the filter type. \emph{Only relevant for \code{method = "butter"}}
+(see \emph{Details}).
+\describe{
+\item{\code{type = "low"}}{For a \emph{low-pass} filter (\emph{default}).}
+\item{\code{type = "high"}}{For a \emph{high-pass} filter.}
+\item{\code{type = "stop"}}{For a \emph{stop-band} (band-reject) filter.}
+\item{\code{type = "pass"}}{For a \emph{pass-band} filter.}
 }}
 
 \item{spar}{A numeric scalar defining the smoothing parameter for
 \code{method = "smooth-spline"}.}
 
-\item{n}{An integer scalar defining the order of a low-pass filter for
-\code{method = "low-pass"}.}
+\item{n}{An integer scalar defining the order of a Butterworth filter for
+\code{method = "butter"}.}
 
-\item{W}{A numeric scalar defining the fractional critical frequency of a
-low-pass filter for \code{method = "low-pass"}.}
+\item{W}{A numeric scalar or two-element vector defining the fractional
+critical frequency(ies) of a Butterworth filter for \code{method = "butter"}.}
 
-\item{critical_frequency}{A numeric scalar defining the critical frequency of
-a low-pass filter for \code{method = "low-pass"}.}
+\item{critical_frequency}{A numeric scalar or two-element vector defining
+the critical frequency(ies) of a Butterworth filter for \code{method = "butter"}.}
 
 \item{sample_rate}{A numeric scalar for the sample rate in Hz for
-\code{method = "low-pass"}.}
+\code{method = "butter"}.}
 
 \item{width}{A numeric scalar defining the window length of samples for
 \code{method = "moving-average"}.}
@@ -47,8 +58,8 @@ a low-pass filter for \code{method = "low-pass"}.}
 A numeric vector of filtered data.
 }
 \description{
-Applies digital filtering with either: 1. A cubic smoothing spline.
-2. A Butterworth low-pass filter. 3. A simple moving average.
+Applies signal filtering with either: 1. A cubic smoothing spline.
+2. A Butterworth digital filter. 3. A simple moving average.
 }
 \details{
 \describe{
@@ -58,30 +69,43 @@ by the parameter \code{spar}, which can be left blank and automatically determin
 via penalised log liklihood. This usually works well for smoothing responses
 occurring on the order of minutes or longer. Or \code{spar} can be defined
 explicitly, typically (but not necessarily) in the range \verb{spar = [0, 1]}.}
-\item{\code{method = "low-pass"}}{applies a centred (two-pass symmetrical)
-Butterworth low-pass digital filter from \code{\link[signal:butter]{signal::butter()}} and
-\code{\link[signal:filtfilt]{signal::filtfilt()}}. The filter order is defined by \code{n}, typically in the
-range \verb{n = [1, 10]}. Higher filter orders tend to capture rapid changes in
-amplitude better, but also cause more distortion artefacts in the signal.
-General advice is to use the lowest order which sufficiently captures rapid
-step-changes in the data.
 
-The low frequencies to be passed through the filter are defined by a
-critical frequency. This can be defined by either \code{critical_frequency}
-representing the desired critical frequency in Hz, and \code{sample_rate}
-reflecting the sample rate of the data in Hz together. Or by \code{W}
-representing the desired fractional critical frequency in the range
+\item{\code{method = "butter"}}{applies a centred (two-pass symmetrical)
+Butterworth digital filter from \code{\link[signal:butter]{signal::butter()}} and \code{\link[signal:filtfilt]{signal::filtfilt()}}.
+The filter order is defined by \code{n}, typically in the range \verb{n = [1, 10]}.
+Higher filter orders tend to better capture rapid changes in amplitude,
+but also cause more distortion artefacts in the signal. General advice is
+to use the lowest order which sufficiently captures any rapid step-changes
+in the data.
+
+Filter \code{type} defines how the desired signal frequencies are either passed
+through or rejected from the output signal. \emph{Low-pass} and \emph{high-pass}
+filters allow only frequencies \emph{lower} or \emph{higher} than the critical
+frequency \code{W} to be passed through as the output signal, respectively.
+\emph{Stop-band} defines a critical range of frequencies which are rejected
+from the output signal. \emph{Pass-band} defines a critical range of frequencies
+which are passed through as the output signal.
+
+The critical (cutoff) frequency is defined by \code{W}, a numeric scalar for
+\emph{low-pass} and \emph{high-pass} filters, or a two-element vector \code{c(low, high)}
+defining the lower and upper bands for \emph{stop-band} and \emph{pass-band} filters.
+\code{W} represents the desired fractional critical frequency in the range
 \verb{W = [0, 1]}, where \code{1} is the Nyquist frequency, i.e., half the sample
 rate of the data in Hz.
 
+Alternatively, the critical frequency can be defined by \code{critical_frequency}
+and \code{sample_rate} together. \code{critical_frequency} represents the desired
+critical frequency in Hz, and \code{sample_rate} is the sample rate of the
+recorded data in Hz. \code{W = critical_frequency / (sample_rate/2)}.
+
 Defining both \code{critical_frequency} and \code{sample_rate} explicitly will
 overwrite \code{W}.}
+
 \item{\code{method = "moving-average"}}{applies a centred (two-way symmetrical)
 moving average filter from \code{\link[zoo:rollapply]{zoo::rollapply()}}. The moving-average is
-calculated over a window of width \code{width} specifying
-the number of samples between \verb{[i - floor(width/2), i + floor(width/2)]}.
-A partial moving-average will be calculated at the edges of the existing
-data.}
+calculated over a window of width \code{width} defining the number of samples
+between \verb{[i - floor(width/2), i + floor(width/2)]}. A partial moving-average
+will be calculated at the edges of the existing data.}
 }
 }
 \examples{
@@ -93,7 +117,7 @@ noise <- rnorm(n, mean = 0, sd = 0.5)
 y <- y_clean + noise
 
 y.spline <- filter_data(y, method = "smooth-spline")
-y.LP <- filter_data(y, method = "low-pass", n = 2, W = 0.05)
+y.LP <- filter_data(y, method = "butter", n = 2, W = 0.05)
 y.MA <- filter_data(y, method = "moving-average", width = 30)
 
 plot(x, y)

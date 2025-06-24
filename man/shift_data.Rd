@@ -24,8 +24,8 @@ will be shifted to.}
 
 \item{position}{Indicates how to shift values.
 \describe{
-\item{\code{"minimum"}}{\emph{(default)} will shift selected channels' minimum values
-to the specified \code{shift_to} value.}
+\item{\code{"minimum"}}{will shift selected channels' minimum values
+to the specified \code{shift_to} value (\emph{default}).}
 \item{\code{"maximum"}}{will shift selected channels by their maximum values.}
 \item{\code{"first"}}{will shift selected channels by their first values.}
 }}
@@ -35,8 +35,8 @@ over which the \code{position} is determined. e.g., \code{mean_samples = 1} look
 the single minimum, maximum, or first value. \code{mean_samples = 30} would
 use the mean of the lowest, highest, or first \code{30} samples.}
 
-\item{shift_by}{\emph{(optional)} specified data channels can be shifted by a set
-amount.}
+\item{shift_by}{(\emph{Optional}). A numeric scalar by which the data signals can
+be shifted by a set amount.}
 }
 \value{
 A \link[tibble:tibble-package]{tibble} of class \code{mNIRS.data} with

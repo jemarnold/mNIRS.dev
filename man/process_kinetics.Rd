@@ -15,10 +15,10 @@ process_kinetics(
 }
 \arguments{
 \item{x}{A numeric vector giving the predictor variable for \code{y} if \code{y} is
-specified. Otherwise, \code{x} is assumed to specify the response variable.}
+defined Otherwise, \code{x} is assumed to define the response variable.}
 
 \item{y}{A numeric vector giving the response variable. If \code{y} is missing
-or NULL, the predictor variable is assumed to be specified by \code{x}, with
+or NULL, the predictor variable is assumed to be defined by \code{x}, with
 \code{seq_along(x)} as the index predictor variable.}
 
 \item{data}{A dataframe containing at least \code{x} or \code{x} and \code{y}...}

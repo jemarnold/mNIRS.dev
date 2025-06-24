@@ -1,34 +1,37 @@
+Type: Package
 Package: mNIRS
-Title: Methods for Muscle Near-Infrared Spectroscopy Processing and Analysis
+Title: Muscle Near-Infrared Spectroscopy Processing & Analysis
 Version: 0.0.0.9000
-Authors@R: c(
-    person("Jem", 
-           "Arnold",
-           role = c("aut", "cre"),
-           email = "jem.arnold@ubc.com",
-           comment = c(ORCID = "0000-0003-3908-9447")
-    ))
-Description: Methods for importing, processing, and analysis data from 
+Authors@R: 
+    person("Jem", "Arnold", , "jem.arnold@ubc.com", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0003-3908-9447"))
+Description: Methods for importing, processing, and analysing data from
     muscle near-infrared spectroscopy (mNIRS) devices.
 License: MIT + file LICENSE
+URL: https://github.com/jemarnold/mNIRS
+BugReports: https://github.com/jemarnold/mNIRS/issues
+Depends: 
+    R (>= 4.1.0)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
-Imports:
+Imports: 
     cli,
     data.table,
     dplyr,
-    ggplot2,
     lubridate,
-    purrr,
     readxl,
     rlang,
-    scales,
-    signal,
     stats,
     stringr,
     tibble,
     tidyr,
+    tidyselect,
     tools,
     utils,
     zoo
+Suggests: 
+    ggplot2,
+    purrr,
+    scales,
+    signal

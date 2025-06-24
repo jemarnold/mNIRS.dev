@@ -15,8 +15,9 @@
 plot.mNIRS.data <- function(x, ...) {
 
     if (!requireNamespace("ggplot2", quietly = TRUE)) {
-        cli::cli_abort(
-            "Package 'ggplot2' is required for plotting. Please install it.")
+        cli::cli_abort(paste(
+            "Package {.pkg ggplot2} is required for plotting.",
+            "Please install it."))
     }
 
     data <- x
@@ -26,7 +27,7 @@ plot.mNIRS.data <- function(x, ...) {
 
     plot <- data |>
         tidyr::pivot_longer(
-            cols = tidyr::all_of(nirs_columns),
+            cols = tidyselect::all_of(nirs_columns),
             names_to = "nirs_columns",
             values_to = "y") |>
         ggplot2::ggplot() +
@@ -54,11 +55,19 @@ plot.mNIRS.data <- function(x, ...) {
         ) +
         ggplot2::scale_x_continuous(
             # name = sample_column,
-            breaks = scales::breaks_pretty(n = 6),
+            breaks = if (rlang::is_installed("scales")) {
+                scales::breaks_pretty(n = 6)
+            } else {
+                ggplot2::waiver()
+            },
             expand = ggplot2::expansion(mult = 0.01)) +
         ggplot2::scale_y_continuous(
             name = "mNIRS Signals",
-            breaks = scales::breaks_pretty(n = 6),
+            breaks = if (rlang::is_installed("scales")) {
+                scales::breaks_pretty(n = 6)
+            } else {
+                ggplot2::waiver()
+            },
             expand = ggplot2::expansion(mult = 0.01)) +
         ggplot2::geom_line()
 

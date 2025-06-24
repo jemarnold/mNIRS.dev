@@ -1,41 +1,48 @@
 #' Prepare mNIRS Data for Kinetics Analysis
 #'
-#' Processes a dataframe for kinetics analysis
+#' Processes a dataframe for kinetics analysis.
 #'
-#' @param data A dataframe containing mNIRS data.
-#' @param event_index (*optional*) A numeric vector indicating the start
-#' indices of kinetics events.
-#'
-#' - Any of `event_label`, `event_index`, or `event_sample` will be passed
-#' along for further analysis.
-#' @param event_sample (*optional*) A vector in the same class as
+#' @param data A dataframe.
+#' @param event_index (*Optional*). A numeric vector indicating the start
+#' indices of kinetics events. Any of `event_label`, `event_index`, or
+#' `event_sample` will be passed along for further analysis.
+#' @param event_sample (*Optional*). A vector in the same class as
 #' `sample_column` indicating the start of kinetic events.
-#' @param event_label (*optional*) A character vector specified in
+#' @param event_label (*Optional*). A character vector specified in
 #' `event_column` indicating the start of kinetics events.
-#' @param fit_baseline_window A numeric scalar specifying the number of
-#' samples preceding to the kinetics events to include as baseline.
-#' @param fit_kinetics_window A numeric scalar specifying the number of
-#' samples following to the kinetics events to include for kinetics modelling.
-#' @param display_baseline_window A numeric scalar specifying the number of
-#' samples preceding to the kinetics events to include for display.
-#' @param display_kinetics_window A numeric scalar specifying the number of
-#' samples following to the kinetics events to include for display.
-#' @param group_kinetics_events Indicates whether kinetics events should
-#' be analysed separately or together.
-#'
-#' - `"distinct"` (*the default*) will prepare a list of unique dataframes for
-#' each kinetics event.
-#' - `"ensemble"`` will prepare one dataframe with the ensemble-averaged mNIRS
-#' data from all kinetics events (similar to pulmonary VO2 kinetics).
-#' - Alternatively, a list of numeric vectors can be specified to
-#' ensemble-average groups of kinetics events together. Such as
-#' `group_kinetics_events = list(c(1, 2), c(3, 4))` for two sets of
-#' repeated bouts. Any bout numbers not listed explicitly will return
-#' un-grouped dataframes.
+#' @param fit_window A two-element numeric vector defining the number of
+#' samples around the kinetics events to include in the fitting process (see
+#' *Details*).
+#' @param display_window (*Optional*). A two-element numeric vector defining
+#' the number of samples around the kinetics events to include for display (see
+#' *Details*).
+#' @param group_events Indicates how kinetics events should be analysed
+#' (see *Details*).
 #' @param ... Additional arguments.
 #'
 #' @details
-#' ...
+#' `fit_window` is a two-element vector `c(before, after)` specifying the number of
+#' samples before and after the kinetics event to include in the kinetics fitting
+#' process.
+#'
+#' `display_window` is a two-element vector `c(before, after)` specifying the
+#' number of samples before and after the kinetics event to include in the prepared
+#' kinetics dataframes, to allow for plotting of data beyond the bounds of the
+#' fitting process.
+#'
+#' `group_events` indicates how kinetics events should be analysed, either
+#' separately, or grouped and ensemble averaged similar to oxygen uptake kinetics.
+#' \describe{
+#'   \item{`group_events = "distinct"`}{Will prepare a list of unique dataframes
+#'   for each kinetics event (*default*).}
+#'   \item{`group_events = "ensemble"`}{Will prepare one dataframe with the
+#'   ensemble-averaged data from all mNIRS kinetics events.}
+#'   \item{`group_events = list(c(1, 2), c(3, 4))`}{Will group kinetic events
+#'   together in sequence of appearance, and prepare a list of ensemble-averaged
+#'   dataframes for each group. Any kinetic events detected in the data but
+#'   not explicitly defined here
+#'   will return as un-grouped dataframes.}
+#' }
 #'
 #' @return A list of [tibbles][tibble::tibble-package] of class `mNIRS.data`
 #' with metadata available with `attributes()`.
@@ -46,11 +53,9 @@ prepare_kinetics_data <- function(
         event_index = NULL, ## 59
         event_sample = NULL, ## c(3, 4)
         event_label = NULL, ## "end stage"
-        fit_baseline_window = 30,
-        fit_kinetics_window = 180,
-        display_baseline_window = NULL,
-        display_kinetics_window = NULL,
-        group_kinetics_events = list("distinct", "ensemble"),
+        fit_window = c(30, 180),
+        display_window = NULL,
+        group_events = list("distinct", "ensemble"),
         ...
 ) {
     ## Validation =================================
@@ -116,41 +121,22 @@ prepare_kinetics_data <- function(
 
     ## fit windows ========================================
     ## validation: `fit_windows` must be numeric scalar
-    purrr::map(
-        c(fit_baseline_window, fit_kinetics_window),
-        \(.x) if (!is.numeric(.x) | !length(.x) == 1) {
-
-            cli::cli_abort(paste(
-                "{.arg fit_windows} must each be a single",
-                "{.cls numeric} scalar."))
-
-        })
-
-    ## define & validation: `display_baseline_window`
-    if (is.null(display_baseline_window)) {
-
-        display_baseline_window <- fit_baseline_window
-
-    } else if (!is.numeric(display_baseline_window) |
-               !length(display_baseline_window) == 1) {
-
+    if (!is.numeric(fit_window) | !length(fit_window) == 2) {
         cli::cli_abort(paste(
-            "{.arg display_baseline_window} must be a single",
-            "{.cls numeric} scalar."))
-
+            "{.arg fit_window} must be a two-element {.cls numeric} vector",
+            "{.val c(before, after)}."))
     }
 
-    ## define & validation: `display_kinetics_window`
-    if (is.null(display_kinetics_window)) {
+    ## define & validation: `display_window`
+    if (is.null(display_window)) {
 
-        display_kinetics_window <- fit_kinetics_window
+        display_window <- fit_window
 
-    } else if (!is.numeric(display_kinetics_window) |
-               !length(display_kinetics_window) == 1) {
+    } else if (!is.numeric(display_window) | !length(display_window) == 2) {
 
         cli::cli_abort(paste(
-            "{.arg display_kinetics_window} must be a single",
-            "{.cls numeric} scalar."))
+            "{.arg fit_window} must be a two-element {.cls numeric} vector",
+            "{.val c(before, after)}."))
 
     }
     #
@@ -161,7 +147,7 @@ prepare_kinetics_data <- function(
         event_index_sample <- data |>
             dplyr::mutate(index = dplyr::row_number()) |>
             dplyr::filter(index %in% event_index) |>
-            dplyr::pull(dplyr::any_of(sample_column))
+            dplyr::pull(tidyselect::any_of(sample_column))
 
     } else {event_index_sample <- NULL}
 
@@ -169,21 +155,22 @@ prepare_kinetics_data <- function(
 
         event_label_sample <- data |>
             dplyr::filter(dplyr::if_any(
-                dplyr::any_of(event_column),
+                tidyselect::any_of(event_column),
                 \(.x) grepl(paste(event_label, collapse = "|"),
                             .x, ignore.case = TRUE)
             )) |>
-            dplyr::pull(dplyr::any_of(sample_column))
+            dplyr::pull(tidyselect::any_of(sample_column))
 
     } else {event_label_sample <- NULL}
 
-    event_sample_list <- sort(
-        c(event_index_sample, event_sample, event_label_sample))
+    event_sample_list <- sort(c(event_index_sample,
+                                event_sample,
+                                event_label_sample))
 
-    fit_baseline_window <- -max(abs(fit_baseline_window))
-    display_baseline_window <- -max(abs(display_baseline_window))
-    start_sample <- min(c(fit_baseline_window, display_baseline_window))
-    end_sample <- max(c(fit_kinetics_window, display_kinetics_window))
+    fit_window[1] <- -abs(fit_window[1])
+    display_window[1] <- -abs(display_window[1])
+    start_sample <- min(c(fit_window[1], display_window[1]))
+    end_sample <- max(c(fit_window[2], display_window[2]))
 
     display_column <- paste0("display_", sample_column)
     fit_column <- paste0("fit_", sample_column)
@@ -194,47 +181,43 @@ prepare_kinetics_data <- function(
     metadata$sample_column <- sample_column
     metadata$event_column <- event_column
     metadata$event_sample_list <- event_sample_list
-    metadata$fit_window <- c(fit_baseline_window,
-                             fit_kinetics_window)
-    metadata$display_window <- c(display_baseline_window,
-                                 display_kinetics_window)
+    metadata$fit_window <- fit_window
+    metadata$display_window <- display_window
 
     ## data list =================================
-    data_list <- purrr::map(
+    data_list <- lapply(
         event_sample_list,
-        \(.x) data |>
-            dplyr::mutate(
-                dplyr::across(
-                    dplyr::any_of(sample_column),
-                    \(.xx) signif(.xx - .x, 5),
-                    .names = display_column)
-            ) |>
-            dplyr::filter(
-                dplyr::if_any(
-                    dplyr::any_of(display_column),
-                    \(.xx) dplyr::between(.xx, start_sample, end_sample))
-            ) |>
-            dplyr::mutate(
-                dplyr::across(
-                    dplyr::any_of(display_column),
-                    \(.xx) dplyr::if_else(
-                        dplyr::between(
-                            .xx,
-                            fit_baseline_window,
-                            fit_kinetics_window),
-                        .xx, NA),
-                    .names = fit_column),
-            ) |>
-            dplyr::relocate(dplyr::any_of(c(display_column, fit_column)))
-    )
+        \(.x) {
+            data |>
+                dplyr::mutate(
+                    dplyr::across(
+                        tidyselect::any_of(sample_column),
+                        \(.xx) signif(.xx - .x, 5),
+                        .names = display_column)
+                ) |>
+                dplyr::filter(
+                    dplyr::if_any(
+                        tidyselect::any_of(display_column),
+                        \(.xx) dplyr::between(.xx, start_sample, end_sample))
+                ) |>
+                dplyr::mutate(
+                    dplyr::across(
+                        tidyselect::any_of(display_column),
+                        \(.xx) dplyr::if_else(
+                            dplyr::between(.xx, fit_window[1], fit_window[2]),
+                            .xx, NA),
+                        .names = fit_column),
+                ) |>
+                dplyr::relocate(tidyselect::any_of(c(display_column, fit_column)))
+        })
 
-    if (head(unlist(group_kinetics_events), 1) == "distinct") {
+    if (head(unlist(group_events), 1) == "distinct") {
 
-        kinetics_data_list <- purrr::map(
+        kinetics_data_list <- lapply(
             data_list,
             \(.df) {
                 kinetics_data <- .df |>
-                    dplyr::relocate(dplyr::any_of(c(
+                    dplyr::relocate(tidyselect::any_of(c(
                         display_column, fit_column,
                         sample_column, event_column, nirs_columns)))
 
@@ -243,66 +226,66 @@ prepare_kinetics_data <- function(
                 return(kinetics_data)
             })
 
-    } else if (head(unlist(group_kinetics_events), 1) == "ensemble") {
+    } else if (head(unlist(group_events), 1) == "ensemble") {
 
         kinetics_data <- data_list |>
             dplyr::bind_rows() |>
             dplyr::select(
-                -dplyr::any_of(c(sample_column, event_column))
+                -tidyselect::any_of(c(sample_column, event_column))
             ) |>
             dplyr::summarise(
-                .by = dplyr::any_of(display_column),
+                .by = tidyselect::any_of(display_column),
                 dplyr::across(
-                    dplyr::where(is.numeric),
+                    tidyselect::where(is.numeric),
                     \(.x) mean(.x, na.rm = TRUE)),
                 dplyr::across(
-                    !dplyr::where(is.numeric),
+                    !tidyselect::where(is.numeric),
                     \(.x) dplyr::first(na.omit(.x))),
             ) |>
             dplyr::mutate(
                 dplyr::across(
-                    dplyr::where(is.numeric),
+                    tidyselect::where(is.numeric),
                     \(.x) ifelse(.x %in% c(Inf, -Inf, NaN), NA_real_, .x)),
             ) |>
-            dplyr::relocate(dplyr::any_of(c(display_column, fit_column)))
+            dplyr::relocate(tidyselect::any_of(c(display_column, fit_column)))
 
         kinetics_data_list <- list(create_mnirs_data(kinetics_data, metadata))
 
-    } else if (is.numeric(unlist(group_kinetics_events))) {
+    } else if (is.numeric(unlist(group_events))) {
 
         ungrouped_events <- setdiff(
-            1:length(data_list), unlist(group_kinetics_events))
+            1:length(data_list), unlist(group_events))
 
         for (i in seq_along(ungrouped_events)) {
-            group_kinetics_events[[length(group_kinetics_events)+1]] <-
-                ungrouped_events[i]
+            group_events[[length(group_events)+1]] <- ungrouped_events[i]
         }
 
-        kinetics_data_list <- purrr::map(
-            if (is.list(group_kinetics_events)) {
-                group_kinetics_events
-            } else {list(group_kinetics_events)},
+        kinetics_data_list <- lapply(
+            if (is.list(group_events)) {
+                group_events
+            } else {list(group_events)},
             \(.x) {
                 kinetics_data <- data_list[.x] |>
                     dplyr::bind_rows() |>
                     dplyr::select(
-                        -dplyr::any_of(c(sample_column, event_column))
+                        -tidyselect::any_of(c(sample_column, event_column))
                     ) |>
                     dplyr::summarise(
-                        .by = dplyr::any_of(display_column),
+                        .by = tidyselect::any_of(display_column),
                         dplyr::across(
-                            dplyr::where(is.numeric),
+                            tidyselect::where(is.numeric),
                             \(.x) mean(.x, na.rm = TRUE)),
                         dplyr::across(
-                            !dplyr::where(is.numeric),
+                            !tidyselect::where(is.numeric),
                             \(.x) dplyr::first(na.omit(.x))),
                     ) |>
                     dplyr::mutate(
                         dplyr::across(
-                            dplyr::where(is.numeric),
+                            tidyselect::where(is.numeric),
                             \(.x) ifelse(.x %in% c(Inf, -Inf, NaN), NA_real_, .x)),
                     ) |>
-                    dplyr::relocate(dplyr::any_of(c(display_column, fit_column)))
+                    dplyr::relocate(
+                        tidyselect::any_of(c(display_column, fit_column)))
 
                 kinetics_data <- create_mnirs_data(kinetics_data, metadata)
 
@@ -336,7 +319,7 @@ prepare_kinetics_data <- function(
 #     fit_kinetics_window = 180,
 #     display_baseline_window = 40,
 #     display_kinetics_window = 240,
-#     group_kinetics_events = "ensemble"
-#     # group_kinetics_events = list(c(1, 3, 5), c(2, 4)) #"ensemble"
+#     group_events = "ensemble"
+#     # group_events = list(c(1, 3, 5), c(2, 4)) #"ensemble"
 # ))
 # attributes(data_list[[1]])

@@ -1,73 +1,106 @@
-#' Apply a Butterworth filter with better edge detection
+#' Apply a Butterworth Filter with Better Edge Detection
 #'
-#' Custom Butterworth filtering function from [signal::butter()] and
-#' [signal::filtfilt()] which handles data 'edges' better at the start and
-#' end of data.
+#' Generate Butterworth digital filter imported from [signal::butter()] and
+#' [signal::filtfilt()] which handles 'edges' better at the start and end of
+#' the data.
 #'
 #' @param x A numeric vector.
-#' @param n An integer scalar specifying the filter order number. Passed
-#' through to [signal::butter()].
-#' @param W A numeric scalar between 0 and 1 specifying the relative cutoff
-#' frequency, where 1 is the Nyquist frequency (half of the sample frequency
-#' in Hz).
+#' @param n An integer scalar defining the filter order number.
+#' @param W A numeric scalar or two-element vector defining the fractional
+#' critical frequency of the filter (see *Details*).
+#' @param type Digital filter type (see *Details*).
+#' \describe{
+#'   \item{`type = "low"`}{For a *low-pass* filter (*default*).}
+#'   \item{`type = "high"`}{For a *high-pass* filter.}
+#'   \item{`type = "stop"`}{For a *stop-band* (band-reject) filter.}
+#'   \item{`type = "pass"`}{For a *pass-band* filter.}
+#' }
 #' @param edges Indicates how to pad `x`.
-#' - *"rev"* (the default) will pad `x` with the preceding 10% data in reverse
-#' sequence.
-#' - *"rep1"* will pad `x` with the last preceding value.
-#' - *"none"* will return the default [signal::filtfilt()] output.
+#' \describe{
+#'   \item{`edges = "rev"`}{Will pad `x` with the preceding 10%
+#'   data in reverse sequence (*default*).}
+#'   \item{`edges = "rep1"`}{Will pad `x` with the last preceding value.}
+#'   \item{`edges = "none"`}{Will return the default [signal::filtfilt()] output.}
+#' }
 #'
-#' @return A numeric vector of filtered data.
+#' @details
+#' Applies a centred (two-pass symmetrical) Butterworth digital filter from
+#' [signal::butter()] and [signal::filtfilt()].
 #'
-#' @export
+#' The filter order is defined by `n`, an integer scalar typically in the
+#' range `n = [1, 10]`.
+#'
+#' The critical (cutoff) frequency is defined by `W`, a numeric scalar for
+#' *low-pass* and *high-pass* filters, or a two-element vector `c(low, high)`
+#' defining the lower and upper bands for *stop-band* and *pass-band* filters.
+#'
+#' *Low-pass* and *high-pass* filters allow only frequencies *lower* or *higher*
+#' than the critical frequency `W` to be passed through as the output signal,
+#' respectively. *Stop-band* defines a critical range of frequencies which are
+#' rejected from the output signal. *Pass-band* defines a critical range of
+#' frequencies which are passed through as the output signal.
 #'
 #' @examples
 #' set.seed(13)
-#' sin <- sin(2 * pi * 1:500 / 50) * 20 + 40
-#' noise <- rnorm(500, mean = 0, sd = 6)
+#' sin <- sin(2 * pi * 1:150 / 50) * 20 + 40
+#' noise <- rnorm(150, mean = 0, sd = 6)
 #' noisy_sin <- sin + noise
 #' filt_without_edge <- filtfilt_edges(x = noisy_sin, n = 2, W = 0.1, edges = "none")
 #' filt_with_edge <- filtfilt_edges(x = noisy_sin, n = 2, W = 0.1, edges = "rep1")
 #' plot(noisy_sin, type = "l")
 #' lines(filt_without_edge, col = "red", lwd = 4)
 #' lines(filt_with_edge, col = "blue", lwd = 4)
+#'
+#' @return A numeric vector of the same length as `x`.
+#'
+#' @export
 filtfilt_edges <- function (
         x,
         n = 1,
-        W = 0.1,
+        W,
+        type = c("low", "high", "stop", "pass"),
         edges = c("rev", "rep1", "none")
 ) {
+    if (!requireNamespace("signal", quietly = TRUE)) {
+        cli::cli_abort(paste(
+            "Package {.pkg signal} is required for low-pass filtering.",
+            "Please install it."))
+    }
+
+    type = match.arg(type)
     edges = match.arg(edges)
 
     ## argument validation
-    if (!rlang::is_double(x)) {
+    if (!is.numeric(x)) {
         cli::cli_abort("{.arg x} must be a numeric vector.")
     }
     if (!rlang::is_integerish(n)) {
         cli::cli_abort("{.arg n} must be an integer scalar of 1 or greater.")
     }
-    if (!rlang::is_scalar_double(W)) {
-        cli::cli_abort("{.arg W} must be a numeric scalar between 0 and 1.")
+    if (!is.numeric(W)) {
+        cli::cli_abort(paste(
+            "{.arg W} must be a numeric scalar or two-element vector",
+            "`c(low, high)` between 0 and 1."))
     }
 
     switch(edges,
            ## pads x with the first and last 10% of the vector length
            "rev" = pad_edges <- c(
-               rev(utils::head(x, length(x)/10)),
+               rev(head(x, length(x)/10)),
                x,
-               rev(utils::tail(x, length(x)/10))),
+               rev(tail(x, length(x)/10))),
            ## pads x with repeating first / last value
            "rep1" = pad_edges <- c(
-               rep(utils::head(x, 1), length(x)/10),
+               rep(head(x, 1), length(x)/10),
                x,
-               rep(utils::tail(x, 1), length(x)/10)),
+               rep(tail(x, 1), length(x)/10)),
            "none" = pad_edges <- x
     )
 
+    ## butterworth filter order (n) and relative cutoff frequency (W)
     x_filt <- signal::filtfilt(
-        ## butterworth filter order (n) and relative cutoff frequency (W)
-        filt = signal::butter(n, W),
-        x = pad_edges,
-    )
+        filt = signal::butter(n = n, W = W, type = type),
+        x = pad_edges)
 
     ## returns the original vector length of x with padding omitted
     switch(edges,

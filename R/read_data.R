@@ -75,22 +75,22 @@ create_mnirs_data <- function(
 #' @param nirs_columns A character vector indicating the mNIRS data columns
 #' to import from the target file. Must match exactly. A named character vector
 #' can be used to rename columns (see *Details*).
-#' @param sample_column *(optional)* A character scalar indicating the name of
+#' @param sample_column (*Optional*). A character scalar indicating the name of
 #' a time or sample data column. Must match exactly. A named character vector
 #' can be used to rename columns.
-#' @param event_column *(optional)* A character scalar indicating the name of
+#' @param event_column (*Optional*). A character scalar indicating the name of
 #' an event or lap data column. Must match exactly. A named character vector
 #' can be used to rename columns.
-#' @param sample_rate *(optional)* A numeric scalar for the sample rate in Hz.
+#' @param sample_rate (*Optional*). A numeric scalar for the sample rate in Hz.
 #' If not defined explicitly, will be estimated from the file data
 #' (see *Details*).
-#' @param .numeric_time A logical. `TRUE` *(default)* will convert
+#' @param .numeric_time A logical. `TRUE` (*default*) will convert
 #' date-time formatted columns to numeric values in seconds. `FALSE` will retain
 #' these columns formatted as date-time in the format of the original file.
-#' @param .keep_all A logical. `FALSE` *(default)* will only include the
+#' @param .keep_all A logical. `FALSE` (*default*) will only include the
 #' explicitly indicated data columns. `TRUE` will include all columns detected
 #' from the file.
-#' @param .verbose A logical. `TRUE` *(default)* will return warnings and
+#' @param .verbose A logical. `TRUE` (*default*) will return warnings and
 #' messages which can be used for data error checking. `FALSE` will silence these
 #' messages. Errors will always be returned.
 #'
@@ -107,7 +107,7 @@ create_mnirs_data <- function(
 #' `sample_rate` is required for certain `{mNIRS}` functions. If it is not
 #' defined explicitly, `sample_rate` will be estimated based
 #' on the mean difference between values in the `sample_column`. If
-#' `sample_column` is not specified, then `sample_rate` will be set to 1 Hz.
+#' `sample_column` is not defined, then `sample_rate` will be set to 1 Hz.
 #' If `sample_column` in the data file contains integer row numbers, then
 #' `sample_rate` will be incorrectly estimated to be 1 Hz, and should be
 #' defined explicitly.
@@ -268,7 +268,7 @@ read_data <- function(
                            perl = TRUE)
 
 
-        matched_cols <- setNames(character(length(name_vector)),
+        matched_cols <- stats::setNames(character(length(name_vector)),
                                  names(name_vector))
 
         ## Track which columns have been matched already
@@ -304,24 +304,24 @@ read_data <- function(
     data_prepared <- data_trimmed |>
         ## .keep_all selects everything, else only explicitly defined columns
         dplyr::select(
-            dplyr::any_of(c(
+            tidyselect::any_of(c(
                 sample_column,
                 event_column,
                 nirs_columns)),
-            if (.keep_all) dplyr::everything()
+            if (.keep_all) tidyselect::everything()
         ) |>
         ## rename columns from explicit input
         dplyr::rename(
-            dplyr::any_of(c(
+            tidyselect::any_of(c(
                 nirs_columns,
                 sample_column,
                 event_column))
         ) |>
         ## drops empty columns where all NA
-        dplyr::select(dplyr::where(\(.x) !all(is.na(.x)))) |>
+        dplyr::select(tidyselect::where(\(.x) !all(is.na(.x)))) |>
         ## drops empty rows where all NA
         dplyr::filter(
-            dplyr::if_any(dplyr::everything(), \(.x) !is.na(.x))
+            dplyr::if_any(tidyselect::everything(), \(.x) !is.na(.x))
         ) |>
         ## TODO 2025-06-23 do I need this?
         # ( \(.df) {
@@ -336,27 +336,27 @@ read_data <- function(
             ## convert dttm format sample column to numeric values in seconds
             ## detects either character or dttm formats
             dplyr::across(
-                dplyr::any_of(names(sample_column)) &
-                    dplyr::where(is.character),
+                tidyselect::any_of(names(sample_column)) &
+                    tidyselect::where(is.character),
                 \(.x) as.POSIXct(.x, tryFormats = c(
                     "%Y-%m-%d %H:%M:%OS", "%Y/%m/%d %H:%M:%OS", "%H:%M:%OS"),
                     format = "%H:%M:%OS")),
             if (.numeric_time) dplyr::across(
-                dplyr::any_of(names(sample_column)) &
-                    dplyr::where(lubridate::is.POSIXct),
+                tidyselect::any_of(names(sample_column)) &
+                    tidyselect::where(lubridate::is.POSIXct),
                 \(.x) lubridate::hour(.x) * 3600 +
                     lubridate::minute(.x) * 60 +
                     lubridate::second(.x)),
 
             ## round to avoid floating point error
-            dplyr::across(dplyr::where(is.numeric), \(.x) round(.x, 3)),
+            dplyr::across(tidyselect::where(is.numeric), \(.x) round(.x, 3)),
 
             ## convert blank values to NA
             dplyr::across(
-                dplyr::where(is.numeric),
+                tidyselect::where(is.numeric),
                 \(.x) ifelse(.x %in% c(Inf, -Inf, NaN), NA_real_, .x)),
             dplyr::across(
-                dplyr::where(is.character),
+                tidyselect::where(is.character),
                 \(.x) ifelse(.x %in% c("", "NA"), NA_character_, .x)),
         )
 
@@ -375,13 +375,14 @@ read_data <- function(
                     c(diff(get(names(sample_column))) <= 0, FALSE) |
                         duplicated(get(names(sample_column)))
                 ) |>
-                dplyr::pull(dplyr::any_of(names(sample_column)))
+                dplyr::pull(tidyselect::any_of(names(sample_column)))
 
             ## warning message about repeated samples
             if (.verbose) {
                 cli::cli_warn(paste(
                     "{.val sample_column = {names(sample_column)}} has",
-                    "non-sequential or repeating values. Consider investigating at",
+                    "non-sequential or repeating values. Consider",
+                    "investigating at",
                     if (length(repeated_samples) > 5) {
                         paste(
                             "{.arg {names(sample_column)} =",
@@ -400,7 +401,7 @@ read_data <- function(
                 dplyr::filter(
                     c(diff(get(names(sample_column))) > 3600, FALSE)
                 ) |>
-                dplyr::pull(dplyr::any_of(names(sample_column)))
+                dplyr::pull(tidyselect::any_of(names(sample_column)))
 
             if (.verbose) {
                 cli::cli_warn(paste(
@@ -421,7 +422,8 @@ read_data <- function(
         if (.verbose) {
             cli::cli_alert_info(paste(
                 "{.arg sample_column} should be a numeric value.",
-                "Sample rate set to 1 Hz. Overwrite this with {.arg sample_rate = X}"
+                "Sample rate set to 1 Hz. Overwrite this with"
+                ,"{.arg sample_rate = X}"
             ))
         }
 

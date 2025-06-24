@@ -8,7 +8,7 @@
 #' `fixed_values = c(0, 100)`.
 #' @param width A numeric scalar for the window length of `(2 · width + 1)` samples.
 #' @param return Indicates whether outliers should be replaced with `NA`
-#' *(default)* or the local *"median"* value.
+#' (*default*) or the local `"median"` value.
 #'
 #' @details
 #' Useful to overwrite known nonsense values, such as `0`, `100`, or `102.3`.
