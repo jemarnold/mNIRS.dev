@@ -1,0 +1,54 @@
+#' Methods for mNIRS.data objects
+#'
+#' Methods defined for objects returned from [create_mnirs_data()].
+#'
+#' @param x object of class `mNIRS.data` as returned from [create_mnirs_data()]
+#' @param ... Additional arguments (*currently not used*).
+#'
+#' @return A [ggplot2][ggplot2::ggplot()] object.
+#'
+#' @export
+#' @importFrom ggplot2 ggplot aes waiver expansion scale_x_continuous
+#' scale_y_continuous geom_line geom_point
+plot.mNIRS.data <- function(x, ...) {
+
+    if (!requireNamespace("ggplot2", quietly = TRUE)) {
+        cli::cli_abort(paste(
+            "Package {.pkg ggplot2} is required for plotting.",
+            "Please install it."))
+    }
+
+    data <- x
+
+    nirs_columns <- attributes(data)$nirs_columns
+    sample_column <- attributes(data)$sample_column
+
+    plot <- data |>
+        tidyr::pivot_longer(
+            cols = tidyselect::all_of(nirs_columns),
+            names_to = "nirs_columns",
+            values_to = "y") |>
+        ggplot() +
+        aes(x = .data[[sample_column]], y = y,
+                     colour = nirs_columns) +
+        theme_mNIRS() +
+        scale_x_continuous(
+            # name = sample_column,
+            breaks = if (rlang::is_installed("scales")) {
+                scales::breaks_pretty(n = 6)
+            } else {
+                waiver()
+            },
+            expand = expansion(mult = 0.01)) +
+        scale_y_continuous(
+            name = "mNIRS Signals",
+            breaks = if (rlang::is_installed("scales")) {
+                scales::breaks_pretty(n = 6)
+            } else {
+                waiver()
+            },
+            expand = expansion(mult = 0.01)) +
+        geom_line()
+
+    return(plot)
+}

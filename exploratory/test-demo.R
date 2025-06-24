@@ -45,4 +45,5 @@ devtools::check()
 usethis::use_package("rlang")
 usethis::use_package("purrr", type = "suggest")
 
-usethis::use_import_from("tibble", "new_tibble")
+usethis::use_import_from("utils", c("tail", "head"))
+

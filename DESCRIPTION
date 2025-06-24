@@ -32,6 +32,5 @@ Imports:
     zoo
 Suggests: 
     ggplot2,
-    purrr,
     scales,
     signal
