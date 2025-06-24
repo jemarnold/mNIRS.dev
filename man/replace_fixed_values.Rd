@@ -4,7 +4,7 @@
 \alias{replace_fixed_values}
 \title{Replace Fixed Values}
 \usage{
-replace_fixed_values(x, fixed_values, width, return = c("NA", "median"), ...)
+replace_fixed_values(x, fixed_values, width, return = c("NA", "median"))
 }
 \arguments{
 \item{x}{A numeric vector}
@@ -16,11 +16,9 @@ replace_fixed_values(x, fixed_values, width, return = c("NA", "median"), ...)
 
 \item{return}{Indicates whether outliers should be replaced with \code{NA}
 \emph{(default)} or the local \emph{"median"} value.}
-
-\item{...}{Additional arguments (\emph{currently not used}).}
 }
 \value{
-The corrected vector \code{y}.
+A numeric vector of filtered data.
 }
 \description{
 Detect specified values such as \code{c(0, 100)} in vector data and replaces

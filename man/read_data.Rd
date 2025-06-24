@@ -12,8 +12,7 @@ read_data(
   sample_rate = NULL,
   .numeric_time = TRUE,
   .keep_all = FALSE,
-  .verbose = TRUE,
-  ...
+  .verbose = TRUE
 )
 }
 \arguments{
@@ -32,7 +31,7 @@ can be used to rename columns.}
 an event or lap data column. Must match exactly. A named character vector
 can be used to rename columns.}
 
-\item{sample_rate}{\emph{(optional)} An integer scalar for the sample rate in Hz.
+\item{sample_rate}{\emph{(optional)} A numeric scalar for the sample rate in Hz.
 If not defined explicitly, will be estimated from the file data
 (see \emph{Details}).}
 
@@ -47,8 +46,6 @@ from the file.}
 \item{.verbose}{A logical. \code{TRUE} \emph{(default)} will return warnings and
 messages which can be used for data error checking. \code{FALSE} will silence these
 messages. Errors will always be returned.}
-
-\item{...}{Additional arguments (\emph{currently not used}).}
 }
 \value{
 A \link[tibble:tibble-package]{tibble} of class \code{mNIRS.data} with

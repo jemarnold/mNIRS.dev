@@ -8,8 +8,7 @@ replace_missing_values(
   x,
   method = c("locf", "linear", "spline", "omit"),
   na.rm = FALSE,
-  maxgap = Inf,
-  ...
+  maxgap = Inf
 )
 }
 \arguments{
@@ -31,12 +30,10 @@ leading and/or trailing \code{NA}s, should these be removed (using na.trim)?}
 
 \item{maxgap}{A numeric scalar for the maximum number of consecutive \code{NA}s
 to fill. Any longer gaps will be left unchanged.}
-
-\item{...}{Additional arguments (\emph{currently not used}).}
 }
 \value{
-The corrected vector \code{y} or a named vector \code{y} with names \code{idx} from
-indices from original input vector.
+A numeric vector of filtered data or a named numeric vector
+with names from indices of the original input vector.
 }
 \description{
 Detect missing values in vector data and replace via methods from the

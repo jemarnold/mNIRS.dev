@@ -18,7 +18,6 @@
 #' leading and/or trailing `NA`s, should these be removed (using na.trim)?
 #' @param maxgap A numeric scalar for the maximum number of consecutive `NA`s
 #' to fill. Any longer gaps will be left unchanged.
-#' @param ... Additional arguments (*currently not used*).
 #'
 #' @details
 #' \describe{
@@ -44,16 +43,15 @@
 #' replace_missing_values(x, method = "linear", na.rm = FALSE)
 #' replace_missing_values(x, method = "linear", na.rm = TRUE)
 #'
-#' @return The corrected vector `y` or a named vector `y` with names `idx` from
-#' indices from original input vector.
+#' @return A numeric vector of filtered data or a named numeric vector
+#' with names from indices of the original input vector.
 #'
 #' @export
 replace_missing_values <- function(
         x,
         method = c("locf", "linear", "spline", "omit"),
         na.rm = FALSE,
-        maxgap = Inf,
-        ...
+        maxgap = Inf
 ) {
 
     method <- match.arg(method)

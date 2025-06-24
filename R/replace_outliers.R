@@ -12,7 +12,6 @@
 #' before the filter is applied (see *Details*).
 #' @param return Indicates whether outliers should be replaced with the
 #' local *"median"* value *(default)*, or returned as `NA`.
-#' @param ... Additional arguments (*currently not used*).
 #'
 #' @details
 #' The *"median absolute deviation"* computation is done in the `[-width...width]`
@@ -51,7 +50,7 @@
 #' points(idO, outliers, pch=21, col="darkred")
 #' lines(y, col="blue")
 #'
-#' @return The corrected vector `y`.
+#' @return A numeric vector of filtered data.
 #'
 #' @export
 replace_outliers <- function(
@@ -59,8 +58,7 @@ replace_outliers <- function(
         width,
         t0 = 3,
         na.rm = FALSE,
-        return = c("median", "NA"),
-        ...
+        return = c("median", "NA")
 ) {
 
     return <- match.arg(return)

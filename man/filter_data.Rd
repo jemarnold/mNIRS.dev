@@ -8,69 +8,97 @@ filter_data(
   x,
   method = c("smooth-spline", "low-pass", "moving-average"),
   spar = NULL,
-  n = 4,
-  W = 0.1,
+  n,
+  W,
   critical_frequency,
   sample_rate,
-  width = 15,
-  ...
+  width
 )
 }
 \arguments{
 \item{x}{A numeric vector of mNIRS data.}
 
-\item{method}{Indicates how to digitally filter the data.
+\item{method}{Indicates how to digitally filter the data (see \emph{Details}).
 \describe{
 \item{\code{"smooth-spline"}}{fits a cubic smoothing spline.}
 \item{\code{"low-pass"}}{uses a centred Butterworth low-pass filter.}
 \item{\code{"moving-average"}}{uses a centred moving average filter.}
 }}
 
-\item{...}{Additional arguments (\emph{currently not used}).}
+\item{spar}{A numeric scalar defining the smoothing parameter for
+\code{method = "smooth-spline"}.}
+
+\item{n}{An integer scalar defining the order of a low-pass filter for
+\code{method = "low-pass"}.}
+
+\item{W}{A numeric scalar defining the fractional critical frequency of a
+low-pass filter for \code{method = "low-pass"}.}
+
+\item{critical_frequency}{A numeric scalar defining the critical frequency of
+a low-pass filter for \code{method = "low-pass"}.}
+
+\item{sample_rate}{A numeric scalar for the sample rate in Hz for
+\code{method = "low-pass"}.}
+
+\item{width}{A numeric scalar defining the window length of samples for
+\code{method = "moving-average"}.}
 }
 \value{
 A numeric vector of filtered data.
 }
 \description{
-Applies digital filtering with either:
-\enumerate{
-\item A cubic smoothing spline.
-\item A Butterworth low-pass filter.
-\item A simple moving average.
-}
+Applies digital filtering with either: 1. A cubic smoothing spline.
+2. A Butterworth low-pass filter. 3. A simple moving average.
 }
 \details{
 \describe{
 \item{\code{method = "smooth-spline"}}{applies a non-parametric cubic
-smoothing spline from \code{\link[stats:smooth.spline]{stats::smooth.spline()}}. Smoothing is defined by
-the parameter \code{spar}, a numeric scalar which can be left blank and
-automatically determined via penalised log liklihood. This usually works
-well for smoothing responses occuring on the order of minutes or longer.
-Or \code{spar} can be defined explicitly, typically (but not necessarily)
-\verb{spar = [0, 1]}.}
+smoothing spline from \code{\link[stats:smooth.spline]{stats::smooth.spline()}}. Smoothing is defined
+by the parameter \code{spar}, which can be left blank and automatically determined
+via penalised log liklihood. This usually works well for smoothing responses
+occurring on the order of minutes or longer. Or \code{spar} can be defined
+explicitly, typically (but not necessarily) in the range \verb{spar = [0, 1]}.}
 \item{\code{method = "low-pass"}}{applies a centred (two-pass symmetrical)
 Butterworth low-pass digital filter from \code{\link[signal:butter]{signal::butter()}} and
-\code{\link[signal:filtfilt]{signal::filtfilt()}}. The filter order is defined by \code{n}, an integer
-scalar typically \verb{n = [1, 10]}. Higher filter orders tend to capture
-rapid changes in amplitude better, but also cause more distortion
-artefacts in the signal. General advice is to use the lowest order which
-sufficiently captures rapid step-changes in the data.
+\code{\link[signal:filtfilt]{signal::filtfilt()}}. The filter order is defined by \code{n}, typically in the
+range \verb{n = [1, 10]}. Higher filter orders tend to capture rapid changes in
+amplitude better, but also cause more distortion artefacts in the signal.
+General advice is to use the lowest order which sufficiently captures rapid
+step-changes in the data.
 
 The low frequencies to be passed through the filter are defined by a
-critical frequency. This can be defined by either \code{critical_frequency}, a
-numeric scalar representing the desired critical frequency in Hz, and
-\code{sample_rate}, a numeric scalar reflecting the sample rate of the data in
-Hz together. Or by \code{W}, a numeric scalar representing the desired
-fractional critical frequency between \verb{[0, 1]}, where \code{1} is the Nyquist
-frequency, i.e., half the sample rate of the data in Hz.
+critical frequency. This can be defined by either \code{critical_frequency}
+representing the desired critical frequency in Hz, and \code{sample_rate}
+reflecting the sample rate of the data in Hz together. Or by \code{W}
+representing the desired fractional critical frequency in the range
+\verb{W = [0, 1]}, where \code{1} is the Nyquist frequency, i.e., half the sample
+rate of the data in Hz.
 
 Defining both \code{critical_frequency} and \code{sample_rate} explicitly will
 overwrite \code{W}.}
 \item{\code{method = "moving-average"}}{applies a centred (two-way symmetrical)
 moving average filter from \code{\link[zoo:rollapply]{zoo::rollapply()}}. The moving-average is
-calculated over a window of width \code{width}, an integer scalar specifying
+calculated over a window of width \code{width} specifying
 the number of samples between \verb{[i - floor(width/2), i + floor(width/2)]}.
 A partial moving-average will be calculated at the edges of the existing
 data.}
 }
+}
+\examples{
+set.seed(13)
+n <- 500
+x <- seq(0, 2*pi, len = n)
+y_clean <- 2*sin(x)
+noise <- rnorm(n, mean = 0, sd = 0.5)
+y <- y_clean + noise
+
+y.spline <- filter_data(y, method = "smooth-spline")
+y.LP <- filter_data(y, method = "low-pass", n = 2, W = 0.05)
+y.MA <- filter_data(y, method = "moving-average", width = 30)
+
+plot(x, y)
+lines(x, y.spline, lwd = 2, col = "blue")
+lines(x, y.LP, lwd = 2, col = "red")
+lines(x, y.MA, lwd = 2, col = "green4")
+
 }

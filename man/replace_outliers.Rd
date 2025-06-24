@@ -4,14 +4,7 @@
 \alias{replace_outliers}
 \title{Replace Local Outliers}
 \usage{
-replace_outliers(
-  x,
-  width,
-  t0 = 3,
-  na.rm = FALSE,
-  return = c("median", "NA"),
-  ...
-)
+replace_outliers(x, width, t0 = 3, na.rm = FALSE, return = c("median", "NA"))
 }
 \arguments{
 \item{x}{A numeric vector.}
@@ -26,11 +19,9 @@ before the filter is applied (see \emph{Details}).}
 
 \item{return}{Indicates whether outliers should be replaced with the
 local \emph{"median"} value \emph{(default)}, or returned as \code{NA}.}
-
-\item{...}{Additional arguments (\emph{currently not used}).}
 }
 \value{
-The corrected vector \code{y}.
+A numeric vector of filtered data.
 }
 \description{
 Detect local outliers in vector data with a Hampel filter using median

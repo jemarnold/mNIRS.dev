@@ -3,8 +3,7 @@
 #' Methods defined for objects returned from [create_mnirs_data()].
 #'
 #' @param x object of class `mNIRS.data` as returned from [create_mnirs_data()]
-#' @param ... further arguments passed through, see description of return value
-#' for details.
+#' @param ... Additional arguments (*currently not used*).
 #'
 #' @return
 #' \describe{

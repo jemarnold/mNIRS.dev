@@ -81,7 +81,7 @@ create_mnirs_data <- function(
 #' @param event_column *(optional)* A character scalar indicating the name of
 #' an event or lap data column. Must match exactly. A named character vector
 #' can be used to rename columns.
-#' @param sample_rate *(optional)* An integer scalar for the sample rate in Hz.
+#' @param sample_rate *(optional)* A numeric scalar for the sample rate in Hz.
 #' If not defined explicitly, will be estimated from the file data
 #' (see *Details*).
 #' @param .numeric_time A logical. `TRUE` *(default)* will convert
@@ -93,7 +93,6 @@ create_mnirs_data <- function(
 #' @param .verbose A logical. `TRUE` *(default)* will return warnings and
 #' messages which can be used for data error checking. `FALSE` will silence these
 #' messages. Errors will always be returned.
-#' @param ... Additional arguments (*currently not used*).
 #'
 #' @details
 #' Column names are matched to a single row, anywhere in the data file, not
@@ -127,8 +126,7 @@ read_data <- function(
         sample_rate = NULL,
         .numeric_time = TRUE,
         .keep_all = FALSE,
-        .verbose = TRUE,
-        ...
+        .verbose = TRUE
 ) {
     ## TODO add #' @import dplyr & other packages
 
@@ -148,9 +146,6 @@ read_data <- function(
             "{.arg .csv} currently recognised."
         ))
     }
-
-    ## pass through optional arguments
-    args <- list(...)
 
     ## import from either excel or csv
     ## report error when file is open and cannot be accessed by readxl

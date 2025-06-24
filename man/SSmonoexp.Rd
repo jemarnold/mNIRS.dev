@@ -2,7 +2,7 @@
 % Please edit documentation in R/monoexponential.R
 \name{SSmonoexp}
 \alias{SSmonoexp}
-\title{Self-Starting \code{nls} Monoexponential Model}
+\title{Self-Starting \code{nls} 4-Parameter Monoexponential Model}
 \usage{
 SSmonoexp(x, A, B, TD, tau)
 }
@@ -25,7 +25,7 @@ expression \code{ifelse(x <= TD, A, A + (B - A) * (1 - exp((TD - x) / tau)))}.
 }
 \description{
 This \code{selfStart} model evaluates the four-parameter
-\link[=monoexponential]{monoexponential} function. It creates initial
+\code{\link[=monoexponential]{monoexponential()}} function. It creates initial
 estimates for the parameters \code{A}, \code{B}, \code{TD}, and \code{tau}.
 }
 \examples{
@@ -49,5 +49,6 @@ lines(x, fitted, col = "red")
 
 }
 \seealso{
-\link[stats:nls]{nls}, \link[stats:selfStart]{selfStart}
+\link[stats:nls]{nls}, \link[stats:selfStart]{selfStart},
+\link[=monoexponential]{monoexponential}
 }

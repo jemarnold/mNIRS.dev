@@ -138,10 +138,10 @@ plot(data_cleaned)
 sample_column <- attributes(data_cleaned)$sample_column
 
 data_resampled <- data_cleaned |> 
-    resample_dataframe(sample_column = sample_column,
+    downsample_data(sample_column = sample_column,
                        sample_rate = sample_rate,
-                       resample_rate = 1) ## resample to 1 Hz
-#> ℹ Estimated sample rate is 2 Hz. Output is resampled at 1 Hz.
+                       downsample_rate = 1) ## downsample to 1 Hz
+#> ℹ Estimated sample rate is 2 Hz. Output is downsampled at 1 Hz.
 
 data_resampled
 #> # A tibble: 1,209 × 4
@@ -175,8 +175,6 @@ data_filtered <- data_resampled |>
                                  width = 15)
         )
     )
-#> ℹ Moving-average: width = 15.
-#> ℹ Moving-average: width = 15.
 
 data_filtered
 #> # A tibble: 1,209 × 4
@@ -204,7 +202,7 @@ plot(data_filtered)
 ``` r
 data_shifted <- data_filtered |> 
     ## wrap `nirs_columns` vector in list to shift all columns together
-    shift_dataframe(nirs_columns = list(nirs_columns), 
+    shift_data(nirs_columns = list(nirs_columns), 
                     shift_to = 0,
                     position = "first",
                     mean_samples = 30) ## shift the mean first 30 sec equal to zero
@@ -234,7 +232,7 @@ plot(data_shifted)
 
 data_normalised <- data_filtered |> 
     ## convert `nirs_columns` vector to list to shift each column separately
-    normalise_dataframe(nirs_columns = as.list(nirs_columns), 
+    normalise_data(nirs_columns = as.list(nirs_columns), 
                         normalise_range = c(0, 100))
 
 data_normalised

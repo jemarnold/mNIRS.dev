@@ -33,7 +33,7 @@
 #' metadata available with `attributes()`.
 #'
 #' @export
-normalise_dataframe <- function(
+normalise_data <- function(
         data,
         nirs_columns = list(),
         normalise_range = c(0, 100)
@@ -107,7 +107,7 @@ normalise_dataframe <- function(
 #     # event_column = c("Event" = "11"),
 # ) |> dplyr::slice(-1))
 # #
-# y <- normalise_dataframe(
+# y <- normalise_data(
 #     data = df,
 #     nirs_columns = list(c("ICG_VL", "ICG_SCM")),
 #     normalise_range = c(0, 100)

@@ -9,8 +9,7 @@
 \arguments{
 \item{x}{object of class \code{mNIRS.data} as returned from \code{\link[=create_mnirs_data]{create_mnirs_data()}}}
 
-\item{...}{further arguments passed through, see description of return value
-for details.}
+\item{...}{Additional arguments (\emph{currently not used}).}
 }
 \value{
 \describe{

@@ -5,14 +5,15 @@
 #' @param data A dataframe containing mNIRS data.
 #' @param sample_column *(optional)* A character scalar indicating the name of
 #' the time or sample data column. Must match exactly.
-#' @param sample_rate *(optional)* A numeric scalar for the sample rate in Hz.
-#' @param downsample_rate *(optional)* A numeric scalar indicating the desired
+#' @param sample_rate *(optional)* An integer scalar for the sample rate in Hz.
+#' @param downsample_rate *(optional)* An integer scalar indicating the desired
 #' output sample rate (in Hz) to convert the dataframe.
 #' @param downsample_time *(optional)* A numeric scalar indicating the desired
 #' sample time (in seconds) to convert the dataframe.
 #' @param .verbose A logical. `TRUE` *(default)* will return warnings and
 #' messages which can be used for data error checking. `FALSE` will silence these
 #' messages. Errors will always be returned.
+#' @param ... Additional arguments (*currently not used*).
 #'
 #' @details
 #' `sample_column` and `sample_rate` will be taken from metadata for an
@@ -28,13 +29,14 @@
 #' metadata available with `attributes()`.
 #'
 #' @export
-downsample_data <- function(
+downsample_dataframe <- function(
         data,
         sample_column = NULL,
         sample_rate = NULL,
         downsample_rate = NULL, ## 10 Hz
         downsample_time = NULL, ## 0.01 s
-        .verbose = TRUE
+        .verbose = TRUE,
+        ...
 ) {
     ## pass through =============================
 
@@ -47,6 +49,7 @@ downsample_data <- function(
 
     ## metadata ================================
     metadata <- attributes(data)
+    args <- list(...)
 
     ## define `sample_column`. priority is manually defined
     if (
@@ -174,7 +177,7 @@ downsample_data <- function(
 # (sample_rate <- attributes(data)$sample_rate)
 # (downsample_rate <- 0.1)
 # # #
-# (y <- downsample_data(
+# (y <- downsample_dataframe(
 #     data = data,
 #     # sample_column = "time",
 #     sample_rate = 50,

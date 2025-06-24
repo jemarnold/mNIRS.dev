@@ -48,7 +48,7 @@
 #' metadata available with `attributes()`.
 #'
 #' @export
-shift_dataframe <- function(
+shift_data <- function(
         data,
         nirs_columns = list(),
         shift_to = 0,
@@ -213,7 +213,7 @@ shift_dataframe <- function(
 #     # event_column = c("Event" = "11"),
 # ) |> dplyr::slice(-1))
 #
-# y <- shift_dataframe(
+# y <- shift_data(
 #     # data = tibble(ICG_VL = 1:10, ICG_SCM = -10:-1),
 #     data = df,
 #     nirs_columns = list("ICG_VL", "ICG_SCM", "smo2"),
