@@ -73,15 +73,7 @@ plot(data_raw)
 ### Replace fixed values, outliers, and missing values
 
 ``` r
-library(dplyr)
-#> 
-#> Attaching package: 'dplyr'
-#> The following objects are masked from 'package:stats':
-#> 
-#>     filter, lag
-#> The following objects are masked from 'package:base':
-#> 
-#>     intersect, setdiff, setequal, union
+library(dplyr, warn.conflicts = FALSE)
 
 ## metadata are stored in dataframe attributes
 nirs_columns <- attributes(data_raw)$nirs_columns
