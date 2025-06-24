@@ -16,6 +16,8 @@ theme_mNIRS <- function(
         border = c("partial", "full"),
         ...
 ) {
+    rlang::check_installed("ggplot2", reason = "to plot mNIRS data")
+
     half_line = base_size/2
     border = match.arg(border)
 

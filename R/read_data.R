@@ -149,7 +149,7 @@ read_data <- function(
 
     ## import from either excel or csv
     ## report error when file is open and cannot be accessed by readxl
-    if (grepl("xls(x)?", tools::file_ext(file_path))) {
+    if (grepl("xls(x)?$", file_path)) {
 
         data_pre <- tryCatch({
             readxl::read_excel(
@@ -172,7 +172,7 @@ read_data <- function(
         header_row <- which(apply(data_pre[1:1000, ], 1,
                                   \(.row) all(nirs_columns %in% .row)))
 
-    } else if (grepl("csv", tools::file_ext(file_path))) {
+    } else if (grepl("csv$", file_path)) {
 
         ## read raw lines from csv. Avoids issues with multiple empty rows
         all_lines <- readLines(file_path, warn = FALSE)

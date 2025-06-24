@@ -12,11 +12,12 @@
 #' scale_y_continuous geom_line geom_point
 plot.mNIRS.data <- function(x, ...) {
 
-    if (!requireNamespace("ggplot2", quietly = TRUE)) {
-        cli::cli_abort(paste(
-            "Package {.pkg ggplot2} is required for plotting.",
-            "Please install it."))
-    }
+    # if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    #     cli::cli_abort(paste(
+    #         "Package {.pkg ggplot2} is required for plotting.",
+    #         "Please install it."))
+    # }
+    rlang::check_installed("ggplot2", reason = "to plot mNIRS data")
 
     data <- x
 

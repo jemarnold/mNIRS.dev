@@ -61,11 +61,12 @@ filtfilt_edges <- function (
         type = c("low", "high", "stop", "pass"),
         edges = c("rev", "rep1", "none")
 ) {
-    if (!requireNamespace("signal", quietly = TRUE)) {
-        cli::cli_abort(paste(
-            "Package {.pkg signal} is required for low-pass filtering.",
-            "Please install it."))
-    }
+    # if (!requireNamespace("signal", quietly = TRUE)) {
+    #     cli::cli_abort(paste(
+    #         "Package {.pkg signal} is required for low-pass filtering.",
+    #         "Please install it."))
+    # }
+    rlang::check_installed("signal", reason = "to use Butterworth digital filter")
 
     type = match.arg(type)
     edges = match.arg(edges)
