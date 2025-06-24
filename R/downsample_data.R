@@ -1,8 +1,8 @@
 #' Downsample Data
 #'
-#' Downsamples dataframe using time-weighted interpolation.
+#' Downsample a dataframe using time-weighted averaging.
 #'
-#' @param data A dataframe containing mNIRS data.
+#' @param data A dataframe.
 #' @param sample_column *(optional)* A character scalar indicating the name of
 #' the time or sample data column. Must match exactly.
 #' @param sample_rate *(optional)* A numeric scalar for the sample rate in Hz.
@@ -23,6 +23,8 @@
 #' in the `sample_column`. If `sample_column` contains integer sample numbers,
 #' then `sample_rate` will be incorrectly estimated  to be 1 Hz, and should be
 #' defined explicitly.
+#'
+#' *TODO include upsample interpolation?*
 #'
 #' @return A [tibble][tibble::tibble-package] of class `mNIRS.data` with
 #' metadata available with `attributes()`.

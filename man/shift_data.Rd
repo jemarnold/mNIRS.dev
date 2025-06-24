@@ -14,24 +14,20 @@ shift_data(
 )
 }
 \arguments{
-\item{data}{A dataframe containing mNIRS data.}
+\item{data}{A dataframe.}
 
 \item{nirs_columns}{A \code{list()} of character vectors indicating the column
-names for data signals to be shifted. Columns grouped together in a vector
-will preserve relative scaling. Separate columns will shift to their own
-specified values. Should match column names in the dataframe exactly. See
-\emph{Details}.}
+names for data channels to be shifted (see \emph{Details}).}
 
-\item{shift_to}{A numeric scalar to which the specified data columns
+\item{shift_to}{A numeric scalar to which the specified data channels
 will be shifted to.}
 
 \item{position}{Indicates how to shift values.
 \describe{
-\item{\code{"minimum"}}{\emph{(default)} will shift selected columns' minimum values
+\item{\code{"minimum"}}{\emph{(default)} will shift selected channels' minimum values
 to the specified \code{shift_to} value.}
-\item{\code{"maximum"}}{will shift selected columns by their maximum values.}
-\item{\code{"first"}}{will shift selected columns by their first existing
-values.}
+\item{\code{"maximum"}}{will shift selected channels by their maximum values.}
+\item{\code{"first"}}{will shift selected channels by their first values.}
 }}
 
 \item{mean_samples}{An integer scalar representing the number of samples
@@ -39,7 +35,7 @@ over which the \code{position} is determined. e.g., \code{mean_samples = 1} look
 the single minimum, maximum, or first value. \code{mean_samples = 30} would
 use the mean of the lowest, highest, or first \code{30} samples.}
 
-\item{shift_by}{\emph{(optional)} specified data columns can be shifted by a set
+\item{shift_by}{\emph{(optional)} specified data channels can be shifted by a set
 amount.}
 }
 \value{
@@ -47,24 +43,26 @@ A \link[tibble:tibble-package]{tibble} of class \code{mNIRS.data} with
 metadata available with \code{attributes()}.
 }
 \description{
-Shift the data range of mNIRS signals (e.g. shift to positive values) while
-preserving the absolute dynamic range and relative scaling across columns.
+Shift the range of data channels while preserving the absolute dynamic
+range and/or relative scaling across channels. e.g. shift data range to positive
+values, or shift the start value of a recording to zero.
 }
 \details{
-\code{nirs_columns} can be used to group data columns together to preserve
-relative scaling across mNIRS signals.
+\code{nirs_columns = list()} can be used to group data columns to preserve
+absolute or relative scaling. channels grouped together in a vector
+will preserve relative scaling across channels. Should match column names
+in the dataframe exactly.
 
 \describe{
-\item{\code{list(A, B, C)}}{will shift each column separately within their own
-values. Absolute dynamic range is preserved, but relative values will be
-shifted between columns.}
-\item{\code{list(c(A, B, C))}}{will shift all columns together to a common
-specified value. Absolute dynamic range and relative scaling are both
-preserved across the group of columns.}
-\item{\code{list(c(A, B), c(C, D))}}{will shift columns \code{A} and \code{B} to a
-common value, and columns \code{C} and \code{D} to a separate common value.
-This is a way to create multiple groups of data columns where relative
-scaling is preserved within groups, but not across groups of mNIRS
-signals.}
+\item{\code{nirs_columns = list("A", "B", "C")}}{will shift each column separately.
+Absolute dynamic range for each data channel is preserved, but relative
+scaling will be lost between data channels.}
+\item{\code{nirs_columns = list(c("A", "B", "C"))}}{will shift all columns together.
+Absolute dynamic range and relative scaling are both preserved across the
+group of data channels.}
+\item{\code{nirs_columns = list(c("A", "B"), c("C", "D"))}}{will shift columns \code{A}
+and \code{B} together, and columns \code{C} and \code{D} together. Absolute dynamic range
+and relative scaling are preserved within each group, but not across groups
+of data channels.}
 }
 }

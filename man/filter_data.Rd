@@ -16,7 +16,7 @@ filter_data(
 )
 }
 \arguments{
-\item{x}{A numeric vector of mNIRS data.}
+\item{x}{A numeric vector.}
 
 \item{method}{Indicates how to digitally filter the data (see \emph{Details}).
 \describe{

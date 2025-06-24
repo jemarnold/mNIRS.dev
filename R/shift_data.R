@@ -1,47 +1,45 @@
 #' Shift Data Range
 #'
-#' Shift the data range of mNIRS signals (e.g. shift to positive values) while
-#' preserving the absolute dynamic range and relative scaling across columns.
+#' Shift the range of data channels while preserving the absolute dynamic
+#' range and/or relative scaling across channels. e.g. shift data range to positive
+#' values, or shift the start value of a recording to zero.
 #'
-#' @param data A dataframe containing mNIRS data.
+#' @param data A dataframe.
 #' @param nirs_columns A `list()` of character vectors indicating the column
-#' names for data signals to be shifted. Columns grouped together in a vector
-#' will preserve relative scaling. Separate columns will shift to their own
-#' specified values. Should match column names in the dataframe exactly. See
-#' *Details*.
-#' @param shift_to A numeric scalar to which the specified data columns
+#' names for data channels to be shifted (see *Details*).
+#' @param shift_to A numeric scalar to which the specified data channels
 #' will be shifted to.
 #' @param position Indicates how to shift values.
 #' \describe{
-#'   \item{`"minimum"`}{*(default)* will shift selected columns' minimum values
+#'   \item{`"minimum"`}{*(default)* will shift selected channels' minimum values
 #'   to the specified `shift_to` value.}
-#'   \item{`"maximum"`}{will shift selected columns by their maximum values.}
-#'   \item{`"first"`}{will shift selected columns by their first existing
-#'   values.}
+#'   \item{`"maximum"`}{will shift selected channels by their maximum values.}
+#'   \item{`"first"`}{will shift selected channels by their first values.}
 #' }
 #' @param mean_samples An integer scalar representing the number of samples
 #' over which the `position` is determined. e.g., `mean_samples = 1` looks for
 #' the single minimum, maximum, or first value. `mean_samples = 30` would
 #' use the mean of the lowest, highest, or first `30` samples.
-#' @param shift_by *(optional)* specified data columns can be shifted by a set
+#' @param shift_by *(optional)* specified data channels can be shifted by a set
 #' amount.
 #'
 #' @details
-#' `nirs_columns` can be used to group data columns together to preserve
-#' relative scaling across mNIRS signals.
+#' `nirs_columns = list()` can be used to group data columns to preserve
+#' absolute or relative scaling. channels grouped together in a vector
+#' will preserve relative scaling across channels. Should match column names
+#' in the dataframe exactly.
 #'
 #' \describe{
-#'   \item{`list(A, B, C)`}{will shift each column separately within their own
-#'   values. Absolute dynamic range is preserved, but relative values will be
-#'   shifted between columns.}
-#'   \item{`list(c(A, B, C))`}{will shift all columns together to a common
-#'   specified value. Absolute dynamic range and relative scaling are both
-#'   preserved across the group of columns.}
-#'   \item{`list(c(A, B), c(C, D))`}{will shift columns `A` and `B` to a
-#'   common value, and columns `C` and `D` to a separate common value.
-#'   This is a way to create multiple groups of data columns where relative
-#'   scaling is preserved within groups, but not across groups of mNIRS
-#'   signals.}
+#'   \item{`nirs_columns = list("A", "B", "C")`}{will shift each column separately.
+#'   Absolute dynamic range for each data channel is preserved, but relative
+#'   scaling will be lost between data channels.}
+#'   \item{`nirs_columns = list(c("A", "B", "C"))`}{will shift all columns together.
+#'   Absolute dynamic range and relative scaling are both preserved across the
+#'   group of data channels.}
+#'   \item{`nirs_columns = list(c("A", "B"), c("C", "D"))`}{will shift columns `A`
+#'   and `B` together, and columns `C` and `D` together. Absolute dynamic range
+#'   and relative scaling are preserved within each group, but not across groups
+#'   of data channels.}
 #' }
 #'
 #' @return A [tibble][tibble::tibble-package] of class `mNIRS.data` with
@@ -94,8 +92,8 @@ shift_data <- function(
     }
 
     ## shift range ================================
-    ## TODO NOT IN USE; only marginally faster than more trustworthy
-    ## ZOO::rollapply option
+    ## TODO NOT IN USE; seems to only be marginally faster than more
+    ## established zoo::rollapply() function
     # rolling_mean_fast <- function(x, width) {
     #     n <- length(x)
     #     half_width <- floor(width / 2)

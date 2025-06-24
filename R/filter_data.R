@@ -3,7 +3,7 @@
 #' Applies digital filtering with either: 1. A cubic smoothing spline.
 #' 2. A Butterworth low-pass filter. 3. A simple moving average.
 #'
-#' @param x A numeric vector of mNIRS data.
+#' @param x A numeric vector.
 #' @param method Indicates how to digitally filter the data (see *Details*).
 #' \describe{
 #'   \item{`"smooth-spline"`}{fits a cubic smoothing spline.}

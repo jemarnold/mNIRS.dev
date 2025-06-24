@@ -1,32 +1,29 @@
-#' Normalise data range
+#' Normalise Data Range
 #'
-#' Normalise the range of mNIRS signals while preserving the relative
-#' scaling across columns.
+#' Normalise the range of data channels to a new dynamic range, while preserving
+#' the relative scaling across columns. e.g. rescale the range of data to
+#' `c(0,100)`.
 #'
-#' @param data A dataframe containing mNIRS data.
+#' @param data A dataframe.
 #' @param nirs_columns A `list()` of character vectors indicating the column
-#' names for data signals to be shifted. Columns grouped together in a vector
-#' will preserve relative scaling. Separate columns will shift to their own
-#' specified values. Should match column names in the dataframe exactly. See
-#' *Details*.
+#' names for data channels to be rescaled (see *Details*).
 #' @param normalise_range A numeric vector in the form `c(min, max)`,
-#' indicating the range of values to which the specified mNIRS data
-#' columns will be re-scaled.
+#' indicating the range of output values to which data channels will be rescaled.
 #'
 #' @details
-#' `nirs_columns` can be used to group data columns together to preserve
-#' relative scaling across mNIRS signals.
+#' `nirs_columns = list()` can be used to group data columns to preserve
+#' relative scaling. channels grouped together in a vector will preserve
+#' relative scaling across channels. Should match column names in the dataframe
+#' exactly.
 #'
 #' \describe{
-#'   \item{`list(A, B, C)`}{will rescale each column separately.
-#'   Relative values will be shifted between columns.}
-#'   \item{`list(c(A, B, C))`}{will rescale all columns together to a common
-#'   range. Relative scaling is preserved across the group of columns.}
-#'   \item{`list(c(A, B), c(C, D))`}{will rescale columns `A` and `B` to a
-#'   common range, and columns `C` and `D` to a separate common range.
-#'   This is a way to create multiple groups of data columns where relative
-#'   scaling is preserved within groups, but not across groups of
-#'   mNIRS signals.}
+#'   \item{`nirs_columns = list("A", "B", "C")`}{will rescale each column
+#'   separately. Relative scaling will be lost between data channels.}
+#'   \item{`nirs_columns = list(c("A", "B", "C"))`}{will rescale all columns
+#'   together. Relative scaling is preserved across the group of data channels.}
+#'   \item{`nirs_columns = list(c("A", "B"), c("C", "D"))`}{will rescale columns
+#'   `A` and `B` together, and columns `C` and `D` together. Relative scaling
+#'   is preserved within each group, but not across groups of data channels.}
 #' }
 #'
 #' @return A [tibble][tibble::tibble-package] of class `mNIRS.data` with

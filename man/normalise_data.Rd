@@ -2,44 +2,41 @@
 % Please edit documentation in R/normalise_data.R
 \name{normalise_data}
 \alias{normalise_data}
-\title{Normalise data range}
+\title{Normalise Data Range}
 \usage{
 normalise_data(data, nirs_columns = list(), normalise_range = c(0, 100))
 }
 \arguments{
-\item{data}{A dataframe containing mNIRS data.}
+\item{data}{A dataframe.}
 
 \item{nirs_columns}{A \code{list()} of character vectors indicating the column
-names for data signals to be shifted. Columns grouped together in a vector
-will preserve relative scaling. Separate columns will shift to their own
-specified values. Should match column names in the dataframe exactly. See
-\emph{Details}.}
+names for data channels to be rescaled (see \emph{Details}).}
 
 \item{normalise_range}{A numeric vector in the form \code{c(min, max)},
-indicating the range of values to which the specified mNIRS data
-columns will be re-scaled.}
+indicating the range of output values to which data channels will be rescaled.}
 }
 \value{
 A \link[tibble:tibble-package]{tibble} of class \code{mNIRS.data} with
 metadata available with \code{attributes()}.
 }
 \description{
-Normalise the range of mNIRS signals while preserving the relative
-scaling across columns.
+Normalise the range of data channels to a new dynamic range, while preserving
+the relative scaling across columns. e.g. rescale the range of data to
+\code{c(0,100)}.
 }
 \details{
-\code{nirs_columns} can be used to group data columns together to preserve
-relative scaling across mNIRS signals.
+\code{nirs_columns = list()} can be used to group data columns to preserve
+relative scaling. channels grouped together in a vector will preserve
+relative scaling across channels. Should match column names in the dataframe
+exactly.
 
 \describe{
-\item{\code{list(A, B, C)}}{will rescale each column separately.
-Relative values will be shifted between columns.}
-\item{\code{list(c(A, B, C))}}{will rescale all columns together to a common
-range. Relative scaling is preserved across the group of columns.}
-\item{\code{list(c(A, B), c(C, D))}}{will rescale columns \code{A} and \code{B} to a
-common range, and columns \code{C} and \code{D} to a separate common range.
-This is a way to create multiple groups of data columns where relative
-scaling is preserved within groups, but not across groups of
-mNIRS signals.}
+\item{\code{nirs_columns = list("A", "B", "C")}}{will rescale each column
+separately. Relative scaling will be lost between data channels.}
+\item{\code{nirs_columns = list(c("A", "B", "C"))}}{will rescale all columns
+together. Relative scaling is preserved across the group of data channels.}
+\item{\code{nirs_columns = list(c("A", "B"), c("C", "D"))}}{will rescale columns
+\code{A} and \code{B} together, and columns \code{C} and \code{D} together. Relative scaling
+is preserved within each group, but not across groups of data channels.}
 }
 }
