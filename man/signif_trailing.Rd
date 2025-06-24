@@ -4,7 +4,7 @@
 \alias{signif_trailing}
 \title{Print a numeric value as character with trailing zeroes}
 \usage{
-signif_trailing(x, digits = 2, format = c("f", "fg"))
+signif_trailing(x, digits = 2, format = c("digits", "signif"))
 }
 \arguments{
 \item{x}{A numeric vector.}
@@ -12,18 +12,23 @@ signif_trailing(x, digits = 2, format = c("f", "fg"))
 \item{digits}{An integer scalar specifying the number of digits to preserve.}
 
 \item{format}{Indicates how to treat \code{digits}. Either the desired number of
-digits after the decimal point (\code{format = "f"}) or significant digits
-(\code{format = "fg"}).}
+digits after the decimal point (\code{format = "digits"}) or significant digits
+(\code{format = "signif"}).}
 }
 \value{
 A character vector.
 }
 \description{
-Converts a numeric vector to a character vector to preserve trailing zeroes
+Converts a numeric to a character object to preserve trailing zeroes
 for display.
 }
 \examples{
-signif_trailing(c(1, 1.3, 1.35), digits = 2, format = "f")
-signif_trailing(c(1, 1.3, 1.35), digits = 2, format = "fg")
+x <- c(1, 1.3, 1.35)
+signif_trailing(x, digits = 2, format = "digits")
+signif_trailing(x, digits = 2, format = "signif")
 
 }
+\seealso{
+\code{\link[=formatC]{formatC()}}, \code{\link[=round]{round()}}, \code{\link[=signif]{signif()}}
+}
+\keyword{internal}

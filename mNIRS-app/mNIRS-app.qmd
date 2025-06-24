@@ -450,7 +450,7 @@ output$nirs_table <- DT::renderDT({
     #     mutate(
     #         across(
     #             any_of(nirs_columns), 
-    #             \(.x) mNIRS::signif_trailing(.x, 3, "fg"))
+    #             \(.x) mNIRS::signif_trailing(.x, 3, "signif"))
     #     )
     
     table <- DT::datatable(
