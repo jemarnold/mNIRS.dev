@@ -1,30 +1,31 @@
 #' Replace Local Outliers
 #'
-#' Hampel filter with median absolute deviation (MAD) to detect outliers in
-#' mNIRS vector data. Modified from [pracma::hampel()] to skip `NA`s.
+#' Detect local outliers in vector data with a Hampel filter using median
+#' absolute deviation (MAD), and replaces with the local median value or `NA`.
+#' Modified from [pracma::hampel()].
 #'
-#' @param x A numeric vector of mNIRS data.
-#' @param k A numeric scalar for the window length of `(2 × k + 1)` samples.
+#' @param x A numeric vector.
+#' @param width A numeric scalar for the window length of `(2 × width + 1)` samples.
 #' @param t0 A numeric scalar for the outlier threshold, default is 3
-#' (Pearson's rule), see below.
+#' (Pearson's rule).
 #' @param na.rm A logical indicating whether missing values should be ignored
-#' before the filter is applied.
+#' before the filter is applied (see *Details*).
 #' @param return Indicates whether outliers should be replaced with the
 #' local *"median"* value *(default)*, or returned as `NA`.
 #' @param ... Additional arguments (*currently not used*).
 #'
 #' @details
-#' The *"median absolute deviation"* computation is done in the `[-k...k]`
-#' vicinity of each point at least `k` steps away from the end points of the
+#' The *"median absolute deviation"* computation is done in the `[-width...width]`
+#' vicinity of each point at least `width` steps away from the end points of the
 #' interval. At the lower and upper end the time series values are preserved.
 #'
 #' A high threshold makes the filter more forgiving, a low one will declare
-#' more points to be outliers. `t0 = 3` *(default)* corresponds to Ron
-#' Pearson's 3 sigma edit rule, `t0 = 0` to John Tukey's median filter.
+#' more points to be outliers. `t0 = 3` *(default)* corresponds to Pearson's
+#' 3 sigma edit rule, `t0 = 0` to Tukey's median filter.
 #'
-#' `NA` values in the numeric vector will cause an error unless
-#' `na.rm` is set to `TRUE`. Then `NA` values are skipped and preserved in the
-#' returned vector.
+#' `NA` values in the numeric vector will cause an error unless `na.rm = TRUE`.
+#' Then `NA` values are skipped for outlier detection, and preserved in the
+#' returned vector `y`.
 #'
 #' The default `return = "median"` will replace outliers with the local
 #' median value, as in [pracma::hampel()]. Otherwise, outliers will be
@@ -40,22 +41,22 @@
 #' for (i in 2:1024) {
 #'     x[i] <- 0.4*x[i-1] + 0.8*x[i-1]*z[i-1] + z[i]
 #' }
-#' x[100:200] <- NA
-#' omad <- replace_outliers(x, k = 20, na.rm = TRUE)
+#' x[150:200] <- NA ## generate NA values
+#' # replace_outliers(x, width = 20, na.rm = FALSE) ## returns error
+#' y <- replace_outliers(x, width = 20, na.rm = TRUE)
+#' idO <- which(x != y) ## identify outlier indices
+#' outliers <- x[idO] ## identify outlier values
 #'
-#' ## Not run:
 #' plot(1:1024, x, type="l")
-#' points(omad$idx, x[omad$idx], pch=21, col="darkred")
-#' grid()
-#' ## End(Not run)
+#' points(idO, outliers, pch=21, col="darkred")
+#' lines(y, col="blue")
 #'
-#' @return A list `L` with `L$y` the corrected time series and
-#' `L$idx` the indices of the values replaced.
+#' @return The corrected vector `y`.
 #'
 #' @export
 replace_outliers <- function(
         x,
-        k,
+        width,
         t0 = 3,
         na.rm = FALSE,
         return = c("median", "NA"),
@@ -64,14 +65,14 @@ replace_outliers <- function(
 
     return <- match.arg(return)
 
-    ## validation: `k` must be a numeric scalar
-    if (!is.numeric(k) | length(k) > 1) {
-        cli::cli_abort(paste("{.arg k} must be a {.cls numeric} scalar."))
+    ## validation: `width` must be a numeric scalar
+    if (!is.numeric(width) | length(width) > 1) {
+        cli::cli_abort(paste("{.arg width} must be a {.cls numeric} scalar."))
     }
 
-    ## validation: `k` must be shorter than x
-    if (k >= ceiling(length(x)/2)) {
-        cli::cli_abort(paste("{.arg k} must be 1/2 the length of {.arg x}."))
+    ## validation: `width` must be shorter than x
+    if (width >= ceiling(length(x)/2)) {
+        cli::cli_abort(paste("{.arg width} must be half the length of {.arg x}."))
     }
 
     ## validation: `t0` must be a numeric scalar
@@ -79,24 +80,31 @@ replace_outliers <- function(
         cli::cli_abort(paste("{.arg t0} must be a {.cls numeric} scalar."))
     }
 
-    x.all <- setNames(x, seq_along(x))
-    x <- if (na.rm) {na.omit(x.all)} else {x.all}
+    x.all <- setNames(x, seq_along(x)) ## vector x with idx names
+    y.all <- x.all ## eventual na.preserved vector with outliers corrected
+
+    x <- if (na.rm) {na.omit(x.all)} else {x.all} ## na.omitted vector
+    y <- x ## eventual na.omitted vector with outliers corrected
 
     n <- length(x)
-    y <- x
-    idx <- c()
+    idO <- c() ## eventual indices of outliers
     L <- 1.4826
-    for (i in (k + 1):(n - k)) {
-        x0 <- median(x[(i - k):(i + k)])
-        S0 <- L * median(abs(x[(i - k):(i + k)] - x0))
+    for (i in 1:n) {
+        # Calculate the window bounds, ensuring they stay within vector limits
+        start_idx <- max(1, i - width)
+        end_idx <- min(n, i + width)
+        x0 <- median(x[start_idx:end_idx])
+        S0 <- L * median(abs(x[start_idx:end_idx] - x0))
         if (abs(x[i] - x0) > t0 * S0) {
             y[i] <- if (return == "median") {x0} else {NA_real_}
-            idx <- c(idx, i)
+            idO <- c(idO, i)
         }
     }
 
-    y.idx <- as.numeric(names(y[idx]))
-    x.all[y.idx] <- y[idx]
+    ## replace corrected values from na.omitted y into na.preserved y.all
+    ## by outlier index idO from original y.all
+    y.idO <- as.numeric(names(y[idO]))
+    y.all[y.idO] <- y[idO]
 
-    return(list(y = x.all, idx = y.idx))
+    return(as.vector(y.all)) ## return na.preserved output
 }

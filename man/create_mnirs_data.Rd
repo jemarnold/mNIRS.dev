@@ -2,7 +2,7 @@
 % Please edit documentation in R/read_data.R
 \name{create_mnirs_data}
 \alias{create_mnirs_data}
-\title{Create a Dataframe with Metadata}
+\title{Create an mNIRS Dataframe with Metadata}
 \usage{
 create_mnirs_data(data, metadata)
 }
@@ -16,7 +16,7 @@ A \link[tibble:tibble-package]{tibble} of class \code{mNIRS.data} with
 metadata available with \code{attributes()}.
 }
 \description{
-Used to manually add mNIRS metadata to an existing dataframe.
+Used to manually add class "mNIRS.data" and metadata to an existing dataframe.
 }
 \examples{
 ## currently implemented metadata

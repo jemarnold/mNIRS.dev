@@ -1,17 +1,19 @@
 #' Replace Missing Values
 #'
-#' Detect missing values within mNIRS vector data and replace via methods from
-#' the [zoo][zoo::na.approx()] package.
+#' Detect missing values in vector data and replace via methods from the
+#' [zoo][zoo::na.approx()] package.
 #'
-#' @param x A numeric vector of mNIRS data.
+#' @param x A numeric vector.
 #' @param method Indicates how to replace missing data.
-#' - *"locf"* Stands for 'last observation carried forward'. Replaces each `NA`
-#' with the most recent non-`NA` value prior to it via [zoo::na.locf()].
-#' - *"linear"* Replaces each `NA` via linear interpolation via
-#' [zoo::na.approx()].
-#' - *"spline"* Replaces each `NA` with cubic spline interpolation via
-#' [zoo::na.spline()].
-#' - *"omit"* Removes `NA` via [stats::na.omit()].
+#' \describe{
+#'   \item{`"locf"`}{Stands for 'last observation carried forward'. Replaces each
+#'      `NA` with the most recent non-`NA` value prior to it via [zoo::na.locf()].}
+#'   \item{`"linear"`}{Replaces each `NA` via linear interpolation via
+#'      [zoo::na.approx()].}
+#'   \item{`"spline"`}{Replaces each `NA` with cubic spline interpolation via
+#'      [zoo::na.spline()].}
+#'   \item{`"omit"`}{Removes `NA` via [stats::na.omit()].}
+#' }
 #' @param na.rm A logical. If the result of the interpolation still results in
 #' leading and/or trailing `NA`s, should these be removed (using na.trim)?
 #' @param maxgap A numeric scalar for the maximum number of consecutive `NA`s
@@ -19,21 +21,31 @@
 #' @param ... Additional arguments (*currently not used*).
 #'
 #' @details
-#' For `method = "locf"`, if there are no earlier non-`NA`s, then the `NA` is either
-#' omitted (if `na.rm = TRUE`) or it is not replaced (if `na.rm = FALSE`).
+#' \describe{
+#'   \item{`method = "locf"`}{if there are no earlier non-`NA`s, then the `NA` is
+#'      either omitted (if `na.rm = TRUE`) or it is not replaced (if
+#'      `na.rm = FALSE`).}
+#'   \item{`method = "linear"`}{`na.rm = TRUE` will extrapolate over leading and
+#'      trailing `NA`s by applying `rule = 2` (see [stats::approx()]).
+#'      `na.rm = FALSE` will return leading/trailing `NA`s by applying `rule = 1`.}
+#'   \item{`method = "spline"`}{*TODO*}
+#'   \item{`method = "omit"`}{the returned vector `y` will be a named vector with
+#'      the original indices of each value as names. This allows for preserving and
+#'      re-inserting the omitted `NA`s back into the final dataset, if needed.}
+#' }
 #'
-#' For `method = "linear"`, `na.rm = TRUE` will extrapolate over leading and trailing
-#' `NA`s by applying `rule = 2` (see [stats::approx()]). `na.rm = FALSE` will
-#' return leading/trailing `NA`s by applying `rule = 1`.
+#' @seealso [zoo::na.locf()], [zoo::na.approx()], [zoo::na.spline()],
+#' [stats::na.omit()]
 #'
-#' For `method = "spline"` *TODO*.
+#' @examples
+#' (x <- c(2, NA, NA, 4, 5, 6, NA))
+#' replace_missing_values(x, method = "omit")
+#' replace_missing_values(x, method = "locf")
+#' replace_missing_values(x, method = "linear", na.rm = FALSE)
+#' replace_missing_values(x, method = "linear", na.rm = TRUE)
 #'
-#' For `method = "omit"`, the returned vector `y` will be a named vector with the
-#' original indices of each value as names. This allows for preserving and
-#' re-inserting the omitted `NA`s back into the final dataset.
-#'
-#' @return A list `L` with `L$y` the corrected time series and
-#' `L$idx` the indices of the values replaced.
+#' @return The corrected vector `y` or a named vector `y` with names `idx` from
+#' indices from original input vector.
 #'
 #' @export
 replace_missing_values <- function(
@@ -66,11 +78,5 @@ replace_missing_values <- function(
 
     }
 
-    idx <- which(is.na(x))
-
-    return(list(y = y, idx = idx))
+    return(y)
 }
-# (x <- c(2,NA,1,4,5,2, NA))
-# zoo::na.locf(x)
-# zoo::na.spline()
-# replace_missing_data(x, "linear", na.rm = TRUE)

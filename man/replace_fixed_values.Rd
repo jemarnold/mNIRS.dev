@@ -4,29 +4,39 @@
 \alias{replace_fixed_values}
 \title{Replace Fixed Values}
 \usage{
-replace_fixed_values(x, fixed_values, k, return = c("median", "NA"), ...)
+replace_fixed_values(x, fixed_values, width, return = c("NA", "median"), ...)
 }
 \arguments{
-\item{x}{A numeric vector of mNIRS data.}
+\item{x}{A numeric vector}
 
-\item{fixed_values}{A numeric vector of values to be replaced,
-e.g. \code{fixed_values = c(0, 100)}.}
+\item{fixed_values}{A numeric vector of values to be replaced, e.g.
+\code{fixed_values = c(0, 100)}.}
 
-\item{k}{A numeric scalar for the window length of \verb{(2 · k + 1)} samples.}
+\item{width}{A numeric scalar for the window length of \verb{(2 · width + 1)} samples.}
 
-\item{return}{Indicates whether outliers should be replaced with the
-local \emph{"median"} value \emph{(default)}, or returned as \code{NA}.}
+\item{return}{Indicates whether outliers should be replaced with \code{NA}
+\emph{(default)} or the local \emph{"median"} value.}
 
 \item{...}{Additional arguments (\emph{currently not used}).}
 }
 \value{
-A list \code{L} with \code{L$y} the corrected time series and
-\code{L$idx} the indices of the values replaced.
+The corrected vector \code{y}.
 }
 \description{
-Detect specified values such as \code{c(0, 100)} within mNIRS vector data and
-replaces with the local median value.
+Detect specified values such as \code{c(0, 100)} in vector data and replaces
+with \code{NA} or the local median value.
 }
 \details{
-...
+Useful to overwrite known nonsense values, such as \code{0}, \code{100}, or \code{102.3}.
+
+TODO: allow for overwriting all values greater or less than known values.
+}
+\examples{
+set.seed(13)
+(x <- sample.int(10, 20, replace = TRUE))
+(y <- replace_fixed_values(x, fixed_values = c(1, 10), width = 5))
+
+}
+\seealso{
+\code{\link[pracma:hampel]{pracma::hampel()}}
 }

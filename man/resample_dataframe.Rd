@@ -10,39 +10,46 @@ resample_dataframe(
   sample_rate = NULL,
   resample_rate = NULL,
   resample_time = NULL,
+  .verbose = TRUE,
   ...
 )
 }
 \arguments{
 \item{data}{A dataframe containing mNIRS data.}
 
-\item{sample_column}{A character scalar indicating the name of
+\item{sample_column}{\emph{(optional)} A character scalar indicating the name of
 the time or sample data column. Must match exactly.}
 
-\item{sample_rate}{An integer scalar for the sample rate in Hz of the
-dataframe.}
+\item{sample_rate}{\emph{(optional)} An integer scalar for the sample rate in Hz.}
 
-\item{resample_rate}{An integer scalar indicating the desired output sample
-rate (in Hz) to convert the file to.}
+\item{resample_rate}{\emph{(optional)} An integer scalar indicating the desired
+output sample rate (in Hz) to convert the dataframe.}
 
-\item{resample_time}{A numeric scalar indicating the desired sample time
-(in seconds) to convert the file to.}
+\item{resample_time}{\emph{(optional)} A numeric scalar indicating the desired
+sample time (in seconds) to convert the dataframe.}
 
-\item{...}{Additional arguments (currently not used).}
+\item{.verbose}{A logical. \code{TRUE} \emph{(default)} will return warnings and
+messages which can be used for data error checking. \code{FALSE} will silence these
+messages. Errors will always be returned.}
+
+\item{...}{Additional arguments (\emph{currently not used}).}
 }
 \value{
 A \link[tibble:tibble-package]{tibble} of class \code{mNIRS.data} with
 metadata available with \code{attributes()}.
 }
 \description{
-Resamples mNIRS data using time-weighted interpolation.
+Resamples dataframe using time-weighted interpolation.
 }
 \details{
-\code{sample_column} will be taken from metadata for an mNIRS dataframe.
+\emph{CURRENTLY ONLY IMPLEMENTED FOR DOWNSAMPLING}
 
-If not defined explicitly, \code{sample_rate} will be estimated based
-on the mean difference between values in the \code{sample_column}. If
-\code{sample_column} contains integer sample numbers rather than time values,
-then \code{sample_rate} will be incorrectly estimated to be 1 Hz, and should
-be defined explicitly.
+\code{sample_column} and \code{sample_rate} will be taken from metadata for an
+mNIRS dataframe, if not defined explicitly.
+
+If not present in metadata, \code{sample_column} must be defined explicitly.
+\code{sample_rate} will be estimated based on the mean difference between values
+in the \code{sample_column}. If \code{sample_column} contains integer sample numbers,
+then \code{sample_rate} will be incorrectly estimated  to be 1 Hz, and should be
+defined explicitly.
 }

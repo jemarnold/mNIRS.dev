@@ -43,11 +43,11 @@ data_raw <- read_data(file_path = file_path,
                                        smo2_right = "smo2_right_VL"),
                       sample_column = c(time = "Time"),
                       event_column = c(event = "Event"),
-                      numeric_time = TRUE,
-                      .keep_all = TRUE)
-#> Warning: "time" has non-sequential or repeating values. Consider investigating at "time"
-#> = 1952, 1952, 1952, 2924.01, and 2924.01.
-#> ℹ Estimated sample rate is 2 Hz. Overwrite this by re-running with `sample_rate = X`
+                      .keep_all = TRUE,
+                      .verbose = TRUE)
+#> Warning: "sample_column = time" has non-sequential or repeating values. Consider
+#> investigating at "time = 1952, 1952, 1952, 2924.01, and 2924.01".
+#> ℹ Estimated sample rate = 2 Hz.
 
 data_raw
 #> # A tibble: 2,203 × 4
@@ -70,7 +70,7 @@ plot(data_raw)
 
 <img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
 
-### Replace missing data, outliers, and fixed values
+### Replace fixed values, outliers, and missing values
 
 ``` r
 library(dplyr)
@@ -90,24 +90,24 @@ sample_rate <- attributes(data_raw)$sample_rate
 data_cleaned <- data_raw |> 
     mutate(
         across(any_of(nirs_columns), 
+               \(.x) replace_fixed_values(x = .x,
+                                          fixed_values = c(0, 100),
+                                          width = 20 * sample_rate,
+                                          return = "NA")
+        ),
+        across(any_of(nirs_columns), 
                \(.x) replace_outliers(x = .x,
-                                      k = 20 * sample_rate, ## 20 sec median window
+                                      width = 20 * sample_rate, ## 20 sec median window
                                       t0 = 3,
                                       na.rm = TRUE,
-                                      return = "median")$y
+                                      return = "median")
         ),
         across(any_of(nirs_columns), 
                \(.x) replace_missing_values(x = .x,
                                             method = "linear",
                                             na.rm = FALSE,
-                                            maxgap = Inf)$y
+                                            maxgap = Inf)
         ),
-        across(any_of(nirs_columns), 
-               \(.x) replace_fixed_values(x = .x,
-                                          fixed_values = c(0, 100),
-                                          k = 20 * sample_rate,
-                                          return = "median")$y
-        )
     )
 
 data_cleaned
@@ -141,23 +141,23 @@ data_resampled <- data_cleaned |>
     resample_dataframe(sample_column = sample_column,
                        sample_rate = sample_rate,
                        resample_rate = 1) ## resample to 1 Hz
-#> ℹ Estimated sample rate is 2 Hz. Overwrite this by re-running with `sample_rate = X`
+#> ℹ Estimated sample rate is 2 Hz. Output is resampled at 1 Hz.
 
 data_resampled
-#> # A tibble: 2,189 × 4
+#> # A tibble: 1,209 × 4
 #>     time smo2_left smo2_right event
 #>    <dbl>     <dbl>      <dbl> <chr>
-#>  1  3480      67.6       54   <NA> 
-#>  2  3481      67.6       54   <NA> 
-#>  3  3482      67.6       54   <NA> 
-#>  4  3483      66.3       53.5 <NA> 
-#>  5  3484      66.3       53.5 <NA> 
-#>  6  3485      66.3       53.5 <NA> 
-#>  7  3486      66.3       53.5 <NA> 
-#>  8  3487      67.2       57.1 <NA> 
-#>  9  3489      67.2       57.1 <NA> 
-#> 10  3490      67.2       57.1 <NA> 
-#> # ℹ 2,179 more rows
+#>  1  1740      67.6       54   <NA> 
+#>  2  1741      66.3       53.5 <NA> 
+#>  3  1742      66.3       53.5 <NA> 
+#>  4  1743      66.8       55.3 <NA> 
+#>  5  1744      67.2       57.1 <NA> 
+#>  6  1745      67.6       55.2 <NA> 
+#>  7  1746      68         53.2 <NA> 
+#>  8  1747      67.1       52.8 <NA> 
+#>  9  1748      66.2       52.3 <NA> 
+#> 10  1749      65.1       53.7 <NA> 
+#> # ℹ 1,199 more rows
 
 plot(data_resampled)
 ```
@@ -179,20 +179,20 @@ data_filtered <- data_resampled |>
 #> ℹ Moving-average: width = 15.
 
 data_filtered
-#> # A tibble: 2,189 × 4
+#> # A tibble: 1,209 × 4
 #>     time smo2_left smo2_right event
 #>    <dbl>     <dbl>      <dbl> <chr>
-#>  1  3480      66.9       54.1 <NA> 
-#>  2  3481      66.9       54.5 <NA> 
-#>  3  3482      67.0       54.7 <NA> 
-#>  4  3483      67.0       54.9 <NA> 
-#>  5  3484      67.1       54.8 <NA> 
-#>  6  3485      67.1       54.7 <NA> 
-#>  7  3486      67.2       54.6 <NA> 
-#>  8  3487      67.1       54.4 <NA> 
-#>  9  3489      67.0       54.3 <NA> 
-#> 10  3490      66.9       54.2 <NA> 
-#> # ℹ 2,179 more rows
+#>  1  1740      67.1       54.3 <NA> 
+#>  2  1741      67.0       54.1 <NA> 
+#>  3  1742      66.8       54.0 <NA> 
+#>  4  1743      66.5       54.1 <NA> 
+#>  5  1744      66.4       54.3 <NA> 
+#>  6  1745      66.2       54.4 <NA> 
+#>  7  1746      66.2       54.5 <NA> 
+#>  8  1747      66.2       54.5 <NA> 
+#>  9  1748      66.0       54.5 <NA> 
+#> 10  1749      65.8       54.6 <NA> 
+#> # ℹ 1,199 more rows
 
 plot(data_filtered)
 ```
@@ -210,20 +210,20 @@ data_shifted <- data_filtered |>
                     mean_samples = 30) ## shift the mean first 30 sec equal to zero
 
 data_shifted
-#> # A tibble: 2,189 × 4
+#> # A tibble: 1,209 × 4
 #>     time smo2_left smo2_right event
 #>    <dbl>     <dbl>      <dbl> <chr>
-#>  1  3480      6.63      -6.13 <NA> 
-#>  2  3481      6.66      -5.80 <NA> 
-#>  3  3482      6.69      -5.54 <NA> 
-#>  4  3483      6.71      -5.32 <NA> 
-#>  5  3484      6.80      -5.47 <NA> 
-#>  6  3485      6.87      -5.59 <NA> 
-#>  7  3486      6.93      -5.70 <NA> 
-#>  8  3487      6.86      -5.85 <NA> 
-#>  9  3489      6.77      -5.96 <NA> 
-#> 10  3490      6.68      -6.08 <NA> 
-#> # ℹ 2,179 more rows
+#>  1  1740      6.91      -5.88 <NA> 
+#>  2  1741      6.81      -6.10 <NA> 
+#>  3  1742      6.62      -6.14 <NA> 
+#>  4  1743      6.35      -6.05 <NA> 
+#>  5  1744      6.16      -5.94 <NA> 
+#>  6  1745      6.03      -5.82 <NA> 
+#>  7  1746      5.97      -5.74 <NA> 
+#>  8  1747      5.98      -5.69 <NA> 
+#>  9  1748      5.82      -5.65 <NA> 
+#> 10  1749      5.66      -5.63 <NA> 
+#> # ℹ 1,199 more rows
 
 plot(data_shifted)
 ```
@@ -238,20 +238,20 @@ data_normalised <- data_filtered |>
                         normalise_range = c(0, 100))
 
 data_normalised
-#> # A tibble: 2,189 × 4
+#> # A tibble: 1,209 × 4
 #>     time smo2_left smo2_right event
 #>    <dbl>     <dbl>      <dbl> <chr>
-#>  1  3480      76.1       64.8 <NA> 
-#>  2  3481      76.2       65.3 <NA> 
-#>  3  3482      76.2       65.7 <NA> 
-#>  4  3483      76.2       66.0 <NA> 
-#>  5  3484      76.3       65.8 <NA> 
-#>  6  3485      76.4       65.6 <NA> 
-#>  7  3486      76.5       65.4 <NA> 
-#>  8  3487      76.4       65.2 <NA> 
-#>  9  3489      76.3       65.0 <NA> 
-#> 10  3490      76.2       64.9 <NA> 
-#> # ℹ 2,179 more rows
+#>  1  1740      76.7       64.9 <NA> 
+#>  2  1741      76.6       64.6 <NA> 
+#>  3  1742      76.3       64.5 <NA> 
+#>  4  1743      76.0       64.6 <NA> 
+#>  5  1744      75.7       64.8 <NA> 
+#>  6  1745      75.5       65.0 <NA> 
+#>  7  1746      75.5       65.1 <NA> 
+#>  8  1747      75.5       65.2 <NA> 
+#>  9  1748      75.2       65.2 <NA> 
+#> 10  1749      75.0       65.3 <NA> 
+#> # ℹ 1,199 more rows
 
 plot(data_normalised)
 ```

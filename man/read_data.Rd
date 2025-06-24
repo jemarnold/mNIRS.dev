@@ -9,8 +9,10 @@ read_data(
   nirs_columns,
   sample_column = NULL,
   event_column = NULL,
-  numeric_time = TRUE,
+  sample_rate = NULL,
+  .numeric_time = TRUE,
   .keep_all = FALSE,
+  .verbose = TRUE,
   ...
 )
 }
@@ -20,24 +22,33 @@ read_data(
 
 \item{nirs_columns}{A character vector indicating the mNIRS data columns
 to import from the target file. Must match exactly. A named character vector
-can be used to rename columns.}
+can be used to rename columns (see \emph{Details}).}
 
 \item{sample_column}{\emph{(optional)} A character scalar indicating the name of
 a time or sample data column. Must match exactly. A named character vector
-can be used to rename columns. Default is \code{NULL}.}
+can be used to rename columns.}
 
 \item{event_column}{\emph{(optional)} A character scalar indicating the name of
 an event or lap data column. Must match exactly. A named character vector
-can be used to rename columns. Default is \code{NULL}.}
+can be used to rename columns.}
 
-\item{numeric_time}{A logical. \code{TRUE} (the default) will convert
-date-time formatted columns to numeric values in seconds.}
+\item{sample_rate}{\emph{(optional)} An integer scalar for the sample rate in Hz.
+If not defined explicitly, will be estimated from the file data
+(see \emph{Details}).}
 
-\item{.keep_all}{A logical. \code{FALSE} (the default) will only include the
+\item{.numeric_time}{A logical. \code{TRUE} \emph{(default)} will convert
+date-time formatted columns to numeric values in seconds. \code{FALSE} will retain
+these columns formatted as date-time in the format of the original file.}
+
+\item{.keep_all}{A logical. \code{FALSE} \emph{(default)} will only include the
 explicitly indicated data columns. \code{TRUE} will include all columns detected
 from the file.}
 
-\item{...}{Additional arguments (see \emph{Details}).}
+\item{.verbose}{A logical. \code{TRUE} \emph{(default)} will return warnings and
+messages which can be used for data error checking. \code{FALSE} will silence these
+messages. Errors will always be returned.}
+
+\item{...}{Additional arguments (\emph{currently not used}).}
 }
 \value{
 A \link[tibble:tibble-package]{tibble} of class \code{mNIRS.data} with
@@ -47,22 +58,22 @@ metadata available with \code{attributes()}.
 Reads mNIRS data from file, and returns a dataframe.
 }
 \details{
-Column names must match exactly. In data files with duplicate column
-names (such as Train.Red .csv export), the column names will match in order
-of appearance. You may want to double check the correct columns have been
-assigned as intended.
+Column names are matched to a single row, anywhere in the data file, not
+necessarily the top row of the file. Column names must match exactly to data
+file text. If there are duplicate column names, the columns will be matched in
+order of appearance and appended with \code{...X}, where \code{X} is the column number.
+You may want to double check the correct columns have been assigned as intended.
 
-Additional arguments will accept \code{sample_rate} as an integer scalar for the
-recorded sample rate in Hz of the mNIRS file. This is required for certain
-functions. If not defined explicitly, \code{sample_rate} will be estimated based
+Columns can be renamed in the format \code{c("new_name" = "original_name")}, where
+\code{"original_name"} should match the file text exactly.
+
+\code{sample_rate} is required for certain \code{{mNIRS}} functions. If it is not
+defined explicitly, \code{sample_rate} will be estimated based
 on the mean difference between values in the \code{sample_column}. If
 \code{sample_column} is not specified, then \code{sample_rate} will be set to 1 Hz.
+If \code{sample_column} in the data file contains integer row numbers, then
+\code{sample_rate} will be incorrectly estimated to be 1 Hz, and should be
+defined explicitly.
 
-If \code{sample_column} contains decimal or date-time values, \code{sample_rate}
-should be correctly estimated in Hz. If \code{sample_column} contains integer
-sample numbers rather than time values, then \code{sample_rate} will be
-incorrectly estimated to be 1 Hz, and should be defined explicitly.
-
-A method has been included to correctly identify \code{sample_rate} for
-\emph{Artinis Oxysoft} files exported in English.
+Columns and rows which are entirely missing (\code{NA}) are omitted.
 }

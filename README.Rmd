@@ -53,8 +53,8 @@ data_raw <- read_data(file_path = file_path,
                                        smo2_right = "smo2_right_VL"),
                       sample_column = c(time = "Time"),
                       event_column = c(event = "Event"),
-                      numeric_time = TRUE,
-                      .keep_all = TRUE)
+                      .keep_all = TRUE,
+                      .verbose = TRUE)
 
 data_raw
 
@@ -62,7 +62,7 @@ plot(data_raw)
 ```
 
 
-### Replace missing data, outliers, and fixed values
+### Replace fixed values, outliers, and missing values
 
 ```{r}
 library(dplyr)
@@ -74,24 +74,24 @@ sample_rate <- attributes(data_raw)$sample_rate
 data_cleaned <- data_raw |> 
     mutate(
         across(any_of(nirs_columns), 
+               \(.x) replace_fixed_values(x = .x,
+                                          fixed_values = c(0, 100),
+                                          width = 20 * sample_rate,
+                                          return = "NA")
+        ),
+        across(any_of(nirs_columns), 
                \(.x) replace_outliers(x = .x,
-                                      k = 20 * sample_rate, ## 20 sec median window
+                                      width = 20 * sample_rate, ## 20 sec median window
                                       t0 = 3,
                                       na.rm = TRUE,
-                                      return = "median")$y
+                                      return = "median")
         ),
         across(any_of(nirs_columns), 
                \(.x) replace_missing_values(x = .x,
                                             method = "linear",
                                             na.rm = FALSE,
-                                            maxgap = Inf)$y
+                                            maxgap = Inf)
         ),
-        across(any_of(nirs_columns), 
-               \(.x) replace_fixed_values(x = .x,
-                                          fixed_values = c(0, 100),
-                                          k = 20 * sample_rate,
-                                          return = "median")$y
-        )
     )
 
 data_cleaned
