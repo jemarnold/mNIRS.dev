@@ -54,6 +54,10 @@ fixed parameters.}
 Fit mNIRS kinetics vector data with parametric or non-parametric curve fitting
 models.
 }
+\details{
+\code{method \%in\% c("monoexponential", "logistic")} use \link[stats:nls]{nls()}
+for nonlinear (weighted) least-squares estimates.
+}
 \seealso{
 \code{\link[stats:nls]{stats::nls()}}, \code{\link[stats:SSasymp]{stats::SSasymp()}}, \code{\link[stats:SSlogis]{stats::SSlogis()}},
 }

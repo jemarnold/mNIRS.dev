@@ -23,6 +23,8 @@
 #'  `SSmonoexp(x, A = 10, B, TD, tau)`
 #'
 #' @details
+#' `method %in% c("monoexponential", "logistic")` use [nls()][stats::nls()]
+#' for nonlinear (weighted) least-squares estimates.
 #'
 #' @seealso [stats::nls()], [stats::SSasymp()], [stats::SSlogis()],
 #'

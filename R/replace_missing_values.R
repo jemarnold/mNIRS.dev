@@ -1,7 +1,7 @@
 #' Replace Missing Values
 #'
 #' Detect missing values in vector data and replace via methods from the
-#' [zoo][zoo::zoo-package] package.
+#' [zoo][zoo::na.approx()] package.
 #'
 #' @param x A numeric vector.
 #' @param method Indicates how to replace missing data.

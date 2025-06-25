@@ -37,7 +37,7 @@ with names from indices of the original input vector.
 }
 \description{
 Detect missing values in vector data and replace via methods from the
-\link[zoo:zoo-package]{zoo} package.
+\link[zoo:na.approx]{zoo} package.
 }
 \details{
 \describe{
