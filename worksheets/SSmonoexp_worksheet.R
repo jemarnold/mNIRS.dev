@@ -147,7 +147,7 @@ plot
 
 
 # process_kinetics_test(
-mNIRS::process_kinetics(
+process_kinetics(
     # x = true_data$x,
     # y = true_data$y,
     x = true_x,
@@ -159,8 +159,8 @@ mNIRS::process_kinetics(
     # data = true_data,
     x0 = 8, #true_x[8],
     method = "monoexp"#,
-    # B = 100, Q = 100
-    ) |> plot()
+    # B = 100,
+    )
 #
 # process_kinetics_test(x = true_y)
 

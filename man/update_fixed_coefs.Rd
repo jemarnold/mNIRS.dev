@@ -2,26 +2,25 @@
 % Please edit documentation in R/update_fixed_coefs.R
 \name{update_fixed_coefs}
 \alias{update_fixed_coefs}
-\title{Update a model object with fixed coefficients}
+\title{Update a model object with Fixed coefficients}
 \usage{
 update_fixed_coefs(model, ...)
 }
 \arguments{
 \item{model}{An existing model object from \code{lm}, \code{nls}, \code{glm}, and many others.}
 
-\item{...}{Additional arguments to fix specified coefficients.}
+\item{...}{Additional arguments to define a fixed coefficients.}
 }
 \value{
 A model object.
 }
 \description{
-Uses \code{\link[stats:update]{stats::update()}} to re-fit a model with fixed coefficients provided
-as arguments. Fixed coefficients are not considered when optimising for
-best fit.
+Re-fit a model with fixed coefficients provided as an argument. Fixed
+coefficients are not modified when optimising for best fit.
 }
 \details{
-If additional arguments are left blank, or if arguments do not exist in
-the model, then the model will be returned unchanged.
+If additional arguments are left blank, or if a coefficient does not exist in
+the model, the model will be returned unchanged.
 }
 \examples{
 Chick.1 <- ChickWeight[ChickWeight$Chick == 1, ]
@@ -30,12 +29,12 @@ SSlogis(Chick.1$Time, Asym = 368, xmid = 14, scal = 6)
 (model_fixed <- update_fixed_coefs(model, xmid = 20))
 
 plot(Chick.1$Time, Chick.1$weight, type = "o", pch = 16,
-     xlab = "Time", ylab = "weight")
+    xlab = "Time", ylab = "weight")
 lines(Chick.1$Time, fitted(model), col = "red", lwd = 2)
 lines(Chick.1$Time, fitted(model_fixed), col = "blue", lwd = 2)
 legend("topleft", legend = c("Observed", "model", "model_fixed"),
-       col = c("black", "red", "blue"),
-       pch = c(16, NA, NA),
-       lwd = c(1, 2, 2))
+      col = c("black", "red", "blue"),
+      pch = c(16, NA, NA),
+      lwd = c(1, 2, 2))
 
 }

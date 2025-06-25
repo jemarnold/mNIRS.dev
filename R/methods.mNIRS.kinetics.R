@@ -168,6 +168,6 @@ plot.mNIRS.kinetics <- function(x,  ...) {
         #     override.aes = list(shape = NA, linewidth = 5, alpha = 1))) +
         geom_vline(xintercept = x0, linetype = "dotted") +
         geom_line(aes(y = y, colour = deparse(call$y))) +
-        geom_line(aes(y = fitted))
+        geom_line(aes(y = fitted, colour = "fitted"))
 
 }

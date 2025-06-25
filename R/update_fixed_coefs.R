@@ -1,15 +1,14 @@
-#' Update a model object with fixed coefficients
+#' Update a model object with Fixed coefficients
 #'
-#' Uses [stats::update()] to re-fit a model with fixed coefficients provided
-#' as arguments. Fixed coefficients are not considered when optimising for
-#' best fit.
+#' Re-fit a model with fixed coefficients provided as an argument. Fixed
+#' coefficients are not modified when optimising for best fit.
 #'
 #' @param model An existing model object from `lm`, `nls`, `glm`, and many others.
-#' @param ... Additional arguments to fix specified coefficients.
+#' @param ... Additional arguments to define a fixed coefficients.
 #'
 #' @details
-#' If additional arguments are left blank, or if arguments do not exist in
-#' the model, then the model will be returned unchanged.
+#' If additional arguments are left blank, or if a coefficient does not exist in
+#' the model, the model will be returned unchanged.
 #'
 #' @return A model object.
 #'
