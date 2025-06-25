@@ -9,27 +9,28 @@ process_kinetics(
   y = NULL,
   data = NULL,
   x0 = 0,
-  method = c("monoexponential", "logistic", "half_time", "peak_slope"),
+  method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
   ...
 )
 }
 \arguments{
-\item{x}{A numeric vector giving the predictor variable for \code{y} if \code{y} is
-defined Otherwise, \code{x} is assumed to define the response variable.}
+\item{x}{A numeric vector specifying the predictor variable for \code{y} if \code{y} is
+defined. Otherwise, \code{x} is assumed to define the response variable.}
 
-\item{y}{A numeric vector giving the response variable. If \code{y} is missing
-or NULL, the predictor variable is assumed to be defined by \code{x}, with
-\code{seq_along(x)} as the index predictor variable.}
+\item{y}{(\emph{Optional}). A numeric vector specifying the response variable. If \code{y}
+is not defined, the response variable is assumed to be defined by \code{x}, with
+\code{idx = seq_along(x)} as the predictor variable.}
 
-\item{data}{A dataframe containing at least \code{x} or \code{x} and \code{y}...}
+\item{data}{(\emph{Optional}). A dataframe containing at least the response variable
+(\code{x}), or the predictor and response variables (\code{x} and \code{y}).}
 
 \item{x0}{A numeric scalar indicating the value of the predictor variable \code{x}
-or index \code{seq_along(x)} representing the beginning of the kinetics event.}
+or \code{idx} representing the start of the kinetics event.}
 
 \item{method}{Indicates how to process the kinetics.
 \describe{
 \item{\code{method = "monoexponential"}}{...}
-\item{\code{method = "logistic"}}{...}
+\item{\code{method = "sigmoidal"}}{...}
 \item{\code{method = "half_time"}}{...}
 \item{\code{method = "peak_slope"}}{...}
 }}
@@ -40,7 +41,6 @@ not be optimised by the kinetics methods. e.g. \code{A = 10} will define
 }
 \value{
 A list \code{L} of class \code{mNIRS.kinetics} with components \code{L$...}:
-\describe{
 \item{\code{model}}{The model object.}
 \item{\code{data}}{A dataframe of the input and fitted model data.}
 \item{\code{fitted}}{A vector of the fitted values returned by the model.}
@@ -49,13 +49,12 @@ fixed parameters.}
 \item{\code{fit_criteria}}{A dataframe of the model fit criteria
 (\code{AIC}, \code{BIC}, \code{R2}, \code{RMSE}, \code{RSE}, \code{MAE}, \code{MAPE}).}
 }
-}
 \description{
-Fit mNIRS kinetics vector data with parametric or non-parametric curve fitting
-models.
+Fit mNIRS kinetics vector data with a parametric or non-parametric curve fitting
+model.
 }
 \details{
-\code{method \%in\% c("monoexponential", "logistic")} use \link[stats:nls]{nls()}
+\code{method \%in\% c("monoexponential", "sigmoidal")} use \link[stats:nls]{nls()}
 for nonlinear (weighted) least-squares estimates.
 }
 \seealso{

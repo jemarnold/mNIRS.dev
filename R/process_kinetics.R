@@ -1,20 +1,21 @@
 #' Process Kinetics
 #'
-#' Fit mNIRS kinetics vector data with parametric or non-parametric curve fitting
-#' models.
+#' Fit mNIRS kinetics vector data with a parametric or non-parametric curve fitting
+#' model.
 #'
-#' @param x A numeric vector giving the predictor variable for `y` if `y` is
-#'  defined Otherwise, `x` is assumed to define the response variable.
-#' @param y A numeric vector giving the response variable. If `y` is missing
-#'  or NULL, the predictor variable is assumed to be defined by `x`, with
-#'  `seq_along(x)` as the index predictor variable.
-#' @param data A dataframe containing at least `x` or `x` and `y`...
+#' @param x A numeric vector specifying the predictor variable for `y` if `y` is
+#'  defined. Otherwise, `x` is assumed to define the response variable.
+#' @param y (*Optional*). A numeric vector specifying the response variable. If `y`
+#'  is not defined, the response variable is assumed to be defined by `x`, with
+#'  `idx = seq_along(x)` as the predictor variable.
+#' @param data (*Optional*). A dataframe containing at least the response variable
+#'  (`x`), or the predictor and response variables (`x` and `y`).
 #' @param x0 A numeric scalar indicating the value of the predictor variable `x`
-#'  or index `seq_along(x)` representing the beginning of the kinetics event.
+#'  or `idx` representing the start of the kinetics event.
 #' @param method Indicates how to process the kinetics.
 #'  \describe{
 #'      \item{`method = "monoexponential"`}{...}
-#'      \item{`method = "logistic"`}{...}
+#'      \item{`method = "sigmoidal"`}{...}
 #'      \item{`method = "half_time"`}{...}
 #'      \item{`method = "peak_slope"`}{...}
 #'  }
@@ -23,13 +24,12 @@
 #'  `SSmonoexp(x, A = 10, B, TD, tau)`
 #'
 #' @details
-#' `method %in% c("monoexponential", "logistic")` use [nls()][stats::nls()]
+#' `method %in% c("monoexponential", "sigmoidal")` use [nls()][stats::nls()]
 #' for nonlinear (weighted) least-squares estimates.
 #'
 #' @seealso [stats::nls()], [stats::SSasymp()], [stats::SSlogis()],
 #'
 #' @return A list `L` of class `mNIRS.kinetics` with components `L$...`:
-#'  \describe{
 #'      \item{`model`}{The model object.}
 #'      \item{`data`}{A dataframe of the input and fitted model data.}
 #'      \item{`fitted`}{A vector of the fitted values returned by the model.}
@@ -37,7 +37,6 @@
 #'      fixed parameters.}
 #'      \item{`fit_criteria`}{A dataframe of the model fit criteria
 #'      (`AIC`, `BIC`, `R2`, `RMSE`, `RSE`, `MAE`, `MAPE`).}
-#'  }
 #'
 #' @export
 process_kinetics <- function(
@@ -45,7 +44,7 @@ process_kinetics <- function(
         y = NULL,
         data = NULL,
         x0 = 0,
-        method = c("monoexponential", "logistic", "half_time", "peak_slope"),
+        method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         ...
 ) {
 
@@ -69,7 +68,7 @@ process_kinetics.monoexponential <- function(
         y = NULL,
         data = NULL,
         x0 = 0,
-        method = c("monoexponential", "logistic", "half_time", "peak_slope"),
+        method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         ...
 ) {
     if (!(is.null(data) | missing(data)) & !is.data.frame(data)) {
@@ -97,7 +96,9 @@ process_kinetics.monoexponential <- function(
         }
 
         if (is.null(y) | missing(y)) {
+            y_exp <- substitute(x)
             y_name <- x_name
+            x_exp <- substitute(index)
             x_name <- "index"
             y <- x
             x <- seq_along(y)
@@ -128,6 +129,7 @@ process_kinetics.monoexponential <- function(
 
     } else if (is.null(data) | missing(data)) {
         if (is.null(y) | missing(y)) {
+            x_exp <- substitute(index)
             x_name <- "index"
             y_exp <- substitute(x)
             y_name <- deparse(y_exp)
@@ -142,7 +144,8 @@ process_kinetics.monoexponential <- function(
             y <- y
         }
 
-        data <- tibble::tibble(!!x_name := x, !!y_name := y)
+        data <- tibble::tibble(x, y)
+        names(data) <- c(x_name, y_name)
     }
 
     x <- x - x0
@@ -211,12 +214,12 @@ process_kinetics.monoexponential <- function(
 
 
 #' @export
-process_kinetics.logistic <- function(
+process_kinetics.sigmoidal <- function(
         x,
         y = NULL,
         data = NULL,
         x0 = 0,
-        method = c("monoexponential", "logistic", "half_time", "peak_slope"),
+        method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         ...
 ) {
     if (!(is.null(data) | missing(data)) & !is.data.frame(data)) {
@@ -289,7 +292,8 @@ process_kinetics.logistic <- function(
             y <- y
         }
 
-        data <- tibble::tibble(!!x_name := x, !!y_name := y)
+        data <- tibble::tibble(x, y)
+        names(data) <- c(x_name, y_name)
     }
 
     x <- x - x0
@@ -340,7 +344,7 @@ process_kinetics.logistic <- function(
 
     out <- structure(
         list(
-            method = "logistic",
+            method = "sigmoidal",
             model = model,
             model_equation = model_equation,
             data = data,
@@ -364,7 +368,7 @@ process_kinetics.half_time <- function(
         y = NULL,
         data = NULL,
         x0 = 0,
-        method = c("monoexponential", "logistic", "half_time", "peak_slope"),
+        method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         ...
 ) {
     if (!(is.null(data) | missing(data)) & !is.data.frame(data)) {
@@ -437,7 +441,8 @@ process_kinetics.half_time <- function(
             y <- y
         }
 
-        data <- tibble::tibble(!!x_name := x, !!y_name := y)
+        data <- tibble::tibble(x, y)
+        names(data) <- c(x_name, y_name)
     }
 
     x <- x - x0

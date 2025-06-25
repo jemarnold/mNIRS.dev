@@ -145,123 +145,55 @@ plot
 ## output coefs
 ## output fit criteria
 
-process_kinetics_test <- function(
-        x,
-        y = NULL,
-        data = NULL,
-        x0 = 0,
-        method = c("monoexponential", "logistic", "half_time", "peak_slope"),
-        ...
-) {
-    x_exp <- substitute(x)
-    x_name <- deparse(x_exp)
-    y_exp <- substitute(y)
-    y_name <- deparse(y_exp)
-
-    if (!(is.null(data) | missing(data)) & !is.data.frame(data)) {
-        ## data must be a dataframe
-        cli::cli_abort("{.arg data} must be a dataframe")
-
-    } else if (!(is.null(data) | missing(data)) & is.data.frame(data)) {
-        if (x_name %in% names(data)) {
-            ## deparse(substitute(x)) works for unquoted x
-            x <- data[[x_name]]
-        } else if (x_exp %in% names(data)) {
-            ## substitute(x) works for quoted x, fails for unquoted x
-            x <- data[[x_exp]]
-        } else {
-            cli::cli_abort("{.arg x} not found in {.arg data}")
-        }
-
-        if (is.null(y_exp) | missing(y_exp)) {
-            y <- x
-            x <- seq_along(y)
-        } else if (y_name %in% names(data)) {
-            ## deparse(substitute(y)) works for unquoted y
-            y <- data[[y_name]]
-        } else if (y_exp %in% names(data)) {
-            ## substitute(y) works for quoted y, fails for unquoted y
-            y <- data[[y_exp]]
-        } else {
-            cli::cli_abort("{.arg y} not found in {.arg data}")
-        }
-
-    } else if (is.null(data) | missing(data)) {
-        if (is.null(y) | missing(y)) {
-            y <- x
-            x <- seq_along(y)
-        } else {
-            x <- x
-            y <- y
-        }
-    }
-
-    df <- tibble::tibble(x = x - x0, y)
-
-    ## create the model and update for any fixed coefs
-    model <- tryCatch(
-        nls(y ~ SSmonoexp(x, A, B, TD, tau), data = df) |>
-            mNIRS::update_fixed_coefs(...),
-        error = function(e) {
-            cat("Error in nls(y ~ SSmonoexp(x, A, B, TD, tau), data = df) :",
-                conditionMessage(e), "\n")
-            NA})
-
-    if (is.na(model[1])) {
-        ## TODO fix error condition output for non-fitting model
-        return(NA)
-    }
-
-    fitted <- as.vector(fitted(model))
-    df$fitted <- fitted
-    coefs <- c(..., coef(model))
-    coefs <- coefs[match(c("A", "B", "TD", "tau"), names(coefs))]
-    AIC <- AIC(model)
-    BIC <- BIC(model)
-    R2 <- 1 - sum((y - fitted)^2)/sum((y - mean(y, na.rm = TRUE))^2)
-    RMSE <- sqrt(mean(summary(model)$residuals^2))
-    RSE <- summary(model)$sigma
-    MAE <- mean(abs(summary(model)$residuals))
-    MAPE <- mean(abs(summary(model)$residuals/y)) * 100
-
-    # Save call
-    # model_call <- model
-    # call2 = match.call()
-    #
-    # call2$model_call = model_call
-
-    out <- structure(
-        list(
-            model = model,
-            data = tibble::tibble(df),
-            fitted = fitted,
-            coefs = tibble::tibble(coefs),
-            fit_criteria = tibble::tibble(
-                AIC = AIC, BIC = BIC, R2 = R2, RMSE = RMSE,
-                RSE = RSE, MAE = MAE, MAPE = MAPE)),
-        class = "mNIRS.kinetics")
-
-    return(out)
-
-}
 
 # process_kinetics_test(
 mNIRS::process_kinetics(
     # x = true_data$x,
     # y = true_data$y,
-    # x = true_y,
-    # y = true_y,
-    x = y,
-    # y = y,
+    x = true_x,
+    y = true_y,
     # x = "x",
     # y = "y",
-    data = true_data,
+    # x = x,
+    # y = y, #error
+    # data = true_data,
     x0 = 8, #true_x[8],
     method = "monoexp"#,
     # B = 100, Q = 100
-    )$model
+    ) |> plot()
 #
 # process_kinetics_test(x = true_y)
+
+
+
+fit_monoexp <- mNIRS::process_kinetics(
+    true_x, true_y, x0 = true_x[8], method = "monoexp", Q = 100)$model
+
+
+(fitted <- predict(fit_monoexp, newdata = data.frame(
+    x = JAPackage::SeqRange(range(true_x)-true_x[8], by = 0.1))))
+
+(plot2 <- plot +
+        geom_line(
+            data = tibble(),
+            aes(x = JAPackage::SeqRange(range(true_x), by = 0.1),
+                y = fitted,
+                colour = "monoexp"))
+)
+
+mNIRS::process_kinetics(true_x, true_y, x0 = true_x[8], method = "half_time")
+(half_data <- mNIRS::process_kinetics(x=true_x, y=true_y, method = "half_time")$coefs)
+
+plot2 +
+    geom_point(
+        data = tibble(),
+        aes(x = half_data[["half_time"]],
+            y = half_data[["half_value"]]), size = 3, colour = "dodgerblue")
+
+
+
+
+
 
 tst <- function(q, data = NULL) {
     q_exp <- substitute(q)
@@ -300,20 +232,7 @@ tst <- function(q, data = NULL) {
 
 tst(q = "x", data = true_data)
 
-fit_monoexp <- mNIRS::process_kinetics(
-    true_x, true_y, x0 = true_x[8], method = "monoexp", Q = 100)$model
 
-
-(fitted <- predict(fit_monoexp, newdata = data.frame(
-    x = JAPackage::SeqRange(range(true_x)-true_x[8], by = 0.1))))
-
-(plot2 <- plot +
-    geom_line(
-        data = tibble(),
-        aes(x = JAPackage::SeqRange(range(true_x), by = 0.1),
-            y = fitted,
-            colour = "monoexp"))
-)
 
 
 # (spl <- smooth.spline(true_x, true_y))
@@ -385,9 +304,3 @@ fit_monoexp <- mNIRS::process_kinetics(
 #         class = "mNIRS.kinetics")
 # }
 
-mNIRS::process_kinetics(true_x, true_y, x0 = true_x[8], method = "half_time")
-(half_data <- mNIRS::process_kinetics(x=true_x, y=true_y, method = "half_time")$coefs)
-
-plot2 +
-    geom_hline(yintercept = half_data["half_value"], linetype = "dotted") +
-    geom_vline(xintercept = half_data["half_time"], linetype = "dotted")

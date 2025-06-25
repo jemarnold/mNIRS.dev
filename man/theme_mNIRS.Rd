@@ -7,7 +7,8 @@
 theme_mNIRS(
   base_size = 14,
   base_family = "sans",
-  border = c("partial", "full")
+  border = c("partial", "full"),
+  ...
 )
 }
 \arguments{
@@ -16,6 +17,8 @@ theme_mNIRS(
 \item{base_family}{Base font family.}
 
 \item{border}{Define either a \emph{partial} or \emph{full} border around plots.}
+
+\item{...}{Additional arguments to add to \link[ggplot2:theme]{theme()}.}
 }
 \value{
 A \link[ggplot2:ggplot]{ggplot2} object.

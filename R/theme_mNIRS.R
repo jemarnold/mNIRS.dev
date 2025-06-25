@@ -5,6 +5,7 @@
 #' @param base_size Base font size, given in pts.
 #' @param base_family Base font family.
 #' @param border Define either a *partial* or *full* border around plots.
+#' @param ... Additional arguments to add to [theme()][ggplot2::theme()].
 #'
 #' @return A [ggplot2][ggplot2::ggplot()] object.
 #'
@@ -15,7 +16,8 @@
 theme_mNIRS <- function(
         base_size = 14,
         base_family = "sans",
-        border = c("partial", "full")
+        border = c("partial", "full"),
+        ...
 ) {
     rlang::check_installed("ggplot2", reason = "to plot mNIRS data")
 
@@ -49,5 +51,5 @@ theme_mNIRS <- function(
             legend.box.spacing = unit(half_line/2, "pt"),
             strip.background = element_rect(fill = "grey95"),
             strip.text = element_text(margin = margin(rep(half_line/2, 4))),
-        )
+        ) + theme(...)
 }

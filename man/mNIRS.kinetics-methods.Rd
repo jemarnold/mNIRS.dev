@@ -11,17 +11,14 @@
 \method{plot}{mNIRS.kinetics}(x, ...)
 }
 \arguments{
-\item{x}{object of class \code{mNIRS.kinetics} as returned from
-\code{\link[=process_kinetics]{process_kinetics()}}}
+\item{x}{Object of class \code{mNIRS.kinetics} returned from \code{\link[=process_kinetics]{process_kinetics()}}.}
 
-\item{...}{further arguments passed through, see description of return value
-for details.}
+\item{...}{Additional arguments (see \emph{Value}).}
 }
 \value{
-\describe{
-\item{\code{print}}{Prints the mNIRS kinetics model summary}
-\item{\code{plot}}{Returns a plot of mNIRS kinetics (CURRENTLY NOT WORKING)}
-}
+Return:
+\item{\code{print}}{Returns a model summary}
+\item{\code{plot}}{Returns a \link[ggplot2:ggplot]{ggplot2} object}
 }
 \description{
 Methods defined for objects returned from \code{\link[=process_kinetics]{process_kinetics()}}.
