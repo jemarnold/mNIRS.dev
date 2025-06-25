@@ -7,7 +7,7 @@
 \method{plot}{mNIRS.data}(x, ...)
 }
 \arguments{
-\item{x}{object of class \code{mNIRS.data} as returned from \code{\link[=create_mnirs_data]{create_mnirs_data()}}}
+\item{x}{object of class \code{mNIRS.data} as returned from \code{\link[=create_mNIRS_data]{create_mNIRS_data()}}}
 
 \item{...}{Additional arguments (\emph{currently not used}).}
 }
@@ -15,5 +15,5 @@
 A \link[ggplot2:ggplot]{ggplot2} object.
 }
 \description{
-Methods defined for objects returned from \code{\link[=create_mnirs_data]{create_mnirs_data()}}.
+Methods defined for objects returned from \code{\link[=create_mNIRS_data]{create_mNIRS_data()}}.
 }

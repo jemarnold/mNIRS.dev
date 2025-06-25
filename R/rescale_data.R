@@ -87,7 +87,7 @@ rescale_data <- function(
     metadata$nirs_columns <- unique(
         c(metadata$nirs_columns, unlist(nirs_columns)))
 
-    y <- create_mnirs_data(y, metadata)
+    y <- create_mNIRS_data(y, metadata)
 
     return(y)
 }

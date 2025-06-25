@@ -145,7 +145,7 @@ downsample_data <- function(
     metadata$sample_column <- unlist(sample_column)
     metadata$sample_rate <- downsample_rate
 
-    y <- create_mnirs_data(y, metadata)
+    y <- create_mNIRS_data(y, metadata)
 
     if (.verbose) {
         cli::cli_alert_info(paste(

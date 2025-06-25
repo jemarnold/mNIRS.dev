@@ -25,7 +25,7 @@
 #'                  C = seq(11, 33, 11))
 #' attributes(df)
 #'
-#' nirs_data <- create_mnirs_data(
+#' nirs_data <- create_mNIRS_data(
 #'     df,
 #'     metadata = list(nirs_columns = c("B", "C"),
 #'                     sample_column = "A",
@@ -34,7 +34,7 @@
 #' attributes(nirs_data)
 #'
 #' @export
-create_mnirs_data <- function(
+create_mNIRS_data <- function(
         data,
         metadata
 ) {
@@ -473,7 +473,7 @@ read_data <- function(
         event_column = names(event_column),
         sample_rate = sample_rate)
 
-    mNIRS_data <- create_mnirs_data(data_prepared, metadata)
+    mNIRS_data <- create_mNIRS_data(data_prepared, metadata)
 
     return(mNIRS_data)
 } ## read_data

@@ -1,8 +1,8 @@
 #' Methods for mNIRS.data objects
 #'
-#' Methods defined for objects returned from [create_mnirs_data()].
+#' Methods defined for objects returned from [create_mNIRS_data()].
 #'
-#' @param x object of class `mNIRS.data` as returned from [create_mnirs_data()]
+#' @param x object of class `mNIRS.data` as returned from [create_mNIRS_data()]
 #' @param ... Additional arguments (*currently not used*).
 #'
 #' @return A [ggplot2][ggplot2::ggplot()] object.
