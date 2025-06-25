@@ -2,12 +2,12 @@
 % Please edit documentation in R/plot.mNIRS.data.R
 \name{plot.mNIRS.data}
 \alias{plot.mNIRS.data}
-\title{Methods for mNIRS.data objects}
+\title{Plot mNIRS.data objects}
 \usage{
-\method{plot}{mNIRS.data}(x, ...)
+\method{plot}{mNIRS.data}(data, ...)
 }
 \arguments{
-\item{x}{object of class \code{mNIRS.data} as returned from \code{\link[=create_mNIRS_data]{create_mNIRS_data()}}}
+\item{data}{object of class \code{mNIRS.data} as returned from \code{\link[=create_mNIRS_data]{create_mNIRS_data()}}}
 
 \item{...}{Additional arguments (\emph{currently not used}).}
 }
@@ -15,5 +15,5 @@
 A \link[ggplot2:ggplot]{ggplot2} object.
 }
 \description{
-Methods defined for objects returned from \code{\link[=create_mNIRS_data]{create_mNIRS_data()}}.
+Create a simple plot for objects returned from \code{\link[=create_mNIRS_data]{create_mNIRS_data()}}.
 }

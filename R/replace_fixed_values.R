@@ -1,6 +1,6 @@
 #' Replace Fixed Values
 #'
-#' Detect specified values such as `c(0, 100)` in vector data and replaces
+#' Detect specific values such as `c(0, 100)` in vector data and replaces
 #' with `NA` or the local median value.
 #'
 #' @param x A numeric vector

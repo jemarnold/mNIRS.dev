@@ -1,6 +1,6 @@
 #' Monoexponential Function with 4 Parameters
 #'
-#' A function to calculate a four-parameter monoexponential curve.
+#' Calculate a four-parameter monoexponential curve.
 #'
 #' @param x A numeric vector for the predictor variable at which to calculate
 #'  the response variable.
@@ -43,7 +43,7 @@ monoexponential <- function(x, A, B, TD, tau) {
 
 #' Initiate Self-Starting `nls` Monoexponential Model
 #'
-#' This function should return initial values for the parameters in model.
+#' Return initial values for the parameters in a `selfStart` model.
 #'
 #' @param mCall A matched call to the function `model`.
 #' @param data A data frame in which to interpret the variables in `mCall`.
@@ -51,8 +51,7 @@ monoexponential <- function(x, A, B, TD, tau) {
 #'  call to `nls`.
 #' @param ... Additional arguments.
 #'
-#' @seealso [nls][stats::nls()], [selfStart][stats::selfStart()],
-#'  [SSmonoexp][SSmonoexp()], [monoexponential][monoexponential()]
+#' @seealso [stats::nls()], [stats::selfStart()], [SSmonoexp()], [monoexponential()]
 #'
 #' @return Initial starting estimates for parameters in the model called by
 #'  [SSmonoexp()].
@@ -89,9 +88,9 @@ monoexp_init <- function(
 
 #' Self-Starting `nls` 4-Parameter Monoexponential Model
 #'
-#' This `selfStart` model evaluates the four-parameter
-#' [monoexponential()] function. It creates initial
-#' estimates for the parameters `A`, `B`, `TD`, and `tau`.
+#' Create initial coefficient estimates for a `selfStart` model for the
+#' four-parameter [monoexponential()] function. For the parameters `A`, `B`,
+#' `TD`, and `tau`.
 #'
 #' @param x A numeric vector at which to evaluate the model.
 #' @param A A numeric parameter for the starting value.
@@ -104,8 +103,7 @@ monoexp_init <- function(
 #' @return A numeric vector of the same length as `x`. The value of the
 #'  expression `ifelse(x <= TD, A, A + (B - A) * (1 - exp((TD - x) / tau)))`.
 #'
-#' @seealso [nls][stats::nls()], [selfStart][stats::selfStart()],
-#'  [monoexponential][monoexponential()]
+#' @seealso [stats::nls()], [stats::selfStart()], [monoexponential()]
 #'
 #' @examples
 #' set.seed(13)

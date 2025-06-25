@@ -43,9 +43,9 @@ A \link[tibble:tibble-package]{tibble} of class \code{mNIRS.data} with
 metadata available with \code{attributes()}.
 }
 \description{
-Shift the range of data channels while preserving the absolute dynamic
-range and/or relative scaling across channels. e.g. shift data range to positive
-values, or shift the start value of a recording to zero.
+Move the range of data channels in a dataframe up or down, while preserving
+the absolute dynamic range and/or relative scaling across channels. e.g. shift
+data range to positive values, or shift the first value of a recording to zero.
 }
 \details{
 \code{nirs_columns = list()} can be used to group data columns to preserve

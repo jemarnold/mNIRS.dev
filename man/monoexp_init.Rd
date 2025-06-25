@@ -21,9 +21,8 @@ Initial starting estimates for parameters in the model called by
 \code{\link[=SSmonoexp]{SSmonoexp()}}.
 }
 \description{
-This function should return initial values for the parameters in model.
+Return initial values for the parameters in a \code{selfStart} model.
 }
 \seealso{
-\link[stats:nls]{nls}, \link[stats:selfStart]{selfStart},
-\link[=SSmonoexp]{SSmonoexp}, \link[=monoexponential]{monoexponential}
+\code{\link[stats:nls]{stats::nls()}}, \code{\link[stats:selfStart]{stats::selfStart()}}, \code{\link[=SSmonoexp]{SSmonoexp()}}, \code{\link[=monoexponential]{monoexponential()}}
 }

@@ -36,7 +36,7 @@ A \link[tibble:tibble-package]{tibble} of class \code{mNIRS.data} with
 metadata available with \code{attributes()}.
 }
 \description{
-Downsample a dataframe using time-weighted averaging.
+Condense the number of samples of a dataframe using time-weighted averaging.
 }
 \details{
 \code{sample_column} and \code{sample_rate} will be taken from metadata for an

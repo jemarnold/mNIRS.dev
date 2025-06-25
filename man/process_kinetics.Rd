@@ -51,5 +51,9 @@ fixed parameters.}
 }
 }
 \description{
-Fit an mNIRS kinetics event with parametric or non-parametric models.
+Fit mNIRS kinetics vector data with parametric or non-parametric curve fitting
+models.
+}
+\seealso{
+\code{\link[stats:nls]{stats::nls()}}, \code{\link[stats:SSasymp]{stats::SSasymp()}}, \code{\link[stats:SSlogis]{stats::SSlogis()}},
 }

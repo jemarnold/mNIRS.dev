@@ -1,6 +1,6 @@
 #' Downsample Data
 #'
-#' Downsample a dataframe using time-weighted averaging.
+#' Condense the number of samples of a dataframe using time-weighted averaging.
 #'
 #' @param data A dataframe.
 #' @param sample_column *(Optional)*. A character scalar indicating the name of

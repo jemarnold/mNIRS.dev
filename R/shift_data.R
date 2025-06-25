@@ -1,8 +1,8 @@
 #' Shift Data Range
 #'
-#' Shift the range of data channels while preserving the absolute dynamic
-#' range and/or relative scaling across channels. e.g. shift data range to positive
-#' values, or shift the start value of a recording to zero.
+#' Move the range of data channels in a dataframe up or down, while preserving
+#' the absolute dynamic range and/or relative scaling across channels. e.g. shift
+#' data range to positive values, or shift the first value of a recording to zero.
 #'
 #' @param data A dataframe.
 #' @param nirs_columns A `list()` of character vectors indicating the column

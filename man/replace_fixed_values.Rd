@@ -21,7 +21,7 @@ replace_fixed_values(x, fixed_values, width, return = c("NA", "median"))
 A numeric vector of filtered data.
 }
 \description{
-Detect specified values such as \code{c(0, 100)} in vector data and replaces
+Detect specific values such as \code{c(0, 100)} in vector data and replaces
 with \code{NA} or the local median value.
 }
 \details{

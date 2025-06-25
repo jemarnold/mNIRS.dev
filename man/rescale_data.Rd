@@ -20,9 +20,9 @@ A \link[tibble:tibble-package]{tibble} of class \code{mNIRS.data} with
 metadata available with \code{attributes()}.
 }
 \description{
-Rescale the range of data channels to a new dynamic range, while preserving
-the relative scaling across columns. e.g. rescale the range of data to
-\code{c(0,100)}.
+Resize the range (min and max values) of data channels to a new dynamic range,
+while preserving the relative scaling across channels. e.g. rescale the range
+of data to \code{c(0,100)}.
 }
 \details{
 \code{nirs_columns = list()} can be used to group data columns to preserve

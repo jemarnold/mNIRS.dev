@@ -1,8 +1,8 @@
-#' Methods for mNIRS.data objects
+#' Plot mNIRS.data objects
 #'
-#' Methods defined for objects returned from [create_mNIRS_data()].
+#' Create a simple plot for objects returned from [create_mNIRS_data()].
 #'
-#' @param x object of class `mNIRS.data` as returned from [create_mNIRS_data()]
+#' @param data object of class `mNIRS.data` as returned from [create_mNIRS_data()]
 #' @param ... Additional arguments (*currently not used*).
 #'
 #' @return A [ggplot2][ggplot2::ggplot()] object.
@@ -11,7 +11,7 @@
 #'  scale_y_continuous geom_line geom_point
 #'
 #' @export
-plot.mNIRS.data <- function(x, ...) {
+plot.mNIRS.data <- function(data, ...) {
 
     # if (!requireNamespace("ggplot2", quietly = TRUE)) {
     #     cli::cli_abort(paste(
@@ -19,8 +19,6 @@ plot.mNIRS.data <- function(x, ...) {
     #         "Please install it."))
     # }
     rlang::check_installed("ggplot2", reason = "to plot mNIRS data")
-
-    data <- x
 
     nirs_columns <- attributes(data)$nirs_columns
     sample_column <- attributes(data)$sample_column

@@ -1,6 +1,7 @@
 #' Process Kinetics
 #'
-#' Fit an mNIRS kinetics event with parametric or non-parametric models.
+#' Fit mNIRS kinetics vector data with parametric or non-parametric curve fitting
+#' models.
 #'
 #' @param x A numeric vector giving the predictor variable for `y` if `y` is
 #'  defined Otherwise, `x` is assumed to define the response variable.
@@ -20,6 +21,10 @@
 #' @param ... Additional arguments. Used to define fixed parameters which will
 #'  not be optimised by the kinetics methods. e.g. `A = 10` will define
 #'  `SSmonoexp(x, A = 10, B, TD, tau)`
+#'
+#' @details
+#'
+#' @seealso [stats::nls()], [stats::SSasymp()], [stats::SSlogis()],
 #'
 #' @return A list `L` of class `mNIRS.kinetics` with components `L$...`:
 #'  \describe{
@@ -147,7 +152,7 @@ process_kinetics.monoexponential <- function(
         nls(y ~ SSmonoexp(x, A, B, TD, tau),
             data = df,
             na.action = na.exclude) |>
-            mNIRS::update_fixed_coefs(...),
+            update_fixed_coefs(...),
         error = function(e) {
             cat("Error in nls(", y_exp, " ~ SSmonoexp(", x_exp,
                 ", A, B, TD, tau)) : ", e$message, "\n", sep = "")
@@ -168,8 +173,8 @@ process_kinetics.monoexponential <- function(
         coefs <- tibble::as_tibble(as.list(coefs))
 
         fit_criteria <- tibble::tibble(
-            AIC = AIC(model),
-            BIC = BIC(model),
+            AIC = stats::AIC(model),
+            BIC = stats::BIC(model),
             R2 = 1 - sum((y - fitted)^2)/sum((y - mean(y, na.rm = TRUE))^2),
             RMSE = sqrt(mean(summary(model)$residuals^2)),
             RSE = summary(model)$sigma,
@@ -291,10 +296,10 @@ process_kinetics.logistic <- function(
 
     ## create the model and update for any fixed coefs
     model <- tryCatch(
-        nls(y ~ SSlogis(x, Asym, xmid, scal),
+        nls(y ~ stats::SSlogis(x, Asym, xmid, scal),
             data = df,
             na.action = na.exclude) |>
-            mNIRS::update_fixed_coefs(...),
+            update_fixed_coefs(...),
         error = function(e) {
             cat("Error in nls(", y_exp, " ~ SSlogis(", x_exp,
                 ", Asym, xmid, scal)) : ", e$message, "\n", sep = "")
@@ -316,8 +321,8 @@ process_kinetics.logistic <- function(
         coefs <- tibble::as_tibble(as.list(coefs))
 
         fit_criteria <- tibble::tibble(
-            AIC = AIC(model),
-            BIC = BIC(model),
+            AIC = stats::AIC(model),
+            BIC = stats::BIC(model),
             R2 = 1 - sum((y - fitted)^2)/sum((y - mean(y, na.rm = TRUE))^2),
             RMSE = sqrt(mean(summary(model)$residuals^2)),
             RSE = summary(model)$sigma,

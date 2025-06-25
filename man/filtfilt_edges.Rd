@@ -2,7 +2,7 @@
 % Please edit documentation in R/filtfilt_edges.R
 \name{filtfilt_edges}
 \alias{filtfilt_edges}
-\title{Apply a Butterworth Filter with Better Edge Detection}
+\title{Butterworth Filter with Better Edge Detection}
 \usage{
 filtfilt_edges(
   x,
@@ -40,7 +40,7 @@ data in reverse sequence (\emph{default}).}
 A numeric vector of the same length as \code{x}.
 }
 \description{
-Generate Butterworth digital filter imported from \code{\link[signal:butter]{signal::butter()}} and
+Apply a Butterworth digital filter to vector data with \code{\link[signal:butter]{signal::butter()}} and
 \code{\link[signal:filtfilt]{signal::filtfilt()}} which handles 'edges' better at the start and end of
 the data.
 }

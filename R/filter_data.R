@@ -1,6 +1,6 @@
 #' Filter Data
 #'
-#' Applies signal filtering with either: 1. A cubic smoothing spline.
+#' Apply signal filtering to vector data with either: 1. A cubic smoothing spline.
 #' 2. A Butterworth digital filter. 3. A simple moving average.
 #'
 #' @param x A numeric vector.

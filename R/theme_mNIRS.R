@@ -1,6 +1,6 @@
 #' mNIRS ggplot2 theme
 #'
-#' A [ggplot2][ggplot2::ggplot2-package] theme for pretty display.
+#' A [ggplot2][ggplot2::ggplot2-package] theme for display.
 #'
 #' @param base_size Base font size, given in pts.
 #' @param base_family Base font family.

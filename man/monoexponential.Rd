@@ -25,7 +25,7 @@ to \code{1/k}, where \code{k} is the rate constant of the same monoexponential c
 A numeric vector of fitted values from a monoexponential function.
 }
 \description{
-A function to calculate a four-parameter monoexponential curve.
+Calculate a four-parameter monoexponential curve.
 }
 \examples{
 set.seed(13)

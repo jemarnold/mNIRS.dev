@@ -24,9 +24,9 @@ A numeric vector of the same length as \code{x}. The value of the
 expression \code{ifelse(x <= TD, A, A + (B - A) * (1 - exp((TD - x) / tau)))}.
 }
 \description{
-This \code{selfStart} model evaluates the four-parameter
-\code{\link[=monoexponential]{monoexponential()}} function. It creates initial
-estimates for the parameters \code{A}, \code{B}, \code{TD}, and \code{tau}.
+Create initial coefficient estimates for a \code{selfStart} model for the
+four-parameter \code{\link[=monoexponential]{monoexponential()}} function. For the parameters \code{A}, \code{B},
+\code{TD}, and \code{tau}.
 }
 \examples{
 set.seed(13)
@@ -49,6 +49,5 @@ lines(x, fitted, col = "red")
 
 }
 \seealso{
-\link[stats:nls]{nls}, \link[stats:selfStart]{selfStart},
-\link[=monoexponential]{monoexponential}
+\code{\link[stats:nls]{stats::nls()}}, \code{\link[stats:selfStart]{stats::selfStart()}}, \code{\link[=monoexponential]{monoexponential()}}
 }

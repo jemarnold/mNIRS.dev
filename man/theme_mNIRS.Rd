@@ -21,5 +21,5 @@ theme_mNIRS(
 A \link[ggplot2:ggplot]{ggplot2} object.
 }
 \description{
-A \link[ggplot2:ggplot2-package]{ggplot2} theme for pretty display.
+A \link[ggplot2:ggplot2-package]{ggplot2} theme for display.
 }

@@ -1,8 +1,8 @@
 #' Rescale Data Range
 #'
-#' Rescale the range of data channels to a new dynamic range, while preserving
-#' the relative scaling across columns. e.g. rescale the range of data to
-#' `c(0,100)`.
+#' Resize the range (min and max values) of data channels to a new dynamic range,
+#' while preserving the relative scaling across channels. e.g. rescale the range
+#' of data to `c(0,100)`.
 #'
 #' @param data A dataframe.
 #' @param nirs_columns A `list()` of character vectors indicating the column

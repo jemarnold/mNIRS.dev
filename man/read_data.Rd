@@ -52,7 +52,7 @@ A \link[tibble:tibble-package]{tibble} of class \code{mNIRS.data} with
 metadata available with \code{attributes()}.
 }
 \description{
-Reads mNIRS data from file, and returns a dataframe.
+Create an mNIRS dataframe imported from file.
 }
 \details{
 Column names are matched to a single row, anywhere in the data file, not

@@ -1,6 +1,6 @@
 #' Create an mNIRS Dataframe with Metadata
 #'
-#' Used to manually add class "mNIRS.data" and metadata to an existing dataframe.
+#' Manually add class "mNIRS.data" and metadata to an existing dataframe.
 #'
 #' @param data A dataframe.
 #' @param metadata Metadata passed along with the dataframe.
@@ -68,7 +68,7 @@ create_mNIRS_data <- function(
 
 #' Read mNIRS Data From File
 #'
-#' Reads mNIRS data from file, and returns a dataframe.
+#' Create an mNIRS dataframe imported from file.
 #'
 #' @param file_path The file path including extension (either *".xlsx"*,
 #'  *".xls"*, or *".csv"*) to import.

@@ -1,6 +1,6 @@
-#' Apply a Butterworth Filter with Better Edge Detection
+#' Butterworth Filter with Better Edge Detection
 #'
-#' Generate Butterworth digital filter imported from [signal::butter()] and
+#' Apply a Butterworth digital filter to vector data with [signal::butter()] and
 #' [signal::filtfilt()] which handles 'edges' better at the start and end of
 #' the data.
 #'
