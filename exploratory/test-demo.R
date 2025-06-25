@@ -47,3 +47,6 @@ usethis::use_package("purrr", type = "suggest")
 
 usethis::use_import_from("utils", c("tail", "head"))
 
+usethis::use_mit_license()
+devtools::spell_check()
+usethis::use_citation()

@@ -5,15 +5,15 @@
 #'
 #' @param x A numeric vector
 #' @param fixed_values A numeric vector of values to be replaced, e.g.
-#' `fixed_values = c(0, 100)`.
+#'  `fixed_values = c(0, 100)`.
 #' @param width A numeric scalar for the window length of `(2 · width + 1)` samples.
 #' @param return Indicates whether outliers should be replaced with `NA`
-#' (*default*) or the local `"median"` value.
+#'  (*default*) or the local `"median"` value.
 #'
 #' @details
 #' Useful to overwrite known nonsense values, such as `0`, `100`, or `102.3`.
 #'
-#' TODO: allow for overwriting all values greater or less than known values.
+#' *TODO: allow for overwriting all values greater or less than known values.*
 #'
 #' @seealso [pracma::hampel()]
 #'

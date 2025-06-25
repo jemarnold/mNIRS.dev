@@ -6,7 +6,7 @@
 #' @param metadata Metadata passed along with the dataframe.
 #'
 #' @return A [tibble][tibble::tibble-package] of class `mNIRS.data` with
-#' metadata available with `attributes()`.
+#'  metadata available with `attributes()`.
 #'
 #' @examples
 #' ## currently implemented metadata
@@ -71,28 +71,28 @@ create_mNIRS_data <- function(
 #' Reads mNIRS data from file, and returns a dataframe.
 #'
 #' @param file_path The file path including extension (either *".xlsx"*,
-#' *".xls"*, or *".csv"*) to import.
+#'  *".xls"*, or *".csv"*) to import.
 #' @param nirs_columns A character vector indicating the mNIRS data columns
-#' to import from the target file. Must match exactly. A named character vector
-#' can be used to rename columns (see *Details*).
+#'  to import from the target file. Must match exactly. A named character vector
+#'  can be used to rename columns (see *Details*).
 #' @param sample_column (*Optional*). A character scalar indicating the name of
-#' a time or sample data column. Must match exactly. A named character vector
-#' can be used to rename columns.
+#'  a time or sample data column. Must match exactly. A named character vector
+#'  can be used to rename columns.
 #' @param event_column (*Optional*). A character scalar indicating the name of
-#' an event or lap data column. Must match exactly. A named character vector
-#' can be used to rename columns.
+#'  an event or lap data column. Must match exactly. A named character vector
+#'  can be used to rename columns.
 #' @param sample_rate (*Optional*). A numeric scalar for the sample rate in Hz.
-#' If not defined explicitly, will be estimated from the file data
-#' (see *Details*).
+#'  If not defined explicitly, will be estimated from the file data
+#'  (see *Details*).
 #' @param .numeric_time A logical. `TRUE` (*default*) will convert
-#' date-time formatted columns to numeric values in seconds. `FALSE` will retain
-#' these columns formatted as date-time in the format of the original file.
+#'  date-time formatted columns to numeric values in seconds. `FALSE` will retain
+#'  these columns formatted as date-time in the format of the original file.
 #' @param .keep_all A logical. `FALSE` (*default*) will only include the
-#' explicitly indicated data columns. `TRUE` will include all columns detected
-#' from the file.
+#'  explicitly indicated data columns. `TRUE` will include all columns detected
+#'  from the file.
 #' @param .verbose A logical. `TRUE` (*default*) will return warnings and
-#' messages which can be used for data error checking. `FALSE` will silence these
-#' messages. Errors will always be returned.
+#'  messages which can be used for data error checking. `FALSE` will silence these
+#'  messages. Errors will always be returned.
 #'
 #' @details
 #' Column names are matched to a single row, anywhere in the data file, not
@@ -115,7 +115,7 @@ create_mNIRS_data <- function(
 #' Columns and rows which are entirely missing (`NA`) are omitted.
 #'
 #' @return A [tibble][tibble::tibble-package] of class `mNIRS.data` with
-#' metadata available with `attributes()`.
+#'  metadata available with `attributes()`.
 #'
 #' @export
 read_data <- function(

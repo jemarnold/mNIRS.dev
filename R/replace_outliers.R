@@ -2,16 +2,15 @@
 #'
 #' Detect local outliers in vector data with a Hampel filter using median
 #' absolute deviation (MAD), and replaces with the local median value or `NA`.
-#' Modified from [pracma::hampel()].
 #'
 #' @param x A numeric vector.
 #' @param width A numeric scalar for the window length of `(2 × width + 1)` samples.
 #' @param t0 A numeric scalar for the outlier threshold, default is 3
-#' (Pearson's rule).
+#'  (Pearson's rule).
 #' @param na.rm A logical indicating whether missing values should be ignored
-#' before the filter is applied (see *Details*).
+#'  before the filter is applied (see *Details*).
 #' @param return Indicates whether outliers should be replaced with the
-#' local *"median"* value (*default*), or returned as `NA`.
+#'  local *"median"* value (*default*), or returned as `NA`.
 #'
 #' @details
 #' The *"median absolute deviation"* computation is done in the `[-width...width]`

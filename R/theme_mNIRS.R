@@ -7,14 +7,15 @@
 #' @param border Define either a *partial* or *full* border around plots.
 #'
 #' @return A [ggplot2][ggplot2::ggplot()] object.
-#' @export
+#'
 #' @importFrom ggplot2 theme_bw theme element_rect element_line element_text
-#' element_blank rel margin unit
+#'  element_blank rel margin unit
+#'
+#' @export
 theme_mNIRS <- function(
         base_size = 14,
         base_family = "sans",
-        border = c("partial", "full"),
-        ...
+        border = c("partial", "full")
 ) {
     rlang::check_installed("ggplot2", reason = "to plot mNIRS data")
 

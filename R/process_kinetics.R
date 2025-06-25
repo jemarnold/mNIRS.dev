@@ -3,32 +3,34 @@
 #' Fit an mNIRS kinetics event with parametric or non-parametric models.
 #'
 #' @param x A numeric vector giving the predictor variable for `y` if `y` is
-#' defined Otherwise, `x` is assumed to define the response variable.
+#'  defined Otherwise, `x` is assumed to define the response variable.
 #' @param y A numeric vector giving the response variable. If `y` is missing
-#' or NULL, the predictor variable is assumed to be defined by `x`, with
-#' `seq_along(x)` as the index predictor variable.
+#'  or NULL, the predictor variable is assumed to be defined by `x`, with
+#'  `seq_along(x)` as the index predictor variable.
 #' @param data A dataframe containing at least `x` or `x` and `y`...
 #' @param x0 A numeric scalar indicating the value of the predictor variable `x`
-#' or index `seq_along(x)` representing the beginning of the kinetics event.
+#'  or index `seq_along(x)` representing the beginning of the kinetics event.
 #' @param method Indicates how to process the kinetics.
-#' - *"monoexponential"* ...
-#' - *"logistic"* ...
-#' - *"half_time"* ...
-#' - *"peak_slope"* ...
+#'  \describe{
+#'      \item{`method = "monoexponential"`}{...}
+#'      \item{`method = "logistic"`}{...}
+#'      \item{`method = "half_time"`}{...}
+#'      \item{`method = "peak_slope"`}{...}
+#'  }
 #' @param ... Additional arguments. Used to define fixed parameters which will
-#' not be optimised by the kinetics methods. e.g. `A = 10` will define
-#' `SSmonoexp(x, A = 10, B, TD, tau)`
+#'  not be optimised by the kinetics methods. e.g. `A = 10` will define
+#'  `SSmonoexp(x, A = 10, B, TD, tau)`
 #'
 #' @return A list `L` of class `mNIRS.kinetics` with components `L$...`:
-#' \describe{
-#'   \item{`model`}{The model object.}
-#'   \item{`data`}{A dataframe of the input and fitted model data.}
-#'   \item{`fitted`}{A vector of the fitted values returned by the model.}
-#'   \item{`coefs`}{A dataframe of the model coefficients, including manually
-#'   fixed parameters.}
-#'   \item{`fit_criteria`}{A dataframe of the model fit criteria
-#'   (`AIC`, `BIC`, `R2`, `RMSE`, `RSE`, `MAE`, `MAPE`).}
-#' }
+#'  \describe{
+#'      \item{`model`}{The model object.}
+#'      \item{`data`}{A dataframe of the input and fitted model data.}
+#'      \item{`fitted`}{A vector of the fitted values returned by the model.}
+#'      \item{`coefs`}{A dataframe of the model coefficients, including manually
+#'      fixed parameters.}
+#'      \item{`fit_criteria`}{A dataframe of the model fit criteria
+#'      (`AIC`, `BIC`, `R2`, `RMSE`, `RSE`, `MAE`, `MAPE`).}
+#'  }
 #'
 #' @export
 process_kinetics <- function(
@@ -200,6 +202,7 @@ process_kinetics.monoexponential <- function(
 
 
 
+
 #' @export
 process_kinetics.logistic <- function(
         x,
@@ -343,6 +346,7 @@ process_kinetics.logistic <- function(
 
     return(out)
 }
+
 
 
 

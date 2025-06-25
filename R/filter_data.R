@@ -5,79 +5,80 @@
 #'
 #' @param x A numeric vector.
 #' @param method Indicates how to filter the data (see *Details*).
-#' \describe{
-#'   \item{`"smooth-spline"`}{fits a cubic smoothing spline.}
-#'   \item{`"butter"`}{uses a centred Butterworth digital filter. `type` should
+#'  \describe{
+#'      \item{`"smooth-spline"`}{fits a cubic smoothing spline.}
+#'      \item{`"butter"`}{uses a centred Butterworth digital filter. `type` should
 #'      be defined (see *Details*).}
-#'   \item{`"moving-average"`}{uses a centred moving average filter.}
-#' }
+#'      \item{`"moving-average"`}{uses a centred moving average filter.}
+#'  }
 #' @param type Specify the filter type. *Only relevant for `method = "butter"`*
-#' (see *Details*).
-#' \describe{
-#'   \item{`type = "low"`}{For a *low-pass* filter (*default*).}
-#'   \item{`type = "high"`}{For a *high-pass* filter.}
-#'   \item{`type = "stop"`}{For a *stop-band* (band-reject) filter.}
-#'   \item{`type = "pass"`}{For a *pass-band* filter.}
-#' }
+#'  (see *Details*).
+#'  \describe{
+#'      \item{`"low"`}{For a *low-pass* filter (*default*).}
+#'      \item{`"high"`}{For a *high-pass* filter.}
+#'      \item{`"stop"`}{For a *stop-band* (band-reject) filter.}
+#'      \item{`"pass"`}{For a *pass-band* filter.}
+#'  }
 #' @param spar A numeric scalar defining the smoothing parameter for
-#' `method = "smooth-spline"`.
+#'  `method = "smooth-spline"`.
 #' @param n An integer scalar defining the order of a Butterworth filter for
-#' `method = "butter"`.
+#'  `method = "butter"`.
 #' @param W A numeric scalar or two-element vector defining the fractional
-#' critical frequency(ies) of a Butterworth filter for `method = "butter"`.
+#'  critical frequency(ies) of a Butterworth filter for `method = "butter"`.
 #' @param critical_frequency A numeric scalar or two-element vector defining
-#' the critical frequency(ies) of a Butterworth filter for `method = "butter"`.
+#'  the critical frequency(ies) of a Butterworth filter for `method = "butter"`.
 #' @param sample_rate A numeric scalar for the sample rate in Hz for
-#' `method = "butter"`.
+#'  `method = "butter"`.
 #' @param width A numeric scalar defining the window length of samples for
-#' `method = "moving-average"`.
+#'  `method = "moving-average"`.
 #'
 #' @details
-#' \describe{
-#'   \item{`method = "smooth-spline"`}{applies a non-parametric cubic
-#'   smoothing spline from [stats::smooth.spline()]. Smoothing is defined
-#'   by the parameter `spar`, which can be left blank and automatically determined
-#'   via penalised log liklihood. This usually works well for smoothing responses
-#'   occurring on the order of minutes or longer. Or `spar` can be defined
-#'   explicitly, typically (but not necessarily) in the range `spar = [0, 1]`.}
+#'  \describe{
+#'      \item{`method = "smooth-spline"`}{applies a non-parametric cubic
+#'      smoothing spline from [stats::smooth.spline()]. Smoothing is defined
+#'      by the parameter `spar`, which can be left blank and automatically
+#'      determined via penalised log liklihood. This usually works well for
+#'      smoothing responses occurring on the order of minutes or longer. Or `spar`
+#'      can be defined explicitly, typically (but not necessarily) in the range
+#'      `spar = [0, 1]`.}
 #'
-#'   \item{`method = "butter"`}{applies a centred (two-pass symmetrical)
-#'   Butterworth digital filter from [signal::butter()] and [signal::filtfilt()].
-#'   The filter order is defined by `n`, typically in the range `n = [1, 10]`.
-#'   Higher filter orders tend to better capture rapid changes in amplitude,
-#'   but also cause more distortion artefacts in the signal. General advice is
-#'   to use the lowest order which sufficiently captures any rapid step-changes
-#'   in the data.
+#'      \item{`method = "butter"`}{applies a centred (two-pass symmetrical)
+#'      Butterworth digital filter from [signal::butter()] and [signal::filtfilt()].
+#'      The filter order is defined by `n`, typically in the range `n = [1, 10]`.
+#'      Higher filter orders tend to better capture rapid changes in amplitude,
+#'      but also cause more distortion artefacts in the signal. General advice is
+#'      to use the lowest order which sufficiently captures any rapid step-changes
+#'      in the data.
 #'
-#'   Filter `type` defines how the desired signal frequencies are either passed
-#'   through or rejected from the output signal. *Low-pass* and *high-pass*
-#'   filters allow only frequencies *lower* or *higher* than the critical
-#'   frequency `W` to be passed through as the output signal, respectively.
-#'   *Stop-band* defines a critical range of frequencies which are rejected
-#'   from the output signal. *Pass-band* defines a critical range of frequencies
-#'   which are passed through as the output signal.
+#'      Filter `type` defines how the desired signal frequencies are either passed
+#'      through or rejected from the output signal. *Low-pass* and *high-pass*
+#'      filters allow only frequencies *lower* or *higher* than the critical
+#'      frequency `W` to be passed through as the output signal, respectively.
+#'      *Stop-band* defines a critical range of frequencies which are rejected
+#'      from the output signal. *Pass-band* defines a critical range of frequencies
+#'      which are passed through as the output signal.
 #'
-#'   The critical (cutoff) frequency is defined by `W`, a numeric scalar for
-#'   *low-pass* and *high-pass* filters, or a two-element vector `c(low, high)`
-#'   defining the lower and upper bands for *stop-band* and *pass-band* filters.
-#'   `W` represents the desired fractional critical frequency in the range
-#'   `W = [0, 1]`, where `1` is the Nyquist frequency, i.e., half the sample
-#'   rate of the data in Hz.
+#'      The critical (cutoff) frequency is defined by `W`, a numeric scalar for
+#'      *low-pass* and *high-pass* filters, or a two-element vector `c(low, high)`
+#'      defining the lower and upper bands for *stop-band* and *pass-band* filters.
+#'      `W` represents the desired fractional critical frequency in the range
+#'      `W = [0, 1]`, where `1` is the Nyquist frequency, i.e., half the sample
+#'      rate of the data in Hz.
 #'
-#'   Alternatively, the critical frequency can be defined by `critical_frequency`
-#'   and `sample_rate` together. `critical_frequency` represents the desired
-#'   critical frequency in Hz, and `sample_rate` is the sample rate of the
-#'   recorded data in Hz. `W = critical_frequency / (sample_rate/2)`.
+#'      Alternatively, the critical frequency can be defined by `critical_frequency`
+#'      and `sample_rate` together. `critical_frequency` represents the desired
+#'      critical frequency in Hz, and `sample_rate` is the sample rate of the
+#'      recorded data in Hz. `W = critical_frequency / (sample_rate/2)`.
 #'
-#'   Defining both `critical_frequency` and `sample_rate` explicitly will
-#'   overwrite `W`.}
+#'      Defining both `critical_frequency` and `sample_rate` explicitly will
+#'      overwrite `W`.}
 #'
-#'   \item{`method = "moving-average"`}{applies a centred (two-way symmetrical)
-#'   moving average filter from [zoo::rollapply()]. The moving-average is
-#'   calculated over a window of width `width` defining the number of samples
-#'   between `[i - floor(width/2), i + floor(width/2)]`. A partial moving-average
-#'   will be calculated at the edges of the existing data.}
-#' }
+#'      \item{`method = "moving-average"`}{applies a centred (two-way symmetrical)
+#'      moving average filter from [zoo::rollapply()]. The moving-average is
+#'      calculated over a window of width `width` defining the number of samples
+#'      between `[i - floor(width/2), i + floor(width/2)]`. A partial moving-
+#'      average will be calculated at the edges of the existing data.}
+#'  }
 #'
 #' @examples
 #' set.seed(13)

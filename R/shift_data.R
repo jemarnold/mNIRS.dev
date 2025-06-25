@@ -6,22 +6,22 @@
 #'
 #' @param data A dataframe.
 #' @param nirs_columns A `list()` of character vectors indicating the column
-#' names for data channels to be shifted (see *Details*).
+#'  names for data channels to be shifted (see *Details*).
 #' @param shift_to A numeric scalar to which the specified data channels
-#' will be shifted to.
+#'  will be shifted to.
 #' @param position Indicates how to shift values.
-#' \describe{
-#'   \item{`"minimum"`}{will shift selected channels' minimum values
-#'   to the specified `shift_to` value (*default*).}
-#'   \item{`"maximum"`}{will shift selected channels by their maximum values.}
-#'   \item{`"first"`}{will shift selected channels by their first values.}
-#' }
+#'  \describe{
+#'      \item{`"minimum"`}{will shift selected channels' minimum values
+#'      to the specified `shift_to` value (*default*).}
+#'      \item{`"maximum"`}{will shift selected channels by their maximum values.}
+#'      \item{`"first"`}{will shift selected channels by their first values.}
+#'  }
 #' @param mean_samples An integer scalar representing the number of samples
-#' over which the `position` is determined. e.g., `mean_samples = 1` looks for
-#' the single minimum, maximum, or first value. `mean_samples = 30` would
-#' use the mean of the lowest, highest, or first `30` samples.
+#'  over which the `position` is determined. e.g., `mean_samples = 1` looks for
+#'  the single minimum, maximum, or first value. `mean_samples = 30` would
+#'  use the mean of the lowest, highest, or first `30` samples.
 #' @param shift_by (*Optional*). A numeric scalar by which the data signals can
-#' be shifted by a set amount.
+#'  be shifted by a set amount.
 #'
 #' @details
 #' `nirs_columns = list()` can be used to group data columns to preserve
@@ -29,21 +29,21 @@
 #' will preserve relative scaling across channels. Should match column names
 #' in the dataframe exactly.
 #'
-#' \describe{
-#'   \item{`nirs_columns = list("A", "B", "C")`}{will shift each column separately.
-#'   Absolute dynamic range for each data channel is preserved, but relative
-#'   scaling will be lost between data channels.}
-#'   \item{`nirs_columns = list(c("A", "B", "C"))`}{will shift all columns together.
-#'   Absolute dynamic range and relative scaling are both preserved across the
-#'   group of data channels.}
-#'   \item{`nirs_columns = list(c("A", "B"), c("C", "D"))`}{will shift columns `A`
-#'   and `B` together, and columns `C` and `D` together. Absolute dynamic range
-#'   and relative scaling are preserved within each group, but not across groups
-#'   of data channels.}
-#' }
+#'  \describe{
+#'      \item{`nirs_columns = list("A", "B", "C")`}{will shift each column
+#'      separately. Absolute dynamic range for each data channel is preserved, but
+#'      relative scaling will be lost between data channels.}
+#'      \item{`nirs_columns = list(c("A", "B", "C"))`}{will shift all columns
+#'      together. Absolute dynamic range and relative scaling are both preserved
+#'      across the group of data channels.}
+#'      \item{`nirs_columns = list(c("A", "B"), c("C", "D"))`}{will shift columns
+#'      `A` and `B` together, and columns `C` and `D` together. Absolute dynamic
+#'      range and relative scaling are preserved within each group, but not across
+#'      groups of data channels.}
+#'  }
 #'
 #' @return A [tibble][tibble::tibble-package] of class `mNIRS.data` with
-#' metadata available with `attributes()`.
+#'  metadata available with `attributes()`.
 #'
 #' @export
 shift_data <- function(

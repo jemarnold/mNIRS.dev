@@ -4,20 +4,20 @@
 #'
 #' @param data A dataframe.
 #' @param event_index (*Optional*). A numeric vector indicating the start
-#' indices of kinetics events. Any of `event_label`, `event_index`, or
-#' `event_sample` will be passed along for further analysis.
+#'  indices of kinetics events. Any of `event_label`, `event_index`, or
+#'  `event_sample` will be passed along for further analysis.
 #' @param event_sample (*Optional*). A vector in the same class as
-#' `sample_column` indicating the start of kinetic events.
+#'  `sample_column` indicating the start of kinetic events.
 #' @param event_label (*Optional*). A character vector specified in
-#' `event_column` indicating the start of kinetics events.
+#'  `event_column` indicating the start of kinetics events.
 #' @param fit_window A two-element numeric vector defining the number of
-#' samples around the kinetics events to include in the fitting process (see
-#' *Details*).
+#'  samples around the kinetics events to include in the fitting process (see
+#'  *Details*).
 #' @param display_window (*Optional*). A two-element numeric vector defining
-#' the number of samples around the kinetics events to include for display (see
-#' *Details*).
+#'  the number of samples around the kinetics events to include for display (see
+#'  *Details*).
 #' @param group_events Indicates how kinetics events should be analysed
-#' (see *Details*).
+#'  (see *Details*).
 #' @param ... Additional arguments.
 #'
 #' @details
@@ -32,20 +32,20 @@
 #'
 #' `group_events` indicates how kinetics events should be analysed, either
 #' separately, or grouped and ensemble averaged similar to oxygen uptake kinetics.
-#' \describe{
-#'   \item{`group_events = "distinct"`}{Will prepare a list of unique dataframes
-#'   for each kinetics event (*default*).}
-#'   \item{`group_events = "ensemble"`}{Will prepare one dataframe with the
-#'   ensemble-averaged data from all mNIRS kinetics events.}
-#'   \item{`group_events = list(c(1, 2), c(3, 4))`}{Will group kinetic events
-#'   together in sequence of appearance, and prepare a list of ensemble-averaged
-#'   dataframes for each group. Any kinetic events detected in the data but
-#'   not explicitly defined here
-#'   will return as un-grouped dataframes.}
-#' }
+#'
+#'  \describe{
+#'      \item{`group_events = "distinct"`}{Will prepare a list of unique dataframes
+#'      for each kinetics event (*default*).}
+#'      \item{`group_events = "ensemble"`}{Will prepare one dataframe with the
+#'      ensemble-averaged data from all mNIRS kinetics events.}
+#'      \item{`group_events = list(c(1, 2), c(3, 4))`}{Will group kinetic events
+#'      together in sequence of appearance, and prepare a list of ensemble-averaged
+#'      dataframes for each group. Any kinetic events detected in the data but
+#'      not explicitly defined here will return as un-grouped dataframes.}
+#'  }
 #'
 #' @return A list of [tibbles][tibble::tibble-package] of class `mNIRS.data`
-#' with metadata available with `attributes()`.
+#'  with metadata available with `attributes()`.
 #'
 #' @export
 prepare_kinetics_data <- function(

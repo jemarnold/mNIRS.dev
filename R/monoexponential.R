@@ -3,14 +3,14 @@
 #' A function to calculate a four-parameter monoexponential curve.
 #'
 #' @param x A numeric vector for the predictor variable at which to calculate
-#' the response variable.
+#'  the response variable.
 #' @param A A numeric parameter for the starting baseline value.
 #' @param B A numeric parameter for the ending asymptote value.
 #' @param TD A numeric parameter for the time delay in the units of `x`
-#' before inflection.
+#'  before inflection.
 #' @param tau A numeric parameter for the time constant of the exponential
-#' inflection in the units of `x`. The time constant `tau (𝜏)` is equal
-#' to `1/k`, where `k` is the rate constant of the same monoexponential curve.
+#'  inflection in the units of `x`. The time constant `tau (𝜏)` is equal
+#'  to `1/k`, where `k` is the rate constant of the same monoexponential curve.
 #'
 #' @return A numeric vector of fitted values from a monoexponential function.
 #'
@@ -48,14 +48,14 @@ monoexponential <- function(x, A, B, TD, tau) {
 #' @param mCall A matched call to the function `model`.
 #' @param data A data frame in which to interpret the variables in `mCall`.
 #' @param LHS The expression from the left-hand side of the model formula in the
-#' call to `nls`.
+#'  call to `nls`.
 #' @param ... Additional arguments.
 #'
 #' @seealso [nls][stats::nls()], [selfStart][stats::selfStart()],
-#' [SSmonoexp][SSmonoexp()], [monoexponential][monoexponential()]
+#'  [SSmonoexp][SSmonoexp()], [monoexponential][monoexponential()]
 #'
 #' @return Initial starting estimates for parameters in the model called by
-#' [SSmonoexp()].
+#'  [SSmonoexp()].
 #'
 #' @export
 monoexp_init <- function(
@@ -97,15 +97,15 @@ monoexp_init <- function(
 #' @param A A numeric parameter for the starting value.
 #' @param B A numeric parameter for the ending asymptote value.
 #' @param TD A numeric parameter for the time delay in the units of `x`
-#' before inflection.
+#'  before inflection.
 #' @param tau A numeric parameter for the time constant of the exponential
-#' inflection in the units of `x`.
+#'  inflection in the units of `x`.
 #'
 #' @return A numeric vector of the same length as `x`. The value of the
-#' expression `ifelse(x <= TD, A, A + (B - A) * (1 - exp((TD - x) / tau)))`.
+#'  expression `ifelse(x <= TD, A, A + (B - A) * (1 - exp((TD - x) / tau)))`.
 #'
 #' @seealso [nls][stats::nls()], [selfStart][stats::selfStart()],
-#' [monoexponential][monoexponential()]
+#'  [monoexponential][monoexponential()]
 #'
 #' @examples
 #' set.seed(13)

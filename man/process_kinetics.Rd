@@ -27,11 +27,11 @@ or NULL, the predictor variable is assumed to be defined by \code{x}, with
 or index \code{seq_along(x)} representing the beginning of the kinetics event.}
 
 \item{method}{Indicates how to process the kinetics.
-\itemize{
-\item \emph{"monoexponential"} ...
-\item \emph{"logistic"} ...
-\item \emph{"half_time"} ...
-\item \emph{"peak_slope"} ...
+\describe{
+\item{\code{method = "monoexponential"}}{...}
+\item{\code{method = "logistic"}}{...}
+\item{\code{method = "half_time"}}{...}
+\item{\code{method = "peak_slope"}}{...}
 }}
 
 \item{...}{Additional arguments. Used to define fixed parameters which will

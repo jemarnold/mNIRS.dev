@@ -34,7 +34,7 @@ devtools::install_github("jemarnold/mNIRS")
 library(mNIRS)
 
 ## {mNIRS} includes some sample files from Moxy and Train.Red
-file_path <- system.file("moxy_ramp_example.xlsx", package = "mNIRS")
+file_path <- system.file("extdata", "moxy_ramp_example.xlsx", package = "mNIRS")
 
 ## rename columns in the format "new_name" = "original_name"
 ## where "original_name" should match the file column name exactly

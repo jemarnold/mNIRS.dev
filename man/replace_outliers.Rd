@@ -26,7 +26,6 @@ A numeric vector of filtered data.
 \description{
 Detect local outliers in vector data with a Hampel filter using median
 absolute deviation (MAD), and replaces with the local median value or \code{NA}.
-Modified from \code{\link[pracma:hampel]{pracma::hampel()}}.
 }
 \details{
 The \emph{"median absolute deviation"} computation is done in the \verb{[-width...width]}

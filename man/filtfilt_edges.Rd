@@ -22,18 +22,18 @@ critical frequency of the filter (see \emph{Details}).}
 
 \item{type}{Digital filter type (see \emph{Details}).
 \describe{
-\item{\code{type = "low"}}{For a \emph{low-pass} filter (\emph{default}).}
-\item{\code{type = "high"}}{For a \emph{high-pass} filter.}
-\item{\code{type = "stop"}}{For a \emph{stop-band} (band-reject) filter.}
-\item{\code{type = "pass"}}{For a \emph{pass-band} filter.}
+\item{\code{"low"}}{For a \emph{low-pass} filter (\emph{default}).}
+\item{\code{"high"}}{For a \emph{high-pass} filter.}
+\item{\code{"stop"}}{For a \emph{stop-band} (band-reject) filter.}
+\item{\code{"pass"}}{For a \emph{pass-band} filter.}
 }}
 
 \item{edges}{Indicates how to pad \code{x}.
 \describe{
-\item{\code{edges = "rev"}}{Will pad \code{x} with the preceding 10\%
+\item{\code{"rev"}}{Will pad \code{x} with the preceding 10\%
 data in reverse sequence (\emph{default}).}
-\item{\code{edges = "rep1"}}{Will pad \code{x} with the last preceding value.}
-\item{\code{edges = "none"}}{Will return the default \code{\link[signal:filtfilt]{signal::filtfilt()}} output.}
+\item{\code{"rep1"}}{Will pad \code{x} with the last preceding value.}
+\item{\code{"none"}}{Will return the default \code{\link[signal:filtfilt]{signal::filtfilt()}} output.}
 }}
 }
 \value{

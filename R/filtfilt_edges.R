@@ -7,21 +7,21 @@
 #' @param x A numeric vector.
 #' @param n An integer scalar defining the filter order number.
 #' @param W A numeric scalar or two-element vector defining the fractional
-#' critical frequency of the filter (see *Details*).
+#'  critical frequency of the filter (see *Details*).
 #' @param type Digital filter type (see *Details*).
-#' \describe{
-#'   \item{`type = "low"`}{For a *low-pass* filter (*default*).}
-#'   \item{`type = "high"`}{For a *high-pass* filter.}
-#'   \item{`type = "stop"`}{For a *stop-band* (band-reject) filter.}
-#'   \item{`type = "pass"`}{For a *pass-band* filter.}
-#' }
+#'  \describe{
+#'      \item{`"low"`}{For a *low-pass* filter (*default*).}
+#'      \item{`"high"`}{For a *high-pass* filter.}
+#'      \item{`"stop"`}{For a *stop-band* (band-reject) filter.}
+#'      \item{`"pass"`}{For a *pass-band* filter.}
+#'  }
 #' @param edges Indicates how to pad `x`.
-#' \describe{
-#'   \item{`edges = "rev"`}{Will pad `x` with the preceding 10%
-#'   data in reverse sequence (*default*).}
-#'   \item{`edges = "rep1"`}{Will pad `x` with the last preceding value.}
-#'   \item{`edges = "none"`}{Will return the default [signal::filtfilt()] output.}
-#' }
+#'  \describe{
+#'      \item{`"rev"`}{Will pad `x` with the preceding 10%
+#'      data in reverse sequence (*default*).}
+#'      \item{`"rep1"`}{Will pad `x` with the last preceding value.}
+#'      \item{`"none"`}{Will return the default [signal::filtfilt()] output.}
+#'  }
 #'
 #' @details
 #' Applies a centred (two-pass symmetrical) Butterworth digital filter from

@@ -7,8 +7,7 @@
 theme_mNIRS(
   base_size = 14,
   base_family = "sans",
-  border = c("partial", "full"),
-  ...
+  border = c("partial", "full")
 )
 }
 \arguments{

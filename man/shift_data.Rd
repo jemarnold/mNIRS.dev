@@ -54,15 +54,15 @@ will preserve relative scaling across channels. Should match column names
 in the dataframe exactly.
 
 \describe{
-\item{\code{nirs_columns = list("A", "B", "C")}}{will shift each column separately.
-Absolute dynamic range for each data channel is preserved, but relative
-scaling will be lost between data channels.}
-\item{\code{nirs_columns = list(c("A", "B", "C"))}}{will shift all columns together.
-Absolute dynamic range and relative scaling are both preserved across the
-group of data channels.}
-\item{\code{nirs_columns = list(c("A", "B"), c("C", "D"))}}{will shift columns \code{A}
-and \code{B} together, and columns \code{C} and \code{D} together. Absolute dynamic range
-and relative scaling are preserved within each group, but not across groups
-of data channels.}
+\item{\code{nirs_columns = list("A", "B", "C")}}{will shift each column
+separately. Absolute dynamic range for each data channel is preserved, but
+relative scaling will be lost between data channels.}
+\item{\code{nirs_columns = list(c("A", "B", "C"))}}{will shift all columns
+together. Absolute dynamic range and relative scaling are both preserved
+across the group of data channels.}
+\item{\code{nirs_columns = list(c("A", "B"), c("C", "D"))}}{will shift columns
+\code{A} and \code{B} together, and columns \code{C} and \code{D} together. Absolute dynamic
+range and relative scaling are preserved within each group, but not across
+groups of data channels.}
 }
 }

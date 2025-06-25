@@ -6,27 +6,28 @@
 #'
 #' @param data A dataframe.
 #' @param nirs_columns A `list()` of character vectors indicating the column
-#' names for data channels to be rescaled (see *Details*).
+#'  names for data channels to be rescaled (see *Details*).
 #' @param rescale_range A numeric vector in the form `c(min, max)`,
-#' indicating the range of output values to which data channels will be rescaled.
+#'  indicating the range of output values to which data channels will be rescaled.
 #'
 #' @details
 #' `nirs_columns = list()` can be used to group data columns to preserve
 #' relative scaling. channels grouped together in a vector will preserve
 #' relative scaling across channels. Should match column names in the dataframe
 #' exactly.
-#' \describe{
-#'   \item{`nirs_columns = list("A", "B", "C")`}{will rescale each column
-#'   separately. Relative scaling will be lost between data channels.}
-#'   \item{`nirs_columns = list(c("A", "B", "C"))`}{will rescale all columns
-#'   together. Relative scaling is preserved across the group of data channels.}
-#'   \item{`nirs_columns = list(c("A", "B"), c("C", "D"))`}{will rescale columns
-#'   `A` and `B` together, and columns `C` and `D` together. Relative scaling
-#'   is preserved within each group, but not across groups of data channels.}
-#' }
+#'
+#'  \describe{
+#'      \item{`nirs_columns = list("A", "B", "C")`}{will rescale each column
+#'      separately. Relative scaling will be lost between data channels.}
+#'      \item{`nirs_columns = list(c("A", "B", "C"))`}{will rescale all columns
+#'      together. Relative scaling is preserved across the group of data channels.}
+#'      \item{`nirs_columns = list(c("A", "B"), c("C", "D"))`}{will rescale columns
+#'      `A` and `B` together, and columns `C` and `D` together. Relative scaling
+#'      is preserved within each group, but not across groups of data channels.}
+#'  }
 #'
 #' @return A [tibble][tibble::tibble-package] of class `mNIRS.data` with
-#' metadata available with `attributes()`.
+#'  metadata available with `attributes()`.
 #'
 #' @export
 rescale_data <- function(

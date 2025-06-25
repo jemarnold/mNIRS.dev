@@ -4,12 +4,12 @@
 #'
 #' @param data A dataframe.
 #' @param sample_column *(Optional)*. A character scalar indicating the name of
-#' the time or sample data column. Must match exactly.
+#'  the time or sample data column. Must match exactly.
 #' @param sample_rate *(Optional)*. A numeric scalar for the sample rate in Hz.
 #' @param downsample_rate *(Optional)*. A numeric scalar indicating the desired
-#' output sample rate (in Hz) to convert the dataframe.
+#'  output sample rate (in Hz) to convert the dataframe.
 #' @param downsample_time *(Optional)*. A numeric scalar indicating the desired
-#' sample time (in seconds) to convert the dataframe.
+#'  sample time (in seconds) to convert the dataframe.
 #' @param .verbose A logical. `TRUE` (*default*) will return warnings and
 #' messages which can be used for data error checking. `FALSE` will silence these
 #' messages. Errors will always be returned.
@@ -27,7 +27,7 @@
 #' *TODO include upsample interpolation?*
 #'
 #' @return A [tibble][tibble::tibble-package] of class `mNIRS.data` with
-#' metadata available with `attributes()`.
+#'  metadata available with `attributes()`.
 #'
 #' @export
 downsample_data <- function(

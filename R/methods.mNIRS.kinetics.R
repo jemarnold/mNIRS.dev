@@ -3,15 +3,15 @@
 #' Methods defined for objects returned from [process_kinetics()].
 #'
 #' @param x object of class `mNIRS.kinetics` as returned from
-#' [process_kinetics()]
+#'  [process_kinetics()]
 #' @param ... further arguments passed through, see description of return value
-#' for details.
+#'  for details.
 #'
 #' @return
-#' \describe{
-#'   \item{`print`}{Prints the mNIRS kinetics model summary}
-#'   \item{`plot`}{Returns a plot of mNIRS kinetics (CURRENTLY NOT WORKING)}
-#' }
+#'  \describe{
+#'      \item{`print`}{Prints the mNIRS kinetics model summary}
+#'      \item{`plot`}{Returns a plot of mNIRS kinetics (CURRENTLY NOT WORKING)}
+#'  }
 #'
 #' @name mNIRS.kinetics-methods
 

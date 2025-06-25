@@ -60,6 +60,7 @@ fitting process.
 
 \code{group_events} indicates how kinetics events should be analysed, either
 separately, or grouped and ensemble averaged similar to oxygen uptake kinetics.
+
 \describe{
 \item{\code{group_events = "distinct"}}{Will prepare a list of unique dataframes
 for each kinetics event (\emph{default}).}
@@ -68,7 +69,6 @@ ensemble-averaged data from all mNIRS kinetics events.}
 \item{\code{group_events = list(c(1, 2), c(3, 4))}}{Will group kinetic events
 together in sequence of appearance, and prepare a list of ensemble-averaged
 dataframes for each group. Any kinetic events detected in the data but
-not explicitly defined here
-will return as un-grouped dataframes.}
+not explicitly defined here will return as un-grouped dataframes.}
 }
 }

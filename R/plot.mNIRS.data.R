@@ -7,9 +7,10 @@
 #'
 #' @return A [ggplot2][ggplot2::ggplot()] object.
 #'
-#' @export
 #' @importFrom ggplot2 ggplot aes waiver expansion scale_x_continuous
-#' scale_y_continuous geom_line geom_point
+#'  scale_y_continuous geom_line geom_point
+#'
+#' @export
 plot.mNIRS.data <- function(x, ...) {
 
     # if (!requireNamespace("ggplot2", quietly = TRUE)) {

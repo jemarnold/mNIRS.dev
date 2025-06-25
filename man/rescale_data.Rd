@@ -29,6 +29,7 @@ the relative scaling across columns. e.g. rescale the range of data to
 relative scaling. channels grouped together in a vector will preserve
 relative scaling across channels. Should match column names in the dataframe
 exactly.
+
 \describe{
 \item{\code{nirs_columns = list("A", "B", "C")}}{will rescale each column
 separately. Relative scaling will be lost between data channels.}
