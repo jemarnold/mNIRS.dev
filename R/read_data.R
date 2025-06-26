@@ -142,7 +142,7 @@ read_data <- function(
     is_csv <- grepl("\\.csv$", file_path, ignore.case = TRUE)
 
     ## validation: confirm recognised file types
-    if (is_excel | is_csv) {
+    if (!(is_excel | is_csv)) {
         cli::cli_abort(paste(
             "{.val file_path = {file_path}}.",
             "Unrecognised file type. Only {.arg .xls/.xlsx} or",
@@ -191,16 +191,15 @@ read_data <- function(
     ## validation: nirs_columns must be detected to extract the proper dataframe
     if (rlang::is_empty(header_row)) {
         cli::cli_abort(paste(
-            "{.val nirs_columns = {nirs_columns}} {?was/were}",
-            "not detected in the data."))
+            "{.val nirs_columns = {nirs_columns}} not detected.",
+            "Column names are case sensitive and should match exactly."))
     }
 
     ## return error if nirs_columns string is detected at multiple rows
     if (length(header_row) > 1) {
         cli::cli_abort(paste(
-            "{.val nirs_columns = {nirs_columns}} {?was/were}",
-            "detected at multiple rows. Please ensure that the column names",
-            "in the data file are uniquely identifiable."))
+            "{.val nirs_columns = {nirs_columns}} detected at multiple rows.",
+            "Please ensure that column names in the data file are unique."))
     }
 
     ## import from either excel or csv
@@ -232,9 +231,7 @@ read_data <- function(
     ## rename named or non-named vectors
     rename_vector <- function(vec) {
         names(vec) <- if (!is.null(names(vec))) {
-            replace(names(vec),
-                    names(vec) == "",
-                    vec[names(vec) == ""])
+            replace(names(vec), names(vec) == "", vec[names(vec) == ""])
         } else {vec}
 
         return(vec)
@@ -296,6 +293,28 @@ read_data <- function(
             }
         }
 
+
+        if (!is.null(names(matched_cols))) {
+
+            column_names_check <- names(matched_cols)
+
+            ## append ".1", ".2", etc. for duplicate named columns
+            names(matched_cols) <- make.unique(names(matched_cols))
+
+            repaired_names <- setdiff(names(matched_cols), column_names_check)
+            repaired_length <- length(repaired_names)
+
+            if (.verbose & repaired_length > 0) {
+                cli::cli_warn(c(
+                    paste("Duplicate input {cli::qty(repaired_length)}",
+                          "column{?s} detected."),
+                    "i" = paste("repaired column names:",
+                                "{.val {paste(repaired_names, collapse = ', ')}}."),
+                    "i" = "Consider revising to unique names"))
+            }
+
+        }
+
         return(matched_cols)
     }
 
@@ -305,20 +324,14 @@ read_data <- function(
     event_column <- match_columns(event_column)
 
     data_prepared <- data_trimmed |>
+        ## select and rename defined columns
         ## .keep_all selects everything, else only explicitly defined columns
         dplyr::select(
             tidyselect::any_of(c(
                 sample_column,
                 event_column,
                 nirs_columns)),
-            if (.keep_all) tidyselect::everything()
-        ) |>
-        ## rename columns from explicit input
-        dplyr::rename(
-            tidyselect::any_of(c(
-                nirs_columns,
-                sample_column,
-                event_column))
+            if (.keep_all) tidyselect::everything(),
         ) |>
         ## drops empty columns where all NA
         dplyr::select(tidyselect::where(\(.x) !all(is.na(.x)))) |>
