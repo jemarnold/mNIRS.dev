@@ -3,7 +3,6 @@ test_that("read_data moxy.perfpro works", {
                              "moxy_ramp_example.xlsx",
                              package = "mNIRS")
 
-    ## expect known warning about repeating time values
     expect_warning(
         df.moxy.perfpro <- read_data(
             file_path = file_path,
@@ -16,17 +15,17 @@ test_that("read_data moxy.perfpro works", {
             .verbose = TRUE),
         "non-sequential or repeating")
 
-    ## expect class
     expect_s3_class(df.moxy.perfpro, "mNIRS.data")
+
     expect_s3_class(df.moxy.perfpro, "data.frame")
-    ## expect metadata
+
     expect_true(
         all(c("nirs_columns", "sample_column",
               "event_column", "sample_rate") %in%
                 names(attributes(df.moxy.perfpro))))
-    ## expect sample rate equal to 2
+
     expect_equal(attr(df.moxy.perfpro, "sample_rate"), 2)
-    ## expect numeric values in sample_column
+
     expect_type(df.moxy.perfpro$time, "double")
 
     expect_s3_class(
@@ -63,7 +62,6 @@ test_that("read_data moxy.perfpro works", {
             sample_column = NULL,
             .verbose = TRUE),
         "No `sample_column` provided")
-
 })
 
 test_that("read_data train.red works", {
@@ -71,7 +69,6 @@ test_that("read_data train.red works", {
                              "train.red_interval_example.csv",
                              package = "mNIRS")
 
-    ## expect known warning about repeating time values
     expect_warning(
         train.red <- read_data(
             file_path = file_path,
@@ -82,16 +79,16 @@ test_that("read_data train.red works", {
             .verbose = TRUE),
         "non-sequential or repeating")
 
-    ## expect class
     expect_s3_class(train.red, "mNIRS.data")
+
     expect_s3_class(train.red, "data.frame")
-    ## expect metadata
+
     expect_true(
         all(c("nirs_columns", "sample_column", "sample_rate") %in%
                 names(attributes(train.red))))
-    ## expect sample rate equal to 2
+
     expect_equal(attr(train.red, "sample_rate"), 10)
-    ## expect numeric values in sample_column
+
     expect_type(train.red$time, "double")
 
     expect_error(
@@ -117,5 +114,4 @@ test_that("read_data train.red works", {
             sample_column = NULL,
             .verbose = TRUE),
         "No `sample_column` provided")
-
 })

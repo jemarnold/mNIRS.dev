@@ -312,7 +312,6 @@ read_data <- function(
                                 "{.val {paste(repaired_names, collapse = ', ')}}."),
                     "i" = "Consider revising to unique names"))
             }
-
         }
 
         return(matched_cols)
