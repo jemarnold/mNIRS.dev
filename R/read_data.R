@@ -138,8 +138,11 @@ read_data <- function(
         ))
     }
 
+    is_excel <- grepl("\\.xls(x)?$", file_path, ignore.case = TRUE)
+    is_csv <- grepl("\\.csv$", file_path, ignore.case = TRUE)
+
     ## validation: confirm recognised file types
-    if (!stringr::str_ends(file_path, ".xls|.xlsx|.csv|.CSV")) {
+    if (is_excel | is_csv) {
         cli::cli_abort(paste(
             "{.val file_path = {file_path}}.",
             "Unrecognised file type. Only {.arg .xls/.xlsx} or",
@@ -149,7 +152,7 @@ read_data <- function(
 
     ## import from either excel or csv
     ## report error when file is open and cannot be accessed by readxl
-    if (grepl("xls(x)?$", file_path)) {
+    if (is_excel) {
 
         data_pre <- tryCatch({
             readxl::read_excel(
@@ -159,7 +162,7 @@ read_data <- function(
                 n_max = 1000) |>
                 suppressMessages()
         }, error = \(.e) {
-            if (stringr::str_detect(.e$message, "cannot be opened")) {
+            if (grepl("cannot be opened", .e$message)) {
                 cli::cli_abort(paste(
                     "{e} \n",
                     "{.val file_path = {file_path}}",
@@ -172,7 +175,7 @@ read_data <- function(
         header_row <- which(apply(data_pre[1:1000, ], 1,
                                   \(.row) all(nirs_columns %in% .row)))
 
-    } else if (grepl("csv$", file_path)) {
+    } else if (is_csv) {
 
         ## read raw lines from csv. Avoids issues with multiple empty rows
         all_lines <- readLines(file_path, warn = FALSE)
@@ -202,7 +205,7 @@ read_data <- function(
 
     ## import from either excel or csv
     ## re-read the data at the proper row to extract the dataframe
-    data_trimmed <- if (stringr::str_ends(file_path, ".xls|.xlsx")) {
+    data_trimmed <- if (is_excel) {
 
         readxl::read_excel(
             path = file_path,
@@ -212,7 +215,7 @@ read_data <- function(
         ) |>
             suppressMessages()
 
-    } else if (stringr::str_ends(file_path, ".csv")) {
+    } else if (is_csv) {
 
         utils::read.csv(
             file = file_path,

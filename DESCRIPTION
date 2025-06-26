@@ -23,7 +23,6 @@ Imports:
     readxl,
     rlang,
     stats,
-    stringr,
     tibble,
     tidyr,
     tidyselect,
@@ -32,4 +31,6 @@ Imports:
 Suggests: 
     ggplot2,
     scales,
-    signal
+    signal,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
