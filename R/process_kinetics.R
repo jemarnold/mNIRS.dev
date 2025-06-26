@@ -62,6 +62,9 @@ process_kinetics <- function(
 
 
 
+
+
+
 #' @export
 process_kinetics.monoexponential <- function(
         x,
@@ -71,22 +74,21 @@ process_kinetics.monoexponential <- function(
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         ...
 ) {
-    if (!(is.null(data) | missing(data)) & !is.data.frame(data)) {
+    if (!is.null(data) & !is.data.frame(data)) {
         ## data must be a dataframe
         cli::cli_abort("{.arg data} must be a dataframe")
 
-    } else if (!(is.null(data) | missing(data)) & is.data.frame(data)) {
+    } else if (!is.null(data) & is.data.frame(data)) {
 
         ## deparse(substitute()) works for unquoted
-        x_exp <- substitute(x)
+        x_exp <- substitute(x) ## symbol from unquoted object name of x
         x_name <- tryCatch(
-            ## as_name() works for quoted
-            rlang::as_name(x),
+            rlang::as_name(x), ## as_name() works for quoted
             error = \(e) {
                 ## for unquoted "object not found" error:
                 if (grepl("object", e$message)) {
                     ## deparse() works for unquoted
-                    gsub('^"|"$', '', deparse(x_exp))
+                    gsub('^"|"$', '', deparse(x_exp)) ## quoted object name of x
                 }})
 
         if (x_name %in% names(data)) {
@@ -96,8 +98,8 @@ process_kinetics.monoexponential <- function(
         }
 
         if (is.null(y) | missing(y)) {
-            y_exp <- substitute(x)
-            y_name <- x_name
+            y_exp <- substitute(x) ## symbol from unquoted object name of x
+            y_name <- x_name ## quoted object name of x
             x_exp <- substitute(index)
             x_name <- "index"
             y <- x
@@ -107,15 +109,14 @@ process_kinetics.monoexponential <- function(
 
         } else {
             ## deparse(substitute()) works for unquoted
-            y_exp <- substitute(y)
+            y_exp <- substitute(y) ## symbol from unquoted object name of y
             y_name <- tryCatch(
-                ## as_name() works for quoted
-                rlang::as_name(y),
+                rlang::as_name(y), ## as_name() works for quoted
                 error = \(e) {
                     ## for unquoted "object not found" error:
                     if (grepl("object", e$message)) {
                         ## deparse() works for unquoted
-                        gsub('^"|"$', '', deparse(y_exp))
+                        gsub('^"|"$', '', deparse(y_exp)) ## quoted object name of y
                     }})
 
             if (y_name %in% names(data)) {
@@ -127,19 +128,19 @@ process_kinetics.monoexponential <- function(
 
         data <- data[c(x_name, y_name)]
 
-    } else if (is.null(data) | missing(data)) {
-        if (is.null(y) | missing(y)) {
+    } else if (is.null(data)) {
+        if (is.null(y)) {
+            y_exp <- substitute(x) ## symbol from unquoted object name of x
+            y_name <- deparse(y_exp) ## quoted object name of x
             x_exp <- substitute(index)
             x_name <- "index"
-            y_exp <- substitute(x)
-            y_name <- deparse(y_exp)
             y <- x
             x <- seq_along(y)
         } else {
-            x_exp <- substitute(x)
-            x_name <- deparse(x_exp)
-            y_exp <- substitute(y)
-            y_name <- deparse(y_exp)
+            x_exp <- substitute(x) ## symbol from unquoted object name of x
+            x_name <- deparse(x_exp) ## quoted object name of x
+            y_exp <- substitute(y) ## symbol from unquoted object name of y
+            y_name <- deparse(y_exp) ## quoted object name of y
             x <- x
             y <- y
         }
@@ -222,22 +223,21 @@ process_kinetics.sigmoidal <- function(
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         ...
 ) {
-    if (!(is.null(data) | missing(data)) & !is.data.frame(data)) {
+    if (!is.null(data) & !is.data.frame(data)) {
         ## data must be a dataframe
         cli::cli_abort("{.arg data} must be a dataframe")
 
-    } else if (!(is.null(data) | missing(data)) & is.data.frame(data)) {
+    } else if (!is.null(data) & is.data.frame(data)) {
 
         ## deparse(substitute()) works for unquoted
-        x_exp <- substitute(x)
+        x_exp <- substitute(x) ## symbol from unquoted object name of x
         x_name <- tryCatch(
-            ## as_name() works for quoted
-            rlang::as_name(x),
+            rlang::as_name(x), ## as_name() works for quoted
             error = \(e) {
                 ## for unquoted "object not found" error:
                 if (grepl("object", e$message)) {
                     ## deparse() works for unquoted
-                    gsub('^"|"$', '', deparse(x_exp))
+                    gsub('^"|"$', '', deparse(x_exp)) ## quoted object name of x
                 }})
 
         if (x_name %in% names(data)) {
@@ -247,7 +247,9 @@ process_kinetics.sigmoidal <- function(
         }
 
         if (is.null(y) | missing(y)) {
-            y_name <- x_name
+            y_exp <- substitute(x) ## symbol from unquoted object name of x
+            y_name <- x_name ## quoted object name of x
+            x_exp <- substitute(index)
             x_name <- "index"
             y <- x
             x <- seq_along(y)
@@ -256,15 +258,14 @@ process_kinetics.sigmoidal <- function(
 
         } else {
             ## deparse(substitute()) works for unquoted
-            y_exp <- substitute(y)
+            y_exp <- substitute(y) ## symbol from unquoted object name of y
             y_name <- tryCatch(
-                ## as_name() works for quoted
-                rlang::as_name(y),
+                rlang::as_name(y), ## as_name() works for quoted
                 error = \(e) {
                     ## for unquoted "object not found" error:
                     if (grepl("object", e$message)) {
                         ## deparse() works for unquoted
-                        gsub('^"|"$', '', deparse(y_exp))
+                        gsub('^"|"$', '', deparse(y_exp)) ## quoted object name of y
                     }})
 
             if (y_name %in% names(data)) {
@@ -276,18 +277,19 @@ process_kinetics.sigmoidal <- function(
 
         data <- data[c(x_name, y_name)]
 
-    } else if (is.null(data) | missing(data)) {
-        if (is.null(y) | missing(y)) {
+    } else if (is.null(data)) {
+        if (is.null(y)) {
+            y_exp <- substitute(x) ## symbol from unquoted object name of x
+            y_name <- deparse(y_exp) ## quoted object name of x
+            x_exp <- substitute(index)
             x_name <- "index"
-            y_exp <- substitute(x)
-            y_name <- deparse(y_exp)
             y <- x
             x <- seq_along(y)
         } else {
-            x_exp <- substitute(x)
-            x_name <- deparse(x_exp)
-            y_exp <- substitute(y)
-            y_name <- deparse(y_exp)
+            x_exp <- substitute(x) ## symbol from unquoted object name of x
+            x_name <- deparse(x_exp) ## quoted object name of x
+            y_exp <- substitute(y) ## symbol from unquoted object name of y
+            y_name <- deparse(y_exp) ## quoted object name of y
             x <- x
             y <- y
         }
@@ -371,22 +373,21 @@ process_kinetics.half_time <- function(
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         ...
 ) {
-    if (!(is.null(data) | missing(data)) & !is.data.frame(data)) {
+    if (!is.null(data) & !is.data.frame(data)) {
         ## data must be a dataframe
         cli::cli_abort("{.arg data} must be a dataframe")
 
-    } else if (!(is.null(data) | missing(data)) & is.data.frame(data)) {
+    } else if (!is.null(data) & is.data.frame(data)) {
 
         ## deparse(substitute()) works for unquoted
-        x_exp <- substitute(x)
+        x_exp <- substitute(x) ## symbol from unquoted object name of x
         x_name <- tryCatch(
-            ## as_name() works for quoted
-            rlang::as_name(x),
+            rlang::as_name(x), ## as_name() works for quoted
             error = \(e) {
                 ## for unquoted "object not found" error:
                 if (grepl("object", e$message)) {
                     ## deparse() works for unquoted
-                    gsub('^"|"$', '', deparse(x_exp))
+                    gsub('^"|"$', '', deparse(x_exp)) ## quoted object name of x
                 }})
 
         if (x_name %in% names(data)) {
@@ -396,7 +397,9 @@ process_kinetics.half_time <- function(
         }
 
         if (is.null(y) | missing(y)) {
-            y_name <- x_name
+            y_exp <- substitute(x) ## symbol from unquoted object name of x
+            y_name <- x_name ## quoted object name of x
+            x_exp <- substitute(index)
             x_name <- "index"
             y <- x
             x <- seq_along(y)
@@ -405,15 +408,14 @@ process_kinetics.half_time <- function(
 
         } else {
             ## deparse(substitute()) works for unquoted
-            y_exp <- substitute(y)
+            y_exp <- substitute(y) ## symbol from unquoted object name of y
             y_name <- tryCatch(
-                ## as_name() works for quoted
-                rlang::as_name(y),
+                rlang::as_name(y), ## as_name() works for quoted
                 error = \(e) {
                     ## for unquoted "object not found" error:
                     if (grepl("object", e$message)) {
                         ## deparse() works for unquoted
-                        gsub('^"|"$', '', deparse(y_exp))
+                        gsub('^"|"$', '', deparse(y_exp)) ## quoted object name of y
                     }})
 
             if (y_name %in% names(data)) {
@@ -425,18 +427,19 @@ process_kinetics.half_time <- function(
 
         data <- data[c(x_name, y_name)]
 
-    } else if (is.null(data) | missing(data)) {
-        if (is.null(y) | missing(y)) {
+    } else if (is.null(data)) {
+        if (is.null(y)) {
+            y_exp <- substitute(x) ## symbol from unquoted object name of x
+            y_name <- deparse(y_exp) ## quoted object name of x
+            x_exp <- substitute(index)
             x_name <- "index"
-            y_exp <- substitute(x)
-            y_name <- deparse(y_exp)
             y <- x
             x <- seq_along(y)
         } else {
-            x_exp <- substitute(x)
-            x_name <- deparse(x_exp)
-            y_exp <- substitute(y)
-            y_name <- deparse(y_exp)
+            x_exp <- substitute(x) ## symbol from unquoted object name of x
+            x_name <- deparse(x_exp) ## quoted object name of x
+            y_exp <- substitute(y) ## symbol from unquoted object name of y
+            y_name <- deparse(y_exp) ## quoted object name of y
             x <- x
             y <- y
         }

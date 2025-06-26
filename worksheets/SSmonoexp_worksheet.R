@@ -65,7 +65,7 @@ true_A <- 10
 true_B <- 100
 true_TD <- 15
 true_tau <- 8
-true_y <- mNIRS::monoexponential(true_x, true_A, true_B, true_TD, true_tau)
+true_y <- monoexponential(true_x, true_A, true_B, true_TD, true_tau)
 true_y <- true_y + rnorm(length(true_x), 0, 3)  # Add noise
 ## singular_data
 {
@@ -97,11 +97,11 @@ true_y <- true_y + rnorm(length(true_x), 0, 3)  # Add noise
               20.84, 20.93),
     )
 } ## singular_data
-true_data <- tibble(x = true_x, y = true_y)
+true_data <- tibble(xcol = true_x, ycol = true_y)
 
 plot <- ggplot(true_data) +
     {list( ## Settings
-        aes(x, y),
+        aes(xcol, ycol),
         scale_y_continuous(
             limits = c(0, NA),
             breaks = scales::breaks_pretty(),
@@ -152,10 +152,10 @@ process_kinetics(
     # y = true_data$y,
     x = true_x,
     y = true_y,
-    # x = "x",
-    # y = "y",
-    # x = x,
-    # y = y, #error
+    # x = "xcol",
+    # y = "ycol",
+    # x = xcol,
+    # y = ycol, #error
     # data = true_data,
     x0 = 8, #true_x[8],
     method = "monoexp"#,
@@ -194,113 +194,36 @@ plot2 +
 
 
 
+## test func =========================================================
+test <- function(x, y = NULL, data = NULL) {
 
-tst <- function(q, data = NULL) {
-    q_exp <- substitute(q)
-    q_name <- deparse(q_exp)
-    tryCatch(
-        cat("q =", q, "\n"),
-        error = function(e) {
-            cat(q_exp, "not found\n")
-        })
-    cat("q_exp =", q_exp, "\n")
-    cat("q_name =", q_name, "\n")
-    #
-    # tryCatch(
-    #     q %in% names(data),
-    #     error = function(e) {
-    #         cat(q_exp, "not found in names(data)\n")
-    #     })
-
-    if (!(is.null(data) | missing(data)) & !is.data.frame(data)) {
-        ## data must be a dataframe
-        cli::cli_abort("{.arg data} must be a dataframe")
-    } else if (!(is.null(data) | missing(data)) & is.data.frame(data)) {
-        if (q_name %in% names(data)) {
-            ## deparse(substitute(q)) works for unquoted q
-            data[[q_name]]
-        } else if (q_exp %in% names(data)) {
-            ## substitute(q) works for quoted q, fails for unquoted q
-            data[[q_exp]]
-        } else {
-            cli::cli_abort("{.arg q} not found in {.arg data}")
-        }
-    } else if (is.null(data) | missing(data)) {
-        q
+    if (!is.null(x)) {
+    #     x_name <- "index"
+    #     x_exp <- substitute(index)
+    #     y_name <- rlang::as_name(rlang::enquo(y))
+    #     y_exp <- as.symbol(y_name)
+    #     y <- x
+    #     x <- seq_along(y)
+    # } else {
+        x_name <- rlang::as_name(rlang::enquo(x))
+        # x_exp <- as.symbol(x_name)
+        y_name <- rlang::as_name(rlang::enquo(y))
+        # y_exp <- as.symbol(y_name)
     }
+        x_name
+    # if (is.null(data)) {
+    #     data <- tibble::tibble(x, y)
+    #     colnames(data) <- c(x_name, y_name)
+    # }
+    #
+    #
+    # print(data)
+
+    # nls(as.formula(paste0(y_name, " ~ SSmonoexp(", x_name, ", A, B, TD, tau)")),
+    #     data = data,
+    #     na.action = na.exclude)
+
 }
 
-tst(q = "x", data = true_data)
-
-
-
-
-# (spl <- smooth.spline(true_x, true_y))
-# str(spl)
-# structure(
-#     list(
-#         x = ux,
-#         y = fit$ty,
-#         w = wbar,
-#         yin = ybar,
-#         tol = tol,
-#         data = if (keep.data) list(x = x, y = y, w = w),
-#         no.weights = no.wgts,
-#         n = n,
-#         lev = lev,
-#         cv = cv,
-#         cv.crit = cv.crit,
-#         pen.crit = sum(wbar * (ybar - fit$ty)^2),
-#         crit = fit$crit,
-#         df = df,
-#         spar = if (spar.is.lambda) NA else fit$spar,
-#         ratio = if (spar.is.lambda) NA else fit$parms[["ratio"]],
-#         lambda = fit$parms[["low"]],
-#         iparms = c(fit$iparms, errorI = if (fit$ier) fit$ier else NA),
-#         auxM = if (keep.stuff) list(
-#             XWy = fit$scratch[seq_len(nk)],
-#             XWX = fit$scratch[nk + seq_len(4 * nk)],
-#             Sigma = fit$scratch[5 * nk + seq_len(4 * nk)],
-#             R = fit$scratch[9 * nk + seq_len(4 * nk)]),
-#         fit = structure(list(knot = knot, nk = nk, min = ux[1L], range = r.ux, coef = fit$coef),
-#                         class = "smooth.spline.fit"),
-#         call = match.call()),
-#     class = "smooth.spline")
-#
-## half-time ========================================
-
-
-# process_kinetics.half_time <- function(
-#         x,
-#         y = NULL,
-#         x0 = 0,
-#         method = c("monoexponential", "logistic", "half-time", "peak-slope"),
-#         ...
-# ) {
-#
-#     ## set c(x, y) when y missing
-#     if (is.null(y)) {
-#         y <- x
-#         x <- seq_along(y)
-#     }
-#
-#     x <- x - x0
-#
-#     ## TRUE == UP, FALSE == DOWN
-#     (direction <- mean(head(y, length(y) / 4)) < mean(tail(y, length(y) / 4)))
-#
-#     (A <- mean(y[ifelse(all(x >= 1), x[1], which(x < 1))]))
-#     (B <- ifelse(direction, max(y), min(y)))
-#     (peak_sample <- x[y == B])
-#     (half_value <- A + diff(c(A, B))/2)
-#     (half_time <- ifelse(direction, x[y > half_value][1], x[y < half_value][1]))
-#
-#     coefs <- c(A = A, B = B, half_time = half_time, half_value = half_value)
-#
-#     structure(
-#         list(
-#             coefs = coefs,
-#             call = match.call()),
-#         class = "mNIRS.kinetics")
-# }
-
+# test(x = "xcol", y = ycol, data = true_data)
+test(x = true_x, y = true_y)
