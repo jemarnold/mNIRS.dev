@@ -449,6 +449,10 @@ read_data <- function(
 
         sample_rate <- as.numeric(data_pre[oxysoft_sample_row, 2])
 
+        if (.verbose & is.null(names(sample_column))) {
+            cli::cli_alert_info("No {.arg sample_column} provided.")
+        }
+
         if (.verbose) {
             cli::cli_alert_info(paste(
                 "Oxysoft detected sample rate = {.val {sample_rate}} Hz."
