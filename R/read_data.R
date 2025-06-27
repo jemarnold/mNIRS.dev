@@ -84,13 +84,13 @@ create_mNIRS_data <- function(
 #' @param sample_rate (*Optional*). A numeric scalar for the sample rate in Hz.
 #'  If not defined explicitly, will be estimated from the file data
 #'  (see *Details*).
-#' @param .numeric_time A logical. `TRUE` (*default*) will convert
+#' @param numeric_time A logical. `TRUE` (*default*) will convert
 #'  date-time formatted columns to numeric values in seconds. `FALSE` will retain
 #'  these columns formatted as date-time in the format of the original file.
-#' @param .keep_all A logical. `FALSE` (*default*) will only include the
+#' @param keep_all A logical. `FALSE` (*default*) will only include the
 #'  explicitly indicated data columns. `TRUE` will include all columns detected
 #'  from the file.
-#' @param .verbose A logical. `TRUE` (*default*) will return warnings and
+#' @param verbose A logical. `TRUE` (*default*) will return warnings and
 #'  messages which can be used for data error checking. `FALSE` will silence these
 #'  messages. Errors will always be returned.
 #'
@@ -124,9 +124,9 @@ read_data <- function(
         sample_column = NULL,
         event_column = NULL,
         sample_rate = NULL,
-        .numeric_time = TRUE,
-        .keep_all = FALSE,
-        .verbose = TRUE
+        numeric_time = TRUE,
+        keep_all = FALSE,
+        verbose = TRUE
 ) {
     ## TODO add #' @import dplyr & other packages
 
@@ -304,7 +304,7 @@ read_data <- function(
             repaired_names <- setdiff(names(matched_cols), column_names_check)
             repaired_length <- length(repaired_names)
 
-            if (.verbose & repaired_length > 0) {
+            if (verbose & repaired_length > 0) {
                 cli::cli_warn(c(
                     paste("Duplicate input {cli::qty(repaired_length)}",
                           "column{?s} detected."),
@@ -324,13 +324,13 @@ read_data <- function(
 
     data_prepared <- data_trimmed |>
         ## select and rename defined columns
-        ## .keep_all selects everything, else only explicitly defined columns
+        ## keep_all selects everything, else only explicitly defined columns
         dplyr::select(
             tidyselect::any_of(c(
                 sample_column,
                 event_column,
                 nirs_columns)),
-            if (.keep_all) tidyselect::everything(),
+            if (keep_all) tidyselect::everything(),
         ) |>
         ## drops empty columns where all NA
         dplyr::select(tidyselect::where(\(.x) !all(is.na(.x)))) |>
@@ -356,7 +356,7 @@ read_data <- function(
                 \(.x) as.POSIXct(.x, tryFormats = c(
                     "%Y-%m-%d %H:%M:%OS", "%Y/%m/%d %H:%M:%OS", "%H:%M:%OS"),
                     format = "%H:%M:%OS")),
-            if (.numeric_time) dplyr::across(
+            if (numeric_time) dplyr::across(
                 tidyselect::any_of(names(sample_column)) &
                     tidyselect::where(lubridate::is.POSIXct),
                 \(.x) lubridate::hour(.x) * 3600 +
@@ -393,7 +393,7 @@ read_data <- function(
                 dplyr::pull(tidyselect::any_of(names(sample_column)))
 
             ## warning message about repeated samples
-            if (.verbose) {
+            if (verbose) {
                 cli::cli_warn(paste(
                     "{.val sample_column = {names(sample_column)}} has",
                     "non-sequential or repeating values. Consider",
@@ -418,7 +418,7 @@ read_data <- function(
                 ) |>
                 dplyr::pull(tidyselect::any_of(names(sample_column)))
 
-            if (.verbose) {
+            if (verbose) {
                 cli::cli_warn(paste(
                     "{.val sample_column = {names(sample_column)}} has a gap",
                     "greater than 60 minutes. Consider investigating at",
@@ -434,7 +434,7 @@ read_data <- function(
     ## estimate sample rate
     if (!is.null(sample_rate) & !is.numeric(sample_rate)) {
 
-        if (.verbose) {
+        if (verbose) {
             cli::cli_alert_info(paste(
                 "{.arg sample_column} should be a numeric value.",
                 "Sample rate set to 1 Hz. Overwrite this with"
@@ -449,11 +449,11 @@ read_data <- function(
 
         sample_rate <- as.numeric(data_pre[oxysoft_sample_row, 2])
 
-        if (.verbose & is.null(names(sample_column))) {
+        if (verbose & is.null(names(sample_column))) {
             cli::cli_alert_info("No {.arg sample_column} provided.")
         }
 
-        if (.verbose) {
+        if (verbose) {
             cli::cli_alert_info(paste(
                 "Oxysoft detected sample rate = {.val {sample_rate}} Hz."
             ))
@@ -467,7 +467,7 @@ read_data <- function(
             mean(na.rm = TRUE) |>
             (\(.x) round((1/.x)/0.5)*0.5)()
 
-        if (.verbose) {
+        if (verbose) {
             cli::cli_alert_info(paste(
                 "Estimated sample rate = {.val {sample_rate}} Hz."
             ))
@@ -477,7 +477,7 @@ read_data <- function(
 
         sample_rate <- 1
 
-        if (.verbose) {
+        if (verbose) {
             cli::cli_alert_info(paste(
                 "No {.arg sample_column} provided. Sample rate set to 1 Hz.",
                 "Overwrite this with {.arg sample_rate = X}"
@@ -507,8 +507,8 @@ read_data <- function(
 #                      SmO2_PS = "SmO2 unfiltered"),
 #     sample_column = c(time = "Timestamp (seconds passed)"),
 #     event_column = NULL,
-#     .keep_all = FALSE,
-#     .verbose = TRUE)
+#     keep_all = FALSE,
+#     verbose = TRUE)
 #
 # ## Moxy PerfPro
 # read_data(
@@ -523,7 +523,7 @@ read_data <- function(
 #     nirs_columns = c(smo2 = "SmO2 Live", thb = "THb"),
 #     sample_column = c(time = "hh:mm:ss"),
 #     event_column = NULL,
-#     .numeric_time = FALSE)
+#     numeric_time = FALSE)
 # lubridate::seconds_to_period(50590)
 #
 #
@@ -534,7 +534,7 @@ read_data <- function(
 #     nirs_columns = c(HHb = "6", O2Hb = "7"),
 #     sample_column = c("sample" = "1"),
 #     event_column = c(event = "10"),
-#     .keep_all = FALSE)
+#     keep_all = FALSE)
 # #
 # # ## VMPro
 # read_data(
@@ -552,6 +552,6 @@ read_data <- function(
 #                      "left_smo2" = "SmO2 -  2[%]",
 #                      "thb" = "THb[THb]"),
 #     sample_column = c("time" = "Time[hh:mm:ss]"),
-#     .numeric_time = FALSE,
+#     numeric_time = FALSE,
 #     event_column = NULL)
 #

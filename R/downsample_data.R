@@ -10,7 +10,7 @@
 #'  output sample rate (in Hz) to convert the dataframe.
 #' @param downsample_time *(Optional)*. A numeric scalar indicating the desired
 #'  sample time (in seconds) to convert the dataframe.
-#' @param .verbose A logical. `TRUE` (*default*) will return warnings and
+#' @param verbose A logical. `TRUE` (*default*) will return warnings and
 #' messages which can be used for data error checking. `FALSE` will silence these
 #' messages. Errors will always be returned.
 #'
@@ -36,7 +36,7 @@ downsample_data <- function(
         sample_rate = NULL,
         downsample_rate = NULL, ## 10 Hz
         downsample_time = NULL, ## 0.01 s
-        .verbose = TRUE
+        verbose = TRUE
 ) {
     ## pass through =============================
 
@@ -97,7 +97,7 @@ downsample_data <- function(
 
     ## validation: downsample_rate must be less than sample_rate
     if (downsample_rate > sample_rate) {
-        if (.verbose) {
+        if (verbose) {
             cli::cli_alert_info(paste(
                 "{.arg downsample_rate} should be less than {.arg sample_rate}.",
                 "Returning original dataframe"))
@@ -147,7 +147,7 @@ downsample_data <- function(
 
     y <- create_mNIRS_data(y, metadata)
 
-    if (.verbose) {
+    if (verbose) {
         cli::cli_alert_info(paste(
             "Estimated sample rate is {.val {sample_rate}} Hz.",
             "Output is downsampled at {.val {downsample_rate}} Hz."

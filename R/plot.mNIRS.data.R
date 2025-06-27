@@ -24,13 +24,16 @@ plot.mNIRS.data <- function(data, ...) {
     sample_column <- attributes(data)$sample_column
 
     plot <- data |>
+        ## pivot all `nirs_columns` to `y` and plot by group
         tidyr::pivot_longer(
             cols = tidyselect::all_of(nirs_columns),
             names_to = "nirs_columns",
             values_to = "y") |>
+        ## remove empty rows for geom_line
+        tidyr::drop_na(y) |>
         ggplot() +
         aes(x = .data[[sample_column]], y = y,
-                     colour = nirs_columns) +
+            colour = nirs_columns) +
         theme_mNIRS() +
         scale_x_continuous(
             # name = sample_column,

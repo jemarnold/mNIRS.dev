@@ -202,4 +202,19 @@ test_that("read_data oxysoft works", {
 
 
 
+file_path <- system.file("extdata",
+                         "vo2master_moxyunit_example.xlsx",
+                         package = "mNIRS")
+
+read_data(
+    file_path = file_path,
+    nirs_columns = c(smo2_left = "SmO2[%]",
+                     smo2_right = "SmO2 -  2[%]"),
+    sample_column = c(time = "Time[utc]"),
+    .keep_all = FALSE,
+    .verbose = TRUE) |>
+    dplyr::mutate(
+        # across(c(smo2_left, smo2_right),
+        #        \(.x) replace_missing_values(.x))
+    )
 

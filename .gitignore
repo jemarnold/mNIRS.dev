@@ -2,3 +2,5 @@
 *.docx
 *.tmp
 desktop.ini
+~$*.docx
+~$*.xlsx
