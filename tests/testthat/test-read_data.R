@@ -10,9 +10,9 @@ test_that("read_data moxy.perfpro works", {
                              smo2_right = "smo2_right_VL"),
             sample_column = c(time = "Time"),
             event_column = c(event = "Event"),
-            .numeric_time = TRUE,
-            .keep_all = FALSE,
-            .verbose = TRUE),
+            numeric_time = FALSE,
+            keep_all = FALSE,
+            verbose = TRUE),
         "non-sequential or repeating")
 
     expect_silent(
@@ -21,12 +21,16 @@ test_that("read_data moxy.perfpro works", {
             nirs_columns = c(smo2_left = "smo2_left_VL",
                              smo2_right = "smo2_right_VL"),
             sample_column = c(time = "Time"),
-            .verbose = FALSE)
+            verbose = FALSE)
     )
 
     expect_s3_class(df.moxy.perfpro, "mNIRS.data")
 
     expect_s3_class(df.moxy.perfpro, "data.frame")
+
+    expect_s3_class(df.moxy.perfpro$time, "POSIXct")
+
+    expect_type(df.moxy.perfpro$time, "double")
 
     expect_true(
         all(c("nirs_columns", "sample_column",
@@ -35,24 +39,22 @@ test_that("read_data moxy.perfpro works", {
 
     expect_equal(attr(df.moxy.perfpro, "sample_rate"), 2)
 
-    expect_type(df.moxy.perfpro$time, "double")
-
     expect_s3_class(
         read_data(
             file_path = file_path,
             nirs_columns = c(smo2_left = "smo2_left_VL",
                              smo2_right = "smo2_right_VL"),
             sample_column = c(time = "Time"),
-            .numeric_time = FALSE,
-            .keep_all = FALSE,
-            .verbose = FALSE)$time,
+            numeric_time = FALSE,
+            keep_all = FALSE,
+            verbose = FALSE)$time,
         "POSIXct")
 
     expect_error(
         read_data(
             file_path = file_path,
             nirs_columns = c(smo2_left = "smo2_doesnt_exist"),
-            .verbose = FALSE),
+            verbose = FALSE),
         "not detected")
 
     expect_warning(
@@ -60,7 +62,7 @@ test_that("read_data moxy.perfpro works", {
             file_path = file_path,
             nirs_columns = c(smo2 = "smo2_left_VL",
                              smo2 = "smo2_right_VL"),
-            .verbose = TRUE),
+            verbose = TRUE),
         "Duplicate input column")
 
     expect_message(
@@ -69,7 +71,7 @@ test_that("read_data moxy.perfpro works", {
             nirs_columns = c(smo2_left = "smo2_left_VL",
                              smo2_right = "smo2_right_VL"),
             sample_column = NULL,
-            .verbose = TRUE),
+            verbose = TRUE),
         "No `sample_column` provided")
 })
 
@@ -86,8 +88,8 @@ test_that("read_data train.red works", {
             nirs_columns = c(smo2_left = "SmO2 unfiltered",
                              smo2_right = "SmO2 unfiltered"),
             sample_column = c(time = "Timestamp (seconds passed)"),
-            .keep_all = FALSE,
-            .verbose = TRUE),
+            keep_all = FALSE,
+            verbose = TRUE),
         "non-sequential or repeating")
 
     expect_silent(
@@ -96,13 +98,15 @@ test_that("read_data train.red works", {
             nirs_columns = c(smo2_left = "SmO2 unfiltered",
                              smo2_right = "SmO2 unfiltered"),
             sample_column = c(time = "Timestamp (seconds passed)"),
-            .keep_all = FALSE,
-            .verbose = FALSE)
+            keep_all = FALSE,
+            verbose = FALSE)
     )
 
     expect_s3_class(tr_data, "mNIRS.data")
 
     expect_s3_class(tr_data, "data.frame")
+
+    expect_type(tr_data$time, "double")
 
     expect_true(
         all(c("nirs_columns", "sample_column", "sample_rate") %in%
@@ -110,13 +114,11 @@ test_that("read_data train.red works", {
 
     expect_equal(attr(tr_data, "sample_rate"), 10)
 
-    expect_type(tr_data$time, "double")
-
     expect_error(
         read_data(
             file_path = file_path,
             nirs_columns = c(smo2_left = "smo2_doesnt_exist"),
-            .verbose = FALSE),
+            verbose = FALSE),
         "not detected")
 
     expect_warning(
@@ -124,7 +126,7 @@ test_that("read_data train.red works", {
             file_path = file_path,
             nirs_columns = c(smo2 = "SmO2 unfiltered",
                              smo2 = "SmO2 unfiltered"),
-            .verbose = TRUE),
+            verbose = TRUE),
         "Duplicate input column")
 
     expect_message(
@@ -133,7 +135,7 @@ test_that("read_data train.red works", {
             nirs_columns = c(smo2_left = "SmO2 unfiltered",
                              smo2_right = "SmO2 unfiltered"),
             sample_column = NULL,
-            .verbose = TRUE),
+            verbose = TRUE),
         "No `sample_column` provided")
 })
 
@@ -149,7 +151,7 @@ test_that("read_data oxysoft works", {
             file_path = file_path,
             nirs_columns = c(HHb_VL = 6,
                              ICG_VL = 9),
-            .verbose = FALSE)
+            verbose = FALSE)
     )
 
     expect_length(
@@ -158,9 +160,11 @@ test_that("read_data oxysoft works", {
             nirs_columns = c(HHb_VL = 6,
                              ICG_VL = 9),
             sample_column = c(sample = 1),
-            .keep_all = FALSE,
-            .verbose = TRUE),
+            keep_all = FALSE,
+            verbose = TRUE),
         3)
+
+    expect_type(oxy_data$sample, "double")
 
     expect_s3_class(oxy_data, "mNIRS.data")
 
@@ -172,13 +176,11 @@ test_that("read_data oxysoft works", {
 
     expect_equal(attr(oxy_data, "sample_rate"), 50)
 
-    expect_type(oxy_data$sample, "double")
-
     expect_error(
         read_data(
             file_path = file_path,
             nirs_columns = c(smo2_left = "smo2_doesnt_exist"),
-            .verbose = FALSE),
+            verbose = FALSE),
         "not detected")
 
     expect_warning(
@@ -187,7 +189,7 @@ test_that("read_data oxysoft works", {
             nirs_columns = c(smo2 = "6",
                              smo2 = "9"),
             sample_column = c(sample = 1),
-            .verbose = TRUE),
+            verbose = TRUE),
         "Duplicate input column")
 
     expect_message(
@@ -196,25 +198,77 @@ test_that("read_data oxysoft works", {
             nirs_columns = c(HHb_VL = 6,
                              ICG_VL = 9),
             sample_column = NULL,
-            .verbose = TRUE),
+            verbose = TRUE),
         "No `sample_column` provided")
 })
 
 
 
-file_path <- system.file("extdata",
-                         "vo2master_moxyunit_example.xlsx",
-                         package = "mNIRS")
 
-read_data(
-    file_path = file_path,
-    nirs_columns = c(smo2_left = "SmO2[%]",
-                     smo2_right = "SmO2 -  2[%]"),
-    sample_column = c(time = "Time[utc]"),
-    .keep_all = FALSE,
-    .verbose = TRUE) |>
-    dplyr::mutate(
-        # across(c(smo2_left, smo2_right),
-        #        \(.x) replace_missing_values(.x))
+test_that("read_data VMPro app works", {
+    file_path <- system.file("extdata",
+                             "vo2master_moxyunit_example.xlsx",
+                             package = "mNIRS")
+
+
+    expect_silent(
+        read_data(
+            file_path = file_path,
+            nirs_columns = c(smo2_left = "SmO2[%]",
+                             smo2_right = "SmO2 -  2[%]"),
+            sample_column = c(time = "Time[utc]"),
+            verbose = FALSE)
     )
+
+    expect_length(
+        vmpro_data <- read_data(
+            file_path = file_path,
+            nirs_columns = c(smo2_left = "SmO2[%]",
+                             smo2_right = "SmO2 -  2[%]"),
+            sample_column = c(time = "Time[utc]"),
+            numeric_time = FALSE,
+            keep_all = TRUE,
+            verbose = FALSE),
+        5)
+
+    expect_s3_class(vmpro_data, "mNIRS.data")
+
+    expect_s3_class(vmpro_data, "data.frame")
+
+    expect_s3_class(vmpro_data$time, "POSIXct")
+
+    expect_true(
+        all(c("nirs_columns", "sample_column", "sample_rate") %in%
+                names(attributes(vmpro_data))))
+
+    expect_equal(attr(vmpro_data, "sample_rate"), 1)
+
+    expect_error(
+        read_data(
+            file_path = file_path,
+            nirs_columns = c(smo2_left = "smo2_doesnt_exist"),
+            verbose = FALSE),
+        "not detected")
+
+    expect_warning(
+        read_data(
+            file_path = file_path,
+            nirs_columns = c(smo2 = "SmO2[%]",
+                             smo2 = "SmO2 -  2[%]"),
+            sample_column = c(time = "Time[utc]"),
+            verbose = TRUE),
+        "Duplicate input column")
+
+    expect_message(
+        read_data(
+            file_path = file_path,
+            nirs_columns = c(smo2_left = "SmO2[%]",
+                             smo2_right = "SmO2 -  2[%]"),
+            sample_column = NULL,
+            verbose = TRUE),
+        "No `sample_column` provided")
+})
+
+
+
 

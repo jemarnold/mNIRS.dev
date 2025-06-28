@@ -348,14 +348,18 @@ read_data <- function(
         #     dplyr::slice_head(.df, n = first_allna_row)
         # })() |>
         dplyr::mutate(
-            ## convert dttm format sample column to numeric values in seconds
-            ## detects either character or dttm formats
+            ## convert dttm or character to dttm "%Y-%m-%d %H:%M:%OS"
             dplyr::across(
                 tidyselect::any_of(names(sample_column)) &
                     tidyselect::where(is.character),
                 \(.x) as.POSIXct(.x, tryFormats = c(
-                    "%Y-%m-%d %H:%M:%OS", "%Y/%m/%d %H:%M:%OS", "%H:%M:%OS"),
-                    format = "%H:%M:%OS")),
+                    "%Y-%m-%dT%H:%M:%OS", "%Y-%m-%dT%H:%M:%OS%z",
+                    "%Y-%m-%d %H:%M:%OS", "%Y/%m/%d %H:%M:%OS",
+                    "%d-%m-%Y %H:%M:%OS", "%d/%m/%Y %H:%M:%OS",
+                    "%H:%M:%OS"),
+                    optional = TRUE)),
+
+            ## convert dttm format sample column to numeric values in seconds
             if (numeric_time) dplyr::across(
                 tidyselect::any_of(names(sample_column)) &
                     tidyselect::where(lubridate::is.POSIXct),
