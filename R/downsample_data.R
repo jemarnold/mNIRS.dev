@@ -65,6 +65,9 @@ downsample_data <- function(
             "match exactly."))
     }
 
+    ## passthrough condition for sample_rate
+    if (sample_rate == 0) {sample_rate <- NULL}
+
     sample_vector <- as.numeric(data[[sample_column]])
     ## estimate sample_rate in samples per second
     empirical_sample_rate <- head(diff(sample_vector), 100) |>

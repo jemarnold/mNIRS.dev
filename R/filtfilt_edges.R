@@ -75,10 +75,10 @@ filtfilt_edges <- function (
     if (!is.numeric(x)) {
         cli::cli_abort("{.arg x} must be a numeric vector.")
     }
-    if (!rlang::is_integerish(n)) {
+    if (!rlang::is_integerish(n) | n == 0) {
         cli::cli_abort("{.arg n} must be an integer scalar of 1 or greater.")
     }
-    if (!is.numeric(W)) {
+    if (!is.numeric(W) | W == 0 | W == 1) {
         cli::cli_abort(paste(
             "{.arg W} must be a numeric scalar or two-element vector",
             "`c(low, high)` between 0 and 1."))

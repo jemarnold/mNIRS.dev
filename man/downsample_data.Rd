@@ -10,7 +10,7 @@ downsample_data(
   sample_rate = NULL,
   downsample_rate = NULL,
   downsample_time = NULL,
-  .verbose = TRUE
+  verbose = TRUE
 )
 }
 \arguments{
@@ -27,7 +27,7 @@ output sample rate (in Hz) to convert the dataframe.}
 \item{downsample_time}{\emph{(Optional)}. A numeric scalar indicating the desired
 sample time (in seconds) to convert the dataframe.}
 
-\item{.verbose}{A logical. \code{TRUE} (\emph{default}) will return warnings and
+\item{verbose}{A logical. \code{TRUE} (\emph{default}) will return warnings and
 messages which can be used for data error checking. \code{FALSE} will silence these
 messages. Errors will always be returned.}
 }

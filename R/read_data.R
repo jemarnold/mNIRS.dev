@@ -435,6 +435,9 @@ read_data <- function(
     oxysoft_sample_row <- apply(data_pre[1:1000, ], 1,
                                 \(.row) all("Export sample rate" %in% .row))
 
+    ## passthrough condition for sample_rate
+    if (sample_rate == 0) {sample_rate <- NULL}
+
     ## estimate sample rate
     if (!is.null(sample_rate) & !is.numeric(sample_rate)) {
 

@@ -10,9 +10,9 @@ read_data(
   sample_column = NULL,
   event_column = NULL,
   sample_rate = NULL,
-  .numeric_time = TRUE,
-  .keep_all = FALSE,
-  .verbose = TRUE
+  numeric_time = TRUE,
+  keep_all = FALSE,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -35,15 +35,15 @@ can be used to rename columns.}
 If not defined explicitly, will be estimated from the file data
 (see \emph{Details}).}
 
-\item{.numeric_time}{A logical. \code{TRUE} (\emph{default}) will convert
+\item{numeric_time}{A logical. \code{TRUE} (\emph{default}) will convert
 date-time formatted columns to numeric values in seconds. \code{FALSE} will retain
 these columns formatted as date-time in the format of the original file.}
 
-\item{.keep_all}{A logical. \code{FALSE} (\emph{default}) will only include the
+\item{keep_all}{A logical. \code{FALSE} (\emph{default}) will only include the
 explicitly indicated data columns. \code{TRUE} will include all columns detected
 from the file.}
 
-\item{.verbose}{A logical. \code{TRUE} (\emph{default}) will return warnings and
+\item{verbose}{A logical. \code{TRUE} (\emph{default}) will return warnings and
 messages which can be used for data error checking. \code{FALSE} will silence these
 messages. Errors will always be returned.}
 }

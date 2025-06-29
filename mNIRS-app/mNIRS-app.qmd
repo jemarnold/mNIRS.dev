@@ -27,13 +27,8 @@ execute:
 #| context: setup
 
 suppressPackageStartupMessages({
-    # library(JAPackage)
-    library(glue)
     library(bslib)
-    # library(plotly)
-    # library(ggpubr)
     library(shiny)
-    # library(readxl)
     library(DT)
     library(mNIRS)
     library(tidyverse)
@@ -42,37 +37,19 @@ suppressPackageStartupMessages({
 options(digits = 5, digits.secs = 3, scipen = 3,
         dplyr.summarise.inform = FALSE,
         tibble.print_min = 20,
-        shiny.maxRequestSize=50*1024^2)
-
-text_size <- 12
-theme_set(
-    theme_bw(base_size = text_size, base_family = "Merriweather Sans") +
-        theme(
-            text = element_text(colour = "black"),
-            plot.title = ggtext::element_textbox(size = rel(1.2), lineheight = 1.1),
-            plot.subtitle = ggtext::element_textbox(lineheight = 1.1),
-            plot.caption = ggtext::element_textbox(colour = "grey50", halign = 1),
-            panel.border = element_blank(),
-            axis.line = element_line(),
-            # panel.grid.major = element_blank(),
-            panel.grid.minor = element_blank(),
-            axis.title = element_text(size = rel(1.2), face = "bold"),
-            legend.position = "none",
-            legend.justification = "right",
-            legend.margin = margin(rep(1, 4)),
-            legend.box.spacing = unit(text_size/4, "pt"),
-            strip.background = element_rect(fill = "grey95"),
-            strip.text = element_text(margin = margin(rep(text_size/4, 4))),
-        ))
+        shiny.maxRequestSize = 50*1024^2)
 
 string_to_named_vector <- function(x) {
-    vec <- unlist(strsplit(x, "\\s*,\\s*"))
-    lst <- strsplit(vec, "\\s*=\\s*")
-    setNames(sapply(lst, \(.x) trimws(.x[2])),
-             sapply(lst, \(.x) trimws(.x[1])))
+    noquotes <- gsub('["\\\"]', '', x)
+    split_vec <- unlist(strsplit(noquotes, "\\s*,\\s*"))
+    split_list <- strsplit(split_vec, "\\s*=\\s*")
+    setNames(sapply(split_list, \(.x) trimws(.x[2])),
+             sapply(split_list, \(.x) trimws(.x[1])))
 }
 
+
 ```
+
 
 # Plot
 
@@ -103,7 +80,7 @@ fileInput(
 ## Tell it which columns are which
 textInput(
     "nirs_columns", 
-    label = "NIRS Column Names (multiple)", 
+    label = "NIRS Channel Names (multiple)", 
     placeholder = "newname = oldname, newname2 = oldname2, ...")
 textInput(
     "sample_column", 
@@ -114,13 +91,13 @@ textInput(
     label = "Lap/Event Column Name (single)", 
     placeholder = "newname = oldname")
 
-numericInput("sample_rate", label = "Sample Rate", value = 1)
+numericInput("sample_rate", label = "Sample Rate", value = 0)
 
-numericInput("resample_rate", label = "Resample Rate", value = 0)
+numericInput("downsample_rate", label = "Downsample Rate", value = 0)
 
-## remove head/tail rows
-numericInput("slice_head", label = "Remove head rows", value = 0, step = 1)
-numericInput("slice_tail", label = "Remove tail rows", value = 0, step = 1)
+## remove head/tail samples
+numericInput("slice_head", label = "Remove head samples", value = 0, step = 1)
+numericInput("slice_tail", label = "Remove tail samples", value = 0, step = 1)
 
 ## Replace outliers (column wise)
 checkboxInput("replace_outliers", "Replace outliers")
@@ -138,18 +115,18 @@ textInput(
 selectInput(
     "filter_method",
     label = "Digital Filter Method",
-    choices = c("none", "low-pass", "smooth-spline", "moving-average"))
+    choices = c("none", "smooth-spline", "butterworth", "moving-average"))
 uiOutput("filter_method_ui")
 
 ## Shift data (dataframe)
 checkboxInput("shift_logical", "Shift Data")
 uiOutput("shift_data_ui")
 
-## Normalise (dataframe)
-checkboxInput("normalise_logical", "Normalise Data")
-uiOutput("normalise_data_ui")
+## rescale (dataframe)
+checkboxInput("rescale_logical", "Rescale Data")
+uiOutput("rescale_data_ui")
 
-checkboxInput("keep_all", "Keep all columns in data file")
+checkboxInput("keep_all", "Keep all columns in file export")
 
 downloadButton("download_data", "Download Data")
 
@@ -175,7 +152,7 @@ DT::DTOutput("nirs_table")
 
 ```{r}
 
-
+cat("Under Development")
 ## Slice into laps/events (lapwise list of dataframes)
 ## Start & end of work with padding to each side
 ## Define work baseline; end-work mean; reoxygenation peak (lapwise)
@@ -183,6 +160,47 @@ DT::DTOutput("nirs_table")
 ## Generate plots (lapwise)
 
 ```
+
+
+
+# Instructions
+
+`r cat("Under Development")`
+
+## Instructions
+
+Upload an `.xlsx`, `.xls`, or `.csv` file.
+
+Enter the names for the mNIRS data channels, Sample column, and Lap/Event column. Data channels can be renamed with the format `newname = oldname`. Original column names must match the file strings exactly. For example, from a Train.Red .csv file with two SmO2 channels: `NIRS Channel Names = "smo2_left  = SmO2 unfiltered, smo2_right = SmO2 unfiltered"; Sample Column Name = "time = Timestamp (seconds passed)"; [Lap/Event column left blank]`.
+
+`Sample Rate`: Will be estimated automatically from the data, or can be entered explicitly. This is required for certain functions, including proper digital filtering.
+
+`Downsample Rate`: Can be defined to downsample the data and reduce the number of output samples to improve signal to noise ratio.
+
+`Remove Head/Tail Samples`: Will remove samples from the start and end of the data. This can be used to omit erroneous data at the head/tail, or to include only a particular selection of the entire data file. `<under development: interactive graphical method to select portions of data>`
+
+`Replace Outliers`: Will replace local outliers using a `Hampel` filter.
+
+`Replace Missing Values`: Will interpolate across missing (`NA`) samples.
+
+`Replace Fixed Values`: A vector of numeric values can be defined to be explicitly removed and interpolated across, such as `c(0, 100)` when mNIRS sensors return erroneous values.
+
+`Digital Filter Method`: Choose a digital filter method from the drop-down options. The simplest option that works well for many datasets is a non-parametric `smooth-spline`. A `Butterworth` filter can be defined to optimise the signal-to-noise ratio for your particular signal. `<under development: interactive graphical method to compare digital filter methods>`
+
+`Shift Data`: Will shift mNIRS channels either together (with `Channels to Shift = "ensemble"`) or separately (with `distinct`) to the value specified by `Value to Shift`. `Position to Shift` defines which reference values from the data channel(s) to shift. `Samples to Shift` defines over how many samples to shift the mean value. For example, each mNIRS channel can be shifted so that the first 30-sec mean value begins at zero, with the settings: `Value to Shift = 0; Channels to Shift = "distinct"; Position to Shift = "first"; Samples to Shift = [30 * Sample Rate]` (where the value representing `[30 * Sample Rate]` should be manually entered).
+
+`Rescale Data`: Will re-scale the mNIRS channels either together (`Channels to Rescale = "ensemble"`) or separately (with `distinct`) to the data range specified by `Rescale Range Minimum/Maximum`. For example, all present mNIRS channels can be re-scaled so that the range of data are within range of 0% to 100%, preserving the relative scaling of each channel to the other, with the settings: `Rescale Range Minimum = 0; Rescale Range Maximum = 100; Channels to Rescale = "ensemble"`.
+
+`Keep all columns in file export`: Will keep all columns present from the original data file when exporting the processed file, along with the nirs, sample, and lap/event columns specified explicitly.
+
+`Download Data`: Will open a dialogue box to save an `.xlsx` file with the processed data to your system.
+
+`Plot`: Specified mNIRS channels will be displayed in the `Plot` window and updated according to manually entered processing parameters.
+
+`Data`: raw data can be viewed in the `Data` window and will be updated according to the manually entered processing parameters.
+
+`Kinetics`: `<under development>`
+
 
 
 
@@ -198,29 +216,31 @@ raw_data <- reactive({
     req(input$upload_file, nirs_columns_debounced(), sample_column_debounced())
     
     upload_file <- input$upload_file$datapath
-    # upload_file <- r"(C:\R-Projects\mNIRS\mNIRS-app\Oxysoft-example.xlsx)"
-    # upload_file <- r"(C:\OneDrive - UBC\Body Position Study\Raw Data\BP05-TrainRed-2025-05-06.csv)"
+    # upload_file <- r"(C:\R-Projects\mNIRS\inst\extdata\train.red_interval_example.csv)"
+    # upload_file <- r"(C:\R-Projects\mNIRS\inst\extdata\oxysoft_interval_example.xlsx)"
     
     data <- mNIRS::read_data(
         file_path = upload_file,
         # nirs_columns = string_to_named_vector(c(
-        #     "SmO2_VL = SmO2 unfiltered",
-        #     "SmO2_PS = SmO2 unfiltered")),
+        #     "smo2_left  = SmO2 unfiltered",
+        #     "smo2_right = SmO2 unfiltered")),
         # sample_column = string_to_named_vector(
         #     "time = Timestamp (seconds passed)"),
         nirs_columns = string_to_named_vector(nirs_columns_debounced()),
         sample_column = string_to_named_vector(sample_column_debounced()),
         event_column = string_to_named_vector(event_column_debounced()),
         sample_rate = input$sample_rate,
-        .keep_all = input$keep_all)
+        numeric_time = TRUE,
+        keep_all = input$keep_all,
+        verbose = FALSE)
     
     # raw_data <- mNIRS::read_data(
     #     upload_file,
-    #     nirs_columns = c(SmO2_VL = "SmO2 unfiltered",
-    #                      SmO2_PS = "SmO2 unfiltered"),
+    #     nirs_columns = c(smo2_left = "SmO2 unfiltered",
+    #                      smo2_right = "SmO2 unfiltered"),
     #     sample_column = c(time = "Timestamp (seconds passed)"),
     #     # event_column = c(event = "...11"),
-    #     .keep_all = FALSE)
+    #     keep_all = FALSE)
     
     return(data)
 })
@@ -234,12 +254,17 @@ output$filter_method_ui <- renderUI({
     sample_rate <- attributes(raw_data)$sample_rate
     
     # Different UI based on selection
-    if (input$filter_method == "low-pass") {
+    if (input$filter_method == "butterworth") {
         tagList(
+            selectInput(
+                "butter_type",
+                label = "Butterworth Filter Type",
+                choices = c("low", "high", "stop", "pass")
+            ),
             numericInput(
                 "n",
                 label = "Filter Order (n)",
-                value = 4,
+                value = 2,
                 min = 1,
                 max = 10,
                 step = 1
@@ -290,7 +315,7 @@ output$shift_data_ui <- renderUI({
                 value = 0),
             selectInput(
                 "shift_which_cols",
-                label = "Columns to Shift",
+                label = "Channels to Shift",
                 choices = c("ensemble", "distinct")),
             selectInput(
                 "shift_position",
@@ -304,25 +329,25 @@ output$shift_data_ui <- renderUI({
     }
 })
 
-## Create dynamic UI for normalise option
-output$normalise_data_ui <- renderUI({
-    req(raw_data(), input$normalise_logical,
+## Create dynamic UI for rescale option
+output$rescale_data_ui <- renderUI({
+    req(raw_data(), input$rescale_logical,
         nirs_columns_debounced(), sample_column_debounced())
     
     # Different UI based on selection
-    if (input$normalise_logical) {
+    if (input$rescale_logical) {
         tagList(
             numericInput(
-                "normalise_min",
-                label = "Normalise Range Minimum",
+                "rescale_min",
+                label = "Rescale Range Minimum",
                 value = 0),
             numericInput(
-                "normalise_max",
-                label = "Normalise Range Maximum",
+                "rescale_max",
+                label = "Rescale Range Maximum",
                 value = 100),
             selectInput(
-                "normalise_which_cols",
-                label = "Columns to normalise",
+                "rescale_which_cols",
+                label = "Channels to Rescale",
                 choices = c("ensemble", "distinct")),
         )
     }
@@ -339,11 +364,12 @@ nirs_data <- reactive({
         as.numeric()
     
     nirs_data <- raw_data |> 
-        mNIRS::resample_dataframe(
+        mNIRS::downsample_data(
             data = _,
             sample_column = sample_column,
             sample_rate = sample_rate,
-            resample_rate = input$resample_rate
+            downsample_rate = input$downsample_rate,
+            verbose = FALSE
         ) |> 
         ## remove the head rows
         (\(.df) if (input$slice_head > 0) {
@@ -354,41 +380,40 @@ nirs_data <- reactive({
             slice_head(.data = .df, n = -input$slice_tail)
         } else {.df})() |> 
         mutate(
-            if (input$replace_missing) {
-                across(
-                    any_of(nirs_columns),
-                    \(.x) mNIRS::replace_missing_values(
-                        .x, method = "linear", na.rm = TRUE)$y)
-            },
             if (input$replace_outliers) {
                 across(
                     any_of(nirs_columns),
-                    \(.x) mNIRS::replace_outliers(.x, k = sample_rate)$y)
+                    \(.x) mNIRS::replace_outliers(.x, width = sample_rate))
             },
             if (!is.null(fixed_values)) {
                 across(
                     any_of(nirs_columns),
                     \(.x) mNIRS::replace_fixed_values(
-                        .x, fixed_values, k = sample_rate)$y)
+                        .x, fixed_values, width = sample_rate, return = "median"))
             },
-            if (input$filter_method == "low-pass") {
-                req(input$n, input$critical_frequency)
-                
+            if (input$replace_missing) {
                 across(
                     any_of(nirs_columns),
-                    \(.x) mNIRS::filter_data(
-                        .x, method = input$filter_method, 
-                        n = input$n,
-                        critical_frequency = input$critical_frequency,
-                        sample_rate = sample_rate))
+                    \(.x) mNIRS::replace_missing_values(
+                        .x, method = "linear", na.rm = TRUE))
             },
             if (input$filter_method == "smooth-spline") {
                 across(
                     any_of(nirs_columns),
                     \(.x) mNIRS::filter_data(
                         .x, method = input$filter_method))
-            },
-            if (input$filter_method == "moving-average") {
+            } else if (input$filter_method == "butterworth") {
+                req(input$n, input$critical_frequency)
+                
+                across(
+                    any_of(nirs_columns),
+                    \(.x) mNIRS::filter_data(
+                        .x, method = input$filter_method, 
+                        type = input$butter_type,
+                        n = input$n,
+                        critical_frequency = input$critical_frequency,
+                        sample_rate = sample_rate))
+            } else if (input$filter_method == "moving-average") {
                 req(input$width)
                 
                 across(
@@ -408,7 +433,7 @@ nirs_data <- reactive({
                 shift_nirs_columns <- as.list(nirs_columns)
             }
             
-            mNIRS::shift_dataframe(
+            mNIRS::shift_data(
                 data = .df,
                 nirs_columns = shift_nirs_columns,
                 shift_to = input$shift_value,
@@ -416,20 +441,20 @@ nirs_data <- reactive({
                 mean_samples = input$shift_samples,
             )
         } else {.df})() |> 
-        (\(.df) if (input$normalise_logical) {
-            req(input$normalise_min, input$normalise_max, 
-                input$normalise_which_cols)
+        (\(.df) if (input$rescale_logical) {
+            req(input$rescale_min, input$rescale_max, 
+                input$rescale_which_cols)
             
-            if (input$normalise_which_cols == "ensemble") {
-                normalise_nirs_columns <- nirs_columns
-            } else if (input$normalise_which_cols == "distinct") {
-                normalise_nirs_columns <- as.list(nirs_columns)
+            if (input$rescale_which_cols == "ensemble") {
+                rescale_nirs_columns <- nirs_columns
+            } else if (input$rescale_which_cols == "distinct") {
+                rescale_nirs_columns <- as.list(nirs_columns)
             }
             
-            mNIRS::normalise_dataframe(
+            mNIRS::rescale_data(
                 data = .df,
-                nirs_columns = normalise_nirs_columns,
-                normalise_range = c(input$normalise_min, input$normalise_max)
+                nirs_columns = rescale_nirs_columns,
+                rescale_range = c(input$rescale_min, input$rescale_max)
             )
         } else {.df})() |> 
         mutate(
@@ -445,13 +470,6 @@ output$nirs_table <- DT::renderDT({
     req(nirs_data())
     
     nirs_columns <- attributes(nirs_data)$nirs_columns
-    
-    # display_data <- nirs_data() |> 
-    #     mutate(
-    #         across(
-    #             any_of(nirs_columns), 
-    #             \(.x) mNIRS::signif_trailing(.x, 3, "signif"))
-    #     )
     
     table <- DT::datatable(
         nirs_data(),
@@ -470,18 +488,9 @@ output$plot <- renderPlot({
     req(nirs_data(), nirs_columns_debounced(), sample_column_debounced())
     
     nirs_data <- nirs_data()
-    nirs_columns <- attributes(nirs_data)$nirs_columns
-    sample_column <- attributes(nirs_data)$sample_column
-    event_column <- attributes(nirs_data)$event_column
     
-    plot <- ggplot(nirs_data) +
-        aes(x = .data[[sample_column]]) +
-        lapply(nirs_columns,
-               \(.x) geom_line(aes(y = .data[[.x]], colour = .x))) +
-        NULL
+    plot(nirs_data)
     
-    
-    return(plot)
 })
 
 
@@ -489,7 +498,7 @@ output$plot <- renderPlot({
 output$download_data <- downloadHandler(
     
     filename = function() {
-        glue("mNIRS_processed_{Sys.time()}.xlsx")
+        paste0("mNIRS_processed_", Sys.time(), ".xlsx")
     },
     
     content = function(file) {
