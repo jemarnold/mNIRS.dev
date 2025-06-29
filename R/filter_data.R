@@ -117,11 +117,11 @@ filter_data <- function(
 
     ## filter parameters should be manually defined, therefore left blank in
     ## function definition, but `NULL` makes conditional detection easier
-    if (spar == 0) {spar <- NULL}
+    if (missing(spar) || spar <= 0) {spar <- NULL}
     if (missing(W)) {W <- NULL}
-    if (missing(critical_frequency) | critical_frequency == 0) {critical_frequency <- NULL}
-    if (missing(sample_rate) | sample_rate == 0) {sample_rate <- NULL}
-    if (missing(width) | width == 0) {width <- NULL}
+    if (missing(critical_frequency) || critical_frequency <= 0) {critical_frequency <- NULL}
+    if (missing(sample_rate) || sample_rate <= 0) {sample_rate <- NULL}
+    if (missing(width) || width <= 0) {width <- NULL}
 
     if (method == "smooth-spline") {
 

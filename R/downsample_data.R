@@ -65,12 +65,21 @@ downsample_data <- function(
             "match exactly."))
     }
 
-    ## passthrough condition for sample_rate
-    if (sample_rate == 0) {sample_rate <- NULL}
+    ## check for non-NULL, not applicable `sample_rate`
+    if (!is.null(sample_rate) && (!is.numeric(sample_rate) || sample_rate <= 0)) {
+        sample_rate <- NULL
+
+        if (verbose) {
+            cli::cli_alert_info(paste(
+                "{.arg sample_rate} should be defined explicitly",
+                "as a numeric value > 0 Hz."))
+        }
+    }
 
     sample_vector <- as.numeric(data[[sample_column]])
+
     ## estimate sample_rate in samples per second
-    empirical_sample_rate <- head(diff(sample_vector), 100) |>
+    estimated_sample_rate <- head(diff(sample_vector), 100) |>
         mean(na.rm = TRUE) |>
         (\(.x) round((1/.x)/0.5)*0.5)()
 
@@ -81,9 +90,17 @@ downsample_data <- function(
     ) {
         ## take sample_rate from metadata
         sample_rate <- metadata$sample_rate
+
+        sample_info <- paste("Sample rate = {.val {sample_rate}} Hz.")
+
     } else if (missing(sample_rate) | is.null(sample_rate)) {
         ## estimate sample_rate from data
-        sample_rate <- empirical_sample_rate
+        sample_rate <- estimated_sample_rate
+
+        sample_info <- paste(
+            "Estimated sample rate = {.val {sample_rate}} Hz.",
+            "Overwrite this with {.arg sample_rate = X}.")
+
     }
     #
     ## Processing ===================================
@@ -108,6 +125,13 @@ downsample_data <- function(
         return(data)
     }
 
+    if (verbose) {
+        cli::cli_alert_info(paste(
+            "i" = sample_info,
+            "i" = "Output is downsampled at {.val {downsample_rate}} Hz."
+        ))
+    }
+
     y <- data |>
         dplyr::mutate(
             ## calculate time difference for weighting
@@ -118,7 +142,7 @@ downsample_data <- function(
             ## Round to nearest downsample rate
             dplyr::across(
                 tidyselect::any_of(sample_column),
-                \(.x) if (empirical_sample_rate == sample_rate) {
+                \(.x) if (estimated_sample_rate == sample_rate) {
                     ## if `sample_column` is time values and `sample_rate` is
                     ## estimated correctly, should output correct time values
                     floor(.x * downsample_rate) / downsample_rate
@@ -149,13 +173,6 @@ downsample_data <- function(
     metadata$sample_rate <- downsample_rate
 
     y <- create_mNIRS_data(y, metadata)
-
-    if (verbose) {
-        cli::cli_alert_info(paste(
-            "Estimated sample rate is {.val {sample_rate}} Hz.",
-            "Output is downsampled at {.val {downsample_rate}} Hz."
-        ))
-    }
 
     return(y)
 }

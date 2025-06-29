@@ -432,24 +432,23 @@ read_data <- function(
     }
 
     ## detect exported sample_rate from Oxysoft (english) file
-    oxysoft_sample_row <- apply(data_pre[1:1000, ], 1,
-                                \(.row) all("Export sample rate" %in% .row))
+    oxysoft_sample_row <- apply(
+        data_pre[1:1000, ], 1, \(.row) all("Export sample rate" %in% .row)
+    )
 
-    ## passthrough condition for sample_rate
-    if (sample_rate == 0) {sample_rate <- NULL}
-
-    ## estimate sample rate
-    if (!is.null(sample_rate) & !is.numeric(sample_rate)) {
+    ## check for non-NULL, not applicable `sample_rate`
+    if (!is.null(sample_rate) && (!is.numeric(sample_rate) || sample_rate <= 0)) {
+        sample_rate <- NULL
 
         if (verbose) {
             cli::cli_alert_info(paste(
-                "{.arg sample_column} should be a numeric value.",
-                "Sample rate set to 1 Hz. Overwrite this with"
-                ,"{.arg sample_rate = X}"
-            ))
+                "{.arg sample_rate} should be defined explicitly",
+                "as a numeric value > 0 Hz."))
         }
+    }
 
-    } else if (is.null(sample_rate) & any(oxysoft_sample_row)) {
+    ## conditions to define/estimate `sample_rate`
+    if (is.null(sample_rate) & any(oxysoft_sample_row)) {
 
         ## manually extract Oxysoft sample rate
         oxysoft_sample_row <- which(oxysoft_sample_row)
@@ -462,22 +461,8 @@ read_data <- function(
 
         if (verbose) {
             cli::cli_alert_info(paste(
-                "Oxysoft detected sample rate = {.val {sample_rate}} Hz."
-            ))
-        }
-
-    } else if (is.null(sample_rate) & !is.null(names(sample_column))) {
-
-        ## sample_rate will be incorrect if `sample_column` is integer
-        ## estimate samples per second
-        sample_rate <- head(diff(sample_vector), 100) |>
-            mean(na.rm = TRUE) |>
-            (\(.x) round((1/.x)/0.5)*0.5)()
-
-        if (verbose) {
-            cli::cli_alert_info(paste(
-                "Estimated sample rate = {.val {sample_rate}} Hz."
-            ))
+                "Oxysoft detected sample rate = {.val {sample_rate}} Hz.",
+                "Overwrite this with {.arg sample_rate = X}."))
         }
 
     } else if (is.null(sample_rate) & is.null(names(sample_column))) {
@@ -487,9 +472,22 @@ read_data <- function(
         if (verbose) {
             cli::cli_alert_info(paste(
                 "No {.arg sample_column} provided. Sample rate set to 1 Hz.",
-                "Overwrite this with {.arg sample_rate = X}"
-            ))
+                "Overwrite this with {.arg sample_rate = X}."))
         }
+    } else if (is.null(sample_rate)) {
+
+        ## sample_rate will be incorrect if `sample_column` is integer
+        ## estimate samples per second
+        sample_rate <- head(diff(sample_vector), 100) |>
+            mean(na.rm = TRUE) |>
+            (\(.x) round((1/.x)/0.5)*0.5)()
+
+        if (verbose) {
+            cli::cli_alert_info(paste(
+                "Estimated sample rate = {.val {sample_rate}} Hz.",
+                "Overwrite this with {.arg sample_rate = X}."))
+        }
+
     }
 
     metadata <- list(
