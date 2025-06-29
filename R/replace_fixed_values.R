@@ -34,6 +34,11 @@ replace_fixed_values <- function(
 
     return <- match.arg(return)
 
+    ## validation: `x` must be a numeric vector
+    if (!is.numeric(x)) {
+        cli::cli_abort("{.arg x} must be a {.cls numeric} vector.")
+    }
+
     ## validation: `fixed_values` must be a numeric vector
     if (!is.numeric(fixed_values)) {
         cli::cli_abort(paste(

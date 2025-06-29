@@ -20,6 +20,7 @@
 #' to fill. Any longer gaps will be left unchanged.
 #'
 #' @details
+#' This function will also replace `NaN` and `Inf` to `NA`.
 #' \describe{
 #'  \item{`method = "locf"`}{if there are no earlier non-`NA`s, then the `NA` is
 #'      either omitted (if `na.rm = TRUE`) or it is not replaced (if
@@ -37,7 +38,7 @@
 #'  [stats::na.omit()]
 #'
 #' @examples
-#' (x <- c(2, NA, NA, 4, 5, 6, NA))
+#' (x <- c(1, 2, NA, Inf, 5, 6, NA))
 #' replace_missing_values(x, method = "omit")
 #' replace_missing_values(x, method = "locf")
 #' replace_missing_values(x, method = "linear", na.rm = FALSE)
@@ -49,21 +50,31 @@
 #' @export
 replace_missing_values <- function(
         x,
-        method = c("locf", "linear", "spline", "omit"),
+        method = c("linear", "locf", "spline", "omit"),
         na.rm = FALSE,
         maxgap = Inf
 ) {
 
     method <- match.arg(method)
 
-    if (method == "locf") {
+    ## validation: `x` must be a numeric vector
+    if (!is.numeric(x)) {
+        cli::cli_abort("{.arg x} must be a {.cls numeric} vector.")
+    }
 
-        y <- zoo::na.locf(x, na.rm = na.rm, maxgap = maxgap)
+    ## replace NaN & Inf to NA
+    if (is.numeric(x)) {
+        x[is.nan(x) | is.infinite(x)] <- NA
+    }
 
-    } else if (method == "linear") {
+    if (method == "linear") {
 
         rule <- ifelse(na.rm, 2, 1)
         y <- zoo::na.approx(x, rule = rule, na.rm = na.rm, maxgap = maxgap)
+
+    } else if (method == "locf") {
+
+        y <- zoo::na.locf(x, na.rm = na.rm, maxgap = maxgap)
 
     } else if (method == "spline") {
 

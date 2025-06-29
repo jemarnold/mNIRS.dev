@@ -6,7 +6,7 @@
 \usage{
 replace_missing_values(
   x,
-  method = c("locf", "linear", "spline", "omit"),
+  method = c("linear", "locf", "spline", "omit"),
   na.rm = FALSE,
   maxgap = Inf
 )
@@ -40,6 +40,7 @@ Detect missing values in vector data and replace via methods from the
 \link[zoo:na.approx]{zoo} package.
 }
 \details{
+This function will also replace \code{NaN} and \code{Inf} to \code{NA}.
 \describe{
 \item{\code{method = "locf"}}{if there are no earlier non-\code{NA}s, then the \code{NA} is
 either omitted (if \code{na.rm = TRUE}) or it is not replaced (if
@@ -54,7 +55,7 @@ re-inserting the omitted \code{NA}s back into the final dataset, if needed.}
 }
 }
 \examples{
-(x <- c(2, NA, NA, 4, 5, 6, NA))
+(x <- c(1, 2, NA, Inf, 5, 6, NA))
 replace_missing_values(x, method = "omit")
 replace_missing_values(x, method = "locf")
 replace_missing_values(x, method = "linear", na.rm = FALSE)

@@ -115,6 +115,11 @@ filter_data <- function(
     method <- match.arg(method)
     type = match.arg(type)
 
+    ## validation: `x` must be a numeric vector
+    if (!is.numeric(x)) {
+        cli::cli_abort("{.arg x} must be a {.cls numeric} vector.")
+    }
+
     ## filter parameters should be manually defined, therefore left blank in
     ## function definition, but `NULL` makes conditional detection easier
     if (missing(spar) || spar <= 0) {spar <- NULL}

@@ -62,6 +62,11 @@ replace_outliers <- function(
 
     return <- match.arg(return)
 
+    ## validation: `x` must be a numeric vector
+    if (!is.numeric(x)) {
+        cli::cli_abort("{.arg x} must be a {.cls numeric} vector.")
+    }
+
     ## validation: `width` must be a numeric scalar
     if (!is.numeric(width) | length(width) > 1) {
         cli::cli_abort(paste("{.arg width} must be a {.cls numeric} scalar."))
