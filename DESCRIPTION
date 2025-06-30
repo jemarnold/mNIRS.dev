@@ -30,7 +30,10 @@ Imports:
     zoo
 Suggests: 
     ggplot2,
+    knitr,
+    quarto,
     scales,
     signal,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+VignetteBuilder: quarto

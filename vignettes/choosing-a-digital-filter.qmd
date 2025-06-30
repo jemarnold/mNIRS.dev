@@ -1,0 +1,25 @@
+---
+title: "Choosing a Digital Filter"
+author: "Jem Arnold"
+date: "Last Updated: `r Sys.Date()`"
+vignette: >
+    %\VignetteIndexEntry{Choosing a Digital Filter}
+    %\VignetteEngine{quarto::html}
+    %\VignetteEncoding{UTF-8}
+format:
+    html:
+        toc: true
+knitr:
+    opts_chunk:
+        collapse: true
+        comment: '#>'
+---
+
+```{r}
+#| label: setup
+library(mNIRS)
+
+moxy_path <- system.file("extdata", "moxy_ramp_example.xlsx", package = "mNIRS")
+
+
+```

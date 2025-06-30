@@ -4,3 +4,5 @@
 desktop.ini
 ~$*.docx
 ~$*.xlsx
+inst/doc
+**/.quarto/

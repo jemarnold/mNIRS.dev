@@ -26,6 +26,11 @@ execute:
 ```{r}
 #| context: setup
 
+## install latest private repo from github
+# devtools::install_github(
+#     "jemarnold/mNIRS",
+#     auth_token = "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")
+
 suppressPackageStartupMessages({
     library(bslib)
     library(shiny)
@@ -81,7 +86,7 @@ fileInput(
 textInput(
     "nirs_columns", 
     label = "NIRS Channel Names (multiple)", 
-    placeholder = "newname = oldname, newname2 = oldname2, ...")
+    placeholder = "newname = oldname")
 textInput(
     "sample_column", 
     label = "Sample Column Name (single)", 
@@ -99,17 +104,17 @@ numericInput("downsample_rate", label = "Downsample Rate", value = 0)
 numericInput("slice_head", label = "Remove head samples", value = 0, step = 1)
 numericInput("slice_tail", label = "Remove tail samples", value = 0, step = 1)
 
-## Replace outliers (column wise)
-checkboxInput("replace_outliers", "Replace outliers")
-
-## Replace missing values (column wise)
-checkboxInput("replace_missing", "Replace missing values")
-
 ## Replace fixed values (column wise)
 textInput(
     "fixed_values",
     label = "Replace Fixed Values",
     placeholder = "0, 100, ...")
+
+## Replace outliers (column wise)
+checkboxInput("replace_outliers", "Replace outliers")
+
+## Replace missing values (column wise)
+checkboxInput("replace_missing", "Replace missing values", value = TRUE)
 
 ## Filter/smooth data (column wise)
 selectInput(
@@ -169,37 +174,62 @@ cat("Under Development")
 
 ## Instructions
 
+**Upload File:**
 Upload an `.xlsx`, `.xls`, or `.csv` file.
 
-Enter the names for the mNIRS data channels, Sample column, and Lap/Event column. Data channels can be renamed with the format `newname = oldname`. Original column names must match the file strings exactly. For example, from a Train.Red .csv file with two SmO2 channels: `NIRS Channel Names = "smo2_left  = SmO2 unfiltered, smo2_right = SmO2 unfiltered"; Sample Column Name = "time = Timestamp (seconds passed)"; [Lap/Event column left blank]`.
+**Channel Names:**
+Enter the names for the mNIRS data channels, Sample column, and Lap/Event column. Data channels can be renamed with the format `newname = oldname`. Original column names must match the file strings exactly. Separate multiple names as `newname1 = oldname1, newname2 = oldname2`.
 
-`Sample Rate`: Will be estimated automatically from the data, or can be entered explicitly. This is required for certain functions, including proper digital filtering.
+For example, from a *Moxy* .csv file: `NIRS Channel Names = "smo2_left  = SmO2 Live"; Sample Column Name = "time = hh:mm:ss"; [Lap/Event column left blank]`.
 
-`Downsample Rate`: Can be defined to downsample the data and reduce the number of output samples to improve signal to noise ratio.
+**Sample Rate:**
+Will be estimated automatically from the data, or can be entered explicitly. This is required for certain functions, including proper digital filtering. Check the exported file sample times to confirm.
 
-`Remove Head/Tail Samples`: Will remove samples from the start and end of the data. This can be used to omit erroneous data at the head/tail, or to include only a particular selection of the entire data file. `<under development: interactive graphical method to select portions of data>`
+**Downsample Rate:**
+Can be defined to downsample the data and reduce the number of output samples to improve signal to noise ratio.
 
-`Replace Outliers`: Will replace local outliers using a `Hampel` filter.
+**Remove Head/Tail Samples:**
+Will remove samples from the start and end of the data. This can be used to omit erroneous data at the head/tail, or to include only a particular selection of the entire data file. `<under development: interactive graphical method to select portions of data>`
 
-`Replace Missing Values`: Will interpolate across missing (`NA`) samples.
+**Replace Outliers:**
+Will replace local outliers using a `Hampel` filter.
 
-`Replace Fixed Values`: A vector of numeric values can be defined to be explicitly removed and interpolated across, such as `c(0, 100)` when mNIRS sensors return erroneous values.
+**Replace Missing Values:**
+Will interpolate across missing (`NA`) samples.
 
-`Digital Filter Method`: Choose a digital filter method from the drop-down options. The simplest option that works well for many datasets is a non-parametric `smooth-spline`. A `Butterworth` filter can be defined to optimise the signal-to-noise ratio for your particular signal. `<under development: interactive graphical method to compare digital filter methods>`
+**Replace Fixed Values:**
+A vector of numeric values can be defined to be explicitly removed and interpolated across, such as `c(0, 100)` when mNIRS sensors return erroneous values.
 
-`Shift Data`: Will shift mNIRS channels either together (with `Channels to Shift = "ensemble"`) or separately (with `distinct`) to the value specified by `Value to Shift`. `Position to Shift` defines which reference values from the data channel(s) to shift. `Samples to Shift` defines over how many samples to shift the mean value. For example, each mNIRS channel can be shifted so that the first 30-sec mean value begins at zero, with the settings: `Value to Shift = 0; Channels to Shift = "distinct"; Position to Shift = "first"; Samples to Shift = [30 * Sample Rate]` (where the value representing `[30 * Sample Rate]` should be manually entered).
+**Digital Filter Method:**
+Choose a digital filter method from the drop-down options. The simplest option that works well for many datasets is a non-parametric `smooth-spline`. 
 
-`Rescale Data`: Will re-scale the mNIRS channels either together (`Channels to Rescale = "ensemble"`) or separately (with `distinct`) to the data range specified by `Rescale Range Minimum/Maximum`. For example, all present mNIRS channels can be re-scaled so that the range of data are within range of 0% to 100%, preserving the relative scaling of each channel to the other, with the settings: `Rescale Range Minimum = 0; Rescale Range Maximum = 100; Channels to Rescale = "ensemble"`.
+A `Butterworth` filter can be defined to optimise the signal-to-noise ratio for your particular signal. The most common `Filter Type` is *"low-pass"*. `Filter Order (n)` should be an integer, typically between `[1:8]`. Critical Frequency should be a numeric value between `0` and half of the sample rate, in Hz.
 
-`Keep all columns in file export`: Will keep all columns present from the original data file when exporting the processed file, along with the nirs, sample, and lap/event columns specified explicitly.
+`<under development: interactive graphical method to compare digital filter methods>`
 
-`Download Data`: Will open a dialogue box to save an `.xlsx` file with the processed data to your system.
+**Shift Data:**
+Will shift mNIRS channels either together (with `Channels to Shift = "ensemble"`) or separately (with `distinct`) to the value specified by `Value to Shift`. `Position to Shift` defines which reference values from the data channel(s) to shift. `Samples to Shift` defines over how many samples to shift the mean value. 
 
-`Plot`: Specified mNIRS channels will be displayed in the `Plot` window and updated according to manually entered processing parameters.
+For example, each mNIRS channel can be shifted so that the first 30-sec mean value begins at zero, with the settings: `Value to Shift = 0; Channels to Shift = "distinct"; Position to Shift = "first"; Samples to Shift = [30 * Sample Rate]` (where the value representing `[30 * Sample Rate]` should be manually entered).
 
-`Data`: raw data can be viewed in the `Data` window and will be updated according to the manually entered processing parameters.
+**Rescale Data:**
+Will re-scale the mNIRS channels either together (`Channels to Rescale = "ensemble"`) or separately (with `distinct`) to the data range specified by `Rescale Range Minimum/Maximum`. 
 
-`Kinetics`: `<under development>`
+For example, all present mNIRS channels can be re-scaled so that the range of data are within range of 0% to 100%, preserving the relative scaling of each channel to the other, with the settings: `Rescale Range Minimum = 0; Rescale Range Maximum = 100; Channels to Rescale = "ensemble"`.
+
+**Keep all columns in file export:**
+Will keep all columns present from the original data file when exporting the processed file, along with the nirs, sample, and lap/event columns specified explicitly.
+
+**Download Data:**
+Will open a dialogue box to save an `.xlsx` file with the processed data to your system.
+
+**Plot Tab:**
+Specified mNIRS channels will be displayed in the `Plot` window and updated according to manually entered processing parameters.
+
+**Data Tab:** 
+Processed data can be viewed in the `Data` window and will be updated according to the manually entered processing parameters.
+
+**Kinetics Tab:** `<under development>`
 
 
 
@@ -408,7 +438,7 @@ nirs_data <- reactive({
                 across(
                     any_of(nirs_columns),
                     \(.x) mNIRS::filter_data(
-                        .x, method = input$filter_method, 
+                        .x, method = "butter", 
                         type = input$butter_type,
                         n = input$n,
                         critical_frequency = input$critical_frequency,
