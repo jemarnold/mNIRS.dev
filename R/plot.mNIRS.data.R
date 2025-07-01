@@ -2,7 +2,10 @@
 #'
 #' Create a simple plot for objects returned from [create_mNIRS_data()].
 #'
-#' @param data object of class `mNIRS.data` as returned from [create_mNIRS_data()]
+#' @param data Object of class `mNIRS.data` as returned from [create_mNIRS_data()]
+#' @param na.omit A logical indicating whether missing data (`NA`) should be omitted
+#' (`TRUE`) for better display of disconnected lines, or included (`FALSE`, the
+#' default) to better recognise where data are missing.
 #' @param ... Additional arguments (*currently not used*).
 #'
 #' @return A [ggplot2][ggplot2::ggplot()] object.
@@ -11,7 +14,7 @@
 #'  scale_y_continuous geom_line geom_point
 #'
 #' @export
-plot.mNIRS.data <- function(data, ...) {
+plot.mNIRS.data <- function(data, na.omit = FALSE, ...) {
 
     # if (!requireNamespace("ggplot2", quietly = TRUE)) {
     #     cli::cli_abort(paste(
@@ -30,7 +33,7 @@ plot.mNIRS.data <- function(data, ...) {
             names_to = "nirs_columns",
             values_to = "y") |>
         ## remove empty rows for geom_line
-        tidyr::drop_na(y) |>
+        ( \(.df) if (na.omit) {tidyr::drop_na(.df, y)} else {.df})() |>
         ggplot() +
         aes(x = .data[[sample_column]], y = y,
             colour = nirs_columns) +

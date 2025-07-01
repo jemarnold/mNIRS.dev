@@ -1,7 +1,10 @@
 ---
 title: "Choosing a Digital Filter"
-author: "Jem Arnold"
-date: "Last Updated: `r Sys.Date()`"
+date: last-modified
+language: 
+    title-block-published: "UPDATED"
+author:
+    - name: Jem Arnold
 vignette: >
     %\VignetteIndexEntry{Choosing a Digital Filter}
     %\VignetteEngine{quarto::html}
@@ -9,17 +12,65 @@ vignette: >
 format:
     html:
         toc: true
+        toc-location: left
+# execute:
+#     echo: false
+#     message: false
+#     warning: false
+#     output: false
 knitr:
     opts_chunk:
         collapse: true
         comment: '#>'
 ---
 
+How do I know which filter methods & parameters to use to return optimal signal-to-noise for my mNIRS data? This vignette will demonstrate how to:
+
+* Use `{mNIRS}` to import and display raw NIRS data.
+* Display and investigate my NIRS data to identify the relevant signal from noisy data.
+* Demonstrate three common digital filtering or "smoothing" methods to extract my NIRS signal from noisy data.
+    1. A simple moving average.
+    2. A Butterworth low-pass digital filter.
+    3. A non-parametric smoothing spline.
+* Visually check residuals between raw and filtered data.
+
+
+## Read and pre-process the data
+
+Let's start by reading example data file recorded from a *Moxy* mNIRS device with two channels, during an incremental ramp cycling assessment. 
+
+This will report a couple lines of warnings/messages about sample (time) column values. We can ignore these for now (or silence them with `verbose = FALSE`.
+
 ```{r}
 #| label: setup
-library(mNIRS)
+#| echo: true
+#| output: true
 
-moxy_path <- system.file("extdata", "moxy_ramp_example.xlsx", package = "mNIRS")
+library(dplyr)
+library(ggplot2)
+library(mNIRS) 
+# devtools::install_github("jemarnold/mNIRS") ## install development version
 
+moxy_path <- system.file("extdata/moxy_ramp_example.xlsx", 
+                         package = "mNIRS")
+
+# oxy_path <- system.file("extdata", "oxysoft_interval_example.xlsx",
+#                         package = "mNIRS")
+
+moxy_data <- read_data(moxy_path,
+                       nirs_columns = c(smo2_left = "SmO2 Live",
+                                        smo2_right = "SmO2 Live(2)"),
+                       sample_column = c(time = "hh:mm:ss"),
+                       event_column = c(lap = "Lap"),
+                       sample_rate = 2,
+                       numeric_time = TRUE,
+                       keep_all = FALSE,
+                       verbose = TRUE)
+
+print(moxy_data)
+
+plot(moxy_data)
 
 ```
+
+We can see the raw data need some pre-processing steps.
