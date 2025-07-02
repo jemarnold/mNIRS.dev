@@ -70,45 +70,41 @@ determined via penalised log liklihood. This usually works well for
 smoothing responses occurring on the order of minutes or longer. Or \code{spar}
 can be defined explicitly, typically (but not necessarily) in the range
 \verb{spar = [0, 1]}.}
+\item{\code{method = "butter"}}{applies a centred (two-pass symmetrical)
+Butterworth digital filter from \code{\link[signal:butter]{signal::butter()}} and \code{\link[signal:filtfilt]{signal::filtfilt()}}.
+The filter order is defined by \code{n}, typically in the range \verb{n = [1, 10]}.
+Higher filter orders tend to better capture rapid changes in amplitude,
+but also cause more distortion artefacts in the signal. General advice is
+to use the lowest order which sufficiently captures any rapid step-changes
+in the data.
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{ \\item\{`method = "butter"`\}\{applies a centred (two-pass symmetrical)
- Butterworth digital filter from [signal::butter()] and [signal::filtfilt()].
- The filter order is defined by `n`, typically in the range `n = [1, 10]`.
- Higher filter orders tend to better capture rapid changes in amplitude,
- but also cause more distortion artefacts in the signal. General advice is
- to use the lowest order which sufficiently captures any rapid step-changes
- in the data.
+Filter \code{type} defines how the desired signal frequencies are either passed
+through or rejected from the output signal. \emph{Low-pass} and \emph{high-pass}
+filters allow only frequencies \emph{lower} or \emph{higher} than the critical
+frequency \code{W} to be passed through as the output signal, respectively.
+\emph{Stop-band} defines a critical range of frequencies which are rejected
+from the output signal. \emph{Pass-band} defines a critical range of frequencies
+which are passed through as the output signal.
 
- Filter `type` defines how the desired signal frequencies are either passed
- through or rejected from the output signal. *Low-pass* and *high-pass*
- filters allow only frequencies *lower* or *higher* than the critical
- frequency `W` to be passed through as the output signal, respectively.
- *Stop-band* defines a critical range of frequencies which are rejected
- from the output signal. *Pass-band* defines a critical range of frequencies
- which are passed through as the output signal.
+The critical (cutoff) frequency is defined by \code{W}, a numeric scalar for
+\emph{low-pass} and \emph{high-pass} filters, or a two-element vector \code{c(low, high)}
+defining the lower and upper bands for \emph{stop-band} and \emph{pass-band} filters.
+\code{W} represents the desired fractional critical frequency in the range
+\verb{W = [0, 1]}, where \code{1} is the Nyquist frequency, i.e., half the sample
+rate of the data in Hz.
 
- The critical (cutoff) frequency is defined by `W`, a numeric scalar for
- *low-pass* and *high-pass* filters, or a two-element vector `c(low, high)`
- defining the lower and upper bands for *stop-band* and *pass-band* filters.
- `W` represents the desired fractional critical frequency in the range
- `W = [0, 1]`, where `1` is the Nyquist frequency, i.e., half the sample
- rate of the data in Hz.
+Alternatively, the critical frequency can be defined by \code{critical_frequency}
+and \code{sample_rate} together. \code{critical_frequency} represents the desired
+critical frequency in Hz, and \code{sample_rate} is the sample rate of the
+recorded data in Hz. \code{W = critical_frequency / (sample_rate/2)}.
 
- Alternatively, the critical frequency can be defined by `critical_frequency`
- and `sample_rate` together. `critical_frequency` represents the desired
- critical frequency in Hz, and `sample_rate` is the sample rate of the
- recorded data in Hz. `W = critical_frequency / (sample_rate/2)`.
-
- Defining both `critical_frequency` and `sample_rate` explicitly will
- overwrite `W`.\}
-
- \\item\{`method = "moving-average"`\}\{applies a centred (two-way symmetrical)
- moving average filter from [zoo::rollapply()]. The moving-average is
- calculated over a window of width `width` defining the number of samples
- between `[i - floor(width/2), i + floor(width/2)]`. A partial moving-
- average will be calculated at the edges of the existing data.\}
-}\if{html}{\out{</div>}}
-
+Defining both \code{critical_frequency} and \code{sample_rate} explicitly will
+overwrite \code{W}.}
+\item{\code{method = "moving-average"}}{applies a centred (two-way symmetrical)
+moving average filter from \code{\link[zoo:rollapply]{zoo::rollapply()}}. The moving-average is
+calculated over a window of width \code{width} defining the number of samples
+between \verb{[i - floor(width/2), i + floor(width/2)]}. A partial moving-
+average will be calculated at the edges of the existing data.}
 }
 }
 \examples{
