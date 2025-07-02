@@ -114,7 +114,7 @@ textInput(
 checkboxInput("replace_outliers", "Replace outliers")
 
 ## Replace missing values (column wise)
-checkboxInput("replace_missing", "Replace missing values", value = TRUE)
+checkboxInput("replace_missing", "Replace missing values")
 
 ## Filter/smooth data (column wise)
 selectInput(

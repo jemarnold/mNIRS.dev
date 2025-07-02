@@ -172,8 +172,10 @@ read_data <- function(
         })
 
         ## detect header row where nirs_columns exists
-        header_row <- which(apply(data_pre[1:1000, ], 1,
-                                  \(.row) all(nirs_columns %in% .row)))
+        header_row <- which(apply(
+            data_pre[1:1000, ], 1,
+            \(.row) all(c(nirs_columns, sample_column, event_column) %in% .row)
+        ))
 
     } else if (is_csv) {
 
@@ -191,14 +193,14 @@ read_data <- function(
     ## validation: nirs_columns must be detected to extract the proper dataframe
     if (rlang::is_empty(header_row)) {
         cli::cli_abort(paste(
-            "{.val nirs_columns = {nirs_columns}} not detected.",
+            "{.val data column names} not detected.",
             "Column names are case sensitive and should match exactly."))
     }
 
     ## return error if nirs_columns string is detected at multiple rows
     if (length(header_row) > 1) {
         cli::cli_abort(paste(
-            "{.val nirs_columns = {nirs_columns}} detected at multiple rows.",
+            "{.val data column names} detected at multiple rows.",
             "Please ensure that column names in the data file are unique."))
     }
 

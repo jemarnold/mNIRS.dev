@@ -24,6 +24,31 @@ knitr:
         comment: '#>'
 ---
 
+```{r}
+#| eval: false
+#| output: false
+
+
+## TODO
+- import example data
+- pre-process (replace missing data)
+- discuss signal selection
+- - examples: 2-min exercise mean; intra-cadence
+
+- 1. simple moving average
+- - Moxy data; manufacturer recommendations
+- - two-way symmetrical vs one-way moving average
+- - low sample rate (0.5 Hz), doesnt really matter
+
+- 2. Butterworth filter
+- - Oxysoft data
+- - low-pass filter
+
+
+
+```
+
+
 How do I know which filter methods & parameters to use to return optimal signal-to-noise for my mNIRS data? This vignette will demonstrate how to:
 
 * Use `{mNIRS}` to import and display raw NIRS data.
@@ -35,42 +60,227 @@ How do I know which filter methods & parameters to use to return optimal signal-
 * Visually check residuals between raw and filtered data.
 
 
-## Read and pre-process the data
+## Read in the data file
 
 Let's start by reading example data file recorded from a *Moxy* mNIRS device with two channels, during an incremental ramp cycling assessment. 
 
-This will report a couple lines of warnings/messages about sample (time) column values. We can ignore these for now (or silence them with `verbose = FALSE`.
+This will report a couple lines of warnings/messages about sample (time) column values. We can ignore these for now (or silence them with `verbose = FALSE`).
 
 ```{r}
 #| label: setup
-#| echo: true
-#| output: true
 
-library(dplyr)
-library(ggplot2)
+# library(dplyr)
+# library(ggplot2)
+# library(purrr)
+library(tidyverse)
+# library(tidyr)
 library(mNIRS) 
 # devtools::install_github("jemarnold/mNIRS") ## install development version
 
-moxy_path <- system.file("extdata/moxy_ramp_example.xlsx", 
-                         package = "mNIRS")
+# moxy_path <- system.file("extdata/moxy_ramp_example.xlsx", 
+#                          package = "mNIRS")
 
-# oxy_path <- system.file("extdata", "oxysoft_interval_example.xlsx",
-#                         package = "mNIRS")
+oxy_path <- system.file("extdata", "oxysoft_interval_example.xlsx",
+                        package = "mNIRS")
 
-moxy_data <- read_data(moxy_path,
-                       nirs_columns = c(smo2_left = "SmO2 Live",
-                                        smo2_right = "SmO2 Live(2)"),
-                       sample_column = c(time = "hh:mm:ss"),
-                       event_column = c(lap = "Lap"),
-                       sample_rate = 2,
-                       numeric_time = TRUE,
+# moxy_data <- read_data(moxy_path,
+#                        nirs_columns = c(smo2_left = "SmO2 Live",
+#                                         smo2_right = "SmO2 Live(2)"),
+#                        sample_column = c(time = "hh:mm:ss"),
+#                        event_column = c(lap = "Lap"),
+#                        sample_rate = 2,
+#                        numeric_time = TRUE,
+#                        keep_all = FALSE,
+#                        verbose = TRUE)
+
+oxy_data <- read_data(oxy_path,
+                       nirs_columns = c(VL_HHb = "6"),
+                       sample_column = c(time = "1"),
+                       event_column = c(event = "11"),
+                       sample_rate = 50, ## oxysoft sample rate
                        keep_all = FALSE,
                        verbose = TRUE)
 
-print(moxy_data)
+print(oxy_data)
 
-plot(moxy_data)
+plot(oxy_data)
 
 ```
 
-We can see the raw data need some pre-processing steps.
+## Pre-process the data
+
+We can see the raw data need some pre-processing steps to replace outliers and some missing data (deliberately introduced in this example dataset.
+
+Missing data in particular (`NA`, `NaN`, or `Inf`) will often throw errors when trying to apply digital filters, and should be handled before filtering the data.
+
+```{r}
+
+## extract metadata from data attributes
+nirs_columns <- attributes(oxy_data)$nirs_columns
+sample_rate <- attributes(oxy_data)$sample_rate
+
+oxy_data <- oxy_data |> 
+    mutate(
+        # across(any_of(nirs_columns),
+        #        \(.x) replace_missing_values(x = .x,
+        #                                     method = "linear") ## linear interpolation
+        # ),
+        # across(any_of(nirs_columns),
+        #        \(.x) replace_outliers(x = .x,
+        #                               width = 10 * sample_rate, ## 10-sec Hampel filter
+        #                               t0 = 3,
+        #                               return = "median")
+        # ),
+    )
+
+plot(oxy_data)
+
+```
+
+## What signals are we interested in?
+
+This is the most important question to help us choose a digital filter method. To filter out 'noise' from the data, we need to identify what 'signal' we are interested in pulling out.
+
+If we are interested in longer time-scale (lower frequency) responses, like the mean NIRS values during a 2-min exercise interval, we would want to use a filter which removes most of the higher-frequency 'noise'.
+
+If we are interested in shorter time-scale (higher frequency) responses or responses around a known frequency, such as NIRS amplitude changes during repeated contractions at 4 seconds per repetition (0.25 Hz) or pedalling at 90 rpm (1.5 Hz), we would want to use a filter which preserves these frequencies.
+
+```{r}
+
+df <- 
+    oxy_data |> 
+    mutate(
+        across(any_of(nirs_columns),
+               \(.x) filter_data(.x,
+                                 method = "butter",
+                                 type = "low",
+                                 n = 2,
+                                 critical_frequency = 0.025,
+                                 sample_rate = sample_rate),
+               .names = "0.025"),
+        across(any_of(nirs_columns),
+               \(.x) filter_data(.x,
+                                 method = "butter",
+                                 type = "low",
+                                 n = 2,
+                                 critical_frequency = 0.062,
+                                 sample_rate = sample_rate),
+               .names = "0.062"),
+        across(any_of(nirs_columns),
+               \(.x) filter_data(.x,
+                                 method = "butter",
+                                 type = "low",
+                                 n = 2,
+                                 critical_frequency = 0.19,
+                                 sample_rate = sample_rate),
+               .names = "0.19"),
+    )
+
+ggplot(df) + 
+        aes(x = time) +
+        theme_mNIRS() +
+        scale_x_continuous(
+            name = "index",
+            expand = expansion(mult = 0.01)) +
+        scale_y_continuous(
+            name = "nirs",
+            expand = expansion(mult = 0.01)) +
+        geom_line(aes(y = VL_HHb), alpha = 0.15) +
+        # geom_line(aes(y = `0.025`, colour = "0.025"), linewidth = 1) +
+        geom_line(aes(y = `0.062`, colour = "0.062"), linewidth = 1) +
+        geom_line(aes(y = `0.19`, colour = "0.19"), linewidth = 1)
+
+
+
+n <- 30
+fc_min <- 0.02 ## Hz
+fc_max <- 0.6 ## Hz
+
+map_data <- expand_grid(
+    order = 1:4, 
+    fc = exp(seq(log(fc_min), log(fc_max), length.out = n)),
+) |> 
+    mutate(
+        cols = setNames(nm = paste0(order, "-", signif(fc, 3)))
+    ) |> 
+    relocate(cols) |> 
+    print()
+
+rmse_data <- purrr::pmap(
+    map_data,
+    \(cols, order, fc) {
+        filtfilt_edges(x = df$VL_HHb, n = order, W = fc / (sample_rate/2))
+    }) |> 
+    bind_cols() |>
+    add_column(nirs = df$VL_HHb, .before = 1) |> 
+    summarise(
+        across(!nirs, 
+               ~ sqrt(mean((nirs - .)^2, na.rm = TRUE))),
+    ) |> 
+    pivot_longer(
+        cols = everything(),
+        names_to = "params",
+        values_to = "RMSE"
+    ) |> 
+    mutate(
+        order = as.numeric(sub("-.*$", "", params)),
+        fc = as.numeric(sub(".*?-", "", params)),
+    ) |> 
+    select(order, fc, RMSE) |> 
+    ## remove Inf
+    filter(if_any(RMSE, \(.x) is.finite(.x))) |>
+    print()
+
+# lm_winter_list <- rmse_data |> 
+#     group_by(order) |> 
+#     slice(round(n()*1/3):n()) |> 
+#     group_split() |> 
+#     map(.x = _,
+#         \(df)
+#         lm(RMSE ~ fc, data = df)
+#     ) |> 
+#     print()
+
+splm <- lm(RMSE ~ splines::ns(fc, 3), data = filter(rmse_data, order == 2))
+attr(splines::bs(rmse_data$fc, 5), "knots")
+
+fit <- mcp::mcp(model = list(RMSE ~ fc - I(fc^2),
+                             ~ 0 + fc),
+                family = gaussian(),
+                data = filter(rmse_data, order == 2))
+
+plot(fit, q_fit = TRUE)
+
+
+ggplot(rmse_data) + 
+    {list( ## Settings
+        aes(x = fc, y = RMSE, 
+            group = order,
+            colour = factor(order)),
+        # facet_wrap(~ order),
+        coord_cartesian(
+            xlim = c(0, NA),
+            ylim = c(0, 0.5)
+        ),
+        theme_mNIRS(border = "full"),
+        scale_x_continuous(
+            name = "Critical Frequency (Hz)",
+            breaks = scales::breaks_pretty(n=8),
+            expand = expansion(mult = c(0.0, 0.03))),
+        scale_y_continuous(
+            name = "RMSE",
+            expand = expansion(mult = c(0.0, 0.03))),
+        NULL)} + ## Settings
+    {list( ## Data
+        # geom_abline(intercept = 0.195, slope = -0.035),
+        # geom_abline(intercept = 0.195, slope = 0, linetype = "dotted"),
+        geom_line(),
+        geom_smooth(
+            data = filter(rmse_data, order == 2),
+            formula = y ~ splines::bs(x, 5), method = "lm", se = FALSE,
+            colour = "black"),
+        geom_point(),
+        NULL)} ## Data
+
+```
+

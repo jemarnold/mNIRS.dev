@@ -53,8 +53,8 @@ data_raw <- read_data(file_path = file_path,
                                        smo2_right = "smo2_right_VL"),
                       sample_column = c(time = "Time"),
                       event_column = c(event = "Event"),
-                      .keep_all = TRUE,
-                      .verbose = TRUE)
+                      keep_all = TRUE,
+                      verbose = TRUE)
 
 data_raw
 
