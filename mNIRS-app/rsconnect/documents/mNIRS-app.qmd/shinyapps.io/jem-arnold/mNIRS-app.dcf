@@ -5,7 +5,7 @@ account: jem-arnold
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 15006176
-bundleId: 10550936
+bundleId: 10550983
 url: https://jem-arnold.shinyapps.io/mNIRS-app/
 version: 1
 quarto_version: 1.6.42

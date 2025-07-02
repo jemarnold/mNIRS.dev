@@ -27,10 +27,10 @@ execute:
 #| context: setup
 
 ## install latest private repo from github
-devtools::install_github(
-    "jemarnold/mNIRS",
-    upgrade = "never",
-    auth_token = "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")
+# devtools::install_github(
+#     "jemarnold/mNIRS",
+#     upgrade = "never",
+#     auth_token = "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")
 
 suppressPackageStartupMessages({
     library(bslib)
