@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Jem Arnold">
-<meta name="dcterms.date" content="2025-06-29">
+<meta name="dcterms.date" content="2025-07-01">
 
 <title>mNIRS Processing</title>
 <style>
@@ -173,7 +173,7 @@ Upload File
 <div class="form-group shiny-input-container">
 <div class="checkbox">
 <label>
-<input id="replace_missing" type="checkbox" class="shiny-input-checkbox" checked="checked">
+<input id="replace_missing" type="checkbox" class="shiny-input-checkbox">
 <span>Replace missing values</span>
 </label>
 </div>
@@ -406,7 +406,7 @@ textInput(
 checkboxInput("replace_outliers", "Replace outliers")
 
 ## Replace missing values (column wise)
-checkboxInput("replace_missing", "Replace missing values", value = TRUE)
+checkboxInput("replace_missing", "Replace missing values")
 
 ## Filter/smooth data (column wise)
 selectInput(
