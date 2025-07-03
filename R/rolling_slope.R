@@ -62,7 +62,7 @@ rolling_slope <- function(
 
     ## validation length of width
     if (width < 2) {
-        cli::cli_abort("{.arg width} must be equal to 2 or greater.")
+        cli::cli_abort("{.arg width} should be equal to 2 or greater.")
     }
 
     n <- length(y)

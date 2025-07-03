@@ -53,17 +53,24 @@ test_that("rolling_slope handles NA values", {
 })
 
 test_that("rolling_slope handles edge cases", {
-    # Single value
-    expect_true(is.na(rolling_slope(c(5), width = 3)))
+    ## single value
+    expect_error(
+        rolling_slope(c(5), width = 3),
+        "should be of length 2 or greater")
 
-    # Two values
+    ## two values
     result <- rolling_slope(c(1, 3), width = 3)
     expect_length(result, 2)
     expect_equal(diff(result), 0)
 
-    # All identical values
+    ## all identical values
     result <- rolling_slope(rep(5, 10), width = 3)
     expect_true(all(result == 0))
+
+    ## all NA
+    expect_error(
+        rolling_slope(rep(NA, 5), width = 3, na.rm = TRUE),
+        "should contain at least 2 or more non-NA values")
 })
 
 test_that("rolling_slope width handles width edge cases", {
@@ -79,17 +86,20 @@ test_that("rolling_slope width handles width edge cases", {
     expect_length(na.omit(result), length(y)-1)
 
     ## width = 1
-    result <- rolling_slope(y, width = 1)
-    expect_true(all(is.na(result)))
+    expect_error(
+        rolling_slope(y, width = 1),
+        "should be equal to 2 or greater")
 })
 
 test_that("rolling_slope partial windows work correctly", {
-    y <- c(1, 2, 3, 4, 5)
+    y <- c(1, 3, 2, 5, 8, 7, 9, 12, 11, 14)
     result <- rolling_slope(y, width = 3, align = "center")
 
-    # First and last positions should use partial windows
+    ## first and last positions should use partial windows
     expect_false(is.na(result[1]))
     expect_false(is.na(result[length(y)]))
+    expect_equal(result[1], diff(y[1:2]))
+    expect_equal(result[2], diff(y[c(1, 3)])/2)
 })
 
 test_that("rolling_slope match.arg works", {
@@ -99,14 +109,9 @@ test_that("rolling_slope match.arg works", {
     expect_no_error(rolling_slope(y, width = 3, align = "center"))
 
     # Invalid alignment should error
-    expect_error(rolling_slope(y, width = 3, align = "invalid"))
-})
-
-test_that("rolling_slope handles all NA input", {
-    y_all_na <- rep(NA, 5)
-    result <- rolling_slope(y_all_na, width = 3, na.rm = TRUE)
-
-    expect_true(all(is.na(result)))
+    expect_error(
+        rolling_slope(y, width = 3, align = "invalid"),
+        "'arg' should be one of")
 })
 
 test_that("rolling_slope zero denominator handling", {
@@ -117,10 +122,6 @@ test_that("rolling_slope zero denominator handling", {
 
     expect_true(all(result == 0, na.rm = TRUE))
 })
-
-
-
-
 
 
 
@@ -212,7 +213,9 @@ test_that("peak_directional_slope works with different alignments", {
 
 test_that("peak_directional_slope handles edge cases", {
     ## single value
-    expect_error(peak_directional_slope(c(5), width = 3), "should be of length 2 or greater")
+    expect_error(
+        peak_directional_slope(c(5), width = 3),
+        "should be of length 2 or greater")
 
     ## two values
     result <- peak_directional_slope(c(1, 3), width = 3)
