@@ -53,6 +53,14 @@ string_to_named_vector <- function(x) {
              sapply(split_list, \(.x) trimws(.x[1])))
 }
 
+# x <- '"Date = mm-dd", "Time = Time[hh:mm:ss]"'
+# noquotes <- gsub('["\\\"]', '', x)
+#     split_vec <- unlist(strsplit(noquotes, "\\s*,\\s*"))
+#     split_list <- strsplit(split_vec, "\\s*=\\s*")
+#     setNames(sapply(split_list, \(.x) trimws(.x[2])),
+#              sapply(split_list, \(.x) trimws(.x[1])))
+
+
 filtfilt_edges2 <- function (
         x,
         n = 1,
@@ -62,7 +70,7 @@ filtfilt_edges2 <- function (
 ) {
     type = match.arg(type)
     edges = match.arg(edges)
-
+    
     ## argument validation
     if (!is.numeric(x)) {
         cli::cli_abort("{.arg x} must be a numeric vector.")
@@ -75,7 +83,7 @@ filtfilt_edges2 <- function (
             "{.arg W} must be a numeric scalar or two-element vector",
             "`c(low, high)` between 0 and 1."))
     }
-
+    
     switch(edges,
            ## pads x with the first and last 10% of the vector length
            "rev" = pad_edges <- c(
@@ -89,12 +97,12 @@ filtfilt_edges2 <- function (
                rep(tail(x, 1), length(x)/10)),
            "none" = pad_edges <- x
     )
-
+    
     ## butterworth filter order (n) and relative cutoff frequency (W)
     x_filt <- signal::filtfilt(
         filt = signal::butter(n = n, W = W, type = type),
         x = pad_edges)
-
+    
     ## returns the original vector length of x with padding omitted
     switch(edges,
            "rev" = x_filt[(length(x)/10 + 1):(length(x)/10 + length(x))],
@@ -136,24 +144,26 @@ fileInput(
 ## Tell it which columns are which
 textInput(
     "nirs_columns", 
-    label = "NIRS Channel Names (multiple)", 
-    placeholder = "newname = oldname")
+    label = "mNIRS Channel Names\n(accepts multiple)", 
+    placeholder = "new_name = file_name")
 textInput(
     "sample_column", 
-    label = "Sample Column Name (single)", 
-    placeholder = "newname = oldname")
+    label = "Time/Sample Column Name", 
+    placeholder = "new_name = file_name")
 textInput(
     "event_column", 
-    label = "Lap/Event Column Name (single)", 
-    placeholder = "newname = oldname")
+    label = "Lap/Event Column Name", 
+    placeholder = "new_name = file_name")
 
-numericInput("sample_rate", label = "Sample Rate", value = 0)
+numericInput("sample_rate", label = "Sample Rate", value = 0, min = 0)
 
-numericInput("downsample_rate", label = "Downsample Rate", value = 0)
+numericInput("downsample_rate", label = "Downsample Rate", value = 0, min = 0)
 
 ## remove head/tail samples
-numericInput("slice_head", label = "Remove head samples", value = 0, step = 1)
-numericInput("slice_tail", label = "Remove tail samples", value = 0, step = 1)
+numericInput("slice_head", label = "Remove head samples", 
+             value = 0, min = 0, step = 1)
+numericInput("slice_tail", label = "Remove tail samples", 
+             value = 0, min = 0, step = 1)
 
 ## Replace fixed values (column wise)
 textInput(
@@ -218,7 +228,6 @@ cat("Under Development")
 ```
 
 
-
 # Instructions
 
 `r cat("Under Development")`
@@ -226,21 +235,23 @@ cat("Under Development")
 ## Instructions
 
 **Upload File:**
-Upload an `.xlsx`, `.xls`, or `.csv` file.
+Upload an `.xlsx`, `.xls`, or `.csv` file containing mNIRS data. At the very least, this file should contain one column with an mNIRS data channel. Files exported directly from common NIRS devices in various formats should work.
 
 **Channel Names:**
-Enter the names for the mNIRS data channels, Sample column, and Lap/Event column. Data channels can be renamed with the format `newname = oldname`. Original column names must match the file strings exactly. Separate multiple names as `newname1 = oldname1, newname2 = oldname2`.
+Enter the column names for the mNIRS data channels (e.g. *SmO2*, *HHb*, *TSI*), Sample column (e.g. *Time*), and Lap/Event column. Only a single mNIRS data channel column is required. Other columns can be left blank if not required / if they do not exist.
 
-For example, from a *Moxy* .csv file: `NIRS Channel Names = "smo2_left  = SmO2 Live"; Sample Column Name = "time = hh:mm:ss"; [Lap/Event column left blank]`.
+Data channels can be renamed with the format `new_name = file_column_name` (without quotes). Original column names must match the file contents exactly. Multiple names can be separated with commas, as `new_name1 = file_name1, new_name2 = file_name2`.
+
+For example, from a *Moxy* .csv file: *NIRS Channel Names:* `smo2_left  = SmO2 Live`; *Sample Column Name:* `time = hh:mm:ss`; [*Lap/Event column* left blank].
 
 **Sample Rate:**
-Will be estimated automatically from the data, or can be entered explicitly. This is required for certain functions, including proper digital filtering. Check the exported file sample times to confirm.
+Will be estimated automatically from the data, or can be overwritten explcitly. This is required for certain functions, including downsampling and proper digital filtering. Check the exported file sample times to confirm.
 
 **Downsample Rate:**
 Can be defined to downsample the data and reduce the number of output samples to improve signal to noise ratio.
 
 **Remove Head/Tail Samples:**
-Will remove samples from the start and end of the data. This can be used to omit erroneous data at the head/tail, or to include only a particular selection of the entire data file. `<under development: interactive graphical method to select portions of data>`
+Will remove samples from the start and end of the data, respectively. This can be used to omit invalid data at the head/tail of a recording, or to include only a particular selection of the entire data file. `<under development: interactive graphical method to select portions of data>`
 
 **Replace Outliers:**
 Will replace local outliers using a `Hampel` filter.
@@ -249,27 +260,25 @@ Will replace local outliers using a `Hampel` filter.
 Will interpolate across missing (`NA`) samples.
 
 **Replace Fixed Values:**
-A vector of numeric values can be defined to be explicitly removed and interpolated across, such as `c(0, 100)` when mNIRS sensors return erroneous values.
+A vector of numeric values can be defined to be explicitly removed and interpolated across, such as `0` and `100` when mNIRS sensors return invalid values.
 
 **Digital Filter Method:**
 Choose a digital filter method from the drop-down options. The simplest option that works well for many datasets is a non-parametric `smooth-spline`. 
 
-A `Butterworth` filter can be defined to optimise the signal-to-noise ratio for your particular signal. The most common `Filter Type` is *"low-pass"*. `Filter Order (n)` should be an integer, typically between `[1:8]`. Critical Frequency should be a numeric value between `0` and half of the sample rate, in Hz.
-
-`<under development: interactive graphical method to compare digital filter methods>`
+A `Butterworth` filter can be defined to optimise the signal-to-noise ratio for your particular signal. The most common *Filter Type* is `"low-pass"`. *Filter Order (n)* should be an integer, typically between `[1:8]`. *Critical Frequency* should be a positive numeric value less than half of the sample rate, in Hz. `<under development: interactive graphical method to compare digital filter methods>`
 
 **Shift Data:**
-Will shift mNIRS channels either together (with `Channels to Shift = "ensemble"`) or separately (with `distinct`) to the value specified by `Value to Shift`. `Position to Shift` defines which reference values from the data channel(s) to shift. `Samples to Shift` defines over how many samples to shift the mean value. 
+Will shift mNIRS channels either together (with *Channels to Shift* = `"ensemble"`) or separately (with `"distinct"`) to the value specified by *Value to Shift*. *Position to Shift* defines which reference values from the data channel(s) to shift. *Samples to Shift* defines over how many samples to shift the mean value. 
 
-For example, each mNIRS channel can be shifted so that the first 30-sec mean value begins at zero, with the settings: `Value to Shift = 0; Channels to Shift = "distinct"; Position to Shift = "first"; Samples to Shift = [30 * Sample Rate]` (where the value representing `[30 * Sample Rate]` should be manually entered).
+For example, each mNIRS channel can be shifted so that the first 30-sec mean value begins at zero, with the settings: *Value to Shift* = `0`; *Channels to Shift* = `"distinct"`; *Position to Shift* = `"first"`; *Samples to Shift* = `[30 * Sample Rate]` (equivalent to 30 seconds).
 
 **Rescale Data:**
-Will re-scale the mNIRS channels either together (`Channels to Rescale = "ensemble"`) or separately (with `distinct`) to the data range specified by `Rescale Range Minimum/Maximum`. 
+Will re-scale the mNIRS channels either together (*Channels to Rescale* = `"ensemble"`) or separately (with `"distinct"`) to the data range specified by *Rescale Range Minimum/Maximum*. 
 
-For example, all present mNIRS channels can be re-scaled so that the range of data are within range of 0% to 100%, preserving the relative scaling of each channel to the other, with the settings: `Rescale Range Minimum = 0; Rescale Range Maximum = 100; Channels to Rescale = "ensemble"`.
+For example, all present mNIRS channels can be re-scaled so that the range of data are within range of `0-100`, preserving the relative scaling of each channel to the other, with the settings: *Rescale Range Minimum* = `0`; *Rescale Range Maximum* = `100`; *Channels to Rescale* = `"ensemble"`.
 
 **Keep all columns in file export:**
-Will keep all columns present from the original data file when exporting the processed file, along with the nirs, sample, and lap/event columns specified explicitly.
+Will keep all columns present from the original data file when exporting the processed file, along with the mNIRS, sample, and lap/event columns specified explicitly.
 
 **Download Data:**
 Will open a dialogue box to save an `.xlsx` file with the processed data to your system.
@@ -285,6 +294,7 @@ Processed data can be viewed in the `Data` window and will be updated according 
 
 
 
+
 ```{r}
 #| context: server
 
@@ -292,21 +302,20 @@ nirs_columns_debounced <- debounce(reactive(input$nirs_columns), 2000)
 sample_column_debounced <- debounce(reactive(input$sample_column), 2000)
 event_column_debounced <- debounce(reactive(input$event_column), 2000)
 
+
 # Data upload and processing
 raw_data <- reactive({
     req(input$upload_file, nirs_columns_debounced(), sample_column_debounced())
     
+    # validate(
+    #     need(!is.null(input$sample_rate) || is.numeric(input$sample_rate)
+    #         || input$sample_rate >= 0, "Sample Rate should be a numeric value ≥ 0")
+    # )
+    
     upload_file <- input$upload_file$datapath
-    # upload_file <- r"(C:\R-Projects\mNIRS\inst\extdata\train.red_interval_example.csv)"
-    # upload_file <- r"(C:\R-Projects\mNIRS\inst\extdata\oxysoft_interval_example.xlsx)"
     
     data <- mNIRS::read_data(
         file_path = upload_file,
-        # nirs_columns = string_to_named_vector(c(
-        #     "smo2_left  = SmO2 unfiltered",
-        #     "smo2_right = SmO2 unfiltered")),
-        # sample_column = string_to_named_vector(
-        #     "time = Timestamp (seconds passed)"),
         nirs_columns = string_to_named_vector(nirs_columns_debounced()),
         sample_column = string_to_named_vector(sample_column_debounced()),
         event_column = string_to_named_vector(event_column_debounced()),
@@ -315,15 +324,15 @@ raw_data <- reactive({
         keep_all = input$keep_all,
         verbose = FALSE)
     
-    # raw_data <- mNIRS::read_data(
-    #     upload_file,
-    #     nirs_columns = c(smo2_left = "SmO2 unfiltered",
-    #                      smo2_right = "SmO2 unfiltered"),
-    #     sample_column = c(time = "Timestamp (seconds passed)"),
-    #     # event_column = c(event = "...11"),
-    #     keep_all = FALSE)
-    
     return(data)
+})
+
+
+## update `sample_rate`
+observe({
+    updateNumericInput(session, 
+                       inputId = "sample_rate", 
+                       value = attributes(raw_data())$sample_rate)
 })
 
 ## Create dynamic UI for filter method
@@ -340,32 +349,28 @@ output$filter_method_ui <- renderUI({
             selectInput(
                 "butter_type",
                 label = "Butterworth Filter Type",
-                choices = c("low", "high", "stop", "pass")
-            ),
+                choices = c("low", "high", "stop", "pass")),
             numericInput(
                 "n",
                 label = "Filter Order (n)",
                 value = 2,
                 min = 1,
                 max = 10,
-                step = 1
-            ),
+                step = 1),
             # numericInput(
             #   "W",
             #   label = "Fractional Critical Frequency (W)",
             #   value = 0.1,
             #   min = 0,
             #   max = 1,
-            #   step = 0.01
-            # ),
+            #   step = 0.01),
             numericInput(
                 "critical_frequency",
                 label = "Critical Frequency (Hz)",
                 value = 0.1,
                 min = 0,
                 max = sample_rate/2,
-                step = 0.05
-            )
+                step = 0.05)
         )
     } else if (input$filter_method == "moving-average") {
         tagList(
@@ -374,8 +379,7 @@ output$filter_method_ui <- renderUI({
                 label = "width",
                 value = 15,
                 min = 1,
-                step = 1
-            )
+                step = 1)
         )
     } else {
         NULL
@@ -434,8 +438,17 @@ output$rescale_data_ui <- renderUI({
     }
 })
 
+
+
 nirs_data <- reactive({
     req(raw_data(), nirs_columns_debounced(), sample_column_debounced())
+    
+    # validate(
+    #     need(try(
+    #         !is.null(input$downsample_rate) || is.numeric(input$downsample_rate)
+    #         || input$downsample_rate >= 0
+    #     ), "Downsample Rate should be ≥ 0")
+    # )
     
     raw_data <- raw_data()
     nirs_columns <- attributes(raw_data)$nirs_columns
@@ -506,7 +519,7 @@ nirs_data <- reactive({
                         type = input$butter_type,
                         n = input$n,
                         W = input$critical_frequency / (sample_rate/2))
-                    )
+                )
             } else if (input$filter_method == "moving-average") {
                 req(input$width)
                 
@@ -561,7 +574,7 @@ nirs_data <- reactive({
 
 
 output$nirs_table <- DT::renderDT({
-    req(nirs_data())
+    req(raw_data(), nirs_data())
     
     nirs_columns <- attributes(nirs_data)$nirs_columns
     
@@ -579,12 +592,12 @@ output$nirs_table <- DT::renderDT({
 
 
 output$plot <- renderPlot({
-    req(nirs_data(), nirs_columns_debounced(), sample_column_debounced())
+    req(raw_data(), nirs_data(), 
+        nirs_columns_debounced(), sample_column_debounced())
     
     nirs_data <- nirs_data()
     
     plot(nirs_data)
-    
 })
 
 

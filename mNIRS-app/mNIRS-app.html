@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Jem Arnold">
-<meta name="dcterms.date" content="2025-07-01">
+<meta name="dcterms.date" content="2025-07-02">
 
 <title>mNIRS Processing</title>
 <style>
@@ -113,44 +113,45 @@ Upload File
 </div>
 <div class="cell-output-display">
 <div class="form-group shiny-input-container">
-<label class="control-label" id="nirs_columns-label" for="nirs_columns">NIRS Channel Names (multiple)</label>
-<input id="nirs_columns" type="text" class="shiny-input-text form-control" value="" placeholder="newname = oldname">
+<label class="control-label" id="nirs_columns-label" for="nirs_columns">mNIRS Channel Names
+(accepts multiple)</label>
+<input id="nirs_columns" type="text" class="shiny-input-text form-control" value="" placeholder="new_name = file_name">
 </div>
 </div>
 <div class="cell-output-display">
 <div class="form-group shiny-input-container">
-<label class="control-label" id="sample_column-label" for="sample_column">Sample Column Name (single)</label>
-<input id="sample_column" type="text" class="shiny-input-text form-control" value="" placeholder="newname = oldname">
+<label class="control-label" id="sample_column-label" for="sample_column">Time/Sample Column Name</label>
+<input id="sample_column" type="text" class="shiny-input-text form-control" value="" placeholder="new_name = file_name">
 </div>
 </div>
 <div class="cell-output-display">
 <div class="form-group shiny-input-container">
-<label class="control-label" id="event_column-label" for="event_column">Lap/Event Column Name (single)</label>
-<input id="event_column" type="text" class="shiny-input-text form-control" value="" placeholder="newname = oldname">
+<label class="control-label" id="event_column-label" for="event_column">Lap/Event Column Name</label>
+<input id="event_column" type="text" class="shiny-input-text form-control" value="" placeholder="new_name = file_name">
 </div>
 </div>
 <div class="cell-output-display">
 <div class="form-group shiny-input-container">
 <label class="control-label" id="sample_rate-label" for="sample_rate">Sample Rate</label>
-<input id="sample_rate" type="number" class="shiny-input-number form-control" value="0">
+<input id="sample_rate" type="number" class="shiny-input-number form-control" value="0" min="0">
 </div>
 </div>
 <div class="cell-output-display">
 <div class="form-group shiny-input-container">
 <label class="control-label" id="downsample_rate-label" for="downsample_rate">Downsample Rate</label>
-<input id="downsample_rate" type="number" class="shiny-input-number form-control" value="0">
+<input id="downsample_rate" type="number" class="shiny-input-number form-control" value="0" min="0">
 </div>
 </div>
 <div class="cell-output-display">
 <div class="form-group shiny-input-container">
 <label class="control-label" id="slice_head-label" for="slice_head">Remove head samples</label>
-<input id="slice_head" type="number" class="shiny-input-number form-control" value="0" step="1">
+<input id="slice_head" type="number" class="shiny-input-number form-control" value="0" min="0" step="1">
 </div>
 </div>
 <div class="cell-output-display">
 <div class="form-group shiny-input-container">
 <label class="control-label" id="slice_tail-label" for="slice_tail">Remove tail samples</label>
-<input id="slice_tail" type="number" class="shiny-input-number form-control" value="0" step="1">
+<input id="slice_tail" type="number" class="shiny-input-number form-control" value="0" min="0" step="1">
 </div>
 </div>
 <div class="cell-output-display">
@@ -287,23 +288,23 @@ bslib.Sidebar.initCollapsibleAll()
 grid-auto-rows: minmax(0, 1fr);">
 <div class="card html-fill-item html-fill-container bslib-card" data-fill="false" data-bslib-card-init="" data-require-bs-caller="card()" data-full-screen="false">
 <div class="card-body html-fill-item html-fill-container">
-<p><strong>Upload File:</strong> Upload an <code>.xlsx</code>, <code>.xls</code>, or <code>.csv</code> file.</p>
-<p><strong>Channel Names:</strong> Enter the names for the mNIRS data channels, Sample column, and Lap/Event column. Data channels can be renamed with the format <code>newname = oldname</code>. Original column names must match the file strings exactly. Separate multiple names as <code>newname1 = oldname1, newname2 = oldname2</code>.</p>
-<p>For example, from a <em>Moxy</em> .csv file: <code>NIRS Channel Names = "smo2_left  = SmO2 Live"; Sample Column Name = "time = hh:mm:ss"; [Lap/Event column left blank]</code>.</p>
-<p><strong>Sample Rate:</strong> Will be estimated automatically from the data, or can be entered explicitly. This is required for certain functions, including proper digital filtering. Check the exported file sample times to confirm.</p>
+<p><strong>Upload File:</strong> Upload an <code>.xlsx</code>, <code>.xls</code>, or <code>.csv</code> file containing mNIRS data. At the very least, this file should contain one column with an mNIRS data channel. Files exported directly from common NIRS devices in various formats should work.</p>
+<p><strong>Channel Names:</strong> Enter the column names for the mNIRS data channels (e.g.&nbsp;<em>SmO2</em>, <em>HHb</em>, <em>TSI</em>), Sample column (e.g.&nbsp;<em>Time</em>), and Lap/Event column. Only a single mNIRS data channel column is required. Other columns can be left blank if not required / if they do not exist.</p>
+<p>Data channels can be renamed with the format <code>new_name = file_column_name</code> (without quotes). Original column names must match the file contents exactly. Multiple names can be separated with commas, as <code>new_name1 = file_name1, new_name2 = file_name2</code>.</p>
+<p>For example, from a <em>Moxy</em> .csv file: <em>NIRS Channel Names:</em> <code>smo2_left  = SmO2 Live</code>; <em>Sample Column Name:</em> <code>time = hh:mm:ss</code>; [<em>Lap/Event column</em> left blank].</p>
+<p><strong>Sample Rate:</strong> Will be estimated automatically from the data, or can be overwritten explcitly. This is required for certain functions, including downsampling and proper digital filtering. Check the exported file sample times to confirm.</p>
 <p><strong>Downsample Rate:</strong> Can be defined to downsample the data and reduce the number of output samples to improve signal to noise ratio.</p>
-<p><strong>Remove Head/Tail Samples:</strong> Will remove samples from the start and end of the data. This can be used to omit erroneous data at the head/tail, or to include only a particular selection of the entire data file. <code>&lt;under development: interactive graphical method to select portions of data&gt;</code></p>
+<p><strong>Remove Head/Tail Samples:</strong> Will remove samples from the start and end of the data, respectively. This can be used to omit invalid data at the head/tail of a recording, or to include only a particular selection of the entire data file. <code>&lt;under development: interactive graphical method to select portions of data&gt;</code></p>
 <p><strong>Replace Outliers:</strong> Will replace local outliers using a <code>Hampel</code> filter.</p>
 <p><strong>Replace Missing Values:</strong> Will interpolate across missing (<code>NA</code>) samples.</p>
-<p><strong>Replace Fixed Values:</strong> A vector of numeric values can be defined to be explicitly removed and interpolated across, such as <code>c(0, 100)</code> when mNIRS sensors return erroneous values.</p>
+<p><strong>Replace Fixed Values:</strong> A vector of numeric values can be defined to be explicitly removed and interpolated across, such as <code>0</code> and <code>100</code> when mNIRS sensors return invalid values.</p>
 <p><strong>Digital Filter Method:</strong> Choose a digital filter method from the drop-down options. The simplest option that works well for many datasets is a non-parametric <code>smooth-spline</code>.</p>
-<p>A <code>Butterworth</code> filter can be defined to optimise the signal-to-noise ratio for your particular signal. The most common <code>Filter Type</code> is <em>“low-pass”</em>. <code>Filter Order (n)</code> should be an integer, typically between <code>[1:8]</code>. Critical Frequency should be a numeric value between <code>0</code> and half of the sample rate, in Hz.</p>
-<code>&lt;under development: interactive graphical method to compare digital filter methods&gt;</code>
-<p><strong>Shift Data:</strong> Will shift mNIRS channels either together (with <code>Channels to Shift = "ensemble"</code>) or separately (with <code>distinct</code>) to the value specified by <code>Value to Shift</code>. <code>Position to Shift</code> defines which reference values from the data channel(s) to shift. <code>Samples to Shift</code> defines over how many samples to shift the mean value.</p>
-<p>For example, each mNIRS channel can be shifted so that the first 30-sec mean value begins at zero, with the settings: <code>Value to Shift = 0; Channels to Shift = "distinct"; Position to Shift = "first"; Samples to Shift = [30 * Sample Rate]</code> (where the value representing <code>[30 * Sample Rate]</code> should be manually entered).</p>
-<p><strong>Rescale Data:</strong> Will re-scale the mNIRS channels either together (<code>Channels to Rescale = "ensemble"</code>) or separately (with <code>distinct</code>) to the data range specified by <code>Rescale Range Minimum/Maximum</code>.</p>
-<p>For example, all present mNIRS channels can be re-scaled so that the range of data are within range of 0% to 100%, preserving the relative scaling of each channel to the other, with the settings: <code>Rescale Range Minimum = 0; Rescale Range Maximum = 100; Channels to Rescale = "ensemble"</code>.</p>
-<p><strong>Keep all columns in file export:</strong> Will keep all columns present from the original data file when exporting the processed file, along with the nirs, sample, and lap/event columns specified explicitly.</p>
+<p>A <code>Butterworth</code> filter can be defined to optimise the signal-to-noise ratio for your particular signal. The most common <em>Filter Type</em> is <code>"low-pass"</code>. <em>Filter Order (n)</em> should be an integer, typically between <code>[1:8]</code>. <em>Critical Frequency</em> should be a positive numeric value less than half of the sample rate, in Hz. <code>&lt;under development: interactive graphical method to compare digital filter methods&gt;</code></p>
+<p><strong>Shift Data:</strong> Will shift mNIRS channels either together (with <em>Channels to Shift</em> = <code>"ensemble"</code>) or separately (with <code>"distinct"</code>) to the value specified by <em>Value to Shift</em>. <em>Position to Shift</em> defines which reference values from the data channel(s) to shift. <em>Samples to Shift</em> defines over how many samples to shift the mean value.</p>
+<p>For example, each mNIRS channel can be shifted so that the first 30-sec mean value begins at zero, with the settings: <em>Value to Shift</em> = <code>0</code>; <em>Channels to Shift</em> = <code>"distinct"</code>; <em>Position to Shift</em> = <code>"first"</code>; <em>Samples to Shift</em> = <code>[30 * Sample Rate]</code> (equivalent to 30 seconds).</p>
+<p><strong>Rescale Data:</strong> Will re-scale the mNIRS channels either together (<em>Channels to Rescale</em> = <code>"ensemble"</code>) or separately (with <code>"distinct"</code>) to the data range specified by <em>Rescale Range Minimum/Maximum</em>.</p>
+<p>For example, all present mNIRS channels can be re-scaled so that the range of data are within range of <code>0-100</code>, preserving the relative scaling of each channel to the other, with the settings: <em>Rescale Range Minimum</em> = <code>0</code>; <em>Rescale Range Maximum</em> = <code>100</code>; <em>Channels to Rescale</em> = <code>"ensemble"</code>.</p>
+<p><strong>Keep all columns in file export:</strong> Will keep all columns present from the original data file when exporting the processed file, along with the mNIRS, sample, and lap/event columns specified explicitly.</p>
 <p><strong>Download Data:</strong> Will open a dialogue box to save an <code>.xlsx</code> file with the processed data to your system.</p>
 <p><strong>Plot Tab:</strong> Specified mNIRS channels will be displayed in the <code>Plot</code> window and updated according to manually entered processing parameters.</p>
 <p><strong>Data Tab:</strong> Processed data can be viewed in the <code>Data</code> window and will be updated according to the manually entered processing parameters.</p>
@@ -350,6 +351,14 @@ string_to_named_vector <- function(x) {
              sapply(split_list, \(.x) trimws(.x[1])))
 }
 
+# x <- '"Date = mm-dd", "Time = Time[hh:mm:ss]"'
+# noquotes <- gsub('["\\\"]', '', x)
+#     split_vec <- unlist(strsplit(noquotes, "\\s*,\\s*"))
+#     split_list <- strsplit(split_vec, "\\s*=\\s*")
+#     setNames(sapply(split_list, \(.x) trimws(.x[2])),
+#              sapply(split_list, \(.x) trimws(.x[1])))
+
+
 filtfilt_edges2 <- function (
         x,
         n = 1,
@@ -359,7 +368,7 @@ filtfilt_edges2 <- function (
 ) {
     type = match.arg(type)
     edges = match.arg(edges)
-
+    
     ## argument validation
     if (!is.numeric(x)) {
         cli::cli_abort("{.arg x} must be a numeric vector.")
@@ -372,7 +381,7 @@ filtfilt_edges2 <- function (
             "{.arg W} must be a numeric scalar or two-element vector",
             "`c(low, high)` between 0 and 1."))
     }
-
+    
     switch(edges,
            ## pads x with the first and last 10% of the vector length
            "rev" = pad_edges <- c(
@@ -386,12 +395,12 @@ filtfilt_edges2 <- function (
                rep(tail(x, 1), length(x)/10)),
            "none" = pad_edges <- x
     )
-
+    
     ## butterworth filter order (n) and relative cutoff frequency (W)
     x_filt <- signal::filtfilt(
         filt = signal::butter(n = n, W = W, type = type),
         x = pad_edges)
-
+    
     ## returns the original vector length of x with padding omitted
     switch(edges,
            "rev" = x_filt[(length(x)/10 + 1):(length(x)/10 + length(x))],
@@ -428,24 +437,26 @@ fileInput(
 ## Tell it which columns are which
 textInput(
     "nirs_columns", 
-    label = "NIRS Channel Names (multiple)", 
-    placeholder = "newname = oldname")
+    label = "mNIRS Channel Names\n(accepts multiple)", 
+    placeholder = "new_name = file_name")
 textInput(
     "sample_column", 
-    label = "Sample Column Name (single)", 
-    placeholder = "newname = oldname")
+    label = "Time/Sample Column Name", 
+    placeholder = "new_name = file_name")
 textInput(
     "event_column", 
-    label = "Lap/Event Column Name (single)", 
-    placeholder = "newname = oldname")
+    label = "Lap/Event Column Name", 
+    placeholder = "new_name = file_name")
 
-numericInput("sample_rate", label = "Sample Rate", value = 0)
+numericInput("sample_rate", label = "Sample Rate", value = 0, min = 0)
 
-numericInput("downsample_rate", label = "Downsample Rate", value = 0)
+numericInput("downsample_rate", label = "Downsample Rate", value = 0, min = 0)
 
 ## remove head/tail samples
-numericInput("slice_head", label = "Remove head samples", value = 0, step = 1)
-numericInput("slice_tail", label = "Remove tail samples", value = 0, step = 1)
+numericInput("slice_head", label = "Remove head samples", 
+             value = 0, min = 0, step = 1)
+numericInput("slice_tail", label = "Remove tail samples", 
+             value = 0, min = 0, step = 1)
 
 ## Replace fixed values (column wise)
 textInput(
@@ -485,21 +496,20 @@ nirs_columns_debounced <- debounce(reactive(input$nirs_columns), 2000)
 sample_column_debounced <- debounce(reactive(input$sample_column), 2000)
 event_column_debounced <- debounce(reactive(input$event_column), 2000)
 
+
 # Data upload and processing
 raw_data <- reactive({
     req(input$upload_file, nirs_columns_debounced(), sample_column_debounced())
     
+    # validate(
+    #     need(!is.null(input$sample_rate) || is.numeric(input$sample_rate)
+    #         || input$sample_rate >= 0, "Sample Rate should be a numeric value ≥ 0")
+    # )
+    
     upload_file <- input$upload_file$datapath
-    # upload_file <- r"(C:\R-Projects\mNIRS\inst\extdata\train.red_interval_example.csv)"
-    # upload_file <- r"(C:\R-Projects\mNIRS\inst\extdata\oxysoft_interval_example.xlsx)"
     
     data <- mNIRS::read_data(
         file_path = upload_file,
-        # nirs_columns = string_to_named_vector(c(
-        #     "smo2_left  = SmO2 unfiltered",
-        #     "smo2_right = SmO2 unfiltered")),
-        # sample_column = string_to_named_vector(
-        #     "time = Timestamp (seconds passed)"),
         nirs_columns = string_to_named_vector(nirs_columns_debounced()),
         sample_column = string_to_named_vector(sample_column_debounced()),
         event_column = string_to_named_vector(event_column_debounced()),
@@ -508,15 +518,15 @@ raw_data <- reactive({
         keep_all = input$keep_all,
         verbose = FALSE)
     
-    # raw_data <- mNIRS::read_data(
-    #     upload_file,
-    #     nirs_columns = c(smo2_left = "SmO2 unfiltered",
-    #                      smo2_right = "SmO2 unfiltered"),
-    #     sample_column = c(time = "Timestamp (seconds passed)"),
-    #     # event_column = c(event = "...11"),
-    #     keep_all = FALSE)
-    
     return(data)
+})
+
+
+## update `sample_rate`
+observe({
+    updateNumericInput(session, 
+                       inputId = "sample_rate", 
+                       value = attributes(raw_data())$sample_rate)
 })
 
 ## Create dynamic UI for filter method
@@ -533,32 +543,28 @@ output$filter_method_ui <- renderUI({
             selectInput(
                 "butter_type",
                 label = "Butterworth Filter Type",
-                choices = c("low", "high", "stop", "pass")
-            ),
+                choices = c("low", "high", "stop", "pass")),
             numericInput(
                 "n",
                 label = "Filter Order (n)",
                 value = 2,
                 min = 1,
                 max = 10,
-                step = 1
-            ),
+                step = 1),
             # numericInput(
             #   "W",
             #   label = "Fractional Critical Frequency (W)",
             #   value = 0.1,
             #   min = 0,
             #   max = 1,
-            #   step = 0.01
-            # ),
+            #   step = 0.01),
             numericInput(
                 "critical_frequency",
                 label = "Critical Frequency (Hz)",
                 value = 0.1,
                 min = 0,
                 max = sample_rate/2,
-                step = 0.05
-            )
+                step = 0.05)
         )
     } else if (input$filter_method == "moving-average") {
         tagList(
@@ -567,8 +573,7 @@ output$filter_method_ui <- renderUI({
                 label = "width",
                 value = 15,
                 min = 1,
-                step = 1
-            )
+                step = 1)
         )
     } else {
         NULL
@@ -627,8 +632,17 @@ output$rescale_data_ui <- renderUI({
     }
 })
 
+
+
 nirs_data <- reactive({
     req(raw_data(), nirs_columns_debounced(), sample_column_debounced())
+    
+    # validate(
+    #     need(try(
+    #         !is.null(input$downsample_rate) || is.numeric(input$downsample_rate)
+    #         || input$downsample_rate >= 0
+    #     ), "Downsample Rate should be ≥ 0")
+    # )
     
     raw_data <- raw_data()
     nirs_columns <- attributes(raw_data)$nirs_columns
@@ -699,7 +713,7 @@ nirs_data <- reactive({
                         type = input$butter_type,
                         n = input$n,
                         W = input$critical_frequency / (sample_rate/2))
-                    )
+                )
             } else if (input$filter_method == "moving-average") {
                 req(input$width)
                 
@@ -754,7 +768,7 @@ nirs_data <- reactive({
 
 
 output$nirs_table <- DT::renderDT({
-    req(nirs_data())
+    req(raw_data(), nirs_data())
     
     nirs_columns <- attributes(nirs_data)$nirs_columns
     
@@ -772,12 +786,12 @@ output$nirs_table <- DT::renderDT({
 
 
 output$plot <- renderPlot({
-    req(nirs_data(), nirs_columns_debounced(), sample_column_debounced())
+    req(raw_data(), nirs_data(), 
+        nirs_columns_debounced(), sample_column_debounced())
     
     nirs_data <- nirs_data()
     
     plot(nirs_data)
-    
 })
 
 
