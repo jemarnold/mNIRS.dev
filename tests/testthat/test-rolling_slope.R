@@ -43,11 +43,11 @@ test_that("rolling_slope handles different alignments", {
 test_that("rolling_slope handles NA values", {
     y <- c(1, 3, NA, 5, 8, 7, 9, 12, NA, 14)
 
-    # Without na.rm
+    ## na.rm = FALSE
     result_no_rm <- rolling_slope(y, width = 3, na.rm = FALSE)
     expect_true(any(is.na(result_no_rm)))
 
-    # With na.rm
+    ## na.rm = TRUE
     result_rm <- rolling_slope(y, width = 3, na.rm = TRUE)
     expect_true(sum(is.na(result_rm)) <= sum(is.na(y)))
 })
@@ -73,7 +73,7 @@ test_that("rolling_slope handles edge cases", {
         "should contain at least 2 or more non-NA values")
 })
 
-test_that("rolling_slope width handles width edge cases", {
+test_that("rolling_slope handles width edge cases", {
     y <- c(1, 3, 2, 5, 8)
 
     # Width larger than data
