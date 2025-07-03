@@ -472,12 +472,12 @@ process_kinetics.half_time <- function(
     (B <- ifelse(direction, max(y), min(y)))
     (peak_sample <- x[y == B])
     (half_value <- A + diff(c(A, B))/2)
-    (half_time <- ifelse(direction, x[y > half_value][1], x[y < half_value][1]))
+    (half_sample <- ifelse(direction, x[y > half_value][1], x[y < half_value][1]))
 
     model = NA
     fitted <- NA_real_
     data$fitted <- NA_real_
-    coefs <- c(A = A, B = B, half_time = half_time, half_value = half_value)
+    coefs <- c(A = A, B = B, half_sample = half_sample, half_value = half_value)
     coefs <- tibble::as_tibble(as.list(coefs))
     fit_criteria <- tibble::tibble(
         AIC = NA_real_, BIC = NA_real_, R2 = NA_real_, RMSE = NA_real_,
@@ -485,7 +485,7 @@ process_kinetics.half_time <- function(
 
     ## save call
     return_call <- match.call()
-    model_equation <- as.formula(TODO ~ add + half_time + formula)
+    model_equation <- as.formula(half_value = A + (B - A) / 2)
     # return_call$model_equation <- list(call = list(formula = model_equation))
 
     out <- structure(
@@ -601,9 +601,10 @@ process_kinetics.peak_slope <- function(
 
     peak_slope <- peak_directional_slope(y, x, width, align, na.rm = TRUE)
 
-    model = NA
+    model <- NA
     data$slopes <- slopes
-    coefs <- c(peak_slope_time = peak_slope$idx, peak_slope = peak_slope$value)
+    coefs <- c(sample = peak_slope$idx, peak_slope = peak_slope$value,
+               nirs_value = y[peak_slope$idx])
     coefs <- tibble::as_tibble(as.list(coefs))
     fit_criteria <- tibble::tibble(
         AIC = NA_real_, BIC = NA_real_, R2 = NA_real_, RMSE = NA_real_,
@@ -611,8 +612,9 @@ process_kinetics.peak_slope <- function(
 
     ## save call
     return_call <- match.call()
-    model_equation <- as.formula(TODO ~ add + peak_slope + formula)
-    # return_call$model_equation <- list(call = list(formula = model_equation))
+    model_equation <- as.formula(
+        y ~ sum((x_window - x_mean) * (y_window - y_mean)) /
+            sum((x_window - x_mean)^2))
 
     out <- structure(
         list(
