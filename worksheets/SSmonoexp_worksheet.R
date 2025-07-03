@@ -103,7 +103,7 @@ plot <- ggplot(true_data) +
     {list( ## Settings
         aes(xcol, ycol),
         scale_y_continuous(
-            limits = c(0, NA),
+            # limits = c(0, NA),
             breaks = scales::breaks_pretty(),
         ),
         theme_JA(),
@@ -227,3 +227,72 @@ test <- function(x, y = NULL, data = NULL) {
 
 # test(x = "xcol", y = ycol, data = true_data)
 test(x = true_x, y = true_y)
+
+
+## peak slope testing ==============================================
+true_y[12] <- NA
+
+rolling_slope <- function(
+        y,
+        x,
+        width,
+        align = c("center", "left", "right"),
+        na.rm = FALSE
+) {
+    align <- match.arg(align)
+    n <- length(y)
+    slopes <- numeric(n)
+
+    for (i in 1:n) {
+        ## calculate window boundaries based on `align`
+        if (align == "center") {
+            start_idx <- max(1, i - floor((width - 1) / 2))
+            end_idx <- min(n, i + floor(width / 2))
+        } else if (align == "left") {
+            start_idx <- i
+            end_idx <- min(n, i + width - 1)
+        } else if (align == "right") {
+            start_idx <- max(1, i - width + 1)
+            end_idx <- i
+        }
+
+        ## extract data within window
+        x_window <- x[start_idx:end_idx]
+        y_window <- y[start_idx:end_idx]
+
+        ## handle `NA`
+        if (na.rm) {
+            valid_idx <- !is.na(x_window) & !is.na(y_window)
+            x_window <- x_window[valid_idx]
+            y_window <- y_window[valid_idx]
+        }
+
+        ## check for sufficient non-NA observations
+        if (length(x_window) < 2 || any(is.na(x_window)) || any(is.na(y_window))) {
+            slopes[i] <- NA
+            next
+        }
+
+        ## calculate slopes using least squares
+        x_mean <- mean(x_window)
+        y_mean <- mean(y_window)
+
+        ## covariance between x & y (+ve when they move in same direction)
+        numerator <- sum((x_window - x_mean) * (y_window - y_mean))
+        ## variance of x (spread of x around mean of x)
+        denominator <- sum((x_window - x_mean)^2)
+        ## best-fit line gradient faster than calling `lm()`
+        slopes[i] <- if (denominator == 0) {0} else {numerator / denominator}
+    }
+
+    return(slopes)
+}
+
+slope3 <- rolling_slope(y = true_y, x = true_x, width = 10, align = "center", na.rm = FALSE) |>
+(\(.x) ((.x - 0) / (max(.x, na.rm = TRUE) - 0)) * (max(true_y, na.rm = TRUE) - 0) + 0)() |>
+    print()
+
+plot +
+    geom_line(aes(y = slope3, colour = "slope")) +
+    geom_line(aes(y = slope2, colour = "slope2")) +
+    theme(legend.position = "top")
