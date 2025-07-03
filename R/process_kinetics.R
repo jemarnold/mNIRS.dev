@@ -489,3 +489,146 @@ process_kinetics.half_time <- function(
 
     return(out)
 }
+
+
+
+
+
+#' @export
+process_kinetics.peak_slope <- function(
+        x,
+        y = NULL,
+        data = NULL,
+        x0 = 0,
+        method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
+        ...
+) {
+    if (!is.null(data) & !is.data.frame(data)) {
+        ## data must be a dataframe
+        cli::cli_abort("{.arg data} must be a dataframe")
+
+    } else if (!is.null(data) & is.data.frame(data)) {
+
+        ## deparse(substitute()) works for unquoted
+        x_exp <- substitute(x) ## symbol from unquoted object name of x
+        x_name <- tryCatch(
+            rlang::as_name(x), ## as_name() works for quoted
+            error = \(e) {
+                ## for unquoted "object not found" error:
+                if (grepl("object", e$message)) {
+                    ## deparse() works for unquoted
+                    gsub('^"|"$', '', deparse(x_exp)) ## quoted object name of x
+                }})
+
+        if (x_name %in% names(data)) {
+            x <- data[[x_name]]
+        } else {
+            cli::cli_abort("{.arg x} not found in {.arg data}")
+        }
+
+        if (is.null(y) | missing(y)) {
+            y_exp <- substitute(x) ## symbol from unquoted object name of x
+            y_name <- x_name ## quoted object name of x
+            x_exp <- substitute(index)
+            x_name <- "index"
+            y <- x
+            x <- seq_along(y)
+
+            data[[x_name]] <- x
+
+        } else {
+            ## deparse(substitute()) works for unquoted
+            y_exp <- substitute(y) ## symbol from unquoted object name of y
+            y_name <- tryCatch(
+                rlang::as_name(y), ## as_name() works for quoted
+                error = \(e) {
+                    ## for unquoted "object not found" error:
+                    if (grepl("object", e$message)) {
+                        ## deparse() works for unquoted
+                        gsub('^"|"$', '', deparse(y_exp)) ## quoted object name of y
+                    }})
+
+            if (y_name %in% names(data)) {
+                y <- data[[y_name]]
+            } else {
+                cli::cli_abort("{.arg y} not found in {.arg data}")
+            }
+        }
+
+        data <- data[c(x_name, y_name)]
+
+    } else if (is.null(data)) {
+        if (is.null(y)) {
+            y_exp <- substitute(x) ## symbol from unquoted object name of x
+            y_name <- deparse(y_exp) ## quoted object name of x
+            x_exp <- substitute(index)
+            x_name <- "index"
+            y <- x
+            x <- seq_along(y)
+        } else {
+            x_exp <- substitute(x) ## symbol from unquoted object name of x
+            x_name <- deparse(x_exp) ## quoted object name of x
+            y_exp <- substitute(y) ## symbol from unquoted object name of y
+            y_name <- deparse(y_exp) ## quoted object name of y
+            x <- x
+            y <- y
+        }
+
+        data <- tibble::tibble(x, y)
+        names(data) <- c(x_name, y_name)
+    }
+
+    x <- x - x0
+    df <- tibble::tibble(x, y)
+
+    ## get rolling slopes
+    slopes <- rolling_slope(df$y, df$x, width = 10, na.rm = TRUE)
+
+
+    ## TRUE == UP, FALSE == DOWN
+    (direction <- mean(head(y, length(y) / 4)) < mean(tail(y, length(y) / 4)))
+
+
+
+
+
+
+
+
+
+
+    (A <- mean(y[ifelse(all(x >= 1), x[1], which(x < 1))]))
+    (B <- ifelse(direction, max(y), min(y)))
+    (peak_sample <- x[y == B])
+    (half_value <- A + diff(c(A, B))/2)
+    (half_time <- ifelse(direction, x[y > half_value][1], x[y < half_value][1]))
+
+    model = NA
+    fitted <- NA_real_
+    data$fitted <- NA_real_
+    coefs <- c(A = A, B = B, half_time = half_time, half_value = half_value)
+    coefs <- tibble::as_tibble(as.list(coefs))
+    fit_criteria <- tibble::tibble(
+        AIC = NA_real_, BIC = NA_real_, R2 = NA_real_, RMSE = NA_real_,
+        RSE = NA_real_, MAE = NA_real_, MAPE = NA_real_)
+
+    ## save call
+    return_call <- match.call()
+    model_equation <- as.formula(TODO ~ add + half_time + formula)
+    # return_call$model_equation <- list(call = list(formula = model_equation))
+
+    out <- structure(
+        list(
+            method = "peak_slope",
+            model = model,
+            model_equation = model_equation,
+            data = data,
+            fitted = fitted,
+            x0 = x0,
+            coefs = coefs,
+            fit_criteria = fit_criteria,
+            call = return_call),
+        class = "mNIRS.kinetics")
+
+    return(out)
+}

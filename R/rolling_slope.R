@@ -49,6 +49,22 @@ rolling_slope <- function(
     ## where `x` is not defined
     if (is.null(x)) {x <- seq_along(y)}
 
+    ## validation length of y
+    if (length(y) < 2) {
+        cli::cli_abort("{.arg y} should be of length 2 or greater.")
+    }
+
+    ## validation y must contain >= 2 non-NA values
+    if (length(na.omit(y)) < 2) {
+        cli::cli_abort(paste(
+            "{.arg y} should contain at least 2 or more non-NA values."))
+    }
+
+    ## validation length of width
+    if (width < 2) {
+        cli::cli_abort("{.arg width} must be equal to 2 or greater.")
+    }
+
     n <- length(y)
     slopes <- numeric(n)
 
