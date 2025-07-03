@@ -230,63 +230,9 @@ test(x = true_x, y = true_y)
 
 
 ## peak slope testing ==============================================
-true_y[12] <- NA
+true_y[8:20] <- NA
 
-rolling_slope <- function(
-        y,
-        x,
-        width,
-        align = c("center", "left", "right"),
-        na.rm = FALSE
-) {
-    align <- match.arg(align)
-    n <- length(y)
-    slopes <- numeric(n)
 
-    for (i in 1:n) {
-        ## calculate window boundaries based on `align`
-        if (align == "center") {
-            start_idx <- max(1, i - floor((width - 1) / 2))
-            end_idx <- min(n, i + floor(width / 2))
-        } else if (align == "left") {
-            start_idx <- i
-            end_idx <- min(n, i + width - 1)
-        } else if (align == "right") {
-            start_idx <- max(1, i - width + 1)
-            end_idx <- i
-        }
-
-        ## extract data within window
-        x_window <- x[start_idx:end_idx]
-        y_window <- y[start_idx:end_idx]
-
-        ## handle `NA`
-        if (na.rm) {
-            valid_idx <- !is.na(x_window) & !is.na(y_window)
-            x_window <- x_window[valid_idx]
-            y_window <- y_window[valid_idx]
-        }
-
-        ## check for sufficient non-NA observations
-        if (length(x_window) < 2 || any(is.na(x_window)) || any(is.na(y_window))) {
-            slopes[i] <- NA
-            next
-        }
-
-        ## calculate slopes using least squares
-        x_mean <- mean(x_window)
-        y_mean <- mean(y_window)
-
-        ## covariance between x & y (+ve when they move in same direction)
-        numerator <- sum((x_window - x_mean) * (y_window - y_mean))
-        ## variance of x (spread of x around mean of x)
-        denominator <- sum((x_window - x_mean)^2)
-        ## best-fit line gradient faster than calling `lm()`
-        slopes[i] <- if (denominator == 0) {0} else {numerator / denominator}
-    }
-
-    return(slopes)
-}
 
 slope3 <- rolling_slope(y = true_y, x = true_x, width = 10, align = "center", na.rm = FALSE) |>
 (\(.x) ((.x - 0) / (max(.x, na.rm = TRUE) - 0)) * (max(true_y, na.rm = TRUE) - 0) + 0)() |>
@@ -296,3 +242,71 @@ plot +
     geom_line(aes(y = slope3, colour = "slope")) +
     geom_line(aes(y = slope2, colour = "slope2")) +
     theme(legend.position = "top")
+
+
+
+peak_directional_slope <- function(
+        y,
+        x = NULL,
+        width,
+        align = c("center", "left", "right"),
+        na.rm = FALSE
+) {
+    ## where `x` is not defined
+    if (is.null(x)) {x <- seq_along(y)}
+
+    ## return local rolling slopes
+    slopes <- rolling_slope(y, x, width, align, na.rm)
+
+    ## handle `NA`
+    ## `na.rm = FALSE` will return peak value of the remaining non-`NA` slopes
+    ## `na.rm = TRUE` will return peak value of `NA`-excluded slopes
+    if (na.rm) {
+        valid_idx <- !is.na(x) & !is.na(y)
+        x_clean <- x[valid_idx]
+        y_clean <- y[valid_idx]
+    } else {
+        x_clean <- x
+        y_clean <- y
+    }
+
+    ## determine overall trend using direct least squares calculation
+    x_mean <- mean(x_clean)
+    y_mean <- mean(y_clean)
+
+    ## covariance between x & y (+ve when they move in same direction)
+    numerator <- sum((x_clean - x_mean) * (y_clean - y_mean), na.rm = TRUE)
+    ## variance of x (spread of x around mean of x)
+    denominator <- sum((x_clean - x_mean)^2, na.rm = TRUE)
+    ## best-fit line gradient faster than calling `lm()`
+    overall_slope <- if (denominator == 0) {0} else {numerator / denominator}
+
+    ## return peak slope based on trend direction
+    if (overall_slope >= 0) {
+        peak_idx <- which.max(slopes)
+        peak_value <- slopes[peak_idx]
+    } else {
+        peak_idx <- which.min(slopes)
+        peak_value <- slopes[peak_idx]
+    }
+
+    # if (na.rm && is.na(peak_value)) {
+    #     valid_slopes <- !is.na(slopes)
+    #     if (any(valid_slopes)) {
+    #         valid_indices <- which(valid_slopes)
+    #         if (overall_slope >= 0) {
+    #             max_idx <- which.max(slopes[valid_indices])
+    #             peak_idx <- valid_indices[max_idx]
+    #         } else {
+    #             min_idx <- which.min(slopes[valid_indices])
+    #             peak_idx <- valid_indices[min_idx]
+    #         }
+    #         peak_value <- slopes[peak_idx]
+    #     }
+    # }
+
+    return(list(value = peak_value, idx = peak_idx))
+}
+
+rolling_slope(y = true_y, x = true_x, width = 10, na.rm = TRUE)
+peak_directional_slope(y = true_y, x = true_x, width = 10, na.rm = TRUE)

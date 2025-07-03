@@ -22,7 +22,7 @@ rolling_slope(
 \item{align}{Specifies the window alignment of \code{width} as \emph{"center"}
 (the default), \emph{"left"}, or \emph{"right"}.}
 
-\item{na.rm}{A logical indicating whether to exclude NA values from slope
+\item{na.rm}{A logical indicating whether to exclude NA values from rolling slope
 calculations.}
 }
 \value{
@@ -42,16 +42,16 @@ valid points remain in a window, \code{NA} will be returned for that position.
 \examples{
 ## basic usage with default centred alignment
 y <- c(1, 3, 2, 5, 8, 7, 9, 12, 11, 14)
-(slopes <- rolling_slope(y, width = 3))
+rolling_slope(y, width = 3)
 
 ## with custom x values and left alignment
 x <- seq(0, 1, length.out = 10)
-(slopes <- rolling_slope(y, x, width = 3, align = "left"))
+rolling_slope(y, x, width = 3, align = "left")
 
 ## handling missing values with `na.rm = TRUE`
 y_na <- c(1, 3, NA, 5, 8, 7, 9, 12, NA, 14)
-(slopes <- rolling_slope(y_na, width = 3, na.rm = FALSE))
-(slopes <- rolling_slope(y_na, width = 3, na.rm = TRUE))
+rolling_slope(y_na, width = 3, na.rm = FALSE)
+rolling_slope(y_na, width = 3, na.rm = TRUE)
 
 }
 \seealso{
