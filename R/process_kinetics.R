@@ -468,16 +468,22 @@ process_kinetics.half_time <- function(
     ## TRUE == UP, FALSE == DOWN
     direction <- overall_slope >= 0
 
-    (A <- mean(y[ifelse(all(x >= 1), x[1], which(x < 1))]))
-    (B <- ifelse(direction, max(y), min(y)))
-    (peak_sample <- x[y == B])
-    (half_value <- A + diff(c(A, B))/2)
-    (half_sample <- ifelse(direction, x[y > half_value][1], x[y < half_value][1]))
+    A_sample <- ifelse(all(x > 0), x[1], 0)
+    A <- mean(y[ifelse(all(x > 0), x[1], which(x <= 0))])
+    B <- ifelse(direction, max(y), min(y))
+    B_sample <- x[y == B]
+    half_value <- A + diff(c(A, B))/2
+    half_sample <- ifelse(direction, x[y >= half_value][1], x[y <= half_value][1])
+    nirs_value <- y[x == half_sample]
 
     model = NA
     fitted <- NA_real_
     data$fitted <- NA_real_
-    coefs <- c(A = A, B = B, half_sample = half_sample, half_value = half_value)
+    coefs <- c(A_sample = A_sample, A = A,
+               B_sample = B_sample, B = B,
+               half_sample = half_sample,
+               half_value = half_value,
+               nirs_value = nirs_value)
     coefs <- tibble::as_tibble(as.list(coefs))
     fit_criteria <- tibble::tibble(
         AIC = NA_real_, BIC = NA_real_, R2 = NA_real_, RMSE = NA_real_,
@@ -485,7 +491,7 @@ process_kinetics.half_time <- function(
 
     ## save call
     return_call <- match.call()
-    model_equation <- as.formula(half_value = A + (B - A) / 2)
+    model_equation <- as.formula(half_value ~ A + (B - A) / 2)
     # return_call$model_equation <- list(call = list(formula = model_equation))
 
     out <- structure(
@@ -599,12 +605,16 @@ process_kinetics.peak_slope <- function(
 
     slopes <- rolling_slope(y, x, width, align, na.rm = TRUE)
 
-    peak_slope <- peak_directional_slope(y, x, width, align, na.rm = TRUE)
+    peak_model <- peak_directional_slope(y, x, width, align, na.rm = TRUE)
+
+
 
     model <- NA
-    data$slopes <- slopes
-    coefs <- c(sample = peak_slope$idx, peak_slope = peak_slope$value,
-               nirs_value = y[peak_slope$idx])
+    data$fitted <- NA_real_
+    data$fitted[x %in% peak_model$x_fitted] <- peak_model$y_fitted
+    coefs <- c(sample = peak_model$x,
+               peak_model = peak_model$slope,
+               nirs_value = y[x %in% peak_model$x])
     coefs <- tibble::as_tibble(as.list(coefs))
     fit_criteria <- tibble::tibble(
         AIC = NA_real_, BIC = NA_real_, R2 = NA_real_, RMSE = NA_real_,
@@ -613,7 +623,7 @@ process_kinetics.peak_slope <- function(
     ## save call
     return_call <- match.call()
     model_equation <- as.formula(
-        y ~ sum((x_window - x_mean) * (y_window - y_mean)) /
+        TODO ~ sum((x_window - x_mean) * (y_window - y_mean)) /
             sum((x_window - x_mean)^2))
 
     out <- structure(
@@ -622,7 +632,7 @@ process_kinetics.peak_slope <- function(
             model = model,
             model_equation = model_equation,
             data = data,
-            slopes = slopes,
+            fitted = slopes,
             x0 = x0,
             width = width,
             align = align,

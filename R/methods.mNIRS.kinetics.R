@@ -87,7 +87,18 @@ print.mNIRS.kinetics <- function(x, ...) {
     } else if (x$method == "peak_slope") {
 
         cat("\n")
-        cat("UNDER DEVELOPMENT")
+        cat("Peak Linear Slope")
+        cat("\n")
+        if (!is.null(x$call$data)) {
+            cat("  data:        ", x$call$data)
+        } else {
+            cat("  data:        data.frame(x = ", names(x$data)[1],
+                ", y = ", names(x$data)[2], ")", sep = "")
+        }
+        cat("\n\n")
+        cat("  Model Coefficients")
+        cat("\n")
+        print(round(unlist(x$coefs), 4))
         cat("\n")
 
     } else {
@@ -161,13 +172,38 @@ plot.mNIRS.kinetics <- function(x,  ...) {
             expand = expansion(mult = 0.01)) +
         scale_colour_discrete(
             name = NULL,
-            # values = mNIRS_palette(),
             limits = force) +
         # guides(colour = guide_legend(
         #     nrow = 1, byrow = FALSE,
         #     override.aes = list(shape = NA, linewidth = 5, alpha = 1))) +
         geom_vline(xintercept = x0, linetype = "dotted") +
         geom_line(aes(y = y, colour = deparse(call$y))) +
-        geom_line(aes(y = fitted, colour = "fitted"))
+        {if (x$method %in% c("monoexponential", "sigmoidal")) {
+            geom_line(aes(y = fitted, colour = "fitted"))
+        }} +
+        {if (x$method == "half_time") {
+            geom_point(
+                data = tibble::tibble(
+                    x = c(coefs$A_sample,
+                          coefs$B_sample,
+                          coefs$half_sample,
+                          coefs$half_sample) + x0,
+                    y = c(coefs$A, coefs$B,
+                          coefs$half_value,
+                          coefs$nirs_value)),
+                aes(x = x, y = y, colour = "fitted"),
+                size = 3, shape = 21, stroke = 1)
+        }} +
+        {if (x$method == "peak_slope") {list(
+            geom_line(aes(y = fitted, colour = "fitted")),
+            geom_point(
+                data = tibble::tibble(
+                    x = c(coefs$sample) + x0,
+                    y = c(coefs$nirs_value)),
+                aes(x = x, y = y, colour = "fitted"),
+                size = 3, shape = 21, stroke = 1)
+        )}} +
+        NULL
+
 
 }

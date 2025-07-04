@@ -196,6 +196,29 @@ peak_directional_slope <- function(
         peak_value <- slopes[peak_idx]
     }
 
+    start_idx <- max(1, peak_idx - floor((width - 1) / 2))
+    end_idx <- min(length(y), peak_idx + floor(width / 2))
+
+    # Extract peak window data
+    x_peak <- x_clean[start_idx:end_idx]
+    y_peak <- y_clean[start_idx:end_idx]
+
+    # Handle NAs in peak window
+    # if (na.rm) {
+    #     valid_peak <- !is.na(x_peak) & !is.na(y_peak)
+    #     x_peak <- x_peak[valid_peak]
+    #     y_peak <- y_peak[valid_peak]
+    # }
+
+    # Calculate fitted values using peak slope
+    if (length(x_peak) >= 2 && !any(is.na(x_peak)) && !any(is.na(y_peak))) {
+        x_peak_mean <- mean(x_peak)
+        y_peak_mean <- mean(y_peak)
+        fitted <- y_peak_mean + peak_value * (x_peak - x_peak_mean)
+    } else {
+        fitted <- NA
+    }
+
     ## TODO I think this is redundant. Needs to be unit tested
     # if (na.rm && is.na(peak_value)) {
     #     valid_slopes <- !is.na(slopes)
@@ -212,5 +235,6 @@ peak_directional_slope <- function(
     #     }
     # }
 
-    return(list(value = peak_value, idx = peak_idx))
+    return(list(x = x_clean[peak_idx], slope = peak_value,
+                x_fitted = x_peak, y_fitted = fitted))
 }

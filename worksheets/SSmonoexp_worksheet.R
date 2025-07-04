@@ -158,9 +158,10 @@ process_kinetics(
     # y = ycol, #error
     # data = true_data,
     x0 = 8, #true_x[8],
-    method = "monoexp"#,
+    method = "peak_slope",
+    width = 10
     # B = 100,
-    )
+    ) |> plot()
 #
 # process_kinetics_test(x = true_y)
 
@@ -232,81 +233,3 @@ test(x = true_x, y = true_y)
 ## peak slope testing ==============================================
 true_y[8:20] <- NA
 
-
-
-slope3 <- rolling_slope(y = true_y, x = true_x, width = 10, align = "center", na.rm = FALSE) |>
-(\(.x) ((.x - 0) / (max(.x, na.rm = TRUE) - 0)) * (max(true_y, na.rm = TRUE) - 0) + 0)() |>
-    print()
-
-plot +
-    geom_line(aes(y = slope3, colour = "slope")) +
-    geom_line(aes(y = slope2, colour = "slope2")) +
-    theme(legend.position = "top")
-
-
-
-peak_directional_slope <- function(
-        y,
-        x = NULL,
-        width,
-        align = c("center", "left", "right"),
-        na.rm = FALSE
-) {
-    ## where `x` is not defined
-    if (is.null(x)) {x <- seq_along(y)}
-
-    ## return local rolling slopes
-    slopes <- rolling_slope(y, x, width, align, na.rm)
-
-    ## handle `NA`
-    ## `na.rm = FALSE` will return peak value of the remaining non-`NA` slopes
-    ## `na.rm = TRUE` will return peak value of `NA`-excluded slopes
-    if (na.rm) {
-        valid_idx <- !is.na(x) & !is.na(y)
-        x_clean <- x[valid_idx]
-        y_clean <- y[valid_idx]
-    } else {
-        x_clean <- x
-        y_clean <- y
-    }
-
-    ## determine overall trend using direct least squares calculation
-    x_mean <- mean(x_clean)
-    y_mean <- mean(y_clean)
-
-    ## covariance between x & y (+ve when they move in same direction)
-    numerator <- sum((x_clean - x_mean) * (y_clean - y_mean), na.rm = TRUE)
-    ## variance of x (spread of x around mean of x)
-    denominator <- sum((x_clean - x_mean)^2, na.rm = TRUE)
-    ## best-fit line gradient faster than calling `lm()`
-    overall_slope <- if (denominator == 0) {0} else {numerator / denominator}
-
-    ## return peak slope based on trend direction
-    if (overall_slope >= 0) {
-        peak_idx <- which.max(slopes)
-        peak_value <- slopes[peak_idx]
-    } else {
-        peak_idx <- which.min(slopes)
-        peak_value <- slopes[peak_idx]
-    }
-
-    # if (na.rm && is.na(peak_value)) {
-    #     valid_slopes <- !is.na(slopes)
-    #     if (any(valid_slopes)) {
-    #         valid_indices <- which(valid_slopes)
-    #         if (overall_slope >= 0) {
-    #             max_idx <- which.max(slopes[valid_indices])
-    #             peak_idx <- valid_indices[max_idx]
-    #         } else {
-    #             min_idx <- which.min(slopes[valid_indices])
-    #             peak_idx <- valid_indices[min_idx]
-    #         }
-    #         peak_value <- slopes[peak_idx]
-    #     }
-    # }
-
-    return(list(value = peak_value, idx = peak_idx))
-}
-
-rolling_slope(y = true_y, x = true_x, width = 10, na.rm = TRUE)
-peak_directional_slope(y = true_y, x = true_x, width = 10, na.rm = TRUE)
