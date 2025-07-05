@@ -47,6 +47,8 @@ usethis::use_package("purrr", type = "suggest")
 
 usethis::use_import_from("stats", c("na.omit"))
 
+usethis::use_vignette("processing-mNIRS-data.qmd")
+
 usethis::use_test("replace_fixed_values")
 devtools::load_all()
 devtools::test()

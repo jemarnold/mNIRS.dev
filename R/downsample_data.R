@@ -101,6 +101,8 @@ downsample_data <- function(
             "Estimated sample rate = {.val {sample_rate}} Hz.",
             "Overwrite this with {.arg sample_rate = X}.")
 
+    } else {
+        sample_info <- paste("Sample rate = {.val {sample_rate}} Hz.")
     }
     #
     ## Processing ===================================
