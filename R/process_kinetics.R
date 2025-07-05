@@ -605,16 +605,14 @@ process_kinetics.peak_slope <- function(
 
     slopes <- rolling_slope(y, x, width, align, na.rm = TRUE)
 
-    peak_model <- peak_directional_slope(y, x, width, align, na.rm = TRUE)
-
-
+    peak_slope_model <- peak_directional_slope(y, x, width, align, na.rm = TRUE)
 
     model <- NA
     data$fitted <- NA_real_
-    data$fitted[x %in% peak_model$x_fitted] <- peak_model$y_fitted
-    coefs <- c(sample = peak_model$x,
-               peak_model = peak_model$slope,
-               nirs_value = y[x %in% peak_model$x])
+    data$fitted[x %in% peak_slope_model$x_fitted] <- peak_slope_model$y_fitted
+    coefs <- c(sample = peak_slope_model$x,
+               peak_slope = peak_slope_model$slope,
+               nirs_value = y[x %in% peak_slope_model$x])
     coefs <- tibble::as_tibble(as.list(coefs))
     fit_criteria <- tibble::tibble(
         AIC = NA_real_, BIC = NA_real_, R2 = NA_real_, RMSE = NA_real_,
@@ -632,7 +630,7 @@ process_kinetics.peak_slope <- function(
             model = model,
             model_equation = model_equation,
             data = data,
-            fitted = slopes,
+            slopes = slopes,
             x0 = x0,
             width = width,
             align = align,

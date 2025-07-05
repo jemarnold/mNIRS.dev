@@ -5,6 +5,8 @@ suppressPackageStartupMessages({
     library(tidyverse)
 })
 
+devtools::load_all()
+
 options(digits = 5, digits.secs = 3, scipen = 3,
         dplyr.summarise.inform = FALSE,
         tibble.print_min = 20)
@@ -157,7 +159,7 @@ process_kinetics(
     # x = xcol,
     # y = ycol, #error
     # data = true_data,
-    x0 = 8, #true_x[8],
+    x0 = 8, #truea_x[8],
     method = "peak_slope",
     width = 10
     # B = 100,
@@ -231,5 +233,7 @@ test(x = true_x, y = true_y)
 
 
 ## peak slope testing ==============================================
-true_y[8:20] <- NA
+devtools::load_all()
+true_y[12:13] <- NA
 
+slope(true_y, true_x, na.rm = TRUE)

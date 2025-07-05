@@ -19,6 +19,7 @@ Imports:
     cli,
     data.table,
     dplyr,
+    ggplot2,
     lubridate,
     readxl,
     rlang,
@@ -29,7 +30,6 @@ Imports:
     utils,
     zoo
 Suggests: 
-    ggplot2,
     knitr,
     quarto,
     scales,

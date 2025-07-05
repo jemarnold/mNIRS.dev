@@ -1,3 +1,70 @@
+test_that("slope returns correct structure", {
+    y <- c(1, 3, 2, 5, 8, 7, 9, 12, 11, 14)
+    result <- slope(y)
+
+    expect_type(result, "double")
+    expect_equal(length(result), 1)
+})
+
+test_that("slope works with NULL x", {
+    y <- c(1, 3, 5, 7, 9)
+    result_null <- slope(y, x = NULL)
+    result_seq <- slope(y, x = seq_along(y))
+
+    expect_equal(result_null, result_seq)
+})
+
+test_that("slope calculates slopes correctly", {
+    # Perfect linear trend
+    y <- c(1, 2, 3, 4, 5)
+    x <- c(1, 2, 3, 4, 5)
+    result <- slope(y, x)
+
+    # Should be close to 1 for perfect linear trend
+    expect_true(all(abs(result[!is.na(result)] - 1) < 1e-10))
+})
+
+test_that("slope handles NA values", {
+    y <- c(1, 3, NA, 5, 8, 7, 9, 12, NA, 14)
+
+    ## na.rm = FALSE
+    results_rm_false <- slope(y, na.rm = FALSE)
+    expect_true(any(is.na(results_rm_false)))
+
+    ## na.rm = TRUE
+    results_rm_true <- slope(y, na.rm = TRUE)
+    expect_true(sum(is.na(results_rm_true)) <= sum(is.na(y)))
+})
+
+test_that("slope handles edge cases", {
+    ## single value
+    expect_true(is.na(slope(5)))
+
+    ## all identical values
+    result <- slope(rep(5, 10))
+    expect_true(all(result == 0))
+
+    ## all NA
+    expect_true(is.na(slope(rep(NA, 5))))
+})
+
+test_that("slope zero denominator handling", {
+    # All x values identical
+    y <- c(1, 2, 3, 4, 5)
+    x <- rep(1, 5)
+    result <- slope(y, x)
+
+    expect_true(all(result == 0, na.rm = TRUE))
+})
+
+
+
+
+
+
+
+
+
 test_that("rolling_slope returns correct structure", {
     y <- c(1, 3, 2, 5, 8, 7, 9, 12, 11, 14)
     result <- rolling_slope(y, width = 3)
@@ -44,12 +111,12 @@ test_that("rolling_slope handles NA values", {
     y <- c(1, 3, NA, 5, 8, 7, 9, 12, NA, 14)
 
     ## na.rm = FALSE
-    result_no_rm <- rolling_slope(y, width = 3, na.rm = FALSE)
-    expect_true(any(is.na(result_no_rm)))
+    results_rm_false <- rolling_slope(y, width = 3, na.rm = FALSE)
+    expect_true(any(is.na(results_rm_false)))
 
     ## na.rm = TRUE
-    result_rm <- rolling_slope(y, width = 3, na.rm = TRUE)
-    expect_true(sum(is.na(result_rm)) <= sum(is.na(y)))
+    results_rm_true <- rolling_slope(y, width = 3, na.rm = TRUE)
+    expect_true(sum(is.na(results_rm_true)) <= sum(is.na(y)))
 })
 
 test_that("rolling_slope handles edge cases", {
@@ -135,27 +202,31 @@ test_that("peak_directional_slope returns correct structure", {
     result <- peak_directional_slope(y, width = 3)
 
     expect_type(result, "list")
-    expect_named(result, c("value", "idx"))
-    expect_type(result$value, "double")
-    expect_type(result$idx, "integer")
+    expect_named(result, c("slope", "x", "y_fitted", "x_fitted"))
+    expect_type(result$slope, "double")
+    expect_type(result$x, "integer")
+    expect_type(result$y_fitted, "double")
+    expect_type(result$x_fitted, "integer")
+    expect_true(is.vector(result$y_fitted))
+    expect_true(is.vector(result$x_fitted))
 })
 
 test_that("peak_directional_slope works with upward trend", {
     y <- c(1, 3, 5, 7, 9)
     result <- peak_directional_slope(y, width = 3)
 
-    expect_gt(result$value, 0)
-    expect_gte(result$idx, 1)
-    expect_lte(result$idx, length(y))
+    expect_gt(result$slope, 0)
+    expect_gte(result$x, 1)
+    expect_lte(result$x, length(y))
 })
 
 test_that("peak_directional_slope works with downward trend", {
     y <- c(9, 7, 5, 3, 1)
     result <- peak_directional_slope(y, width = 3)
 
-    expect_lt(result$value, 0)
-    expect_gte(result$idx, 1)
-    expect_lte(result$idx, length(y))
+    expect_lt(result$slope, 0)
+    expect_gte(result$x, 1)
+    expect_lte(result$x, length(y))
 })
 
 test_that("peak_directional_slope handles NA values correctly", {
@@ -163,18 +234,18 @@ test_that("peak_directional_slope handles NA values correctly", {
 
     ## na.rm = FALSE returns NAs for `rolling_slope()`,
     ## but returns numeric for `peak_directional_slope()`
-    result_no_rm <- peak_directional_slope(y, width = 3, na.rm = FALSE)
-    expect_true(is.na(result_no_rm$value) | is.numeric(result_no_rm$value))
-    expect_type(result_no_rm$value, "double")
-    expect_gte(result_no_rm$idx, 1)
-    expect_lte(result_no_rm$idx, length(y))
+    results_rm_false <- peak_directional_slope(y, width = 3, na.rm = FALSE)
+    expect_true(is.na(results_rm_false$slope) | is.numeric(results_rm_false$slope))
+    expect_type(results_rm_false$slope, "double")
+    expect_gte(results_rm_false$x, 1)
+    expect_lte(results_rm_false$x, length(y))
 
     ## na.rm = TRUE should
-    result_rm <- peak_directional_slope(y, width = 3, na.rm = TRUE)
-    expect_false(is.na(result_rm$value))
-    expect_type(result_rm$value, "double")
-    expect_gte(result_rm$idx, 1)
-    expect_lte(result_rm$idx, length(y))
+    results_rm_true <- peak_directional_slope(y, width = 3, na.rm = TRUE)
+    expect_false(is.na(results_rm_true$slope))
+    expect_type(results_rm_true$slope, "double")
+    expect_gte(results_rm_true$x, 1)
+    expect_lte(results_rm_true$x, length(y))
 })
 
 test_that("peak_directional_slope works with custom x values", {
@@ -182,9 +253,9 @@ test_that("peak_directional_slope works with custom x values", {
     x <- c(0, 1, 2, 3, 4, 5)
     result <- peak_directional_slope(y, x, width = 3)
 
-    expect_type(result$value, "double")
-    expect_gte(result$idx, 1)
-    expect_lte(result$idx, length(y))
+    expect_type(result$slope, "double")
+    expect_gte(result$x, 1)
+    expect_lte(result$x, length(y))
 })
 
 test_that("peak_directional_slope works with NULL x", {
@@ -192,8 +263,8 @@ test_that("peak_directional_slope works with NULL x", {
     result_null <- peak_directional_slope(y, x = NULL, width = 3)
     result_seq <- peak_directional_slope(y, x = seq_along(y), width = 3)
 
-    expect_equal(result_null$value, result_seq$value)
-    expect_equal(result_null$idx, result_seq$idx)
+    expect_equal(result_null$slope, result_seq$slope)
+    expect_equal(result_null$x, result_seq$x)
 })
 
 test_that("peak_directional_slope works with different alignments", {
@@ -203,31 +274,31 @@ test_that("peak_directional_slope works with different alignments", {
     result_left <- peak_directional_slope(y, width = 3, align = "left")
     result_right <- peak_directional_slope(y, width = 3, align = "right")
 
-    expect_type(result_center$value, "double")
-    expect_type(result_left$value, "double")
-    expect_type(result_right$value, "double")
-    expect_equal(result_center$idx, result_left$idx+1)
-    expect_equal(result_center$idx, result_right$idx-1)
-    expect_equal(result_left$idx+1, result_right$idx-1)
+    expect_type(result_center$slope, "double")
+    expect_type(result_left$slope, "double")
+    expect_type(result_right$slope, "double")
+    expect_equal(result_center$x, result_left$x+1)
+    expect_equal(result_center$x, result_right$x-1)
+    expect_equal(result_left$x+1, result_right$x-1)
 })
 
 test_that("peak_directional_slope handles edge cases", {
     ## single value
     expect_error(
-        peak_directional_slope(c(5), width = 3),
+        peak_directional_slope(5, width = 3),
         "should be of length 2 or greater")
 
     ## two values
     result <- peak_directional_slope(c(1, 3), width = 3)
-    expect_type(result$value, "double")
-    expect_gte(result$idx, 1)
-    expect_lte(result$idx, 2)
+    expect_type(result$slope, "double")
+    expect_gte(result$x, 1)
+    expect_lte(result$x, 2)
 
     ## all identical values
     y_flat <- rep(5, 10)
     result <- peak_directional_slope(y_flat, width = 3)
-    expect_equal(result$value, 0)
-    expect_gte(result$idx, 1)
+    expect_equal(result$slope, 0)
+    expect_gte(result$x, 1)
 
     ## all NA
     expect_error(

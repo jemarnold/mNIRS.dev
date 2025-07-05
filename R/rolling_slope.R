@@ -1,3 +1,54 @@
+#' Determine the Slope of a Numeric Vector
+#'
+#' Computes the rate of change for a numeric response variable `y`.
+#'
+#' @param y A numeric vector of response values.
+#' @param x A numeric vector of predictor values. If `NULL`, uses `seq_along(y)`.
+#' @param na.rm A logical indicating whether to exclude NA values from rolling slope
+#'  calculations.
+#'
+#' @return A numeric slope value.
+#'
+#' @keywords internal
+slope <- function(
+        y,
+        x = NULL,
+        na.rm = FALSE
+) {
+    ## where `x` is not defined
+    if (is.null(x)) {x <- seq_along(y)}
+
+    ## handle `NA`
+    ## `na.rm = FALSE` will return peak value of the remaining non-`NA` slopes
+    ## `na.rm = TRUE` will return peak value of `NA`-excluded slopes
+    if (na.rm) {
+        valid_idx <- !is.na(x) & !is.na(y)
+        x <- x[valid_idx]
+        y <- y[valid_idx]
+    }
+
+    ## check for sufficient non-NA observations
+    if (length(x) < 2) {
+        overall_slope <- NA
+        return(overall_slope)
+    }
+
+    ## determine overall trend using direct least squares calculation
+    x_mean <- mean(x)
+    y_mean <- mean(y)
+
+    ## covariance between x & y (+ve when they move in same direction)
+    numerator <- sum((x - x_mean) * (y - y_mean), na.rm = na.rm)
+    ## variance of x (spread of x around mean of x)
+    denominator <- sum((x - x_mean)^2, na.rm = na.rm)
+    ## best-fit line gradient faster than calling `lm()`
+    overall_slope <- if (denominator == 0) {0} else {numerator / denominator}
+
+    return(overall_slope)
+}
+
+
+
 #' Calculate Rolling Slope
 #'
 #' Computes rolling first derivative (slope) of `y` over `x` using least squares
@@ -49,6 +100,9 @@ rolling_slope <- function(
     ## where `x` is not defined
     if (is.null(x)) {x <- seq_along(y)}
 
+    n <- length(y)
+    slopes <- numeric(n)
+
     ## validation length of y
     if (length(y) < 2) {
         cli::cli_abort("{.arg y} should be of length 2 or greater.")
@@ -64,9 +118,6 @@ rolling_slope <- function(
     if (width < 2) {
         cli::cli_abort("{.arg width} should be equal to 2 or greater.")
     }
-
-    n <- length(y)
-    slopes <- numeric(n)
 
     for (i in 1:n) {
         ## calculate window boundaries based on `align`
@@ -85,35 +136,14 @@ rolling_slope <- function(
         x_window <- x[start_idx:end_idx]
         y_window <- y[start_idx:end_idx]
 
-        ## handle `NA`
-        if (na.rm) {
-            valid_idx <- !is.na(x_window) & !is.na(y_window)
-            x_window <- x_window[valid_idx]
-            y_window <- y_window[valid_idx]
-        }
-
-        ## check for sufficient non-NA observations
-        if (
-            length(x_window) < 2 || any(is.na(x_window)) || any(is.na(y_window))
-        ) {
-            slopes[i] <- NA
-            next
-        }
-
-        ## calculate slopes using least squares
-        x_mean <- mean(x_window)
-        y_mean <- mean(y_window)
-
-        ## covariance between x & y (+ve when they move in same direction)
-        numerator <- sum((x_window - x_mean) * (y_window - y_mean))
-        ## variance of x (spread of x around mean of x)
-        denominator <- sum((x_window - x_mean)^2)
-        ## best-fit line gradient faster than calling `lm()`
-        slopes[i] <- if (denominator == 0) {0} else {numerator / denominator}
+        slopes[i] <- slope(y = y_window, x = x_window, na.rm)
     }
 
     return(slopes)
 }
+
+
+
 
 
 
@@ -158,83 +188,56 @@ peak_directional_slope <- function(
         align = c("center", "left", "right"),
         na.rm = FALSE
 ) {
+    align <- match.arg(align)
+
     ## where `x` is not defined
     if (is.null(x)) {x <- seq_along(y)}
+
+    n <- length(y)
+
+    ## return overall slope
+    ## na.rm hard-coded TRUE to always return overall_slope for direction test
+    overall_slope <- slope(y, x, na.rm = TRUE)
 
     ## return local rolling slopes
     slopes <- rolling_slope(y, x, width, align, na.rm)
 
-    ## handle `NA`
-    ## `na.rm = FALSE` will return peak value of the remaining non-`NA` slopes
-    ## `na.rm = TRUE` will return peak value of `NA`-excluded slopes
-    if (na.rm) {
-        valid_idx <- !is.na(x) & !is.na(y)
-        x_clean <- x[valid_idx]
-        y_clean <- y[valid_idx]
-    } else {
-        x_clean <- x
-        y_clean <- y
-    }
-
-    ## determine overall trend using direct least squares calculation
-    x_mean <- mean(x_clean)
-    y_mean <- mean(y_clean)
-
-    ## covariance between x & y (+ve when they move in same direction)
-    numerator <- sum((x_clean - x_mean) * (y_clean - y_mean), na.rm = TRUE)
-    ## variance of x (spread of x around mean of x)
-    denominator <- sum((x_clean - x_mean)^2, na.rm = TRUE)
-    ## best-fit line gradient faster than calling `lm()`
-    overall_slope <- if (denominator == 0) {0} else {numerator / denominator}
-
-    ## return peak slope based on trend direction
+    ## return peak slope sample based on trend direction
     if (overall_slope >= 0) {
         peak_idx <- which.max(slopes)
-        peak_value <- slopes[peak_idx]
     } else {
         peak_idx <- which.min(slopes)
-        peak_value <- slopes[peak_idx]
     }
 
-    start_idx <- max(1, peak_idx - floor((width - 1) / 2))
-    end_idx <- min(length(y), peak_idx + floor(width / 2))
+    ## return peak slope from peak slope sample
+    peak_slope <- slopes[peak_idx]
 
-    # Extract peak window data
-    x_peak <- x_clean[start_idx:end_idx]
-    y_peak <- y_clean[start_idx:end_idx]
+    ## return window around peak slope sample
+    ## calculate window boundaries based on `align`
+    if (align == "center") {
+        start_idx <- max(1, peak_idx - floor((width - 1) / 2))
+        end_idx <- min(n, peak_idx + floor(width / 2))
+    } else if (align == "left") {
+        start_idx <- peak_idx
+        end_idx <- min(n, peak_idx + width - 1)
+    } else if (align == "right") {
+        start_idx <- max(1, peak_idx - width + 1)
+        end_idx <- peak_idx
+    }
 
-    # Handle NAs in peak window
-    # if (na.rm) {
-    #     valid_peak <- !is.na(x_peak) & !is.na(y_peak)
-    #     x_peak <- x_peak[valid_peak]
-    #     y_peak <- y_peak[valid_peak]
-    # }
+    ## extract peak window data
+    x_window <- x[start_idx:end_idx]
+    y_window <- y[start_idx:end_idx]
 
-    # Calculate fitted values using peak slope
-    if (length(x_peak) >= 2 && !any(is.na(x_peak)) && !any(is.na(y_peak))) {
-        x_peak_mean <- mean(x_peak)
-        y_peak_mean <- mean(y_peak)
-        fitted <- y_peak_mean + peak_value * (x_peak - x_peak_mean)
+    ## calculate fitted values using peak slope
+    if (length(x_window) >= 2) {
+        x_window_mean <- mean(x_window, na.rm = TRUE)
+        y_window_mean <- mean(y_window, na.rm = TRUE)
+        fitted <- y_window_mean + peak_slope * (x_window - x_window_mean)
     } else {
         fitted <- NA
     }
 
-    ## TODO I think this is redundant. Needs to be unit tested
-    # if (na.rm && is.na(peak_value)) {
-    #     valid_slopes <- !is.na(slopes)
-    #     if (any(valid_slopes)) {
-    #         valid_indices <- which(valid_slopes)
-    #         if (overall_slope >= 0) {
-    #             max_idx <- which.max(slopes[valid_indices])
-    #             peak_idx <- valid_indices[max_idx]
-    #         } else {
-    #             min_idx <- which.min(slopes[valid_indices])
-    #             peak_idx <- valid_indices[min_idx]
-    #         }
-    #         peak_value <- slopes[peak_idx]
-    #     }
-    # }
-
-    return(list(x = x_clean[peak_idx], slope = peak_value,
-                x_fitted = x_peak, y_fitted = fitted))
+    return(list(slope = peak_slope, x = x[peak_idx],
+                y_fitted = fitted, x_fitted = x_window))
 }
