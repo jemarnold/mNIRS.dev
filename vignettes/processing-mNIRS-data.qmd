@@ -12,7 +12,11 @@ vignette: >
 format:
     html:
         toc: true
-        toc-location: left
+        # toc-location: left
+        # page-layout: full
+        # sidebar-width: 100px
+        # body-width: 1000px
+        # margin-width: 400px
 # execute:
 #     echo: false
 #     message: false
@@ -22,6 +26,10 @@ knitr:
     opts_chunk:
         collapse: true
         comment: '#>'
+        # dpi: 300
+        out.width: "100%"
+        # fig.width: 7
+        fig.align: "center"
 ---
 
 ## Read Data From File
@@ -34,13 +42,17 @@ First, we load in the `{mNIRS}` package and any other required libraries. `{mNIR
 #| label: setup
 #| warning: false
 
-library(dplyr)
-library(ggplot2)
+library(dplyr) ## load for data wrangling
+library(ggplot2) ## load for plotting
 library(mNIRS) 
 # devtools::install_github("jemarnold/mNIRS") ## install development version
 ```
 
+
+
 ### Specify file path
+
+* `file_path`: We need to specify the file path to read from. e.g. ` r("C:\myfolder\mNIRS_file.xlsx")`.
 
 We will read in the `file_path` to the included example data file.
 
@@ -48,23 +60,41 @@ We will read in the `file_path` to the included example data file.
 file_path <- system.file("extdata/moxy_ramp_example.xlsx", package = "mNIRS")
 ```
 
-Now we can read the data file with the `read_data()` function. See `?read_data` for more details.
+Now we can read the data file with the `read_data()` function. This function will take in raw NIRS data exported from a device, and return a dataframe with the data channels we specify. See `?read_data` for more details.
+
+
 
 ### Specify column names
 
-We need to tell the function what column names to look for, to identify our data table in the file. The data table may not be at the very top of the file, so these column names can be anywhere in the file. At minimum, we need one name defined in `nirs_column`. Typically, we will also specify a `sample_column` which is often the time of each observation. We can specify a *lap* or `event_column` to identify specific events in the dataset. We will leave this blank for now.
+We need to tell the function what column names to look for, to identify our data table in the file. The data table may not be at the very top of the file, so these column names can be anywhere in the file. 
 
-These names should be in quotations and match the column headers in the file exactly (case- and special character-sensitive). We can rename these columns when importing our data in the format: `nirs_column = c(new_name = "file_column_name")`.
+* `nirs_columns`: At minimum, we need one column name defined for NIRS data. 
+
+* `sample_column`: Typically, we will also specify a column for the time or sample number of each observation. 
+
+* `event_column`: We can specify a column to indicate *laps* or specific *events* in the dataset.
+
+These names should be in quotations and exactly match the column headers in the file (case- and special character-sensitive). Multiple columns can be accepted for `nirs_columns`. We can rename these columns when importing our data in the format: 
+
+<!-- * `nirs_columns = c(new_name1 = "file_column_name1", new_name2 = "file_column_name2")`. -->
+```{r}
+#| output: false
+
+nirs_columns = c(new_name1 = "file_column_name1", 
+                new_name2 = "file_column_name2")
+```
+
+
 
 ### Other `read_data()` options
 
-Other options include manually entering the `sample_rate` - the number of samples per second, in Hz - of the data file, if known. If left blank, the function will estimate the sample rate from `sample_column`, assuming it contains time values.
+* `sample_rate`: The sample rate of the NIRS recording can be specified if known, as number of samples per second, in Hz. If left blank, the function will estimate the sample rate from `sample_column`, assuming it contains time values.
 
-If `sample_column` is in a date-time format (e.g. `hh:mm:ss`), we can convert this to numeric with `numeric_time = TRUE`. However, this may read the date-time format as starting from a non-zero value. This can be manually corrected later with some basic data wrangling.
+* `numeric_time`: If `sample_column` is in a date-time format (e.g. `hh:mm:ss`), we can convert this to numeric with `numeric_time = TRUE`. This may read the date-time format as starting from a non-zero value. This can be manually corrected later with some basic data wrangling.
 
-Once the data table in the file is identified from the column names specified above, the default is to return only the columns explicitly defined in `nirs_columns`, `sample_column`, and `event_column`. If we want to return all columns in the data table, we can set `keep_all = TRUE`.
+* `keep_all`: Once the data table in the file is identified, the default is to return only the columns names explicitly specified above. If we want to return all columns in the data table, we can set `keep_all = TRUE`.
 
-Finally, the function may return warnings or messages, for example if there are duplicate values in `sample_column` which may indicate a recording issue. These informative messages can be useful for data validation and will not prevent the data being returned. These messages can be silenced with `verbose = TRUE`. Fail-state errors will always be returned.
+* `verbose`: Finally, the function may return warnings or messages, for example if there are duplicate values in `sample_column` which may indicate a recording issue. These informative messages can be useful for data validation, but can be silenced with `verbose = TRUE`. Fail-state errors will always be returned.
 
 ```{r}
 data_raw <- read_data(file_path,
@@ -80,9 +110,13 @@ data_raw <- read_data(file_path,
 data_raw
 ```
 
+
+
 ## Data wrangling 
 
-Note our `time` column does not start at zero, because we converted from `hh:mm:ss`. Let's quickly fix that, then we'll plot the data. We can do any other data wrangling steps here, as we would for any data file.
+Note our `time` column does not start at zero, because we converted from `hh:mm:ss`. Let's quickly fix that, then we'll plot the data. 
+
+We can do any other data wrangling steps here, as we would for any data file. I prefer to use `{tidyverse}` for dataframe wrangling.
 
 ```{r}
 data_time_fixed <- data_raw |> 
@@ -91,13 +125,19 @@ data_time_fixed <- data_raw |>
 plot(data_time_fixed)
 ```
 
-We can see some errors in the data signals, so let's clean those up.
+
 
 ## Replace Outliers, Fixed Values, and Missing Values
 
+We can see some errors in the data signals, so let's clean those up.
+
+
+
 ### Metadata stored in mNIRS dataframes
 
-Important to note, dataframes read or processed by `{mNIRS}` will return `class = mNIRS.data` and contain metadata, which can be retrieved with `attributes(data)`. Instead of re-defining our column names or sample rate, we can call them from the metadata. Some `{mNIRS}` functions will automatically retrieve metadata if present.
+Dataframes read or processed by `{mNIRS}` functions will return `class = mNIRS.data` and contain metadata, which can be retrieved with `attributes(data)`. 
+
+Instead of re-defining our column names or sample rate, we can call them from the metadata. Some `{mNIRS}` functions will automatically retrieve metadata if present.
 
 ```{r}
 nirs_columns <- attributes(data_raw)$nirs_columns
@@ -109,17 +149,43 @@ sample_rate
 
 We can do some simple data wrangling steps to clean the invalid data and prepare it for digital filtering and smoothing.
 
+* `x`: These three `reaplce_` functions work on vector data; they take in a single data channel (`x`), apply processing to that channel, and return a vector of the processed channel data.
+
 ### Replace outliers
 
-We can identify local outliers using a Hampel filter to replace them with the local median value. See `?replace_outliers` for details. Note that with relatively low sample rates like this 2 Hz file, outlier filters may occasionally over-filter and 'flatten' sections of the data. This is observed in this example near the end of the file, were the data trend is quite flat already.
+We can identify local outliers using a Hampel filter and replace them with the local median value. See `?replace_outliers` for details.
+
+* `width`: The number of samples (window) in which to detect local outliers. To define the window in seconds, multiply the desired number of seconds by the sample rate.
+
+* `t0`: The number of standard deviations outside of which are detected as outliers, defaulting to 3 (Pearson's rule).
+
+* `na.rm`: A `TRUE`/`FALSE` value indicating whether missing values (`NA`) should be ignored before the Hampel filter is applied.
+
+* `return`: Indicates whether outliers should be replaced by the local *"median"* value or by *"NA"*.
+
+Note that with relatively low sample rates, such as this 2 Hz file, outlier filters may occasionally over-filter and 'flatten' sections of the data. This is observed in this example near the end of the file, were the data trend is quite flat already.
 
 ### Replace fixed values
 
-Some mNIRS devices or recording software can report specific invalid values, such as `c(0, 100, 102.3)`. These can be manually removed with `replace_fixed_values()`, although we should always be cautious about unintentionally removing real data.
+Some mNIRS devices or recording software can report specific invalid values, such as `c(0, 100, 102.3)`. These can be manually removed with `replace_fixed_values()`. See `?replace_fixed_values` for details.
+
+* `fixed_values`: A vector of numeric values to be replaced.
+
+* `width`: The number of samples (window) in which the local median will be calculated. To define the window in seconds, multiply the desired number of seconds by the sample rate.
+
+* `return`: Indicates whether fixed values should be replaced by the local *"median"* value or by *"NA"*.
 
 ### Replace missing values
 
-Finally, it is a good habit to identify and deal with missing values (`NA`) before performing subsequent processing steps, which might return an error over missing data. We can use `replace_missing_values()` to interpolate across missing data. Other fill methods are available, see `?replace_missing_values` for details.
+Finally, We can use `replace_missing_values()` to interpolate across missing data. Other fill methods are available, see `?replace_missing_values` for details.
+
+* `method`: Specify the method for filling missing data. The default *"linear"* interpolation is usually sufficient.
+
+* `na.rm`: A `TRUE`/`FALSE` value indicating when leading or trailing `NA`s remain after processing, should they be included or omitted.
+
+* `maxgap`: Specify the maximum number of consecutive `NA`s to fill. Any longer gaps will be left unchanged.
+
+Subsequent processing & analysis steps may return errors when missing values are present. Therefore, it is a good habit to identify and deal with them early during data processing. 
 
 ```{r}
 data_cleaned <- data_time_fixed |> 
@@ -154,57 +220,74 @@ That got rid of all the obvious data issues.
 
 Say we are interested in phenomena occurring on a time scale of 5-minutes, but we have recorded at a very high sample rate of 50 Hz. We probably don't need to work with so many samples, and it may result in faster processing if we down-sample the data, say to 1 Hz.
 
-This dataset is already at relatively low sample rate, but let's just see what it looks like if we wanted for some reason to down-sample further to 0.1 Hz (1 sample every 10 sec).
+This example dataset is already at relatively low sample rate, but let's just see what it looks like if for some reason we wanted to down-sample further to 0.1 Hz (1 sample every 10 sec).
 
-We could explicitly specify our `sample_column` and `sample_rate`, but this function will ready detect those from the metadata. Also, we can specify `downsample_rate = 0.1`, or it may be easier to specify the number of seconds per sample as `downsample_time = 10`. They will produce the same result.
+* `data`: This function works on a dataframe; it will take in a dataframe (`data`), apply the processing step to all data channels, and return the processed dataframe.
+
+* `sample_column`: If the dataframe already has *mNIRS.data* metadata, the *time* or *sample* column will be detected automatically. Otherwise, we can define or overwrite it explicitly.
+
+* `sample_rate`: If the dataframe already has *mNIRS.data* metadata, the *sample_rate* will be detected automatically. Otherwise, we can define or overwrite it explicitly.
+
+* `downsample_rate`: Specify the output sample rate we want to covert to, as a number of samples per second (Hz). This value should be lower than the input `sample_rate`, or else it won't do anything.
+
+* `downsample_time`: Alternatively, we can specify the output as a number of seconds per sample to produce the same result.
 
 ```{r}
 data_downsampled <- data_cleaned |> 
-    downsample_data(downsample_time = 10)
+    downsample_data(sample_column = NULL, ## will be automatically read from metadata
+                    sample_rate = NULL, ## will be automatically read from metadata
+                    downsample_time = 10) ## equal to `downsample_rate = 0.1`
 
 data_downsampled
 
 plot(data_downsampled)
 ```
 
-The data channels certainly look smoother, This is functionally like we have taken a 10-second moving average of the data. And our dataframe now has only `r nrow(data_downsampled)` rows, compared to `r nrow(data_raw)` originally.
+The data channels certainly look smoother. This is kind of like we have taken a 10-second moving average of the data, but we have lost information by decreasing the number of samples. Our dataframe now has only ``r nrow(data_downsampled)`` rows, compared to the original ``r nrow(data_raw)`` rows.
 
 ## Digital Filtering
 
-If we want more precise control to improve our signal-to-noise ratio in our dataset without dropping samples, we should apply digital filtering to smooth the data.
+If we want more precise control to improve our signal-to-noise ratio in our dataset without losing information, we should apply digital filtering to smooth the data.
 
 ### Choosing a digital filter
 
-There are a few digital filtering methods available. Which option is best will depend in large part on the sample rate of the data and the frequency of the physiological phenomena being observed. The process of choosing a digital filter will be the topic of another vignette (`currently under development`).
+There are a few digital filtering methods available. Which option is best will depend in large part on the sample rate of the data and the frequency of the phenomena being observed. 
 
-It is perfectly valid to choose a digital filter by empirically testing iterative filter parameters until the signal or phenomena of interest is optimised for signal-to-noise ratio and minimal data artefacts. Over-filtering the data can impose data artefacts which are potentially even worse in terms of influence on analysis and interpretation, than the original noisy signal.
+Choosing filter parameters is an important processing step to improve signal-to-noise ratio and enhance our subsequent interpretations. Over-filtering the data can introduce data artefacts which can influence the signal analysis just as much as the original noisy signal.
 
-### Smoothing-spline
+It is perfectly valid to choose a digital filter by empirically testing iterative filter parameters until the signal or phenomena of interest is optimised for signal-to-noise ratio and minimal data artefacts. 
 
-A non-parametric smoothing spline is often quite good as a first pass filter when first examining the data. This can often be good enough for longer time-scale phenomena, such as a 5-minute exercise interval, or an intervention with a gradual response curve. For faster occurring or repeated (square-wave) responses, a smoothing-spline may not be appropriate.
+The process of choosing a digital filter will be the topic of another vignette (`currently under development`).
 
-### Butterworth digital filter
+### Apply digital filter methods
 
-A Butterworth low-pass digital filter is probably the most common method used in mNIRS research (whether appropriately, or not). For certain applications, such as identifying a signal with a known frequency, such as cycling/running cadence or heart rate, a pass-band or a different filter type may be better suited.
+* `x`: This function works on vector data; it takes in a single data channel (`x`), applies processing to that channel, and returns a vector of the processed channel data.
 
-### Moving average
+#### Smoothing-spline
 
-The simplest smoothing method is a simple moving average applied over a specified number of samples. Commonly, this might be a 5- or 15-second centred moving average filter.
+* `method = "smooth-spline"`: A non-parametric smoothing spline is often quite good as a first pass filter when first examining the data. This can often be good enough for longer time-scale phenomena, such as a 5-minute exercise interval, or an intervention with a gradual response curve. For faster occurring or repeated (square-wave) responses, a smoothing-spline may not be appropriate.
+
+#### Butterworth digital filter
+
+* `method = "butterworth"`: A Butterworth low-pass digital filter is probably the most common method used in mNIRS research (whether appropriately, or not). For certain applications, such as identifying a signal with a known frequency, such as cycling/running cadence or heart rate, a pass-band or a different filter type may be better suited.
+
+#### Moving average
+
+* `method = "moving-average"`: The simplest smoothing method is a simple moving average applied over a specified number of samples. Commonly, this might be a 5- or 15-second centred moving average filter.
 
 ### Apply the filter
 
-Let's try a Butterworth low-pass filter, and we'll specify some empirically chosen filter parameters. See `?filter_data` for further details on each of these filtering methods.
+Let's try a *Butterworth low-pass* filter, and we'll specify some empirically chosen filter parameters. See `?filter_data` for further details on each of these filtering methods and their respective parameters.
 
 ```{r}
 data_filtered <- data_cleaned |> 
     mutate(
         across(any_of(nirs_columns),
                \(.x) filter_data(x = .x,
-                                 method = "butter",
+                                 method = "butterworth",
                                  type = "low",
                                  n = 2, ## see ?filter_data for details on filter parameters
-                                 W = 0.02)#,
-               # .names = "{.col}_filt" ## re-name so we can compare filtered to raw data
+                                 W = 0.02)
         )
     )
 
@@ -220,6 +303,26 @@ plot(data_filtered) +
 
 ### Shift data
 
+... See `?shift_data` for details.
+
+* `data`: This function works on a dataframe; it will take in a dataframe (`data`), apply the processing step to all data channels, and return the processed dataframe.
+
+* `nirs_columns`: A list specifying how we want the *NIRS* data channels to be grouped. Listing each channel separately (e.g. `list("A", "B", "C")`) will shift each channel independently. The relative scaling between channels will be lost.\
+\
+Grouping channels (e.g. `list(c("A", "B"), c("C"))`) will shift each group of channels together. The relative scaling between channels will be preserved within each group, but lost across groups.\
+\
+If the dataframe already has *mNIRS.data* metadata, the *NIRS* data channels will be detected automatically and processed as if grouped globally together.
+
+* `shift_to`: The *NIRS* value to which the channels will be shifted.
+
+* `position`: Specifies how we want to shift the data; either shifting the *"minimum"*, *"maximum"*, or *"first"* sample(s) to the value specified above.
+
+* `mean_samples`: Specifies how many samples we want to average across when shifting to our new value specified above. The default `mean_samples = 1` will shift a single value.
+
+* `shift_by`: An alternate way to specify, if we wanted to shift a data column by, say 10 units.
+
+...
+
 ```{r}
 data_shifted <- data_filtered |> 
     ## wrap `nirs_columns` vector in list to shift all channels together
@@ -231,12 +334,22 @@ data_shifted <- data_filtered |>
 
 plot(data_shifted) +
     geom_hline(yintercept = 0, linetype = "dotted") +
-    annotate(geom = "segment", ## dotted line at the first 30 seconds
-             x = 30 * sample_rate, xend = 30 * sample_rate, y = -10, yend = 10, 
-             colour = "black", linewidth = 0.8, linetype = "dotted")
+    geom_ribbon(
+        inherit.aes = FALSE,
+        data = filter(data_shifted, between(time, 0, 30*sample_rate)),
+        aes(x = time, ymin = smo2_left, ymax = smo2_right),
+        fill = "grey", alpha = 0.4)
 ```
 
 ### Rescale data to functional range
+
+...
+
+* `data`: this function works on a dataframe; it will take in a dataframe (`data`), apply the processing step to all data channels, and return the processed dataframe.
+* `nirs_columns`:
+* `rescale_range`:
+
+...
 
 ```{r}
 data_rescaled <- data_filtered |> 

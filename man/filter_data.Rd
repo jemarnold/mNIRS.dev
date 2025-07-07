@@ -6,7 +6,7 @@
 \usage{
 filter_data(
   x,
-  method = c("smooth-spline", "butter", "moving-average"),
+  method = c("smooth-spline", "butterworth", "moving-average"),
   type = c("low", "high", "stop", "pass"),
   spar = NULL,
   n = 1,
@@ -22,12 +22,12 @@ filter_data(
 \item{method}{Indicates how to filter the data (see \emph{Details}).
 \describe{
 \item{\code{"smooth-spline"}}{fits a cubic smoothing spline.}
-\item{\code{"butter"}}{uses a centred Butterworth digital filter. \code{type} should
+\item{\code{"butterworth"}}{uses a centred Butterworth digital filter. \code{type} should
 be defined (see \emph{Details}).}
 \item{\code{"moving-average"}}{uses a centred moving average filter.}
 }}
 
-\item{type}{Specify the filter type. \emph{Only relevant for \code{method = "butter"}}
+\item{type}{Specify the filter type. \emph{Only relevant for \code{method = "butterworth"}}
 (see \emph{Details}).
 \describe{
 \item{\code{"low"}}{For a \emph{low-pass} filter (\emph{default}).}
@@ -40,16 +40,16 @@ be defined (see \emph{Details}).}
 \code{method = "smooth-spline"}.}
 
 \item{n}{An integer scalar defining the order of a Butterworth filter for
-\code{method = "butter"}.}
+\code{method = "butterworth"}.}
 
 \item{W}{A numeric scalar or two-element vector defining the fractional
-critical frequency(ies) of a Butterworth filter for \code{method = "butter"}.}
+critical frequency(ies) of a Butterworth filter for \code{method = "butterworth"}.}
 
 \item{critical_frequency}{A numeric scalar or two-element vector defining
-the critical frequency(ies) of a Butterworth filter for \code{method = "butter"}.}
+the critical frequency(ies) of a Butterworth filter for \code{method = "butterworth"}.}
 
 \item{sample_rate}{A numeric scalar for the sample rate in Hz for
-\code{method = "butter"}.}
+\code{method = "butterworth"}.}
 
 \item{width}{A numeric scalar defining the window length of samples for
 \code{method = "moving-average"}.}
@@ -70,7 +70,7 @@ determined via penalised log liklihood. This usually works well for
 smoothing responses occurring on the order of minutes or longer. Or \code{spar}
 can be defined explicitly, typically (but not necessarily) in the range
 \verb{spar = [0, 1]}.}
-\item{\code{method = "butter"}}{applies a centred (two-pass symmetrical)
+\item{\code{method = "butterworth"}}{applies a centred (two-pass symmetrical)
 Butterworth digital filter from \code{\link[signal:butter]{signal::butter()}} and \code{\link[signal:filtfilt]{signal::filtfilt()}}.
 The filter order is defined by \code{n}, typically in the range \verb{n = [1, 10]}.
 Higher filter orders tend to better capture rapid changes in amplitude,
@@ -116,7 +116,7 @@ noise <- rnorm(n, mean = 0, sd = 0.5)
 y <- y_clean + noise
 
 y.spline <- filter_data(y, method = "smooth-spline")
-y.LP <- filter_data(y, method = "butter", n = 2, W = 0.05)
+y.LP <- filter_data(y, method = "butterworth", n = 2, W = 0.05)
 y.MA <- filter_data(y, method = "moving-average", width = 30)
 
 plot(x, y)

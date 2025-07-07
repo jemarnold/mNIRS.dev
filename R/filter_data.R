@@ -7,11 +7,11 @@
 #' @param method Indicates how to filter the data (see *Details*).
 #'  \describe{
 #'      \item{`"smooth-spline"`}{fits a cubic smoothing spline.}
-#'      \item{`"butter"`}{uses a centred Butterworth digital filter. `type` should
+#'      \item{`"butterworth"`}{uses a centred Butterworth digital filter. `type` should
 #'      be defined (see *Details*).}
 #'      \item{`"moving-average"`}{uses a centred moving average filter.}
 #'  }
-#' @param type Specify the filter type. *Only relevant for `method = "butter"`*
+#' @param type Specify the filter type. *Only relevant for `method = "butterworth"`*
 #'  (see *Details*).
 #'  \describe{
 #'      \item{`"low"`}{For a *low-pass* filter (*default*).}
@@ -22,13 +22,13 @@
 #' @param spar A numeric scalar defining the smoothing parameter for
 #'  `method = "smooth-spline"`.
 #' @param n An integer scalar defining the order of a Butterworth filter for
-#'  `method = "butter"`.
+#'  `method = "butterworth"`.
 #' @param W A numeric scalar or two-element vector defining the fractional
-#'  critical frequency(ies) of a Butterworth filter for `method = "butter"`.
+#'  critical frequency(ies) of a Butterworth filter for `method = "butterworth"`.
 #' @param critical_frequency A numeric scalar or two-element vector defining
-#'  the critical frequency(ies) of a Butterworth filter for `method = "butter"`.
+#'  the critical frequency(ies) of a Butterworth filter for `method = "butterworth"`.
 #' @param sample_rate A numeric scalar for the sample rate in Hz for
-#'  `method = "butter"`.
+#'  `method = "butterworth"`.
 #' @param width A numeric scalar defining the window length of samples for
 #'  `method = "moving-average"`.
 #'
@@ -41,7 +41,7 @@
 #'  smoothing responses occurring on the order of minutes or longer. Or `spar`
 #'  can be defined explicitly, typically (but not necessarily) in the range
 #'  `spar = [0, 1]`.}
-#'  \item{`method = "butter"`}{applies a centred (two-pass symmetrical)
+#'  \item{`method = "butterworth"`}{applies a centred (two-pass symmetrical)
 #'  Butterworth digital filter from [signal::butter()] and [signal::filtfilt()].
 #'  The filter order is defined by `n`, typically in the range `n = [1, 10]`.
 #'  Higher filter orders tend to better capture rapid changes in amplitude,
@@ -87,7 +87,7 @@
 #' y <- y_clean + noise
 #'
 #' y.spline <- filter_data(y, method = "smooth-spline")
-#' y.LP <- filter_data(y, method = "butter", n = 2, W = 0.05)
+#' y.LP <- filter_data(y, method = "butterworth", n = 2, W = 0.05)
 #' y.MA <- filter_data(y, method = "moving-average", width = 30)
 #'
 #' plot(x, y)
@@ -100,7 +100,7 @@
 #' @export
 filter_data <- function(
         x,
-        method = c("smooth-spline", "butter", "moving-average"),
+        method = c("smooth-spline", "butterworth", "moving-average"),
         type = c("low", "high", "stop", "pass"),
         spar = NULL,
         n = 1,
@@ -134,7 +134,7 @@ filter_data <- function(
             y <- stats::smooth.spline(x = x, spar = spar)$y
         }
 
-    } else if (method == "butter") {
+    } else if (method == "butterworth") {
 
         if (!is.null(critical_frequency) & !is.null(sample_rate)) {
             if (is.numeric(critical_frequency) & is.numeric(sample_rate)) {
@@ -187,8 +187,8 @@ filter_data <- function(
 # ) |>
 #     dplyr::mutate(
 #         # smo2_filt = filter_data(smo2_673, method = "smooth-spline", spar = 0.8),
-#         # smo2_filt = filter_data(smo2_673, method = "butter", n = 1, W = 0.1),
-#         # smo2_filt = filter_data(smo2_673, method = "butter", n = 2, critical_frequency = 0.5, sample_rate = 10),
+#         # smo2_filt = filter_data(smo2_673, method = "butterworth", n = 1, W = 0.1),
+#         # smo2_filt = filter_data(smo2_673, method = "butterworth", n = 2, critical_frequency = 0.5, sample_rate = 10),
 #         smo2_filt = filter_data(smo2_673, method = "moving-average", width = 50),
 #     ) |>
 #     print()

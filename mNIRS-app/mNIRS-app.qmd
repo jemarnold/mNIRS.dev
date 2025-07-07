@@ -509,7 +509,7 @@ nirs_data <- reactive({
                 across(
                     any_of(nirs_columns),
                     # \(.x) mNIRS::filter_data(
-                    #     .x, method = "butter",
+                    #     .x, method = "butterworth",
                     #     type = input$butter_type,
                     #     n = input$n,
                     #     critical_frequency = input$critical_frequency,
