@@ -49,7 +49,7 @@ usethis::use_import_from("stats", c("na.omit"))
 
 usethis::use_vignette("processing-mNIRS-data.qmd")
 
-usethis::use_test("replace_fixed_values")
+usethis::use_test("replace_invalid_values")
 devtools::load_all()
 devtools::test()
 

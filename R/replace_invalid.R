@@ -1,17 +1,17 @@
-#' Replace Fixed Values
+#' Replace Invalid Values
 #'
 #' Detect specific values such as `c(0, 100)` in vector data and replaces
 #' with `NA` or the local median value.
 #'
 #' @param x A numeric vector
-#' @param fixed_values A numeric vector of values to be replaced, e.g.
-#'  `fixed_values = c(0, 100)`.
+#' @param values A numeric vector of values to be replaced, e.g.
+#'  `values = c(0, 100)`.
 #' @param width A numeric scalar for the window length of `(2 · width + 1)` samples.
 #' @param return Indicates whether outliers should be replaced with `NA`
 #'  (*default*) or the local `"median"` value.
 #'
 #' @details
-#' Useful to overwrite known nonsense values, such as `0`, `100`, or `102.3`.
+#' Useful to overwrite known invalid/nonsense values, such as `0`, `100`, or `102.3`.
 #'
 #' *TODO: allow for overwriting all values greater or less than known values.*
 #'
@@ -20,14 +20,14 @@
 #' @examples
 #' set.seed(13)
 #' (x <- sample.int(10, 20, replace = TRUE))
-#' (y <- replace_fixed_values(x, fixed_values = c(1, 10), width = 5))
+#' (y <- replace_invalid(x, values = c(1, 10), width = 5))
 #'
 #' @return A numeric vector of filtered data.
 #'
 #' @export
-replace_fixed_values <- function(
+replace_invalid <- function(
         x,
-        fixed_values,
+        values,
         width,
         return = c("NA", "median")
 ) {
@@ -39,10 +39,10 @@ replace_fixed_values <- function(
         cli::cli_abort("{.arg x} must be a {.cls numeric} vector.")
     }
 
-    ## validation: `fixed_values` must be a numeric vector
-    if (!is.numeric(fixed_values)) {
+    ## validation: `values` must be a numeric vector
+    if (!is.numeric(values)) {
         cli::cli_abort(paste(
-            "{.arg fixed_values} must be a {.cls numeric} vector."))
+            "{.arg values} must be a {.cls numeric} vector."))
     }
 
     ## if `return = "median"` then return local median values
@@ -66,7 +66,7 @@ replace_fixed_values <- function(
             start_idx <- max(1, i - width)
             end_idx <- min(n, i + width)
             x0 <- median(x[start_idx:end_idx])
-            if (x[i] %in% fixed_values) {
+            if (x[i] %in% values) {
                 y[i] <- if (return == "median") {x0} else {NA_real_}
             }
         }
@@ -76,7 +76,7 @@ replace_fixed_values <- function(
         y <- x
         n <- length(x)
         for (i in 1:n) {
-            if (x[i] %in% fixed_values) {
+            if (x[i] %in% values) {
                 y[i] <- NA_real_
             }
         }

@@ -39,16 +39,16 @@
 #'
 #' @examples
 #' (x <- c(1, 2, NA, Inf, 5, 6, NA))
-#' replace_missing_values(x, method = "omit")
-#' replace_missing_values(x, method = "locf")
-#' replace_missing_values(x, method = "linear", na.rm = FALSE)
-#' replace_missing_values(x, method = "linear", na.rm = TRUE)
+#' replace_missing(x, method = "omit")
+#' replace_missing(x, method = "locf")
+#' replace_missing(x, method = "linear", na.rm = FALSE)
+#' replace_missing(x, method = "linear", na.rm = TRUE)
 #'
 #' @return A numeric vector of filtered data or a named numeric vector
 #'     with names from indices of the original input vector.
 #'
 #' @export
-replace_missing_values <- function(
+replace_missing <- function(
         x,
         method = c("linear", "locf", "spline", "omit"),
         na.rm = FALSE,

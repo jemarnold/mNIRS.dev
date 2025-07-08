@@ -122,7 +122,7 @@ sample_rate <- attributes(oxy_data)$sample_rate
 oxy_data <- oxy_data |> 
     mutate(
         # across(any_of(nirs_columns),
-        #        \(.x) replace_missing_values(x = .x,
+        #        \(.x) replace_missing(x = .x,
         #                                     method = "linear") ## linear interpolation
         # ),
         # across(any_of(nirs_columns),

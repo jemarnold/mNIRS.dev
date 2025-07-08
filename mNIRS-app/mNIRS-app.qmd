@@ -160,22 +160,22 @@ numericInput("sample_rate", label = "Sample Rate", value = 0, min = 0)
 numericInput("downsample_rate", label = "Downsample Rate", value = 0, min = 0)
 
 ## remove head/tail samples
-numericInput("slice_head", label = "Remove head samples", 
+numericInput("slice_head", label = "Remove Head Samples", 
              value = 0, min = 0, step = 1)
-numericInput("slice_tail", label = "Remove tail samples", 
+numericInput("slice_tail", label = "Remove Tail Samples", 
              value = 0, min = 0, step = 1)
 
-## Replace fixed values (column wise)
+## Replace invalid values (column wise)
 textInput(
-    "fixed_values",
-    label = "Replace Fixed Values",
+    "invalid_values",
+    label = "Replace Invalid Values",
     placeholder = "0, 100, ...")
 
 ## Replace outliers (column wise)
-checkboxInput("replace_outliers", "Replace outliers")
+checkboxInput("replace_outliers", "Replace Outliers")
 
 ## Replace missing values (column wise)
-checkboxInput("replace_missing", "Replace missing values")
+checkboxInput("replace_missing", "Replace Missing Values")
 
 ## Filter/smooth data (column wise)
 selectInput(
@@ -192,7 +192,7 @@ uiOutput("shift_data_ui")
 checkboxInput("rescale_logical", "Rescale Data")
 uiOutput("rescale_data_ui")
 
-checkboxInput("keep_all", "Keep all columns in file export")
+checkboxInput("keep_all", "Keep all Columns in File Export")
 
 downloadButton("download_data", "Download Data")
 
@@ -259,7 +259,7 @@ Will replace local outliers using a `Hampel` filter.
 **Replace Missing Values:**
 Will interpolate across missing (`NA`) samples.
 
-**Replace Fixed Values:**
+**Replace Invalid Values:**
 A vector of numeric values can be defined to be explicitly removed and interpolated across, such as `0` and `100` when mNIRS sensors return invalid values.
 
 **Digital Filter Method:**
@@ -454,7 +454,7 @@ nirs_data <- reactive({
     nirs_columns <- attributes(raw_data)$nirs_columns
     sample_column <- attributes(raw_data)$sample_column
     sample_rate <- attributes(raw_data)$sample_rate
-    fixed_values <- strsplit(input$fixed_values, split = "\\s*,\\s*")[[1]] |> 
+    invalid_values <- strsplit(input$invalid_values, split = "\\s*,\\s*")[[1]] |> 
         as.numeric()
     
     nirs_data <- raw_data |> 
@@ -483,19 +483,19 @@ nirs_data <- reactive({
                         na.rm = TRUE, 
                         return = "median"))
             },
-            if (!is.null(fixed_values)) {
+            if (!is.null(invalid_values)) {
                 across(
                     any_of(nirs_columns),
-                    \(.x) mNIRS::replace_fixed_values(
+                    \(.x) mNIRS::replace_invalid(
                         .x, 
-                        fixed_values = fixed_values, 
+                        values = invalid_values, 
                         width = 5 * sample_rate, ## 5-sec window
                         return = "median"))
             },
             if (input$replace_missing) {
                 across(
                     any_of(nirs_columns),
-                    \(.x) mNIRS::replace_missing_values(
+                    \(.x) mNIRS::replace_missing(
                         .x, method = "linear", na.rm = TRUE))
             },
             if (input$filter_method == "smooth-spline") {

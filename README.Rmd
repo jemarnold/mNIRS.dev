@@ -41,20 +41,20 @@ devtools::install_github("jemarnold/mNIRS")
 ### Read data from file
 
 ```{r}
+library(dplyr, warn.conflicts = FALSE)
+library(gplot)
 library(mNIRS)
 
-## {mNIRS} includes some sample files from Moxy and Train.Red
-file_path <- system.file("extdata", "moxy_ramp_example.xlsx", package = "mNIRS")
+## {mNIRS} includes sample files from a few NIRS devices
+file_path <- system.file("extdata/moxy_ramp_example.xlsx", package = "mNIRS")
 
-## rename columns in the format "new_name" = "original_name"
-## where "original_name" should match the file column name exactly
-data_raw <- read_data(file_path = file_path,
-                      nirs_columns = c(smo2_left = "smo2_left_VL",
-                                       smo2_right = "smo2_right_VL"),
-                      sample_column = c(time = "Time"),
-                      event_column = c(event = "Event"),
-                      keep_all = TRUE,
-                      verbose = TRUE)
+## rename columns in the format `new_name1 = "file_column_name1"`
+## where "file_column_name1" should match the file column name exactly
+data_raw <- read_data(file_path,
+                      nirs_columns = c(smo2_left = "SmO2 Live",
+                                       smo2_right = "SmO2 Live(2)"),
+                      sample_column = c(time = "hh:mm:ss"),
+                      event_column = c(lap = "Lap"))
 
 data_raw
 
@@ -62,10 +62,9 @@ plot(data_raw)
 ```
 
 
-### Replace fixed values, outliers, and missing values
+### Replace outliers, invalid values, and missing Values
 
 ```{r}
-library(dplyr, warn.conflicts = FALSE)
 
 ## metadata are stored in dataframe attributes
 nirs_columns <- attributes(data_raw)$nirs_columns
@@ -74,8 +73,8 @@ sample_rate <- attributes(data_raw)$sample_rate
 data_cleaned <- data_raw |> 
     mutate(
         across(any_of(nirs_columns), 
-               \(.x) replace_fixed_values(x = .x,
-                                          fixed_values = c(0, 100),
+               \(.x) replace_invalid_values(x = .x,
+                                          invalid_values = c(0, 100),
                                           width = 20 * sample_rate,
                                           return = "NA")
         ),

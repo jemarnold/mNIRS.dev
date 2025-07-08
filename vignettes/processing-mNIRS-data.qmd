@@ -128,12 +128,6 @@ plot(data_time_fixed)
 
 
 
-## Replace Outliers, Fixed Values, and Missing Values
-
-We can see some errors in the data signals, so let's clean those up.
-
-
-
 ### Metadata stored in *mNIRS.data* dataframes
 
 Dataframes read or processed by `{mNIRS}` functions will return `class = mNIRS.data` and contain metadata, which can be retrieved with `attributes(data)`. 
@@ -147,6 +141,12 @@ nirs_columns
 sample_rate <- attributes(data_raw)$sample_rate
 sample_rate
 ```
+
+
+
+## Replace Outliers, invalid Values, and Missing Values
+
+We can see some errors in the data signals, so let's clean those up.
 
 We can do some simple data wrangling steps to clean the invalid data and prepare it for digital filtering and smoothing.
 
@@ -170,21 +170,21 @@ Note that with relatively low sample rates, such as this 2 Hz file, outlier filt
 
 
 
-### `replace_fixed_values()`
+### `replace_invalid()`
 
-Some NIRS devices or recording software can report specific invalid values, such as `c(0, 100, 102.3)`. These can be manually removed with `replace_fixed_values()`. See `?replace_fixed_values` for details.
+Some NIRS devices or recording software can report specific invalid values, such as `c(0, 100, 102.3)`. These can be manually removed with `replace_invalid()`. See `?replace_invalid` for details.
 
-* `fixed_values`: A vector of numeric values to be replaced.
+* `values`: A vector of numeric values to be replaced.
 
 * `width`: The number of samples (window) in which the local median will be calculated. To define the window in seconds, multiply the desired number of seconds by the sample rate.
 
-* `return`: Indicates whether fixed values should be replaced by the local *"median"* value or by *"NA"*.
+* `return`: Indicates whether invalid values should be replaced by the local *"median"* value or by *"NA"*.
 
 
 
-### `replace_missing_values()`
+### `replace_missing()`
 
-Finally, We can use `replace_missing_values()` to interpolate across missing data. Other fill methods are available, see `?replace_missing_values` for details.
+Finally, We can use `replace_missing()` to interpolate across missing data. Other fill methods are available, see `?replace_missing` for details.
 
 * `method`: Specify the method for filling missing data. The default *"linear"* interpolation is usually sufficient.
 
@@ -204,17 +204,17 @@ data_cleaned <- data_time_fixed |>
                                       return = "median")
         ),
         across(any_of(nirs_columns), 
-               \(.x) replace_fixed_values(x = .x,
-                                          fixed_values = c(0, 100), ## known invalid values
-                                          width = 20 * sample_rate,
-                                          return = "NA")
+               \(.x) replace_invalid(x = .x,
+                                     values = c(0, 100), ## known invalid values
+                                     width = 20 * sample_rate,
+                                     return = "NA")
         ),
         
         across(any_of(nirs_columns), 
-               \(.x) replace_missing_values(x = .x,
-                                            method = "linear", ## linear interpolation
-                                            na.rm = FALSE, ## to preserve the length of the vector
-                                            maxgap = Inf) ## interpolate across gaps of any length
+               \(.x) replace_missing(x = .x,
+                                     method = "linear", ## linear interpolation
+                                     na.rm = FALSE, ## to preserve the length of the vector
+                                     maxgap = Inf) ## interpolate across gaps of any length
         ),
     )
 
