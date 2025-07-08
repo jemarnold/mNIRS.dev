@@ -301,13 +301,21 @@ plot(data_filtered) +
 
 ## Shift and Rescale Data
 
+We may need to adjust our data to normalise mNIRS signal values across channels, or between individuals or trials, etc. For example, we may want to set our mean baseline value to zero for all NIRS signals. Or we may want to compare signal kinetics (the rate of change or time course of a response) after rescaling to the same relative dynamic range.
+
+These functions allow us to either shift values and preserve the dynamic range (the delta amplitude from minimum to maximum values) of our NIRS channels, or rescale the data to a new dynamic range.
+
+We can do this on multiple NIRS channels and either modify or preserve the relative scaling between those channels.
+
+
+
 ### Shift data
 
-... See `?shift_data` for details.
+We may want to shift our data values while preserving the absolute dynamic range. See `?shift_data` for details.
 
 * `data`: This function works on a dataframe; it will take in a dataframe (`data`), apply the processing step to all data channels, and return the processed dataframe.
 
-* `nirs_columns`: A list specifying how we want the *NIRS* data channels to be grouped. Listing each channel separately (e.g. `list("A", "B", "C")`) will shift each channel independently. The relative scaling between channels will be lost.\
+* `nirs_columns`: A list specifying how we want the *NIRS* data channels to be grouped, to preserve within-group relative scaling. Listing each channel separately (e.g. `list("A", "B", "C")`) will shift each channel independently. The relative scaling between channels will be lost.\
 \
 Grouping channels (e.g. `list(c("A", "B"), c("C"))`) will shift each group of channels together. The relative scaling between channels will be preserved within each group, but lost across groups.\
 \
@@ -321,42 +329,46 @@ If the dataframe already has *mNIRS.data* metadata, the *NIRS* data channels wil
 
 * `shift_by`: An alternate way to specify, if we wanted to shift a data column by, say 10 units.
 
-...
+We have a 2-minute baseline for this dataset, so maybe we want to shift both NIRS signals so that the mean value of the 2-min baseline is equal to zero.
 
 ```{r}
 data_shifted <- data_filtered |> 
-    ## wrap `nirs_columns` vector in list to shift all channels together
-    ## the mean of the first 30 samples from both mNIRS channels will be set to 0
-    shift_data(nirs_columns = list(nirs_columns),
+    ## convert `nirs_columns` to separate list items to shift each column separately
+    shift_data(nirs_columns = as.list(nirs_columns),
                shift_to = 0,
                position = "first",
-               mean_samples = 30 * sample_rate) ## shift the mean first 30 sec equal to zero
+               mean_samples = 120 * sample_rate) ## shift the mean first 120 sec equal to zero
 
 plot(data_shifted) +
     geom_hline(yintercept = 0, linetype = "dotted") +
-    geom_ribbon(
-        inherit.aes = FALSE,
-        data = filter(data_shifted, between(time, 0, 30*sample_rate)),
-        aes(x = time, ymin = smo2_left, ymax = smo2_right),
-        fill = "grey", alpha = 0.4)
+    geom_rect(aes(xmin = 0, xmax = 120, ymin = -5, ymax = 5),
+              colour = "black", fill = NA)
 ```
+
+Now our interpretation may change; if we are assuming the baseline represents the same starting condition, our *smo2_left* signal does not deoxygenate as far as our *smo2_right* signal.
+
+
 
 ### Rescale data to functional range
 
-...
+We may want to rescale our data to a new dynamic range. See `?rescale_data` for details.
 
-* `data`: this function works on a dataframe; it will take in a dataframe (`data`), apply the processing step to all data channels, and return the processed dataframe.
-* `nirs_columns`:
-* `rescale_range`:
+* `data`: This function works on a dataframe; it will take in a dataframe (`data`), apply the processing step to all data channels, and return the processed dataframe.
 
-...
+* `nirs_columns`: A list specifying how we want the *NIRS* data channels to be grouped, to preserve within-group relative scaling (see *Shift Data* above).
+
+* `rescale_range`: Specifies the new dynamic range, in the form `c(minimum, maximum)`.
+
+For example, if we are interested in comparing the 'functional range' of each NIRS signal, we may want to set them both to 0-100%. 
 
 ```{r}
 data_rescaled <- data_filtered |> 
     ## convert `nirs_columns` vector to separate list items to shift each column separately
     rescale_data(nirs_columns = as.list(nirs_columns), 
-                 rescale_range = c(0, 100)) ## rescale to a 0-100% functiona exercise range
+                 rescale_range = c(0, 100)) ## rescale to a 0-100% functional exercise range
 
 plot(data_rescaled) +
-    geom_hline(yintercept = c(0, 100), linetype = "dotted")
+    geom_hline(yintercept = c(0, 100), linetype = "dotted") +
+    geom_rect(aes(xmin = 825, xmax = 975, ymin = 0, ymax = 100),
+              colour = "black", fill = NA)
 ```
