@@ -31,38 +31,39 @@ devtools::install_github("jemarnold/mNIRS")
 ### Read data from file
 
 ``` r
+library(dplyr, warn.conflicts = FALSE)
+library(ggplot2)
 library(mNIRS)
 
-## {mNIRS} includes some sample files from Moxy and Train.Red
-file_path <- system.file("extdata", "moxy_ramp_example.xlsx", package = "mNIRS")
+## {mNIRS} includes sample files from a few NIRS devices
+file_path <- system.file("extdata/moxy_ramp_example.xlsx", package = "mNIRS")
 
-## rename columns in the format "new_name" = "original_name"
-## where "original_name" should match the file column name exactly
-data_raw <- read_data(file_path = file_path,
-                      nirs_columns = c(smo2_left = "smo2_left_VL",
-                                       smo2_right = "smo2_right_VL"),
-                      sample_column = c(time = "Time"),
-                      event_column = c(event = "Event"),
-                      .keep_all = TRUE,
-                      .verbose = TRUE)
-#> Warning: "sample_column = time" has non-sequential or repeating values. Consider
-#> investigating at "time = 1952, 1952, 1952, 2924.01, and 2924.01".
-#> ℹ Estimated sample rate = 2 Hz.
+## rename columns in the format `new_name1 = "file_column_name1"`
+## where "file_column_name1" should match the file column name exactly
+data_raw <- read_data(file_path,
+                      nirs_columns = c(smo2_left = "SmO2 Live",
+                                       smo2_right = "SmO2 Live(2)"),
+                      sample_column = c(time = "hh:mm:ss"),
+                      event_column = c(lap = "Lap"),
+                      sample_rate = 2,
+                      numeric_time = TRUE,
+                      keep_all = FALSE,
+                      verbose = FALSE)
 
 data_raw
 #> # A tibble: 2,203 × 4
-#>     time event smo2_left smo2_right
-#>    <dbl> <chr>     <dbl>      <dbl>
-#>  1 1740. <NA>       67.6       54  
-#>  2 1740. <NA>       67.6       54  
-#>  3 1741. <NA>       67.6       54  
-#>  4 1742. <NA>       66.3       53.5
-#>  5 1742. <NA>       66.3       53.5
-#>  6 1743. <NA>       66.3       53.5
-#>  7 1743. <NA>       66.3       53.5
-#>  8 1744. <NA>       67.2       57.1
-#>  9 1744. <NA>       67.2       57.1
-#> 10 1745. <NA>       67.2       57.1
+#>     time   lap smo2_left smo2_right
+#>    <dbl> <dbl>     <dbl>      <dbl>
+#>  1 1740.     1        54         68
+#>  2 1740.     1        54         68
+#>  3 1741.     1        54         68
+#>  4 1742.     1        54         66
+#>  5 1742.     1        54         66
+#>  6 1743.     1        54         66
+#>  7 1743.     1        54         66
+#>  8 1744.     1        57         67
+#>  9 1744.     1        57         67
+#> 10 1745.     1        57         67
 #> # ℹ 2,193 more rows
 
 plot(data_raw)
@@ -70,10 +71,9 @@ plot(data_raw)
 
 <img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
 
-### Replace fixed values, outliers, and missing values
+### Replace outliers, invalid values, and missing Values
 
 ``` r
-library(dplyr, warn.conflicts = FALSE)
 
 ## metadata are stored in dataframe attributes
 nirs_columns <- attributes(data_raw)$nirs_columns
@@ -81,11 +81,12 @@ sample_rate <- attributes(data_raw)$sample_rate
 
 data_cleaned <- data_raw |> 
     mutate(
+        time = time - first(time), ## correct time column to start at zero
         across(any_of(nirs_columns), 
-               \(.x) replace_fixed_values(x = .x,
-                                          fixed_values = c(0, 100),
-                                          width = 20 * sample_rate,
-                                          return = "NA")
+               \(.x) replace_invalid(x = .x,
+                                     values = c(0, 100),
+                                     width = 20 * sample_rate,
+                                     return = "NA")
         ),
         across(any_of(nirs_columns), 
                \(.x) replace_outliers(x = .x,
@@ -95,27 +96,27 @@ data_cleaned <- data_raw |>
                                       return = "median")
         ),
         across(any_of(nirs_columns), 
-               \(.x) replace_missing_values(x = .x,
-                                            method = "linear",
-                                            na.rm = FALSE,
-                                            maxgap = Inf)
+               \(.x) replace_missing(x = .x,
+                                     method = "linear",
+                                     na.rm = FALSE,
+                                     maxgap = Inf)
         ),
     )
 
 data_cleaned
 #> # A tibble: 2,203 × 4
-#>     time event smo2_left smo2_right
-#>    <dbl> <chr>     <dbl>      <dbl>
-#>  1 1740. <NA>       67.6       54  
-#>  2 1740. <NA>       67.6       54  
-#>  3 1741. <NA>       67.6       54  
-#>  4 1742. <NA>       66.3       53.5
-#>  5 1742. <NA>       66.3       53.5
-#>  6 1743. <NA>       66.3       53.5
-#>  7 1743. <NA>       66.3       53.5
-#>  8 1744. <NA>       67.2       57.1
-#>  9 1744. <NA>       67.2       57.1
-#> 10 1745. <NA>       67.2       57.1
+#>     time   lap smo2_left smo2_right
+#>    <dbl> <dbl>     <dbl>      <dbl>
+#>  1 0         1        54         68
+#>  2 0.400     1        54         68
+#>  3 0.960     1        54         68
+#>  4 1.51      1        54         66
+#>  5 2.06      1        54         66
+#>  6 2.61      1        54         66
+#>  7 3.16      1        54         66
+#>  8 3.71      1        57         67
+#>  9 4.26      1        57         67
+#> 10 4.81      1        57         67
 #> # ℹ 2,193 more rows
 
 plot(data_cleaned)
@@ -127,29 +128,27 @@ plot(data_cleaned)
 
 ``` r
 
-sample_column <- attributes(data_cleaned)$sample_column
-
 data_resampled <- data_cleaned |> 
-    downsample_data(sample_column = sample_column,
-                       sample_rate = sample_rate,
-                       downsample_rate = 1) ## downsample to 1 Hz
-#> ℹ Estimated sample rate is 2 Hz. Output is downsampled at 1 Hz.
+    downsample_data(sample_column = NULL, ## will be automatically read from metadata
+                    sample_rate = NULL, ## will be automatically read from metadata
+                    downsample_time = 10) ## equal to `downsample_rate = 0.1`
+#> ℹ Sample rate = 2 Hz. Output is downsampled at 0.1 Hz.
 
 data_resampled
-#> # A tibble: 1,209 × 4
-#>     time smo2_left smo2_right event
-#>    <dbl>     <dbl>      <dbl> <chr>
-#>  1  1740      67.6       54   <NA> 
-#>  2  1741      66.3       53.5 <NA> 
-#>  3  1742      66.3       53.5 <NA> 
-#>  4  1743      66.8       55.3 <NA> 
-#>  5  1744      67.2       57.1 <NA> 
-#>  6  1745      67.6       55.2 <NA> 
-#>  7  1746      68         53.2 <NA> 
-#>  8  1747      67.1       52.8 <NA> 
-#>  9  1748      66.2       52.3 <NA> 
-#> 10  1749      65.1       53.7 <NA> 
-#> # ℹ 1,199 more rows
+#> # A tibble: 121 × 4
+#>     time   lap smo2_left smo2_right
+#>    <dbl> <dbl>     <dbl>      <dbl>
+#>  1     0     1      54.1       66.7
+#>  2    10     1      55.1       64.5
+#>  3    20     1      55.8       65.4
+#>  4    30     1      55.7       65.1
+#>  5    40     1      55.5       62.8
+#>  6    50     1      55.7       64.4
+#>  7    60     1      55.3       66.2
+#>  8    70     1      56.1       66.7
+#>  9    80     1      56.8       66.4
+#> 10    90     1      56.6       68.5
+#> # ℹ 111 more rows
 
 plot(data_resampled)
 ```
@@ -159,30 +158,32 @@ plot(data_resampled)
 ### Filter (smooth) data
 
 ``` r
-data_filtered <- data_resampled |> 
+data_filtered <- data_cleaned |> 
     mutate(
         across(any_of(nirs_columns),
                \(.x) filter_data(x = .x,
-                                 method = "moving-average",
-                                 width = 15)
+                                 method = "butterworth",
+                                 type = "low",
+                                 n = 2, ## see ?filter_data for details on filter parameters
+                                 W = 0.02)
         )
     )
 
 data_filtered
-#> # A tibble: 1,209 × 4
-#>     time smo2_left smo2_right event
-#>    <dbl>     <dbl>      <dbl> <chr>
-#>  1  1740      67.1       54.3 <NA> 
-#>  2  1741      67.0       54.1 <NA> 
-#>  3  1742      66.8       54.0 <NA> 
-#>  4  1743      66.5       54.1 <NA> 
-#>  5  1744      66.4       54.3 <NA> 
-#>  6  1745      66.2       54.4 <NA> 
-#>  7  1746      66.2       54.5 <NA> 
-#>  8  1747      66.2       54.5 <NA> 
-#>  9  1748      66.0       54.5 <NA> 
-#> 10  1749      65.8       54.6 <NA> 
-#> # ℹ 1,199 more rows
+#> # A tibble: 2,203 × 4
+#>     time   lap smo2_left smo2_right
+#>    <dbl> <dbl>     <dbl>      <dbl>
+#>  1 0         1      54.5       66.3
+#>  2 0.400     1      54.5       66.3
+#>  3 0.960     1      54.5       66.3
+#>  4 1.51      1      54.5       66.3
+#>  5 2.06      1      54.5       66.2
+#>  6 2.61      1      54.5       66.2
+#>  7 3.16      1      54.5       66.2
+#>  8 3.71      1      54.5       66.2
+#>  9 4.26      1      54.5       66.2
+#> 10 4.81      1      54.5       66.2
+#> # ℹ 2,193 more rows
 
 plot(data_filtered)
 ```
@@ -193,27 +194,27 @@ plot(data_filtered)
 
 ``` r
 data_shifted <- data_filtered |> 
-    ## wrap `nirs_columns` vector in list to shift all columns together
-    shift_data(nirs_columns = list(nirs_columns), 
-                    shift_to = 0,
-                    position = "first",
-                    mean_samples = 30) ## shift the mean first 30 sec equal to zero
+    ## convert `nirs_columns` to separate list items to shift each column separately
+    shift_data(nirs_columns = as.list(nirs_columns),
+               shift_to = 0,
+               position = "first",
+               mean_samples = 120 * sample_rate) ## shift the mean first 120 sec equal to zero
 
 data_shifted
-#> # A tibble: 1,209 × 4
-#>     time smo2_left smo2_right event
-#>    <dbl>     <dbl>      <dbl> <chr>
-#>  1  1740      6.91      -5.88 <NA> 
-#>  2  1741      6.81      -6.10 <NA> 
-#>  3  1742      6.62      -6.14 <NA> 
-#>  4  1743      6.35      -6.05 <NA> 
-#>  5  1744      6.16      -5.94 <NA> 
-#>  6  1745      6.03      -5.82 <NA> 
-#>  7  1746      5.97      -5.74 <NA> 
-#>  8  1747      5.98      -5.69 <NA> 
-#>  9  1748      5.82      -5.65 <NA> 
-#> 10  1749      5.66      -5.63 <NA> 
-#> # ℹ 1,199 more rows
+#> # A tibble: 2,203 × 4
+#>     time   lap smo2_left smo2_right
+#>    <dbl> <dbl>     <dbl>      <dbl>
+#>  1 0         1     -1.17      0.835
+#>  2 0.400     1     -1.17      0.832
+#>  3 0.960     1     -1.17      0.827
+#>  4 1.51      1     -1.17      0.819
+#>  5 2.06      1     -1.16      0.808
+#>  6 2.61      1     -1.16      0.795
+#>  7 3.16      1     -1.15      0.779
+#>  8 3.71      1     -1.14      0.762
+#>  9 4.26      1     -1.13      0.741
+#> 10 4.81      1     -1.12      0.719
+#> # ℹ 2,193 more rows
 
 plot(data_shifted)
 ```
@@ -221,32 +222,31 @@ plot(data_shifted)
 <img src="man/figures/README-unnamed-chunk-6-1.png" width="100%" />
 
 ``` r
-
 data_rescaled <- data_filtered |> 
-    ## convert `nirs_columns` vector to list to shift each column separately
+    ## convert `nirs_columns` vector to separate list items to shift each column separately
     rescale_data(nirs_columns = as.list(nirs_columns), 
-                        rescale_range = c(0, 100))
+                 rescale_range = c(0, 100)) ## rescale to a 0-100% functional exercise range
 
 data_rescaled
-#> # A tibble: 1,209 × 4
-#>     time smo2_left smo2_right event
-#>    <dbl>     <dbl>      <dbl> <chr>
-#>  1  1740      76.7       64.9 <NA> 
-#>  2  1741      76.6       64.6 <NA> 
-#>  3  1742      76.3       64.5 <NA> 
-#>  4  1743      76.0       64.6 <NA> 
-#>  5  1744      75.7       64.8 <NA> 
-#>  6  1745      75.5       65.0 <NA> 
-#>  7  1746      75.5       65.1 <NA> 
-#>  8  1747      75.5       65.2 <NA> 
-#>  9  1748      75.2       65.2 <NA> 
-#> 10  1749      75.0       65.3 <NA> 
-#> # ℹ 1,199 more rows
+#> # A tibble: 2,203 × 4
+#>     time   lap smo2_left smo2_right
+#>    <dbl> <dbl>     <dbl>      <dbl>
+#>  1 0         1      65.5       76.3
+#>  2 0.400     1      65.5       76.3
+#>  3 0.960     1      65.5       76.3
+#>  4 1.51      1      65.5       76.3
+#>  5 2.06      1      65.5       76.3
+#>  6 2.61      1      65.6       76.3
+#>  7 3.16      1      65.6       76.3
+#>  8 3.71      1      65.6       76.2
+#>  9 4.26      1      65.6       76.2
+#> 10 4.81      1      65.6       76.2
+#> # ℹ 2,193 more rows
 
 plot(data_rescaled)
 ```
 
-<img src="man/figures/README-unnamed-chunk-6-2.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-7-1.png" width="100%" />
 
 ### Process kinetics
 

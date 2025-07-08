@@ -54,10 +54,10 @@ shift_data <- function(
         mean_samples = 1,
         shift_by = NULL
 ) {
-
     position <- match.arg(position)
     metadata <- attributes(data)
 
+    ## TODO shift by sample range, not only first samples
     ## TODO convert sym(nirs_columns) to strings?
 
     if (
@@ -92,36 +92,6 @@ shift_data <- function(
     }
 
     ## shift range ================================
-    ## TODO NOT IN USE; seems to only be marginally faster than more
-    ## established zoo::rollapply() function
-    # rolling_mean_fast <- function(x, width) {
-    #     n <- length(x)
-    #     half_width <- floor(width / 2)
-    #
-    #     # Create index matrix for vectorised operations
-    #     indices <- outer(
-    #         seq_len(n), seq_len(width),
-    #         \(i, j) {
-    #             idx <- i - half_width + j - 1
-    #             ifelse(idx >= 1 & idx <= n, idx, NA)
-    #         })
-    #
-    #     # Extract values using matrix indexing
-    #     values <- matrix(x[indices], nrow = n)
-    #
-    #     # Calculate means with na.rm = TRUE
-    #     result <- apply(
-    #         values, 1,
-    #         \(row) {
-    #             valid_vals <- row[!is.na(row)]
-    #             if (length(valid_vals) > 0) {
-    #                 mean(valid_vals)
-    #             } else {NA}
-    #         })
-    #
-    #     return(result)
-    # }
-
     if (position %in% c("minimum", "maximum")) {
 
         shift_mean_value <- data |>
