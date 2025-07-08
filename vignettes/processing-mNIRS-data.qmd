@@ -1,5 +1,5 @@
 ---
-title: "Processing NIRS Data with {mNIRS}"
+title: "Processing Data with {mNIRS}"
 date: last-modified
 language:
     title-block-published: "UPDATED"
@@ -11,6 +11,7 @@ vignette: >
     %\VignetteEncoding{UTF-8}
 format:
     html:
+        embed-resources: true
         toc: true
         # toc-location: left
         # page-layout: full

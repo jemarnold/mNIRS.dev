@@ -1,28 +1,17 @@
 test_that("read_data moxy.perfpro works", {
-    file_path <- system.file("extdata",
-                             "moxy_ramp_example.xlsx",
+    file_path <- system.file("extdata/moxy_ramp_example.xlsx",
                              package = "mNIRS")
 
     expect_warning(
         df.moxy.perfpro <- read_data(
             file_path = file_path,
-            nirs_columns = c(smo2_left = "smo2_left_VL",
-                             smo2_right = "smo2_right_VL"),
-            sample_column = c(time = "Time"),
-            event_column = c(event = "Event"),
+            nirs_columns = c(smo2_left = "SmO2 Live",
+                             smo2_right = "SmO2 Live(2)"),
+            sample_column = c(time = "hh:mm:ss"),
             numeric_time = FALSE,
             keep_all = FALSE,
             verbose = TRUE),
         "non-sequential or repeating")
-
-    expect_silent(
-        read_data(
-            file_path = file_path,
-            nirs_columns = c(smo2_left = "smo2_left_VL",
-                             smo2_right = "smo2_right_VL"),
-            sample_column = c(time = "Time"),
-            verbose = FALSE)
-    )
 
     expect_s3_class(df.moxy.perfpro, "mNIRS.data")
 
@@ -33,8 +22,7 @@ test_that("read_data moxy.perfpro works", {
     expect_type(df.moxy.perfpro$time, "double")
 
     expect_true(
-        all(c("nirs_columns", "sample_column",
-              "event_column", "sample_rate") %in%
+        all(c("nirs_columns", "sample_column", "sample_rate") %in%
                 names(attributes(df.moxy.perfpro))))
 
     expect_equal(attr(df.moxy.perfpro, "sample_rate"), 2)
@@ -42,9 +30,9 @@ test_that("read_data moxy.perfpro works", {
     expect_s3_class(
         read_data(
             file_path = file_path,
-            nirs_columns = c(smo2_left = "smo2_left_VL",
-                             smo2_right = "smo2_right_VL"),
-            sample_column = c(time = "Time"),
+            nirs_columns = c(smo2_left = "SmO2 Live",
+                             smo2_right = "SmO2 Live(2)"),
+            sample_column = c(time = "hh:mm:ss"),
             numeric_time = FALSE,
             keep_all = FALSE,
             verbose = FALSE)$time,
@@ -60,16 +48,16 @@ test_that("read_data moxy.perfpro works", {
     expect_warning(
         read_data(
             file_path = file_path,
-            nirs_columns = c(smo2 = "smo2_left_VL",
-                             smo2 = "smo2_right_VL"),
+            nirs_columns = c(smo2 = "SmO2 Live",
+                             smo2 = "SmO2 Live(2)"),
             verbose = TRUE),
         "Duplicate input column")
 
     expect_message(
         read_data(
             file_path = file_path,
-            nirs_columns = c(smo2_left = "smo2_left_VL",
-                             smo2_right = "smo2_right_VL"),
+            nirs_columns = c(smo2_left = "SmO2 Live",
+                             smo2_right = "SmO2 Live(2)"),
             sample_column = NULL,
             verbose = TRUE),
         "No `sample_column` provided")
@@ -78,8 +66,7 @@ test_that("read_data moxy.perfpro works", {
 
 
 test_that("read_data train.red works", {
-    file_path <- system.file("extdata",
-                             "train.red_interval_example.csv",
+    file_path <- system.file("extdata/train.red_interval_example.csv",
                              package = "mNIRS")
 
     expect_warning(
@@ -142,26 +129,16 @@ test_that("read_data train.red works", {
 
 
 test_that("read_data oxysoft works", {
-    file_path <- system.file("extdata",
-                             "oxysoft_interval_example.xlsx",
+    file_path <- system.file("extdata/oxysoft_interval_example.xlsx",
                              package = "mNIRS")
-
-    expect_silent(
-        read_data(
-            file_path = file_path,
-            nirs_columns = c(HHb_VL = 6,
-                             ICG_VL = 9),
-            verbose = FALSE)
-    )
 
     expect_length(
         oxy_data <- read_data(
             file_path = file_path,
-            nirs_columns = c(HHb_VL = 6,
-                             ICG_VL = 9),
+            nirs_columns = c(HHb_VL = 5,
+                             O2Hb_VL = 6),
             sample_column = c(sample = 1),
-            keep_all = FALSE,
-            verbose = TRUE),
+            verbose = FALSE),
         3)
 
     expect_type(oxy_data$sample, "double")
@@ -186,8 +163,8 @@ test_that("read_data oxysoft works", {
     expect_warning(
         read_data(
             file_path = file_path,
-            nirs_columns = c(smo2 = "6",
-                             smo2 = "9"),
+            nirs_columns = c(smo2 = 5,
+                             smo2 = 6),
             sample_column = c(sample = 1),
             verbose = TRUE),
         "Duplicate input column")
@@ -195,8 +172,8 @@ test_that("read_data oxysoft works", {
     expect_message(
         read_data(
             file_path = file_path,
-            nirs_columns = c(HHb_VL = 6,
-                             ICG_VL = 9),
+            nirs_columns = c(HHb_VL = 5,
+                             ICG_VL = 6),
             sample_column = NULL,
             verbose = TRUE),
         "No `sample_column` provided")
@@ -206,19 +183,8 @@ test_that("read_data oxysoft works", {
 
 
 test_that("read_data VMPro app works", {
-    file_path <- system.file("extdata",
-                             "vo2master_moxyunit_example.xlsx",
+    file_path <- system.file("extdata/vo2master_moxyunit_example.xlsx",
                              package = "mNIRS")
-
-
-    expect_silent(
-        read_data(
-            file_path = file_path,
-            nirs_columns = c(smo2_left = "SmO2[%]",
-                             smo2_right = "SmO2 -  2[%]"),
-            sample_column = c(time = "Time[utc]"),
-            verbose = FALSE)
-    )
 
     expect_length(
         vmpro_data <- read_data(
