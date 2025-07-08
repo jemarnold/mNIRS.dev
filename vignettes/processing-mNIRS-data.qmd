@@ -34,7 +34,7 @@ knitr:
 
 ## Read Data From File
     
-We will read an example data file with two NIRS channels, recording an incremental ramp cycling assessment. A few example mNIRS data files are included in the `{mNIRS}` package.
+We will read an example data file with two NIRS channels, recording an incremental ramp cycling assessment. A few example NIRS data files are included in the `{mNIRS}` package.
 
 First, we load in the `{mNIRS}` package and any other required libraries. `{mNIRS}` can be installed with `devtools::install_github("jemarnold/mNIRS")`.
 
@@ -122,6 +122,7 @@ We can do any other data wrangling steps here, as we would for any data file. I 
 data_time_fixed <- data_raw |> 
     mutate(time = time - first(time))
 
+## {mNIRS} data can be plotted with a built in call to `plot()`
 plot(data_time_fixed)
 ```
 
@@ -133,7 +134,7 @@ We can see some errors in the data signals, so let's clean those up.
 
 
 
-### Metadata stored in mNIRS dataframes
+### Metadata stored in *mNIRS.data* dataframes
 
 Dataframes read or processed by `{mNIRS}` functions will return `class = mNIRS.data` and contain metadata, which can be retrieved with `attributes(data)`. 
 
@@ -149,9 +150,11 @@ sample_rate
 
 We can do some simple data wrangling steps to clean the invalid data and prepare it for digital filtering and smoothing.
 
-* `x`: These three `reaplce_` functions work on vector data; they take in a single data channel (`x`), apply processing to that channel, and return a vector of the processed channel data.
+* `x`: These three `replace_*` functions work on vector data; they take in a single data channel (`x`), apply processing to that channel, and return a vector of the processed channel data.
 
-### Replace outliers
+
+
+### `replace_outliers()`
 
 We can identify local outliers using a Hampel filter and replace them with the local median value. See `?replace_outliers` for details.
 
@@ -165,9 +168,11 @@ We can identify local outliers using a Hampel filter and replace them with the l
 
 Note that with relatively low sample rates, such as this 2 Hz file, outlier filters may occasionally over-filter and 'flatten' sections of the data. This is observed in this example near the end of the file, were the data trend is quite flat already.
 
-### Replace fixed values
 
-Some mNIRS devices or recording software can report specific invalid values, such as `c(0, 100, 102.3)`. These can be manually removed with `replace_fixed_values()`. See `?replace_fixed_values` for details.
+
+### `replace_fixed_values()`
+
+Some NIRS devices or recording software can report specific invalid values, such as `c(0, 100, 102.3)`. These can be manually removed with `replace_fixed_values()`. See `?replace_fixed_values` for details.
 
 * `fixed_values`: A vector of numeric values to be replaced.
 
@@ -175,7 +180,9 @@ Some mNIRS devices or recording software can report specific invalid values, suc
 
 * `return`: Indicates whether fixed values should be replaced by the local *"median"* value or by *"NA"*.
 
-### Replace missing values
+
+
+### `replace_missing_values()`
 
 Finally, We can use `replace_missing_values()` to interpolate across missing data. Other fill methods are available, see `?replace_missing_values` for details.
 
@@ -216,11 +223,15 @@ plot(data_cleaned)
 
 That got rid of all the obvious data issues.
 
-## Resample Data
 
-Say we are interested in phenomena occurring on a time scale of 5-minutes, but we have recorded at a very high sample rate of 50 Hz. We probably don't need to work with so many samples, and it may result in faster processing if we down-sample the data, say to 1 Hz.
 
-This example dataset is already at relatively low sample rate, but let's just see what it looks like if for some reason we wanted to down-sample further to 0.1 Hz (1 sample every 10 sec).
+## Downsample Data
+
+Say we are interested in phenomena occurring on a time scale of 5-minutes, and we have NIRS data recorded at 50 Hz, but something like power data recorded at only 1 Hz. It may be easier to synchronise our data and faster to work with fewer samples if we down-sample the NIRS data also to 1 Hz.
+
+
+
+### `downsample_data()` options
 
 * `data`: This function works on a dataframe; it will take in a dataframe (`data`), apply the processing step to all data channels, and return the processed dataframe.
 
@@ -231,6 +242,8 @@ This example dataset is already at relatively low sample rate, but let's just se
 * `downsample_rate`: Specify the output sample rate we want to covert to, as a number of samples per second (Hz). This value should be lower than the input `sample_rate`, or else it won't do anything.
 
 * `downsample_time`: Alternatively, we can specify the output as a number of seconds per sample to produce the same result.
+
+This example dataset is already at relatively low sample rate, but let's just see what it looks like if for some reason we wanted to down-sample further to 0.1 Hz (1 sample every 10 sec).
 
 ```{r}
 data_downsampled <- data_cleaned |> 
@@ -245,9 +258,13 @@ plot(data_downsampled)
 
 The data channels certainly look smoother. This is kind of like we have taken a 10-second moving average of the data, but we have lost information by decreasing the number of samples. Our dataframe now has only ``r nrow(data_downsampled)`` rows, compared to the original ``r nrow(data_raw)`` rows.
 
+
+
 ## Digital Filtering
 
 If we want more precise control to improve our signal-to-noise ratio in our dataset without losing information, we should apply digital filtering to smooth the data.
+
+
 
 ### Choosing a digital filter
 
@@ -259,21 +276,31 @@ It is perfectly valid to choose a digital filter by empirically testing iterativ
 
 The process of choosing a digital filter will be the topic of another vignette (`currently under development`).
 
-### Apply digital filter methods
+
+
+### `filter_data()` methods
 
 * `x`: This function works on vector data; it takes in a single data channel (`x`), applies processing to that channel, and returns a vector of the processed channel data.
+
+
 
 #### Smoothing-spline
 
 * `method = "smooth-spline"`: A non-parametric smoothing spline is often quite good as a first pass filter when first examining the data. This can often be good enough for longer time-scale phenomena, such as a 5-minute exercise interval, or an intervention with a gradual response curve. For faster occurring or repeated (square-wave) responses, a smoothing-spline may not be appropriate.
 
+
+
 #### Butterworth digital filter
 
 * `method = "butterworth"`: A Butterworth low-pass digital filter is probably the most common method used in mNIRS research (whether appropriately, or not). For certain applications, such as identifying a signal with a known frequency, such as cycling/running cadence or heart rate, a pass-band or a different filter type may be better suited.
 
+
+
 #### Moving average
 
 * `method = "moving-average"`: The simplest smoothing method is a simple moving average applied over a specified number of samples. Commonly, this might be a 5- or 15-second centred moving average filter.
+
+
 
 ### Apply the filter
 
@@ -299,9 +326,11 @@ plot(data_filtered) +
               aes(y = smo2_right, colour = "smo2_right"), alpha = 0.4)
 ```
 
+
+
 ## Shift and Rescale Data
 
-We may need to adjust our data to normalise mNIRS signal values across channels, or between individuals or trials, etc. For example, we may want to set our mean baseline value to zero for all NIRS signals. Or we may want to compare signal kinetics (the rate of change or time course of a response) after rescaling to the same relative dynamic range.
+We may need to adjust our data to normalise NIRS signal values across channels, or between individuals or trials, etc. For example, we may want to set our mean baseline value to zero for all NIRS signals. Or we may want to compare signal kinetics (the rate of change or time course of a response) after rescaling to the same relative dynamic range.
 
 These functions allow us to either shift values and preserve the dynamic range (the delta amplitude from minimum to maximum values) of our NIRS channels, or rescale the data to a new dynamic range.
 
@@ -309,7 +338,7 @@ We can do this on multiple NIRS channels and either modify or preserve the relat
 
 
 
-### Shift data
+### `shift_data()` options
 
 We may want to shift our data values while preserving the absolute dynamic range. See `?shift_data` for details.
 
@@ -340,16 +369,14 @@ data_shifted <- data_filtered |>
                mean_samples = 120 * sample_rate) ## shift the mean first 120 sec equal to zero
 
 plot(data_shifted) +
-    geom_hline(yintercept = 0, linetype = "dotted") +
-    geom_rect(aes(xmin = 0, xmax = 120, ymin = -5, ymax = 5),
-              colour = "black", fill = NA)
+    geom_hline(yintercept = 0, linetype = "dotted")
 ```
 
 Now our interpretation may change; if we are assuming the baseline represents the same starting condition, our *smo2_left* signal does not deoxygenate as far as our *smo2_right* signal.
 
 
 
-### Rescale data to functional range
+### `rescale_data()` options
 
 We may want to rescale our data to a new dynamic range. See `?rescale_data` for details.
 
@@ -368,7 +395,30 @@ data_rescaled <- data_filtered |>
                  rescale_range = c(0, 100)) ## rescale to a 0-100% functional exercise range
 
 plot(data_rescaled) +
-    geom_hline(yintercept = c(0, 100), linetype = "dotted") +
-    geom_rect(aes(xmin = 825, xmax = 975, ymin = 0, ymax = 100),
-              colour = "black", fill = NA)
+    geom_hline(yintercept = c(0, 100), linetype = "dotted")
 ```
+
+Here, our interpretation may be that *smo2_left* appears to deoxygenate slower to it's fullest extent during incremental exercise, and reoxygenate faster compared to *smo2_right*.
+
+
+
+### Combined shift and rescale
+
+What if we wanted to shift both NIRS signals so their mean 120-sec baselines are equal, then rescale the dynamic range of both signals grouped, such that the highest and lowest values were from 0 to 100?
+
+```{r}
+data_rescaled <- data_filtered |> 
+     ## the lowest single value for each NIRS channel will be shifted to zero
+    shift_data(nirs_columns = as.list(nirs_columns),
+               shift_to = 0,
+               position = "first",
+               mean_samples = 120 * sample_rate) |> 
+    ## Then both channels will be grouped and the maximum value of the two scaled to 100%
+    rescale_data(nirs_columns = list(nirs_columns), 
+                 rescale_range = c(0, 100))
+
+plot(data_rescaled) +
+    geom_hline(yintercept = c(0, 100), linetype = "dotted")
+```
+
+Now our interpretation might be that assuming the same starting baseline condition in both tissues, *smo2_left* preserves greater relative oxygenation during exercise and immediate recovery compared to *smo2_right*.
