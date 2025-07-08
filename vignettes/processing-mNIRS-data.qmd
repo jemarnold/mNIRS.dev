@@ -13,21 +13,11 @@ format:
     html:
         embed-resources: true
         toc: true
-        # toc-location: left
-        # page-layout: full
-        # sidebar-width: 100px
-        # body-width: 1000px
-        # margin-width: 400px
-# execute:
-#     echo: false
-#     message: false
-#     warning: false
-#     output: false
 knitr:
     opts_chunk:
         collapse: true
         comment: '#>'
-        # dpi: 300
+        dpi: 300
         out.width: "100%"
         # fig.width: 7
         fig.align: "center"

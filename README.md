@@ -9,12 +9,12 @@
 
 <!-- badges: end -->
 
-`mNIRS` is a package to allow for importing, processing, and analysing
+`{mNIRS}` is a package to allow for importing, processing, and analysing
 data from muscle near-infrared spectroscopy (mNIRS) devices.
 
 ## Installation
 
-You can install the development version of `mNIRS` from
+You can install the development version of `{mNIRS}` from
 [GitHub](https://github.com/jemarnold/mNIRS) with:
 
 ``` r

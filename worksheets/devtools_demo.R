@@ -37,7 +37,7 @@ options(digits = 5, digits.secs = 3, scipen = 3,
 devtools::build_readme()
 
 # usethis::use_import_from("tidyr", "any_of")
-devtools::check()
+
 
 # usethis::use_package_doc()
 # usethis::use_github_links()
@@ -53,6 +53,7 @@ devtools::build_rmd("vignettes/processing-mNIRS-data.qmd")
 usethis::use_test("replace_invalid_values")
 devtools::load_all()
 devtools::test()
+devtools::check()
 
 ## Building R packages with devtools and usethis | RStudio ================
 ## https://www.youtube.com/watch?v=EpTkT6Rkgbs
@@ -109,3 +110,69 @@ or
 - pkgdown site
 
 13. remotes::install_github("jemarnold/mNIRS")
+
+#
+## Claude.ai ===============================================
+## Here's the workflow for creating a public repository from your private
+## development package:
+## 1. Prepare Your Package Structure
+# Ensure your package follows standard structure
+usethis::use_package_doc()
+usethis::use_mit_license()  # or appropriate licence
+usethis::use_readme_rmd()
+usethis::use_news_md()
+usethis::use_cran_comments()
+
+## 2. Clean and Document
+# Update documentation
+devtools::document()
+
+# Check package
+devtools::check()
+
+# Build vignettes if any
+devtools::build_vignettes()
+
+## 3. Create Public Repository
+# Create new public repo (will prompt for GitHub details)
+usethis::use_github(private = FALSE)
+
+# Or if you want to create manually on GitHub first:
+usethis::use_git_remote("origin", "https://github.com/yourusername/packagename.git")
+
+## 4. Set Up GitHub Actions
+# Standard R package checks
+usethis::use_github_actions_check() ## DOESNT EXIST
+
+# Test coverage
+usethis::use_github_actions_test_coverage()
+
+# pkgdown site deployment
+usethis::use_pkgdown_github_pages()
+
+## 5. Configure pkgdown
+# Initialise pkgdown
+usethis::use_pkgdown()
+
+# Build site locally to test
+pkgdown::build_site()
+
+# Configure _pkgdown.yml as needed
+
+## 6. Set Up Development vs Release Workflow
+# Use development version numbering
+usethis::use_dev_version()
+
+# Set up lifecycle badges
+usethis::use_lifecycle()
+
+## 7. Final Steps
+# Check everything works
+devtools::check()
+
+# Build and push
+devtools::build()
+
+## The key is keeping your development work in a private repo and only pushing stable,
+## documented code to the public repository. Use semantic versioning (0.0.0.9000 for
+## dev, 0.1.0 for first release) to distinguish versions.

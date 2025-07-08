@@ -174,7 +174,7 @@ read_data <- function(
         ## detect header row where nirs_columns exists
         header_row <- which(apply(
             data_pre[1:1000, ], 1,
-            \(.row) all(c(nirs_columns, sample_column, event_column) %in% .row)
+            \(.row) all(c(nirs_columns, sample_column) %in% .row)
         ))
 
     } else if (is_csv) {

@@ -43,10 +43,10 @@ rolling slope.
 \examples{
 # Upward trending data returns peak positive slope
 y_up <- c(1, 3, 2, 5, 8, 7, 9, 12, 11, 14)
-peak_slope(y_up, width = 3)
+peak_directional_slope(y_up, width = 3)
 
 # Downward trending data returns peak negative slope
 y_down <- c(14, 11, 12, 9, 7, 8, 5, 2, 3, 1)
-peak_slope(y_down, width = 3)
+peak_directional_slope(y_down, width = 3)
 
 }
