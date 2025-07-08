@@ -12,6 +12,7 @@ Methods for importing, processing, and analysing data from muscle near-infrared 
 Useful links:
 \itemize{
   \item \url{https://github.com/jemarnold/mNIRS}
+  \item \url{https://jemarnold.github.io/mNIRS/}
   \item Report bugs at \url{https://github.com/jemarnold/mNIRS/issues}
 }
 
