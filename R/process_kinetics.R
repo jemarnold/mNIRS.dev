@@ -176,7 +176,8 @@ process_kinetics.monoexponential <- function(
         data[[fitted_name]] <- fitted
         coefs <- c(..., coef(model))
         coefs <- coefs[match(c("A", "B", "TD", "tau"), names(coefs))]
-        coefs <- tibble::as_tibble(as.list(coefs))
+        coefs <- tibble::as_tibble(as.list(coefs)) |>
+            dplyr::mutate(MRT = TD + tau)
 
         fit_criteria <- tibble::tibble(
             AIC = stats::AIC(model),
@@ -602,14 +603,15 @@ process_kinetics.peak_slope <- function(
 
     x <- x - x0
     df <- tibble::tibble(x, y)
+    fitted_name <- paste0(y_name, "_fitted")
 
     slopes <- rolling_slope(y, x, width, align, na.rm = TRUE)
 
     peak_slope_model <- peak_directional_slope(y, x, width, align, na.rm = TRUE)
 
     model <- NA
-    data$fitted <- NA_real_
-    data$fitted[x %in% peak_slope_model$x_fitted] <- peak_slope_model$y_fitted
+    data[[fitted_name]] <- NA_real_
+    data[[fitted_name]][x %in% peak_slope_model$x_fitted] <- peak_slope_model$y_fitted
     coefs <- c(sample = peak_slope_model$x,
                peak_slope = peak_slope_model$slope,
                nirs_value = y[x %in% peak_slope_model$x])

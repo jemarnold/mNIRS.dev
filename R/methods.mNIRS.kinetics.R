@@ -24,7 +24,7 @@ print.mNIRS.kinetics <- function(x, ...) {
             names(x$data)[1], ", A, B, TD, tau)", sep = "")
         cat("\n")
         if (!is.null(x$call$data)) {
-            cat("  data:        ", x$call$data)
+            cat("  data:        ", deparse(x$call$data))
         } else {
             cat("  data:        data.frame(x = ", names(x$data)[1],
                 ", y = ", names(x$data)[2], ")", sep = "")
@@ -34,7 +34,7 @@ print.mNIRS.kinetics <- function(x, ...) {
         cat("\n\n")
         cat("  Model Coefficients")
         cat("\n")
-        print(round(unlist(x$coefs), 4))
+        print(round(unlist(x$coefs), 3))
         cat("\n")
         cat("  Fit Criteria")
         cat("\n")
@@ -60,7 +60,7 @@ print.mNIRS.kinetics <- function(x, ...) {
         cat("\n\n")
         cat("  Model Coefficients")
         cat("\n")
-        print(round(unlist(x$coefs), 4))
+        print(round(unlist(x$coefs), 3))
         cat("\n")
         cat("  Fit Criteria")
         cat("\n")
@@ -81,7 +81,7 @@ print.mNIRS.kinetics <- function(x, ...) {
         cat("\n\n")
         cat("  Model Coefficients")
         cat("\n")
-        print(round(unlist(x$coefs), 4))
+        print(round(unlist(x$coefs), 3))
         cat("\n")
 
     } else if (x$method == "peak_slope") {
@@ -98,7 +98,7 @@ print.mNIRS.kinetics <- function(x, ...) {
         cat("\n\n")
         cat("  Model Coefficients")
         cat("\n")
-        print(round(unlist(x$coefs), 4))
+        print(round(unlist(x$coefs), 3))
         cat("\n")
 
     } else {
