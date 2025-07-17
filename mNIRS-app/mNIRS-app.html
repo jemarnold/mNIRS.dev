@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Jem Arnold">
-<meta name="dcterms.date" content="2025-07-02">
+<meta name="dcterms.date" content="2025-07-17">
 
 <title>mNIRS Processing</title>
 <style>
@@ -132,7 +132,7 @@ Upload File
 </div>
 <div class="cell-output-display">
 <div class="form-group shiny-input-container">
-<label class="control-label" id="sample_rate-label" for="sample_rate">Sample Rate</label>
+<label class="control-label" id="sample_rate-label" for="sample_rate">Sample Rate (estimated automatically)</label>
 <input id="sample_rate" type="number" class="shiny-input-number form-control" value="0" min="0">
 </div>
 </div>
@@ -144,20 +144,20 @@ Upload File
 </div>
 <div class="cell-output-display">
 <div class="form-group shiny-input-container">
-<label class="control-label" id="slice_head-label" for="slice_head">Remove head samples</label>
+<label class="control-label" id="slice_head-label" for="slice_head">Remove Head Samples</label>
 <input id="slice_head" type="number" class="shiny-input-number form-control" value="0" min="0" step="1">
 </div>
 </div>
 <div class="cell-output-display">
 <div class="form-group shiny-input-container">
-<label class="control-label" id="slice_tail-label" for="slice_tail">Remove tail samples</label>
+<label class="control-label" id="slice_tail-label" for="slice_tail">Remove Tail Samples</label>
 <input id="slice_tail" type="number" class="shiny-input-number form-control" value="0" min="0" step="1">
 </div>
 </div>
 <div class="cell-output-display">
 <div class="form-group shiny-input-container">
-<label class="control-label" id="fixed_values-label" for="fixed_values">Replace Fixed Values</label>
-<input id="fixed_values" type="text" class="shiny-input-text form-control" value="" placeholder="0, 100, ...">
+<label class="control-label" id="invalid_values-label" for="invalid_values">Replace Invalid Values</label>
+<input id="invalid_values" type="text" class="shiny-input-text form-control" value="" placeholder="0, 100, ...">
 </div>
 </div>
 <div class="cell-output-display">
@@ -165,7 +165,7 @@ Upload File
 <div class="checkbox">
 <label>
 <input id="replace_outliers" type="checkbox" class="shiny-input-checkbox">
-<span>Replace outliers</span>
+<span>Replace Outliers</span>
 </label>
 </div>
 </div>
@@ -175,7 +175,17 @@ Upload File
 <div class="checkbox">
 <label>
 <input id="replace_missing" type="checkbox" class="shiny-input-checkbox">
-<span>Replace missing values</span>
+<span>Replace Missing Values</span>
+</label>
+</div>
+</div>
+</div>
+<div class="cell-output-display">
+<div class="form-group shiny-input-container">
+<div class="checkbox">
+<label>
+<input id="zero_start_time" type="checkbox" class="shiny-input-checkbox">
+<span>Zero Start Time</span>
 </label>
 </div>
 </div>
@@ -226,7 +236,7 @@ Upload File
 <div class="checkbox">
 <label>
 <input id="keep_all" type="checkbox" class="shiny-input-checkbox">
-<span>Keep all columns in file export</span>
+<span>Keep all Columns in File Export</span>
 </label>
 </div>
 </div>
@@ -271,6 +281,12 @@ bslib.Sidebar.initCollapsibleAll()
 <div class="cell-output cell-output-stdout">
 <pre><code>Under Development</code></pre>
 </div>
+<div class="cell-output-display">
+<div class="form-group shiny-input-container">
+<label class="control-label" id="event_label-label" for="event_label">Event Label to Detect Kinetics Start</label>
+<input id="event_label" type="text" class="shiny-input-text form-control" value="" placeholder="start event">
+</div>
+</div>
 </div></aside>
 <button class="collapse-toggle" type="button" title="Toggle sidebar" aria-expanded="true" aria-controls="bslib-sidebar-2">
     <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 16 16" class="bi bi-chevron-left collapse-icon" style="fill:currentColor;" aria-hidden="true" role="img">
@@ -295,9 +311,10 @@ grid-auto-rows: minmax(0, 1fr);">
 <p><strong>Sample Rate:</strong> Will be estimated automatically from the data, or can be overwritten explcitly. This is required for certain functions, including downsampling and proper digital filtering. Check the exported file sample times to confirm.</p>
 <p><strong>Downsample Rate:</strong> Can be defined to downsample the data and reduce the number of output samples to improve signal to noise ratio.</p>
 <p><strong>Remove Head/Tail Samples:</strong> Will remove samples from the start and end of the data, respectively. This can be used to omit invalid data at the head/tail of a recording, or to include only a particular selection of the entire data file. <code>&lt;under development: interactive graphical method to select portions of data&gt;</code></p>
+<p><strong>Replace Invalid Values:</strong> A vector of numeric values can be defined to be explicitly removed and interpolated across, such as <code>0</code> and <code>100</code> when mNIRS sensors return invalid values.</p>
 <p><strong>Replace Outliers:</strong> Will replace local outliers using a <code>Hampel</code> filter.</p>
 <p><strong>Replace Missing Values:</strong> Will interpolate across missing (<code>NA</code>) samples.</p>
-<p><strong>Replace Fixed Values:</strong> A vector of numeric values can be defined to be explicitly removed and interpolated across, such as <code>0</code> and <code>100</code> when mNIRS sensors return invalid values.</p>
+<p><strong>Zero Start Time</strong> Reset the sample/time column to start from zero, for when selecting a subset of the data.</p>
 <p><strong>Digital Filter Method:</strong> Choose a digital filter method from the drop-down options. The simplest option that works well for many datasets is a non-parametric <code>smooth-spline</code>.</p>
 <p>A <code>Butterworth</code> filter can be defined to optimise the signal-to-noise ratio for your particular signal. The most common <em>Filter Type</em> is <code>"low-pass"</code>. <em>Filter Order (n)</em> should be an integer, typically between <code>[1:8]</code>. <em>Critical Frequency</em> should be a positive numeric value less than half of the sample rate, in Hz. <code>&lt;under development: interactive graphical method to compare digital filter methods&gt;</code></p>
 <p><strong>Shift Data:</strong> Will shift mNIRS channels either together (with <em>Channels to Shift</em> = <code>"ensemble"</code>) or separately (with <code>"distinct"</code>) to the value specified by <em>Value to Shift</em>. <em>Position to Shift</em> defines which reference values from the data channel(s) to shift. <em>Samples to Shift</em> defines over how many samples to shift the mean value.</p>
@@ -415,8 +432,8 @@ filtfilt_edges2 <- function (
 <script type="application/shiny-prerendered" data-context="server-start">
 
 
-## TODO 
-## instructions
+## TODO
+## DONE instructions
 ## action button
 ## split into laps by Lap/Event column
 ## -- either from one non-NA event value to the next, 
@@ -448,27 +465,30 @@ textInput(
     label = "Lap/Event Column Name", 
     placeholder = "new_name = file_name")
 
-numericInput("sample_rate", label = "Sample Rate", value = 0, min = 0)
+numericInput("sample_rate", label = "Sample Rate (estimated automatically)", value = 0, min = 0)
 
 numericInput("downsample_rate", label = "Downsample Rate", value = 0, min = 0)
 
 ## remove head/tail samples
-numericInput("slice_head", label = "Remove head samples", 
+numericInput("slice_head", label = "Remove Head Samples", 
              value = 0, min = 0, step = 1)
-numericInput("slice_tail", label = "Remove tail samples", 
+numericInput("slice_tail", label = "Remove Tail Samples", 
              value = 0, min = 0, step = 1)
 
-## Replace fixed values (column wise)
+## Replace invalid values (column wise)
 textInput(
-    "fixed_values",
-    label = "Replace Fixed Values",
+    "invalid_values",
+    label = "Replace Invalid Values",
     placeholder = "0, 100, ...")
 
 ## Replace outliers (column wise)
-checkboxInput("replace_outliers", "Replace outliers")
+checkboxInput("replace_outliers", "Replace Outliers")
 
 ## Replace missing values (column wise)
-checkboxInput("replace_missing", "Replace missing values")
+checkboxInput("replace_missing", "Replace Missing Values")
+
+## reset start time to zero
+checkboxInput("zero_start_time", "Zero Start Time")
 
 ## Filter/smooth data (column wise)
 selectInput(
@@ -485,7 +505,7 @@ uiOutput("shift_data_ui")
 checkboxInput("rescale_logical", "Rescale Data")
 uiOutput("rescale_data_ui")
 
-checkboxInput("keep_all", "Keep all columns in file export")
+checkboxInput("keep_all", "Keep all Columns in File Export")
 
 downloadButton("download_data", "Download Data")
 
@@ -648,7 +668,7 @@ nirs_data <- reactive({
     nirs_columns <- attributes(raw_data)$nirs_columns
     sample_column <- attributes(raw_data)$sample_column
     sample_rate <- attributes(raw_data)$sample_rate
-    fixed_values <- strsplit(input$fixed_values, split = "\\s*,\\s*")[[1]] |> 
+    invalid_values <- strsplit(input$invalid_values, split = "\\s*,\\s*")[[1]] |> 
         as.numeric()
     
     nirs_data <- raw_data |> 
@@ -677,19 +697,19 @@ nirs_data <- reactive({
                         na.rm = TRUE, 
                         return = "median"))
             },
-            if (!is.null(fixed_values)) {
+            if (!is.null(invalid_values)) {
                 across(
                     any_of(nirs_columns),
-                    \(.x) mNIRS::replace_fixed_values(
+                    \(.x) mNIRS::replace_invalid(
                         .x, 
-                        fixed_values = fixed_values, 
+                        values = invalid_values, 
                         width = 5 * sample_rate, ## 5-sec window
                         return = "median"))
             },
             if (input$replace_missing) {
                 across(
                     any_of(nirs_columns),
-                    \(.x) mNIRS::replace_missing_values(
+                    \(.x) mNIRS::replace_missing(
                         .x, method = "linear", na.rm = TRUE))
             },
             if (input$filter_method == "smooth-spline") {
@@ -703,7 +723,7 @@ nirs_data <- reactive({
                 across(
                     any_of(nirs_columns),
                     # \(.x) mNIRS::filter_data(
-                    #     .x, method = "butter",
+                    #     .x, method = "butterworth",
                     #     type = input$butter_type,
                     #     n = input$n,
                     #     critical_frequency = input$critical_frequency,
@@ -759,6 +779,10 @@ nirs_data <- reactive({
             )
         } else {.df})() |> 
         mutate(
+            if (input$zero_start_time) {
+              across(any_of(sample_column),
+                     \(.x) .x - first(.x))  
+            },
             across(any_of(nirs_columns), \(.x) round(.x, 2))
         )
     
@@ -843,7 +867,7 @@ ojs_define <- function(..., .session = shiny::getDefaultReactiveDomain()) {
 <!--/html_preserve-->
 <!--html_preserve-->
 <script type="application/shiny-prerendered" data-context="execution_dependencies">
-{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages","version"]},"class":{"type":"character","attributes":{},"value":["data.frame"]},"row.names":{"type":"integer","attributes":{},"value":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67]}},"value":[{"type":"character","attributes":{},"value":["base","bslib","cachem","cli","colorspace","compiler","crosstalk","datasets","digest","dplyr","DT","evaluate","fastmap","fontawesome","forcats","generics","ggplot2","glue","graphics","grDevices","grid","gtable","hms","htmltools","htmlwidgets","httpuv","jquerylib","jsonlite","knitr","later","lifecycle","lubridate","magrittr","memoise","methods","mime","mNIRS","munsell","pillar","pkgconfig","promises","purrr","R6","Rcpp","readr","rlang","rmarkdown","rstudioapi","sass","scales","shiny","stats","stringi","stringr","tibble","tidyr","tidyselect","tidyverse","timechange","tools","tzdb","utils","vctrs","withr","xfun","xtable","yaml"]},{"type":"character","attributes":{},"value":["4.5.0","0.9.0","1.1.0","3.6.4","2.1-1","4.5.0","1.2.1","4.5.0","0.6.37","1.1.4","0.33","1.0.3","1.2.0","0.5.3","1.0.0","0.1.4","3.5.2","1.8.0","4.5.0","4.5.0","4.5.0","0.3.6","1.1.3","0.5.8.1","1.6.4","1.6.15","0.1.4","2.0.0","1.50","1.4.2","1.0.4","1.9.4","2.0.3","2.0.1","4.5.0","0.13","0.0.0.9001","0.5.1","1.10.2","2.0.3","1.3.2","1.0.4","2.6.1","1.0.14","2.1.5","1.1.6","2.29","0.17.1","0.4.10","1.3.0","1.10.0","4.5.0","1.8.7","1.5.1","3.2.1","1.3.1","1.2.1","2.0.0","0.3.0","4.5.0","0.5.0","4.5.0","0.6.5","3.0.2","0.52","1.8-4","2.3.10"]}]}]}
+{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages","version"]},"class":{"type":"character","attributes":{},"value":["data.frame"]},"row.names":{"type":"integer","attributes":{},"value":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67]}},"value":[{"type":"character","attributes":{},"value":["base","bslib","cachem","cli","colorspace","compiler","crosstalk","datasets","digest","dplyr","DT","evaluate","fastmap","fontawesome","forcats","generics","ggplot2","glue","graphics","grDevices","grid","gtable","hms","htmltools","htmlwidgets","httpuv","jquerylib","jsonlite","knitr","later","lifecycle","lubridate","magrittr","memoise","methods","mime","mNIRS","munsell","pillar","pkgconfig","promises","purrr","R6","Rcpp","readr","rlang","rmarkdown","rstudioapi","sass","scales","shiny","stats","stringi","stringr","tibble","tidyr","tidyselect","tidyverse","timechange","tools","tzdb","utils","vctrs","withr","xfun","xtable","yaml"]},{"type":"character","attributes":{},"value":["4.5.0","0.9.0","1.1.0","3.6.4","2.1-1","4.5.0","1.2.1","4.5.0","0.6.37","1.1.4","0.33","1.0.3","1.2.0","0.5.3","1.0.0","0.1.3","3.5.2","1.8.0","4.5.0","4.5.0","4.5.0","0.3.6","1.1.3","0.5.8.1","1.6.4","1.6.15","0.1.4","2.0.0","1.50","1.4.2","1.0.4","1.9.4","2.0.3","2.0.1","4.5.0","0.13","0.0.0.9001","0.5.1","1.10.2","2.0.3","1.3.2","1.0.4","2.6.1","1.0.14","2.1.5","1.1.6","2.29","0.17.1","0.4.10","1.3.0","1.10.0","4.5.0","1.8.7","1.5.1","3.2.1","1.3.1","1.2.1","2.0.0","0.3.0","4.5.0","0.5.0","4.5.0","0.6.5","3.0.2","0.52","1.8-4","2.3.10"]}]}]}
 </script>
 <!--/html_preserve-->
 

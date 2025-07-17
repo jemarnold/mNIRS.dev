@@ -122,8 +122,8 @@ filtfilt_edges2 <- function (
 ```{r setup}
 
 
-## TODO 
-## instructions
+## TODO
+## DONE instructions
 ## action button
 ## split into laps by Lap/Event column
 ## -- either from one non-NA event value to the next, 
@@ -155,7 +155,7 @@ textInput(
     label = "Lap/Event Column Name", 
     placeholder = "new_name = file_name")
 
-numericInput("sample_rate", label = "Sample Rate", value = 0, min = 0)
+numericInput("sample_rate", label = "Sample Rate (estimated automatically)", value = 0, min = 0)
 
 numericInput("downsample_rate", label = "Downsample Rate", value = 0, min = 0)
 
@@ -176,6 +176,9 @@ checkboxInput("replace_outliers", "Replace Outliers")
 
 ## Replace missing values (column wise)
 checkboxInput("replace_missing", "Replace Missing Values")
+
+## reset start time to zero
+checkboxInput("zero_start_time", "Zero Start Time")
 
 ## Filter/smooth data (column wise)
 selectInput(
@@ -225,6 +228,20 @@ cat("Under Development")
 ## Process reoxy kinetics (lapwise)
 ## Generate plots (lapwise)
 
+## TODO
+## prepare kinetics data
+## enter sample number or event label
+# mNIRS::prepare_kinetics_data()
+## one mNIRS channel at a time (drop-down menu)
+
+## output: multiplot with each kinetics data & fitted data AND
+## tabbed table of coefs & fit criteria
+
+textInput(
+    "event_label", 
+    label = "Event Label to Detect Kinetics Start", 
+    placeholder = "start event")
+
 ```
 
 
@@ -253,14 +270,17 @@ Can be defined to downsample the data and reduce the number of output samples to
 **Remove Head/Tail Samples:**
 Will remove samples from the start and end of the data, respectively. This can be used to omit invalid data at the head/tail of a recording, or to include only a particular selection of the entire data file. `<under development: interactive graphical method to select portions of data>`
 
+**Replace Invalid Values:**
+A vector of numeric values can be defined to be explicitly removed and interpolated across, such as `0` and `100` when mNIRS sensors return invalid values.
+
 **Replace Outliers:**
 Will replace local outliers using a `Hampel` filter.
 
 **Replace Missing Values:**
 Will interpolate across missing (`NA`) samples.
 
-**Replace Invalid Values:**
-A vector of numeric values can be defined to be explicitly removed and interpolated across, such as `0` and `100` when mNIRS sensors return invalid values.
+**Zero Start Time**
+Reset the sample/time column to start from zero, for when selecting a subset of the data.
 
 **Digital Filter Method:**
 Choose a digital filter method from the drop-down options. The simplest option that works well for many datasets is a non-parametric `smooth-spline`. 
@@ -565,6 +585,10 @@ nirs_data <- reactive({
             )
         } else {.df})() |> 
         mutate(
+            if (input$zero_start_time) {
+              across(any_of(sample_column),
+                     \(.x) .x - first(.x))  
+            },
             across(any_of(nirs_columns), \(.x) round(.x, 2))
         )
     
