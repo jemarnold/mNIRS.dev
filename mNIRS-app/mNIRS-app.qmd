@@ -9,6 +9,7 @@ author:
       email: jem.arnold@ubc.ca
 format: 
     dashboard:
+        # embed-resources: true
         nav-buttons: 
             - icon: twitter
               href: https://x.com/jem_arnold
@@ -49,8 +50,8 @@ string_to_named_vector <- function(x) {
     noquotes <- gsub('["\\\"]', '', x)
     split_vec <- unlist(strsplit(noquotes, "\\s*,\\s*"))
     split_list <- strsplit(split_vec, "\\s*=\\s*")
-    setNames(sapply(split_list, \(.x) trimws(.x[2])),
-             sapply(split_list, \(.x) trimws(.x[1])))
+    setNames(sapply(split_list, \(.x) trimws(last(.x))),
+             sapply(split_list, \(.x) trimws(first(.x))))
 }
 
 # x <- '"Date = mm-dd", "Time = Time[hh:mm:ss]"'
@@ -61,54 +62,54 @@ string_to_named_vector <- function(x) {
 #              sapply(split_list, \(.x) trimws(.x[1])))
 
 
-# filtfilt_edges2 <- function (
-#         x,
-#         n = 1,
-#         W,
-#         type = c("low", "high", "stop", "pass"),
-#         edges = c("rev", "rep1", "none")
-# ) {
-#     type = match.arg(type)
-#     edges = match.arg(edges)
-#     
-#     ## argument validation
-#     if (!is.numeric(x)) {
-#         cli::cli_abort("{.arg x} must be a numeric vector.")
-#     }
-#     if (!rlang::is_integerish(n) | n == 0) {
-#         cli::cli_abort("{.arg n} must be an integer scalar of 1 or greater.")
-#     }
-#     if (!is.numeric(W) | W == 0 | W == 1) {
-#         cli::cli_abort(paste(
-#             "{.arg W} must be a numeric scalar or two-element vector",
-#             "`c(low, high)` between 0 and 1."))
-#     }
-#     
-#     switch(edges,
-#            ## pads x with the first and last 10% of the vector length
-#            "rev" = pad_edges <- c(
-#                rev(head(x, length(x)/10)),
-#                x,
-#                rev(tail(x, length(x)/10))),
-#            ## pads x with repeating first / last value
-#            "rep1" = pad_edges <- c(
-#                rep(head(x, 1), length(x)/10),
-#                x,
-#                rep(tail(x, 1), length(x)/10)),
-#            "none" = pad_edges <- x
-#     )
-#     
-#     ## butterworth filter order (n) and relative cutoff frequency (W)
-#     x_filt <- signal::filtfilt(
-#         filt = signal::butter(n = n, W = W, type = type),
-#         x = pad_edges)
-#     
-#     ## returns the original vector length of x with padding omitted
-#     switch(edges,
-#            "rev" = x_filt[(length(x)/10 + 1):(length(x)/10 + length(x))],
-#            "rep1" = x_filt[(length(x)/10 + 1):(length(x)/10 + length(x))],
-#            "none" = x_filt)
-# }
+filtfilt_edges2 <- function (
+        x,
+        n = 1,
+        W,
+        type = c("low", "high", "stop", "pass"),
+        edges = c("rev", "rep1", "none")
+) {
+    type = match.arg(type)
+    edges = match.arg(edges)
+
+    ## argument validation
+    if (!is.numeric(x)) {
+        cli::cli_abort("{.arg x} must be a numeric vector.")
+    }
+    if (!rlang::is_integerish(n) | n == 0) {
+        cli::cli_abort("{.arg n} must be an integer scalar of 1 or greater.")
+    }
+    if (!is.numeric(W) | W == 0 | W == 1) {
+        cli::cli_abort(paste(
+            "{.arg W} must be a numeric scalar or two-element vector",
+            "`c(low, high)` between 0 and 1."))
+    }
+
+    switch(edges,
+           ## pads x with the first and last 10% of the vector length
+           "rev" = pad_edges <- c(
+               rev(head(x, length(x)/10)),
+               x,
+               rev(tail(x, length(x)/10))),
+           ## pads x with repeating first / last value
+           "rep1" = pad_edges <- c(
+               rep(head(x, 1), length(x)/10),
+               x,
+               rep(tail(x, 1), length(x)/10)),
+           "none" = pad_edges <- x
+    )
+
+    ## butterworth filter order (n) and relative cutoff frequency (W)
+    x_filt <- signal::filtfilt(
+        filt = signal::butter(n = n, W = W, type = type),
+        x = pad_edges)
+
+    ## returns the original vector length of x with padding omitted
+    switch(edges,
+           "rev" = x_filt[(length(x)/10 + 1):(length(x)/10 + length(x))],
+           "rep1" = x_filt[(length(x)/10 + 1):(length(x)/10 + length(x))],
+           "none" = x_filt)
+}
 
 
 
@@ -145,15 +146,18 @@ fileInput(
 textInput(
     "nirs_columns", 
     label = "mNIRS Channel Names\n(accepts multiple)", 
-    placeholder = "new_name = file_name")
+    placeholder = "new_name = file_name",
+    updateOn = "blur")
 textInput(
     "sample_column", 
     label = "Time/Sample Column Name", 
-    placeholder = "new_name = file_name")
+    placeholder = "new_name = file_name",
+    updateOn = "blur")
 textInput(
     "event_column", 
     label = "Lap/Event Column Name", 
-    placeholder = "new_name = file_name")
+    placeholder = "new_name = file_name",
+    updateOn = "blur")
 
 numericInput("sample_rate", label = "Sample Rate (estimated automatically)", value = 0, min = 0)
 
@@ -169,7 +173,8 @@ numericInput("slice_tail", label = "Remove Tail Samples",
 textInput(
     "invalid_values",
     label = "Replace Invalid Values",
-    placeholder = "0, 100, ...")
+    placeholder = "0, 100, ...",
+    updateOn = "blur")
 
 ## Replace outliers (column wise)
 checkboxInput("replace_outliers", "Replace Outliers")
@@ -194,6 +199,13 @@ uiOutput("shift_data_ui")
 ## rescale (dataframe)
 checkboxInput("rescale_logical", "Rescale Data")
 uiOutput("rescale_data_ui")
+
+## place manual event lines in data
+textInput(
+    "manual_events",
+    label = "Place Event Markers",
+    placeholder = "0, 100, ...",
+    updateOn = "blur")
 
 checkboxInput("keep_all", "Keep all Columns in File Export")
 
@@ -237,6 +249,13 @@ cat("Under Development")
 ## output: multiplot with each kinetics data & fitted data AND
 ## tabbed table of coefs & fit criteria
 
+## numeric sample_column values
+textInput(
+    "event_sample",
+    label = "Sample Column Values to Detect Kinetics Start",
+    placeholder = "0, 100, ...")
+
+## character event label
 textInput(
     "event_label", 
     label = "Event Label to Detect Kinetics Start", 
@@ -279,7 +298,7 @@ Will replace local outliers using a `Hampel` filter.
 **Replace Missing Values:**
 Will interpolate across missing (`NA`) samples.
 
-**Zero Start Time**
+**Zero Start Time:**
 Reset the sample/time column to start from zero, for when selecting a subset of the data.
 
 **Digital Filter Method:**
@@ -318,20 +337,19 @@ Processed data can be viewed in the `Data` window and will be updated according 
 ```{r}
 #| context: server
 
+## set delay in case tab-out before full string completion
 nirs_columns_debounced <- debounce(reactive(input$nirs_columns), 2000)
 sample_column_debounced <- debounce(reactive(input$sample_column), 2000)
 event_column_debounced <- debounce(reactive(input$event_column), 2000)
+# nirs_columns_debounced <- reactive(input$nirs_columns)
+# sample_column_debounced <- reactive(input$sample_column)
+# event_column_debounced <- reactive(input$event_column)
 
 
 # Data upload and processing
 raw_data <- reactive({
     req(input$upload_file, nirs_columns_debounced(), sample_column_debounced())
-    
-    # validate(
-    #     need(!is.null(input$sample_rate) || is.numeric(input$sample_rate)
-    #         || input$sample_rate >= 0, "Sample Rate should be a numeric value ≥ 0")
-    # )
-    
+
     upload_file <- input$upload_file$datapath
     
     data <- mNIRS::read_data(
@@ -463,23 +481,18 @@ output$rescale_data_ui <- renderUI({
 nirs_data <- reactive({
     req(raw_data(), nirs_columns_debounced(), sample_column_debounced())
     
-    # validate(
-    #     need(try(
-    #         !is.null(input$downsample_rate) || is.numeric(input$downsample_rate)
-    #         || input$downsample_rate >= 0
-    #     ), "Downsample Rate should be ≥ 0")
-    # )
-    
     raw_data <- raw_data()
     nirs_columns <- attributes(raw_data)$nirs_columns
     sample_column <- attributes(raw_data)$sample_column
+    event_column <- attributes(raw_data)$event_column
     sample_rate <- attributes(raw_data)$sample_rate
     invalid_values <- strsplit(input$invalid_values, split = "\\s*,\\s*")[[1]] |> 
+        as.numeric()
+    manual_events <- strsplit(input$manual_events, split = "\\s*,\\s*")[[1]] |> 
         as.numeric()
     
     nirs_data <- raw_data |> 
         mNIRS::downsample_data(
-            data = _,
             sample_column = sample_column,
             sample_rate = sample_rate,
             downsample_rate = input$downsample_rate,
@@ -487,11 +500,13 @@ nirs_data <- reactive({
         ) |> 
         ## remove the head rows
         (\(.df) if (input$slice_head > 0) {
-            slice_tail(.data = .df, n = -input$slice_head)
+            slice_tail(.df, n = -input$slice_head)
+            # filter(.df, .data[[sample_column]] > input$slice_head)
         } else {.df})() |> 
         ## remove the tail rows
         (\(.df) if (input$slice_tail > 0) {
-            slice_head(.data = .df, n = -input$slice_tail)
+            slice_head(.df, n = -input$slice_tail)
+            # filter(.df, .data[[sample_column]] < input$slice_tail)
         } else {.df})() |> 
         mutate(
             if (input$replace_outliers) {
@@ -528,17 +543,17 @@ nirs_data <- reactive({
                 
                 across(
                     any_of(nirs_columns),
-                    \(.x) mNIRS::filter_data(
-                        .x, method = "butterworth",
-                        type = input$butter_type,
-                        n = input$n,
-                        critical_frequency = input$critical_frequency,
-                        sample_rate = sample_rate)
-                    # \(.x) filtfilt_edges2(
-                    #     .x, 
+                    # \(.x) mNIRS::filter_data(
+                    #     .x, method = "butterworth",
                     #     type = input$butter_type,
                     #     n = input$n,
-                    #     W = input$critical_frequency / (sample_rate/2))
+                    #     critical_frequency = input$critical_frequency,
+                    #     sample_rate = sample_rate)
+                    \(.x) filtfilt_edges2(
+                        .x,
+                        type = input$butter_type,
+                        n = input$n,
+                        W = input$critical_frequency / (sample_rate/2))
                 )
             } else if (input$filter_method == "moving-average") {
                 req(input$width)
@@ -585,9 +600,25 @@ nirs_data <- reactive({
             )
         } else {.df})() |> 
         mutate(
+            ## reset sample/time values to zero
             if (input$zero_start_time) {
-              across(any_of(sample_column),
-                     \(.x) .x - first(.x))  
+                across(any_of(sample_column), \(.x) .x - first(.x))  
+            },
+            event = if (isTruthy(manual_events) & !isTruthy(event_column)) {
+                case_when(
+                    .data[[sample_column]] %in% manual_events ~
+                        as.character(.data[[sample_column]]),
+                    TRUE ~ NA_character_)
+            },
+            if (isTruthy(manual_events) & isTruthy(event_column)) {
+                across(any_of(event_column),
+                       \(.x) case_when(
+                           .data[[sample_column]] %in% manual_events ~
+                               if(is.numeric(.x)) {
+                                   .data[[sample_column]]   
+                               } else {as.character(.data[[sample_column]])},
+                           TRUE ~ .x)
+                )
             },
             across(any_of(nirs_columns), \(.x) round(.x, 2))
         )
@@ -599,8 +630,6 @@ nirs_data <- reactive({
 
 output$nirs_table <- DT::renderDT({
     req(raw_data(), nirs_data())
-    
-    nirs_columns <- attributes(nirs_data)$nirs_columns
     
     table <- DT::datatable(
         nirs_data(),
@@ -620,8 +649,13 @@ output$plot <- renderPlot({
         nirs_columns_debounced(), sample_column_debounced())
     
     nirs_data <- nirs_data()
+    manual_events <- strsplit(input$manual_events, split = "\\s*,\\s*")[[1]] |> 
+        as.numeric()
     
-    plot(nirs_data)
+    plot(nirs_data) +
+        if (!is.null(manual_events)) {
+            geom_vline(xintercept = manual_events, linetype = "dashed")
+        } else {NULL}
 })
 
 
