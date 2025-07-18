@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Jem Arnold">
-<meta name="dcterms.date" content="2025-07-17">
+<meta name="dcterms.date" content="2025-07-18">
 
 <title>mNIRS Processing</title>
 <style>
@@ -818,7 +818,9 @@ nirs_data <- reactive({
                            TRUE ~ .x)
                 )
             },
-            across(any_of(nirs_columns), \(.x) round(.x, 2))
+            across(any_of(nirs_columns), \(.x) round(.x, 2)),
+            # across(any_of(sample_column), 
+            #        \(.x) round(.x * sample_rate) / sample_rate),
         )
     
     return(nirs_data)
