@@ -130,18 +130,60 @@ ui <- fluidPage(
 
         tabPanel(
             "Process Kinetics", fluid = TRUE,
-            # sidebarLayout(
-            #     sidebarPanel(
-            #         # style = "position:fixed;width:inherit;",
-            #         width = 2,
-            #     ),
+            sidebarLayout(
+                sidebarPanel(
+                    width = 2,
 
-                # mainPanel(
-                #     width = 10,
+                    ## TODO
+                    ## prepare kinetics data
+                    ## enter sample number or event label
+                    # mNIRS::prepare_kinetics_data()
+                    ## one mNIRS channel at a time (drop-down menu)
+
+                    ## output: multiplot with each kinetics data & fitted data AND
+                    ## tabbed table of coefs & fit criteria
+                    ## main tab for each NIRS channel
+                    ## multiplot for each kinetics event
+
+
+                    uiOutput("kinetics_checkbox_ui"),
+
+                    ## numeric sample_column values
+                    textInput(
+                        "event_sample",
+                        label = "Sample Column Values to Detect Kinetics Start",
+                        placeholder = "0, 100, ..."),
+
+                    ## character event label
+                    textInput(
+                        "event_label",
+                        label = "Event Labels to Detect Kinetics Start",
+                        placeholder = "start event"),
+
+                    ## two-element numeric vector for the fit window
+                    numericInput(
+                        "fit_baseline_window",
+                        label = "Sample Values to Include Before Start of Kinetics",
+                        value = 30),
+                    numericInput(
+                        "fit_kinetics_window",
+                        label = "Sample Values to Include After Start of Kinetics",
+                        value = 180),
+
+                    ## group events either distinct or ensemble
+                    selectInput(
+                        "group_events",
+                        label = "Group Kinetics Events",
+                        choices = c("distinct", "ensemble")),
+
+                ),
+
+                mainPanel(
+                    width = 10,
 
                     h4(code("<under development>"))
-            #     )
-            # )
+                )
+            )
         ),
 
         tabPanel(
@@ -167,7 +209,7 @@ ui <- fluidPage(
                   code("new_name = file_column_name"), ". Original column names must
                   match the file contents exactly. Multiple names can be separated
                   with commas, as ",
-                  ode("new_name1 = file_name1, new_name2 = file_name2"), "."),
+                  code("new_name1 = file_name1, new_name2 = file_name2"), "."),
                 p("For example, from a ", em("Moxy"), " .csv file: ",
                   em("NIRS Channel Names:"), " ", code("smo2_left = SmO2 Live"),
                   "; ", em("Sample Column Name:"), " ", code("time = hh:mm:ss"),
@@ -410,6 +452,21 @@ server <- function(input, output, session) {
                     choices = c("ensemble", "distinct")),
             )
         }
+    })
+
+
+    ## dynamic UI for process_kinetics kinetics_y
+    output$kinetics_checkbox_ui <- renderUI({
+        req(raw_data())
+
+        raw_data <- raw_data()
+        nirs_columns <- attributes(raw_data)$nirs_columns
+        nirs_columns_list <- setNames(c(1:length(nirs_columns)), nirs_columns)
+
+        checkboxGroupInput("kinetics_y",
+                           "Select all mNIRS channels that apply",
+                           choices = nirs_columns_list,
+                           selected = 1:length(nirs_columns))
     })
 
 

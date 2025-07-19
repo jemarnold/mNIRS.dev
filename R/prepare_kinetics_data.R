@@ -172,7 +172,7 @@ prepare_kinetics_data <- function(
     start_sample <- min(c(fit_window[1], display_window[1]))
     end_sample <- max(c(fit_window[2], display_window[2]))
 
-    display_column <- paste0("display_", sample_column)
+    # display_column <- paste0("display_", sample_column)
     fit_column <- paste0("fit_", sample_column)
 
     ## Metadata =================================
@@ -189,26 +189,34 @@ prepare_kinetics_data <- function(
         event_sample_list,
         \(.x) {
             data |>
+                ## TODO 2025-07-18 verify dplyr methods
+                # dplyr::mutate(
+                #     "{sample_column}" := signif(.data[[sample_column]] - .x, 5)
+                # ) |>
+                # dplyr::filter(
+                #     dplyr::between(.data[[sample_column]], start_sample, end_sample)
+                # ) |>
                 dplyr::mutate(
+                    ## overwrite sample_column to start locally from 0 at
+                    ## kinetics event
                     dplyr::across(
                         tidyselect::any_of(sample_column),
-                        \(.xx) signif(.xx - .x, 5),
-                        .names = display_column)
+                        \(.xx) signif(.xx - .x, 5))
                 ) |>
                 dplyr::filter(
                     dplyr::if_any(
-                        tidyselect::any_of(display_column),
+                        tidyselect::any_of(sample_column),
                         \(.xx) dplyr::between(.xx, start_sample, end_sample))
                 ) |>
                 dplyr::mutate(
                     dplyr::across(
-                        tidyselect::any_of(display_column),
+                        tidyselect::any_of(sample_column),
                         \(.xx) dplyr::if_else(
                             dplyr::between(.xx, fit_window[1], fit_window[2]),
                             .xx, NA),
                         .names = fit_column),
                 ) |>
-                dplyr::relocate(tidyselect::any_of(c(display_column, fit_column)))
+                dplyr::relocate(tidyselect::any_of(fit_column))
         })
 
     if (head(unlist(group_events), 1) == "distinct") {
@@ -218,8 +226,7 @@ prepare_kinetics_data <- function(
             \(.df) {
                 kinetics_data <- .df |>
                     dplyr::relocate(tidyselect::any_of(c(
-                        display_column, fit_column,
-                        sample_column, event_column, nirs_columns)))
+                        fit_column, sample_column, event_column, nirs_columns)))
 
                 kinetics_data <- create_mNIRS_data(kinetics_data, metadata)
 
@@ -230,11 +237,9 @@ prepare_kinetics_data <- function(
 
         kinetics_data <- data_list |>
             dplyr::bind_rows() |>
-            dplyr::select(
-                -tidyselect::any_of(c(sample_column, event_column))
-            ) |>
+            dplyr::select(-tidyselect::any_of(event_column)) |>
             dplyr::summarise(
-                .by = tidyselect::any_of(display_column),
+                .by = tidyselect::any_of(sample_column),
                 dplyr::across(
                     tidyselect::where(is.numeric),
                     \(.x) mean(.x, na.rm = TRUE)),
@@ -247,7 +252,7 @@ prepare_kinetics_data <- function(
                     tidyselect::where(is.numeric),
                     \(.x) ifelse(.x %in% c(Inf, -Inf, NaN), NA_real_, .x)),
             ) |>
-            dplyr::relocate(tidyselect::any_of(c(display_column, fit_column)))
+            dplyr::relocate(tidyselect::any_of(fit_column))
 
         kinetics_data_list <- list(create_mNIRS_data(kinetics_data, metadata))
 
@@ -268,10 +273,10 @@ prepare_kinetics_data <- function(
                 kinetics_data <- data_list[.x] |>
                     dplyr::bind_rows() |>
                     dplyr::select(
-                        -tidyselect::any_of(c(sample_column, event_column))
+                        -tidyselect::any_of(event_column)
                     ) |>
                     dplyr::summarise(
-                        .by = tidyselect::any_of(display_column),
+                        .by = tidyselect::any_of(sample_column),
                         dplyr::across(
                             tidyselect::where(is.numeric),
                             \(.x) mean(.x, na.rm = TRUE)),
@@ -285,7 +290,7 @@ prepare_kinetics_data <- function(
                             \(.x) ifelse(.x %in% c(Inf, -Inf, NaN), NA_real_, .x)),
                     ) |>
                     dplyr::relocate(
-                        tidyselect::any_of(c(display_column, fit_column)))
+                        tidyselect::any_of(fit_column))
 
                 kinetics_data <- create_mNIRS_data(kinetics_data, metadata)
 
@@ -293,7 +298,12 @@ prepare_kinetics_data <- function(
             })
     }
 
-    return(kinetics_data_list)
+    ## TODO 2025-07-18 keep this as list() of one?
+    if (length(kinetics_data_list) == 1) {
+        return(kinetics_data_list[[1]])
+    } else {
+        return(kinetics_data_list)
+    }
 }
 #
 # (data <- mNIRS::read_data(
