@@ -17,7 +17,8 @@ peak_directional_slope(
 
 \item{x}{A numeric vector of predictor values. If \code{NULL}, uses \code{seq_along(y)}.}
 
-\item{width}{An integer scalar defining the window width for rolling calculations.}
+\item{width}{An integer scalar defining the window width (in units of \code{x})
+for rolling calculations.}
 
 \item{align}{Specifies the window alignment of \code{width} as \emph{"center"}
 (the default), \emph{"left"}, or \emph{"right"}.}

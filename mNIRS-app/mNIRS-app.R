@@ -176,6 +176,12 @@ ui <- fluidPage(
                         label = "Group Kinetics Events",
                         choices = c("distinct", "ensemble")),
 
+                    selectInput(
+                        "kinetics_method",
+                        label = "Kinetics Method",
+                        choices = c("Monoexponential", "Half-Recovery Time",
+                                    "Peak Slope")),
+
                 ),
 
                 mainPanel(
@@ -665,6 +671,37 @@ server <- function(input, output, session) {
             writexl::write_xlsx(nirs_data(), path = file)
         }
     )
+
+
+
+    kinetics_data <- reactive({
+        req(raw_data(), nirs_data(),
+            nirs_columns_debounced(), sample_column_debounced())
+
+        nirs_data <- nirs_data()
+        nirs_columns <- attributes(nirs_data)$nirs_columns
+        sample_column <- attributes(nirs_data)$sample_column
+        event_column <- attributes(nirs_data)$event_column
+        sample_rate <- attributes(nirs_data)$sample_rate
+
+        data_list <- prepare_kinetics_data(
+            nirs_data,
+            event_sample = input$event_sample,
+            event_label = input$event_label,
+            fit_window = c(input$fit_baseline_window, input$fit_kinetics_window),
+            group_events = input$group_events)
+
+        kinetics_model_list <- purrr::pmap(
+            expand_grid(.df = data_list, .nirs = nirs_columns),
+            \(.df, .nirs)
+            process_kinetics(x = paste0("fit_", sample_column),
+                             y = .nirs,
+                             data = .df,
+                             method = input$kinetics_method,
+                             width = 10 * 10)
+        )
+
+    })
 }
 
 shinyApp(ui = ui, server = server)

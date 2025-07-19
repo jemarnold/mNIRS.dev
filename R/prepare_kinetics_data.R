@@ -299,11 +299,11 @@ prepare_kinetics_data <- function(
     }
 
     ## TODO 2025-07-18 keep this as list() of one?
-    if (length(kinetics_data_list) == 1) {
-        return(kinetics_data_list[[1]])
-    } else {
+    # if (length(kinetics_data_list) == 1) {
+    #     return(kinetics_data_list[[1]])
+    # } else {
         return(kinetics_data_list)
-    }
+    # }
 }
 #
 # (data <- mNIRS::read_data(

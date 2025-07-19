@@ -56,7 +56,8 @@ slope <- function(
 #'
 #' @param y A numeric vector of response values.
 #' @param x A numeric vector of predictor values. If `NULL`, uses `seq_along(y)`.
-#' @param width An integer scalar defining the window width for rolling calculations.
+#' @param width An integer scalar defining the window width (in units of `x`)
+#'  for rolling calculations.
 #' @param align Specifies the window alignment of `width` as *"center"*
 #'  (the default), *"left"*, or *"right"*.
 #' @param na.rm A logical indicating whether to exclude NA values from rolling slope
@@ -120,15 +121,17 @@ rolling_slope <- function(
     }
 
     for (i in 1:n) {
-        ## calculate window boundaries based on `align`
+        ## find indices for x values between width (in units of x) based on align
         if (align == "center") {
-            start_idx <- max(1, i - floor((width - 1) / 2))
-            end_idx <- min(n, i + floor(width / 2))
+            start_idx <- head(which(x >= (x[i] - width/2)), 1)
+            end_idx <- tail(which(x <= (x[i] + width/2)), 1)
         } else if (align == "left") {
+            ## window starts at current x value, extends width units forward
             start_idx <- i
-            end_idx <- min(n, i + width - 1)
+            end_idx <- tail(which(x <= (x[i] + width)), 1)
         } else if (align == "right") {
-            start_idx <- max(1, i - width + 1)
+            ## window ends at current x value, extends width units backward
+            start_idx <- head(which(x >= (x[i] - width)), 1)
             end_idx <- i
         }
 
@@ -155,7 +158,8 @@ rolling_slope <- function(
 #'
 #' @param y A numeric vector of response values.
 #' @param x A numeric vector of predictor values. If `NULL`, uses `seq_along(y)`.
-#' @param width An integer scalar defining the window width for rolling calculations.
+#' @param width An integer scalar defining the window width (in units of `x`)
+#'  for rolling calculations.
 #' @param align Specifies the window alignment of `width` as *"center"*
 #'  (the default), *"left"*, or *"right"*.
 #' @param na.rm A logical indicating whether to exclude NA values from rolling slope
@@ -213,15 +217,17 @@ peak_directional_slope <- function(
     peak_slope <- slopes[peak_idx]
 
     ## return window around peak slope sample
-    ## calculate window boundaries based on `align`
+    ## find indices for x values between width (in units of x) based on align
     if (align == "center") {
-        start_idx <- max(1, peak_idx - floor((width - 1) / 2))
-        end_idx <- min(n, peak_idx + floor(width / 2))
+        start_idx <- head(which(x >= (x[peak_idx] - width/2)), 1)
+        end_idx <- tail(which(x <= (x[peak_idx] + width/2)), 1)
     } else if (align == "left") {
+        ## window starts at current x value, extends width units forward
         start_idx <- peak_idx
-        end_idx <- min(n, peak_idx + width - 1)
+        end_idx <- tail(which(x <= (x[peak_idx] + width)), 1)
     } else if (align == "right") {
-        start_idx <- max(1, peak_idx - width + 1)
+        ## window ends at current x value, extends width units backward
+        start_idx <- head(which(x >= (x[peak_idx] - width)), 1)
         end_idx <- peak_idx
     }
 

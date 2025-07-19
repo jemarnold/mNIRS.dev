@@ -62,7 +62,8 @@ process_kinetics <- function(
 
 
 
-
+## TODO 2025-07-19 fix fitted models up to first peak with no greater peaks within X samples
+## TODO 2025-07-19 fix half-time to use neighbouring median around peak value B
 
 
 #' @export
