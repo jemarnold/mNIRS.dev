@@ -31,11 +31,11 @@
 #'
 #' @return A list `L` of class `mNIRS.kinetics` with components `L$...`:
 #'      \item{`model`}{The model object.}
-#'      \item{`data`}{A dataframe of the input and fitted model data.}
-#'      \item{`fitted`}{A vector of the fitted values returned by the model.}
-#'      \item{`coefs`}{A dataframe of the model coefficients, including manually
+#'      \item{`data`}{A dataframe of input and fitted model data.}
+#'      \item{`fitted`}{A vector of fitted values returned by the model.}
+#'      \item{`coefs`}{A vector of model coefficients, including manually
 #'      fixed parameters.}
-#'      \item{`fit_criteria`}{A dataframe of the model fit criteria
+#'      \item{`fit_criteria`}{A vector of model fit criteria
 #'      (`AIC`, `BIC`, `R2`, `RMSE`, `RSE`, `MAE`, `MAPE`).}
 #'
 #' @export
@@ -169,26 +169,24 @@ process_kinetics.monoexponential <- function(
         fitted <- NA_real_
         data[[fitted_name]] <- NA_real_
         coefs <- NA_real_
-        fit_criteria <- tibble::tibble(
-            AIC = NA_real_, BIC = NA_real_, R2 = NA_real_, RMSE = NA_real_,
-            RSE = NA_real_, MAE = NA_real_, MAPE = NA_real_)
+        fit_criteria <- c(AIC = NA_real_, BIC = NA_real_, R2 = NA_real_,
+                          RMSE = NA_real_, RSE = NA_real_, MAE = NA_real_,
+                          MAPE = NA_real_)
     } else {
         fitted <- as.vector(fitted(model))
         data[[fitted_name]] <- fitted
         coefs <- c(..., coef(model))
         coefs <- coefs[match(c("A", "B", "TD", "tau"), names(coefs))]
-        coefs <- tibble::as_tibble(as.list(coefs)) |>
-            dplyr::mutate(MRT = TD + tau)
+        coefs <- c(coefs, c(MRT = coefs["TD"] + coefs["tau"]))
 
-        fit_criteria <- tibble::tibble(
+        fit_criteria <- c(
             AIC = stats::AIC(model),
             BIC = stats::BIC(model),
             R2 = 1 - sum((y - fitted)^2)/sum((y - mean(y, na.rm = TRUE))^2),
             RMSE = sqrt(mean(summary(model)$residuals^2)),
             RSE = summary(model)$sigma,
             MAE = mean(abs(summary(model)$residuals)),
-            MAPE = mean(abs(summary(model)$residuals/y)) * 100,
-        )
+            MAPE = mean(abs(summary(model)$residuals/y)) * 100)
     }
 
     ## save call
@@ -320,25 +318,24 @@ process_kinetics.sigmoidal <- function(
         fitted <- NA_real_
         df[[fitted]] <- NA_real_
         coefs <- NA_real_
-        fit_criteria <- tibble::tibble(
-            AIC = NA_real_, BIC = NA_real_, R2 = NA_real_, RMSE = NA_real_,
-            RSE = NA_real_, MAE = NA_real_, MAPE = NA_real_)
+        fit_criteria <- c(AIC = NA_real_, BIC = NA_real_, R2 = NA_real_,
+                          RMSE = NA_real_, RSE = NA_real_, MAE = NA_real_,
+                          MAPE = NA_real_)
     } else {
         fitted <- as.vector(fitted(model))
         df[[fitted]] <- fitted
         coefs <- c(..., coef(model))
         coefs <- coefs[match(c("Asym", "xmid", "scal"), names(coefs))]
-        coefs <- tibble::as_tibble(as.list(coefs))
+        # coefs <- tibble::as_tibble(as.list(coefs))
 
-        fit_criteria <- tibble::tibble(
+        fit_criteria <- c(
             AIC = stats::AIC(model),
             BIC = stats::BIC(model),
             R2 = 1 - sum((y - fitted)^2)/sum((y - mean(y, na.rm = TRUE))^2),
             RMSE = sqrt(mean(summary(model)$residuals^2)),
             RSE = summary(model)$sigma,
             MAE = mean(abs(summary(model)$residuals)),
-            MAPE = mean(abs(summary(model)$residuals/y)) * 100,
-        )
+            MAPE = mean(abs(summary(model)$residuals/y)) * 100)
     }
 
     ## save call
@@ -473,7 +470,7 @@ process_kinetics.half_time <- function(
     A_sample <- ifelse(all(x > 0), x[1], 0)
     A <- mean(y[ifelse(all(x > 0), x[1], which(x <= 0))])
     B <- ifelse(direction, max(y), min(y))
-    B_sample <- x[y == B]
+    B_sample <- x[y == B][1]
     half_value <- A + diff(c(A, B))/2
     half_sample <- ifelse(direction, x[y >= half_value][1], x[y <= half_value][1])
     nirs_value <- y[x == half_sample]
@@ -481,15 +478,15 @@ process_kinetics.half_time <- function(
     model = NA
     fitted <- NA_real_
     data$fitted <- NA_real_
-    coefs <- c(A_sample = A_sample, A = A,
-               B_sample = B_sample, B = B,
-               half_sample = half_sample,
-               half_value = half_value,
-               nirs_value = nirs_value)
-    coefs <- tibble::as_tibble(as.list(coefs))
-    fit_criteria <- tibble::tibble(
-        AIC = NA_real_, BIC = NA_real_, R2 = NA_real_, RMSE = NA_real_,
-        RSE = NA_real_, MAE = NA_real_, MAPE = NA_real_)
+    coefs <- c(A_sample, A, B_sample, B, half_sample, half_value, nirs_value)
+    names(coefs) <- c(paste0("A_", x_name), "A",
+                      paste0("B_", x_name), "B",
+                      paste0("half_", x_name),
+                      "half_value",
+                      paste0(y_name, "_value"))
+    fit_criteria <- c(AIC = NA_real_, BIC = NA_real_, R2 = NA_real_,
+                      RMSE = NA_real_, RSE = NA_real_, MAE = NA_real_,
+                      MAPE = NA_real_)
 
     ## save call
     return_call <- match.call()
@@ -613,13 +610,13 @@ process_kinetics.peak_slope <- function(
     model <- NA
     data[[fitted_name]] <- NA_real_
     data[[fitted_name]][x %in% peak_slope_model$x_fitted] <- peak_slope_model$y_fitted
-    coefs <- c(sample = peak_slope_model$x,
-               peak_slope = peak_slope_model$slope,
-               nirs_value = y[x %in% peak_slope_model$x])
-    coefs <- tibble::as_tibble(as.list(coefs))
-    fit_criteria <- tibble::tibble(
-        AIC = NA_real_, BIC = NA_real_, R2 = NA_real_, RMSE = NA_real_,
-        RSE = NA_real_, MAE = NA_real_, MAPE = NA_real_)
+    coefs <- c(peak_slope_model$x,
+               y[x %in% peak_slope_model$x],
+               peak_slope_model$slope)
+    names(coefs) <- c(x_name, y_name, "peak_slope")
+    fit_criteria <- c(AIC = NA_real_, BIC = NA_real_, R2 = NA_real_,
+                      RMSE = NA_real_, RSE = NA_real_, MAE = NA_real_,
+                      MAPE = NA_real_)
 
     ## save call
     return_call <- match.call()

@@ -42,11 +42,11 @@ not be optimised by the kinetics methods. e.g. \code{A = 10} will define
 \value{
 A list \code{L} of class \code{mNIRS.kinetics} with components \code{L$...}:
 \item{\code{model}}{The model object.}
-\item{\code{data}}{A dataframe of the input and fitted model data.}
-\item{\code{fitted}}{A vector of the fitted values returned by the model.}
-\item{\code{coefs}}{A dataframe of the model coefficients, including manually
+\item{\code{data}}{A dataframe of input and fitted model data.}
+\item{\code{fitted}}{A vector of fitted values returned by the model.}
+\item{\code{coefs}}{A vector of model coefficients, including manually
 fixed parameters.}
-\item{\code{fit_criteria}}{A dataframe of the model fit criteria
+\item{\code{fit_criteria}}{A vector of model fit criteria
 (\code{AIC}, \code{BIC}, \code{R2}, \code{RMSE}, \code{RSE}, \code{MAE}, \code{MAPE}).}
 }
 \description{
