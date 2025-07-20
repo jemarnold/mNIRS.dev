@@ -201,21 +201,21 @@ prepare_kinetics_data <- function(
                     ## kinetics event
                     dplyr::across(
                         tidyselect::any_of(sample_column),
-                        \(.xx) signif(.xx - .x, 5))
+                        \(.xx) signif(.xx - .x, 5),
+                        .names = "display_sample")
                 ) |>
                 dplyr::filter(
-                    dplyr::if_any(
-                        tidyselect::any_of(sample_column),
-                        \(.xx) dplyr::between(.xx, start_sample, end_sample))
+                    dplyr::between(display_sample, start_sample, end_sample)
                 ) |>
                 dplyr::mutate(
                     dplyr::across(
-                        tidyselect::any_of(sample_column),
+                        display_sample,
                         \(.xx) dplyr::if_else(
                             dplyr::between(.xx, fit_window[1], fit_window[2]),
                             .xx, NA),
                         .names = fit_column),
                 ) |>
+                dplyr::select(-display_sample) |>
                 dplyr::relocate(tidyselect::any_of(fit_column))
         })
 
@@ -231,15 +231,17 @@ prepare_kinetics_data <- function(
                 kinetics_data <- create_mNIRS_data(kinetics_data, metadata)
 
                 return(kinetics_data)
-            })
+            }) |>
+            setNames(paste0(sample_column, "_", event_sample_list))
+        ## TODO 2025-07-19 set names based on events or sample or index number
 
     } else if (head(unlist(group_events), 1) == "ensemble") {
 
         kinetics_data <- data_list |>
             dplyr::bind_rows() |>
-            dplyr::select(-tidyselect::any_of(event_column)) |>
+            dplyr::select(-tidyselect::any_of(c(display_sample, event_column))) |>
             dplyr::summarise(
-                .by = tidyselect::any_of(sample_column),
+                .by = tidyselect::any_of(fit_column),
                 dplyr::across(
                     tidyselect::where(is.numeric),
                     \(.x) mean(.x, na.rm = TRUE)),
@@ -273,10 +275,10 @@ prepare_kinetics_data <- function(
                 kinetics_data <- data_list[.x] |>
                     dplyr::bind_rows() |>
                     dplyr::select(
-                        -tidyselect::any_of(event_column)
+                        -tidyselect::any_of(c(display_sample, event_column))
                     ) |>
                     dplyr::summarise(
-                        .by = tidyselect::any_of(sample_column),
+                        .by = tidyselect::any_of(fit_column),
                         dplyr::across(
                             tidyselect::where(is.numeric),
                             \(.x) mean(.x, na.rm = TRUE)),
@@ -295,7 +297,8 @@ prepare_kinetics_data <- function(
                 kinetics_data <- create_mNIRS_data(kinetics_data, metadata)
 
                 return(kinetics_data)
-            })
+            }) |>
+            setNames(paste0(sample_column, "_", event_sample_list))
     }
 
     ## TODO 2025-07-18 keep this as list() of one?

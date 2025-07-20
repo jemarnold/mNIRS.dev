@@ -39,10 +39,12 @@ ui <- fluidPage(
                     ## Tell it which columns are which
                     textInput("nirs_columns",
                               label = "mNIRS Channel Names\n(accepts multiple)",
+                              value = "smo2 = SmO2",
                               placeholder = "new_name = file_name",
                               updateOn = "blur"),
                     textInput("sample_column",
                               label = "Time/Sample Column Name",
+                              value = "time = Timestamp (seconds passed)",
                               placeholder = "new_name = file_name",
                               updateOn = "blur"),
                     textInput("event_column",
@@ -86,7 +88,7 @@ ui <- fluidPage(
                     checkboxInput("replace_missing", "Replace Missing Values"),
 
                     ## reset start time to zero
-                    checkboxInput("zero_start_time", "Zero Start Time"),
+                    checkboxInput("zero_start_time", "Zero Start Time", value = TRUE),
 
                     ## Filter/smooth data (column wise)
                     selectInput("filter_method",
@@ -152,6 +154,7 @@ ui <- fluidPage(
                     textInput(
                         "event_sample",
                         label = "Sample Column Values to Detect Kinetics Start",
+                        # value = "370",
                         placeholder = "0, 100, ..."),
 
                     ## character event label
@@ -181,13 +184,20 @@ ui <- fluidPage(
                         label = "Kinetics Method",
                         choices = c("Monoexponential", "Half-Recovery Time",
                                     "Peak Slope")),
+                    uiOutput("peak_slope_width_ui"),
 
                 ),
 
                 mainPanel(
                     width = 10,
 
-                    h4(code("<under development>"))
+                    h4(code("<under development>")),
+
+                    h4("mNIRS Kinetics Display"),
+                    # plotOutput("kinetics_plot", height = "600px"),
+
+                    h4("mNIRS Kinetics Coefficients Table"),
+                    DT::DTOutput("kinetics_coefs")
                 )
             )
         ),
@@ -365,7 +375,7 @@ server <- function(input, output, session) {
         raw_data <- raw_data()
         sample_rate <- attributes(raw_data)$sample_rate
 
-        # Different UI based on selection
+        ## different UI based on selection
         if (input$filter_method == "butterworth") {
             tagList(
                 selectInput(
@@ -413,7 +423,6 @@ server <- function(input, output, session) {
         req(raw_data(), input$shift_logical,
             nirs_columns_debounced(), sample_column_debounced())
 
-        # Different UI based on selection
         if (input$shift_logical) {
             tagList(
                 numericInput(
@@ -441,7 +450,6 @@ server <- function(input, output, session) {
         req(raw_data(), input$rescale_logical,
             nirs_columns_debounced(), sample_column_debounced())
 
-        # Different UI based on selection
         if (input$rescale_logical) {
             tagList(
                 numericInput(
@@ -473,6 +481,23 @@ server <- function(input, output, session) {
                            "Select all mNIRS channels that apply",
                            choices = nirs_columns_list,
                            selected = 1:length(nirs_columns))
+    })
+
+
+
+    ## dynamic UI for process_kinetics peak_slope width
+    output$peak_slope_width_ui <- renderUI({
+        req(raw_data())
+
+        if (input$kinetics_method == "Peak Slope") {
+            tagList(
+                numericInput(
+                    "peak_slope_width",
+                    label = "Peak Slope Width (units of x-axis)",
+                    value = 10, min = 2),
+            )
+        }
+
     })
 
 
@@ -632,15 +657,13 @@ server <- function(input, output, session) {
     output$nirs_table <- DT::renderDT({
         req(raw_data(), nirs_data())
 
-        table <- DT::datatable(
+        DT::datatable(
             nirs_data(),
             options = list(
                 pageLength = 20,
                 scrollX = TRUE,
                 searchHighlight = TRUE
             ))
-
-        return(table)
     })
 
 
@@ -674,34 +697,67 @@ server <- function(input, output, session) {
 
 
 
-    kinetics_data <- reactive({
-        req(raw_data(), nirs_data(),
-            nirs_columns_debounced(), sample_column_debounced())
+    kinetics_model_list <- reactive({
+        req(nirs_data(), isTruthy(input$event_sample) | isTruthy(input$event_label),
+            input$fit_baseline_window, input$fit_kinetics_window)
 
         nirs_data <- nirs_data()
         nirs_columns <- attributes(nirs_data)$nirs_columns
         sample_column <- attributes(nirs_data)$sample_column
         event_column <- attributes(nirs_data)$event_column
         sample_rate <- attributes(nirs_data)$sample_rate
+        event_sample <- strsplit(input$event_sample, split = "\\s*,\\s*")[[1]] |>
+            as.numeric()
 
         data_list <- prepare_kinetics_data(
             nirs_data,
-            event_sample = input$event_sample,
+            event_sample = event_sample,
             event_label = input$event_label,
             fit_window = c(input$fit_baseline_window, input$fit_kinetics_window),
             group_events = input$group_events)
 
-        kinetics_model_list <- purrr::pmap(
-            expand_grid(.df = data_list, .nirs = nirs_columns),
-            \(.df, .nirs)
-            process_kinetics(x = paste0("fit_", sample_column),
-                             y = .nirs,
-                             data = .df,
-                             method = input$kinetics_method,
-                             width = 10 * 10)
-        )
+        # kinetics_model_list <- purrr::pmap(
+        #     expand_grid(.df = data_list, .nirs = nirs_columns),
+        #     \(.df, .nirs)
+        #     process_kinetics(x = paste0("fit_", sample_column),
+        #                      y = .nirs,
+        #                      data = .df,
+        #                      method = input$kinetics_method,
+        #                      width = input$peak_slope_width)
+        # )
 
+        return(nirs_data)
     })
+
+
+
+    output$kinetics_coefs <- DT::renderDT({
+        req(kinetics_model_list())
+
+        coef_data <- kinetics_model_list()#[[1]]
+
+        # coef_data <- purrr::imap(
+        #     kinetics_model_list(),
+        #     \(.x, idx)
+        #     tibble::as_tibble(as.list(c(.x$coefs))) |>
+        #         dplyr::mutate(
+        #             event = idx,
+        #             channel = names(.x$data)[2]
+        #         ) |>
+        #         dplyr::relocate(event, channel)
+        # ) |>
+        #     purrr::list_rbind()
+
+        DT::datatable(
+            coef_data,
+            options = list(
+                pageLength = 20,
+                scrollX = TRUE,
+                searchHighlight = TRUE
+            ))
+    })
+
+
 }
 
 shinyApp(ui = ui, server = server)

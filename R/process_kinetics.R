@@ -177,7 +177,7 @@ process_kinetics.monoexponential <- function(
         data[[fitted_name]] <- fitted
         coefs <- c(..., coef(model))
         coefs <- coefs[match(c("A", "B", "TD", "tau"), names(coefs))]
-        coefs <- c(coefs, c(MRT = coefs["TD"] + coefs["tau"]))
+        coefs["MRT"] <- coefs["TD"] + coefs["tau"]
 
         fit_criteria <- c(
             AIC = stats::AIC(model),
@@ -473,7 +473,7 @@ process_kinetics.half_time <- function(
     B_sample <- x[y == B][1]
     half_value <- A + diff(c(A, B))/2
     half_sample <- ifelse(direction, x[y >= half_value][1], x[y <= half_value][1])
-    nirs_value <- y[x == half_sample]
+    nirs_value <- y[x == half_sample][1]
 
     model = NA
     fitted <- NA_real_
