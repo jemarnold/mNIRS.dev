@@ -191,13 +191,15 @@ ui <- fluidPage(
                 mainPanel(
                     width = 10,
 
-                    h4(code("<under development>")),
+                    h4(code("<under development. Currently works for only ONE
+                            kinetics event at a time>")),
 
-                    h4("mNIRS Kinetics Display"),
+                    uiOutput("kinetic_event_tabs"),
+                    # h4("mNIRS Kinetics Display"),
                     # plotOutput("kinetics_plot", height = "600px"),
-
-                    h4("mNIRS Kinetics Coefficients Table"),
-                    DT::DTOutput("kinetics_coefs")
+                    #
+                    # h4("mNIRS Kinetics Coefficients Table"),
+                    # DT::DTOutput("kinetics_coefs", width = "50%")
                 )
             )
         ),
@@ -677,6 +679,7 @@ server <- function(input, output, session) {
             as.numeric()
 
         plot(nirs_data) +
+            theme_mNIRS(base_size = 20, legend.position = "top") +
             if (!is.null(manual_events)) {
                 geom_vline(xintercept = manual_events, linetype = "dashed")
             } else {NULL}
@@ -697,9 +700,23 @@ server <- function(input, output, session) {
 
 
 
-    kinetics_model_list <- reactive({
+    kinetics_method <- reactive({
         req(nirs_data(), isTruthy(input$event_sample) | isTruthy(input$event_label),
             input$fit_baseline_window, input$fit_kinetics_window)
+
+        switch(
+            input$kinetics_method,
+            "Monoexponential" = "monoexponential",
+            "Half-Recovery Time" = "half_time",
+            "Peak Slope" = "peak_slope")
+    })
+
+
+    kinetics_model_list <- reactive({
+        req(nirs_data(),
+            isTruthy(input$event_sample) | isTruthy(input$event_label),
+            input$fit_baseline_window, input$fit_kinetics_window,
+            kinetics_method())
 
         nirs_data <- nirs_data()
         nirs_columns <- attributes(nirs_data)$nirs_columns
@@ -709,54 +726,232 @@ server <- function(input, output, session) {
         event_sample <- strsplit(input$event_sample, split = "\\s*,\\s*")[[1]] |>
             as.numeric()
 
+
         data_list <- prepare_kinetics_data(
             nirs_data,
             event_sample = event_sample,
-            event_label = input$event_label,
+            # event_label = input$event_label,
             fit_window = c(input$fit_baseline_window, input$fit_kinetics_window),
             group_events = input$group_events)
 
-        # kinetics_model_list <- purrr::pmap(
-        #     expand_grid(.df = data_list, .nirs = nirs_columns),
-        #     \(.df, .nirs)
-        #     process_kinetics(x = paste0("fit_", sample_column),
-        #                      y = .nirs,
-        #                      data = .df,
-        #                      method = input$kinetics_method,
-        #                      width = input$peak_slope_width)
-        # )
+        kinetics_model_list <- purrr::pmap(
+            expand_grid(.df = data_list, .nirs = nirs_columns),
+            \(.df, .nirs)
+            process_kinetics(x = paste0("fit_", sample_column),
+                             y = .nirs,
+                             data = .df,
+                             method = kinetics_method(),
+                             width = input$peak_slope_width)
+        )
 
-        return(nirs_data)
+        return(kinetics_model_list)
+    })
+
+
+
+    kinetics_display_list <- reactive({
+        req(kinetics_model_list())
+
+        nirs_data <- nirs_data()
+        kinetics_model_list <- kinetics_model_list()
+        sample_column <- attributes(nirs_data)$sample_column
+        nirs_columns <- attributes(nirs_data)$nirs_columns
+        # nirs_fitted <- paste0(nirs_columns, "_fitted")
+        fit_sample <- paste0("fit_", sample_column)
+
+        purrr::map(
+            kinetics_model_list,
+            \(.x)
+            .x$data |>
+                dplyr::select(dplyr::matches(c(fit_sample, nirs_columns)))
+        ) |>
+            (\(.l) split(.l, names(.l)))() |>
+            purrr::map(\(.l) purrr::reduce(.l, full_join, by = fit_sample))
+    })
+
+
+
+    ## dynamic UI for kinetics_display_list
+    output$kinetic_event_tabs <- renderUI({
+        req(kinetics_display_list())
+
+        kinetic_event_names <- unique(names(kinetics_display_list()))
+
+        # Create tabPanel list dynamically
+        tab_panels <- lapply(kinetic_event_names, \(.n) {
+            tabPanel(
+                title = .n,
+
+                h4(paste(.n, "Kinetic Event Plot")),
+                plotOutput("kinetics_plot", height = "600px"),
+
+                h4(paste(.n, "Kinetic Coefficients Table")),
+                DT::DTOutput("kinetics_coefs", width = "50%")
+            )
+        })
+
+        # Create tabsetPanel with dynamic tabs
+        do.call(tabsetPanel, c(tab_panels, id = "main_tabs"))
+    })
+
+
+
+    kinetics_coef_data <- reactive({
+        req(kinetics_model_list())
+
+        purrr::imap(
+            kinetics_model_list(),
+            \(.x, idx)
+            tibble::as_tibble(as.list(c(.x$coefs))) |>
+                dplyr::mutate(
+                    event = idx,
+                    channel = names(.x$data)[2],
+                    across(where(is.numeric), \(.x) round(.x, 2))
+                ) |>
+                dplyr::relocate(event, channel)
+        ) |>
+            purrr::list_rbind()
+    })
+
+
+
+
+    output$kinetics_plot <- renderPlot({
+        req(kinetics_display_list())
+
+        nirs_data <- nirs_data()
+        kinetics_model_list <- kinetics_model_list()
+        sample_column <- attributes(nirs_data)$sample_column
+        nirs_columns <- attributes(nirs_data)$nirs_columns
+        nirs_fitted <- paste0(nirs_columns, "_fitted")
+        fit_sample <- paste0("fit_", sample_column)
+
+        display_data <- kinetics_display_list()
+        coef_data <- kinetics_coef_data()
+
+        display_data <- display_data[[1]]
+        # coef_data <- coef_data[3:4,]
+
+        ggplot(display_data) +
+            aes(x = .data[[fit_sample]]) +
+            theme_mNIRS(base_size = 20, legend.position = "top") +
+            scale_x_continuous(
+                breaks = if (rlang::is_installed("scales")) {
+                    scales::breaks_pretty(n = 8)
+                } else {
+                    waiver()
+                },
+                expand = expansion(mult = 0.01)) +
+            scale_y_continuous(
+                name = "mNIRS Signals",
+                breaks = if (rlang::is_installed("scales")) {
+                    scales::breaks_pretty(n = 6)
+                } else {
+                    waiver()
+                },
+                expand = expansion(mult = 0.01)) +
+            scale_colour_manual(
+                name = NULL,
+                aesthetics = c("fill", "colour"),
+                values = setNames(
+                    c(scales::hue_pal()(length(nirs_columns)), "black"),
+                    c(nirs_columns, "fitted")),
+                limits = force) +
+            geom_vline(xintercept = 0, linetype = "dotted") +
+            map(nirs_columns,
+                \(.x) geom_line(aes(y = .data[[.x]], colour = .x),
+                                linewidth = 1)) +
+            {if (kinetics_method() %in% c("monoexponential")) {
+                map(nirs_columns,
+                    \(.x) {
+                        coef_channel <- coef_data[coef_data$channel == .x,]
+                        nirs_fitted <- paste0(.x, "_fitted")
+                        MRT_nirs_value <- paste0(.x, "_MRT")
+
+                        list(
+                            geom_line(aes(y = .data[[nirs_fitted]], colour = "fitted"),
+                                      linewidth = 1),
+                            geom_segment(
+                                data = tibble::tibble(
+                                    x = coef_channel$MRT,
+                                    y = coef_channel[[MRT_nirs_value]]),
+                                aes(x = x, xend = x, y = y, yend = -Inf),
+                                arrow = arrow(), linewidth = 1)
+                        )
+                    })
+            }} +
+            {if (kinetics_method() == "half_time") {
+                map(nirs_columns,
+                    \(.x) {
+                        coef_channel <- coef_data[coef_data$channel == .x,]
+
+                        A_name <- paste0("A_", fit_sample)
+                        B_name <- paste0("B_", fit_sample)
+                        half_name <- paste0("half_", fit_sample)
+
+                        list(
+                            geom_segment(
+                                data = tibble::tibble(
+                                    x = coef_channel[[half_name]],
+                                    y = coef_channel$half_value),
+                                aes(x = x, xend = x, y = y, yend = -Inf),
+                                arrow = arrow(), linewidth = 1),
+                            geom_point(
+                                data = tibble::tibble(
+                                    x = c(coef_channel[[A_name]],
+                                          coef_channel[[B_name]],
+                                          coef_channel[[half_name]]),
+                                    y = c(coef_channel$A,
+                                          coef_channel$B,
+                                          coef_channel$half_value)),
+                                aes(x = x, y = y, colour = "fitted"),
+                                size = 4, shape = 21, stroke = 1.2),
+                            NULL)
+                    })
+            }} +
+            {if (kinetics_method() == "peak_slope") {
+                map(nirs_columns,
+                    \(.x) {
+                        coef_channel <- coef_data[coef_data$channel == .x,]
+                        nirs_fitted <- paste0(.x, "_fitted")
+
+                        list(
+                            geom_line(
+                                aes(y = .data[[nirs_fitted]], colour = "fitted"),
+                                linewidth = 1),
+                            geom_segment(
+                                data = tibble::tibble(
+                                    x = coef_channel[[fit_sample]],
+                                    y = coef_channel[[nirs_fitted]]),
+                                aes(x = x, xend = x, y = y, yend = -Inf),
+                                arrow = arrow(), linewidth = 1),
+                            geom_point(
+                                data = tibble::tibble(
+                                    x = coef_channel[[fit_sample]],
+                                    y = coef_channel[[nirs_fitted]]),
+                                aes(x = x, y = y, colour = "fitted"),
+                                size = 4, shape = 21, stroke = 1.2)
+                        )
+                    })
+            }}
     })
 
 
 
     output$kinetics_coefs <- DT::renderDT({
-        req(kinetics_model_list())
-
-        coef_data <- kinetics_model_list()#[[1]]
-
-        # coef_data <- purrr::imap(
-        #     kinetics_model_list(),
-        #     \(.x, idx)
-        #     tibble::as_tibble(as.list(c(.x$coefs))) |>
-        #         dplyr::mutate(
-        #             event = idx,
-        #             channel = names(.x$data)[2]
-        #         ) |>
-        #         dplyr::relocate(event, channel)
-        # ) |>
-        #     purrr::list_rbind()
+        req(kinetics_coef_data())
 
         DT::datatable(
-            coef_data,
+            kinetics_coef_data(),
+            rownames = FALSE,
             options = list(
+                dom = 't',
                 pageLength = 20,
                 scrollX = TRUE,
-                searchHighlight = TRUE
-            ))
+                searchHighlight = FALSE
+            )
+        )
     })
-
 
 }
 

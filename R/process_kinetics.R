@@ -178,6 +178,8 @@ process_kinetics.monoexponential <- function(
         coefs <- c(..., coef(model))
         coefs <- coefs[match(c("A", "B", "TD", "tau"), names(coefs))]
         coefs["MRT"] <- coefs["TD"] + coefs["tau"]
+        coefs[paste0(y_name, "_MRT")] <-
+            predict(model, tibble::tibble(x = coefs["MRT"]))
 
         fit_criteria <- c(
             AIC = stats::AIC(model),
@@ -610,10 +612,11 @@ process_kinetics.peak_slope <- function(
     model <- NA
     data[[fitted_name]] <- NA_real_
     data[[fitted_name]][x %in% peak_slope_model$x_fitted] <- peak_slope_model$y_fitted
-    coefs <- c(peak_slope_model$x,
-               y[x %in% peak_slope_model$x],
+    coefs <- c(peak_slope_model$x[1],
+               y[x %in% peak_slope_model$x][1],
+               data[[fitted_name]][x %in% peak_slope_model$x][1],
                peak_slope_model$slope)
-    names(coefs) <- c(x_name, y_name, "peak_slope")
+    names(coefs) <- c(x_name, y_name, fitted_name, "peak_slope")
     fit_criteria <- c(AIC = NA_real_, BIC = NA_real_, R2 = NA_real_,
                       RMSE = NA_real_, RSE = NA_real_, MAE = NA_real_,
                       MAPE = NA_real_)
