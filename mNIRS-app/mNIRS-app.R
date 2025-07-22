@@ -42,16 +42,16 @@ ui <- fluidPage(
                     textInput("nirs_columns",
                               label = "mNIRS Channel Names\n(accepts multiple)",
                               # value = "smo2 = SmO2",
-                              placeholder = "new_name = file_name",
+                              placeholder = "new_name = file_column_name",
                               updateOn = "blur"),
                     textInput("sample_column",
                               label = "Time/Sample Column Name",
                               # value = "time = Timestamp (seconds passed)",
-                              placeholder = "new_name = file_name",
+                              placeholder = "new_name = file_column_name",
                               updateOn = "blur"),
                     textInput("event_column",
                               label = "Lap/Event Column Name",
-                              placeholder = "new_name = file_name",
+                              placeholder = "new_name = file_column_name",
                               updateOn = "blur"),
 
                     numericInput("sample_rate",
@@ -156,14 +156,15 @@ ui <- fluidPage(
                     textInput(
                         "event_sample",
                         label = "Sample Column Values to Detect Kinetics Start",
-                        # value = "370",
+                        value = NULL,
                         placeholder = "0, 100, ..."),
 
                     ## character event label
-                    textInput(
-                        "event_label",
-                        label = "Event Labels to Detect Kinetics Start",
-                        placeholder = "start event"),
+                    # textInput(
+                    #     "event_label",
+                    #     label = "Event Labels to Detect Kinetics Start",
+                    #     value = NULL,
+                    #     placeholder = "start event"),
 
                     ## two-element numeric vector for the fit window
                     numericInput(
@@ -184,8 +185,8 @@ ui <- fluidPage(
                     selectInput(
                         "kinetics_method",
                         label = "Kinetics Method",
-                        choices = c("Monoexponential", "Half-Recovery Time",
-                                    "Peak Slope")),
+                        choices = c("Peak Slope", "Half-Recovery Time",
+                                    "Monoexponential")),
                     uiOutput("peak_slope_width_ui"),
 
                     downloadButton("download_kinetics_data",
@@ -366,18 +367,9 @@ server <- function(input, output, session) {
         return(data)
     })
 
-
-    ## update `sample_rate`
-    observe({
-        updateNumericInput(session,
-                           inputId = "sample_rate",
-                           value = attributes(raw_data())$sample_rate)
-    })
-
     ## Create dynamic UI for filter method
     output$filter_method_ui <- renderUI({
-        req(raw_data(), input$filter_method,
-            nirs_columns_debounced(), sample_column_debounced())
+        req(raw_data(), input$filter_method)
 
         raw_data <- raw_data()
         sample_rate <- attributes(raw_data)$sample_rate
@@ -427,8 +419,7 @@ server <- function(input, output, session) {
 
     ## Create dynamic UI for shift option
     output$shift_data_ui <- renderUI({
-        req(raw_data(), input$shift_logical,
-            nirs_columns_debounced(), sample_column_debounced())
+        req(raw_data(), input$shift_logical)
 
         if (input$shift_logical) {
             tagList(
@@ -454,8 +445,7 @@ server <- function(input, output, session) {
 
     ## Create dynamic UI for rescale option
     output$rescale_data_ui <- renderUI({
-        req(raw_data(), input$rescale_logical,
-            nirs_columns_debounced(), sample_column_debounced())
+        req(raw_data(), input$rescale_logical)
 
         if (input$rescale_logical) {
             tagList(
@@ -494,7 +484,7 @@ server <- function(input, output, session) {
 
     ## dynamic UI for process_kinetics peak_slope width
     output$peak_slope_width_ui <- renderUI({
-        req(raw_data())
+        req(raw_data(), kinetics_method())
 
         if (input$kinetics_method == "Peak Slope") {
             tagList(
@@ -509,8 +499,17 @@ server <- function(input, output, session) {
 
 
 
+    ## update `sample_rate`
+    observe({
+        updateNumericInput(session,
+                           inputId = "sample_rate",
+                           value = attributes(raw_data())$sample_rate)
+    })
+
+
+
     nirs_data <- reactive({
-        req(raw_data(), nirs_columns_debounced(), sample_column_debounced())
+        req(raw_data())
 
         raw_data <- raw_data()
         nirs_columns <- attributes(raw_data)$nirs_columns
@@ -580,11 +579,6 @@ server <- function(input, output, session) {
                             n = input$n,
                             critical_frequency = input$critical_frequency,
                             sample_rate = sample_rate)
-                        # \(.x) filtfilt_edges2(
-                        #     .x,
-                        #     type = input$butter_type,
-                        #     n = input$n,
-                        #     W = input$critical_frequency / (sample_rate/2))
                     )
                 } else if (input$filter_method == "moving-average") {
                     req(input$width)
@@ -635,22 +629,32 @@ server <- function(input, output, session) {
                 if (input$zero_start_time) {
                     across(any_of(sample_column), \(.x) .x - first(.x))
                 },
-                event = if (isTruthy(manual_events) & !isTruthy(event_column)) {
-                    case_when(
-                        .data[[sample_column]] %in% manual_events ~
-                            as.character(.data[[sample_column]]),
-                        TRUE ~ NA_character_)
-                },
-                if (isTruthy(manual_events) & isTruthy(event_column)) {
-                    across(any_of(event_column),
-                           \(.x) case_when(
-                               .data[[sample_column]] %in% manual_events ~
-                                   if(is.numeric(.x)) {
-                                       .data[[sample_column]]
-                                   } else {as.character(.data[[sample_column]])},
-                               TRUE ~ .x)
-                    )
-                },
+            ) |>
+            (\(.df) if (isTruthy(manual_events) & !isTruthy(event_column)) {
+                 mutate(
+                     .df,
+                     event = case_when(
+                     .data[[sample_column]] %in% manual_events ~
+                         paste0("event_", as.character(.data[[sample_column]])),
+                     TRUE ~ NA_character_)
+                 )
+             } else if (isTruthy(manual_events) & isTruthy(event_column)) {
+                 mutate(
+                     .df,
+                     across(
+                         any_of(event_column),
+                         \(.x) case_when(
+                             .data[[sample_column]] %in% manual_events ~
+                                 if(is.numeric(.x)) {
+                                     .data[[sample_column]]
+                                 } else {
+                                     paste0("event_", as.character(.data[[sample_column]]))
+                                 },
+                             TRUE ~ .x)
+                     )
+                 )
+             } else .df)() |>
+            mutate(
                 across(any_of(nirs_columns), \(.x) round(.x, 2)),
                 across(any_of(sample_column),
                        \(.x) round(.x * sample_rate) / sample_rate),
@@ -662,22 +666,24 @@ server <- function(input, output, session) {
 
 
     output$nirs_table <- DT::renderDT({
-        req(raw_data(), nirs_data())
+        req(nirs_data())
 
         DT::datatable(
             nirs_data(),
+            rownames = FALSE,
             options = list(
+                dom = 't',
                 pageLength = 20,
                 scrollX = TRUE,
-                searchHighlight = TRUE
-            ))
+                searchHighlight = FALSE
+            )
+        )
     })
 
 
 
     output$plot <- renderPlot({
-        req(raw_data(), nirs_data(),
-            nirs_columns_debounced(), sample_column_debounced())
+        req(nirs_data())
 
         nirs_data <- nirs_data()
         manual_events <- strsplit(input$manual_events, split = "\\s*,\\s*")[[1]] |>
@@ -705,13 +711,25 @@ server <- function(input, output, session) {
 
 
 
+
+    ## update `event_sample` from `manual_events`
+    observe({
+        req(nirs_data(), isTruthy(input$manual_events))
+
+        updateTextInput(session,
+                        inputId = "event_sample",
+                        value = input$manual_events)
+    })
+
+
+
     kinetics_method <- reactive({
-        req(nirs_data(), isTruthy(input$event_sample) | isTruthy(input$event_label),
-            input$fit_baseline_window, input$fit_kinetics_window)
+        req(nirs_data())
 
         switch(
             input$kinetics_method,
             "Monoexponential" = "monoexponential",
+            # "Sigmoidal" = "sigmoidal",
             "Half-Recovery Time" = "half_time",
             "Peak Slope" = "peak_slope")
     })
@@ -719,7 +737,7 @@ server <- function(input, output, session) {
 
     kinetics_model_list <- reactive({
         req(nirs_data(),
-            isTruthy(input$event_sample) | isTruthy(input$event_label),
+            isTruthy(input$event_sample),# | isTruthy(input$event_label),
             input$fit_baseline_window, input$fit_kinetics_window,
             kinetics_method())
 
@@ -735,7 +753,7 @@ server <- function(input, output, session) {
         data_list <- prepare_kinetics_data(
             nirs_data,
             event_sample = event_sample,
-            # event_label = input$event_label,
+            # event_label = ifelse(is.null(event_column), NULL, input$event_label),
             fit_window = c(input$fit_baseline_window, input$fit_kinetics_window),
             group_events = input$group_events)
 

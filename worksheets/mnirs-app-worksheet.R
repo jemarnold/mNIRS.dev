@@ -20,27 +20,45 @@ options(digits = 5, digits.secs = 3, scipen = 3,
 # camcorder::gg_stop_recording()
 #
 ## Data Wrangling ================================
-upload_file <- r"(C:\R-Projects\mNIRS\inst\extdata\train.red_interval_example.csv)"
+# upload_file <- r"(C:\R-Projects\mNIRS\inst\extdata\train.red_interval_example.csv)"
+upload_file <- r"(C:\R-Projects\mNIRS\inst\extdata\oxysoft_interval_example.xlsx)"
+# upload_file <- r"(C:\R-Projects\mNIRS\inst\extdata\moxy_ramp_example.xlsx)"
 
 data_raw <- mNIRS::read_data(
     file_path = upload_file,
-    nirs_columns = c(smo2="SmO2", smo2_2="SmO2"),
-    sample_column = c(time = "Timestamp (seconds passed)"),
-    event_column = NULL
+    # nirs_columns = c(SmO2 = "SmO2 Live"),
+    # sample_column = c(time = "hh:mm:ss"),
+    # nirs_columns = c(smo2="SmO2", smo2_2="SmO2"),
+    # sample_column = c(time = "Timestamp (seconds passed)"),
+    nirs_columns = c(O2Hb = 5, HHb = 6),
+    sample_column = c(sample = 1),
+    event_column = c(event = 8)
 ) |>
     dplyr::mutate(
-        time = round(time - dplyr::first(time), 1),
+        # time = round(time - dplyr::first(time), 1),
+        # time = sample/50,
     ) |>
     # slice_head(by = time, n = 1) |>
+    mNIRS::downsample_data(
+        # sample_column = "time",
+        downsample_rate = 10
+    ) |>
     print()
 
-# sample_column <- attributes(data_raw)$sample_column
+filter(data_raw, !is.na(event))
+# plot(data_raw)
+sample_column <- attributes(data_raw)$sample_column
+(fit_sample_name <- paste0("fit_", sample_column))
 
-event_sample <- c(370, 1085)
+# event_sample <- c(370, 1085)
+event_sample <- c(24675, 66670)
+# event_sample <- 876
 
 data_list <- prepare_kinetics_data(
     data_raw,
-    event_sample = event_sample, ##
+    event_sample = event_sample,
+    event_label = c("E7"),
+    fit_window = c(30*50, 120*50)
 ) |>
     print()
 
@@ -49,11 +67,11 @@ kinetics_model_list <- purrr::pmap(
         .df = data_list,
         .nirs = attributes(data_raw)$nirs_columns),
     \(.df, .nirs)
-    process_kinetics(x = "fit_time",
+    process_kinetics(x = fit_sample_name,
                      y = .nirs,
                      data = .df,
-                     method = "monoexp",
-                     width = 10)
+                     method = "peak_slope",
+                     width = 10*50)
 ) |>
     print()
 
@@ -127,23 +145,23 @@ ggplot(display_data) +
     map(nirs_columns,
         \(.x) geom_line(aes(y = .data[[.x]], colour = .x),
                         linewidth = 1)) +
-    map(nirs_columns,
-        \(.x) {
-            coef_channel <- coef_data[coef_data$channel == .x,]
-            nirs_fitted <- paste0(.x, "_fitted")
-            MRT_nirs_value <- paste0(.x, "_MRT")
-
-            list(
-                geom_line(aes(y = .data[[nirs_fitted]], colour = "fitted"),
-                          linewidth = 1),
-                geom_segment(
-                    data = tibble::tibble(
-                        x = coef_channel$MRT,
-                        y = coef_channel[[MRT_nirs_value]]),
-                    aes(x = x, xend = x, y = y, yend = -Inf),
-                    arrow = arrow(), linewidth = 1)
-            )
-        }) +
+    # map(nirs_columns,
+    #     \(.x) {
+    #         coef_channel <- coef_data[coef_data$channel == .x,]
+    #         nirs_fitted <- paste0(.x, "_fitted")
+    #         MRT_nirs_value <- paste0(.x, "_MRT")
+    #
+    #         list(
+    #             geom_line(aes(y = .data[[nirs_fitted]], colour = "fitted"),
+    #                       linewidth = 1),
+    #             geom_segment(
+    #                 data = tibble::tibble(
+    #                     x = coef_channel$MRT,
+    #                     y = coef_channel[[MRT_nirs_value]]),
+    #                 aes(x = x, xend = x, y = y, yend = -Inf),
+    #                 arrow = arrow(), linewidth = 1)
+    #         )
+    #     }) +
     # map(nirs_columns,
     #     \(.x) {
     #         coef_channel <- coef_data[coef_data$channel == .x,]
@@ -171,34 +189,29 @@ ggplot(display_data) +
     #                 size = 3, shape = 21, stroke = 1),
     #         NULL)
     #     }) +
-    # map(nirs_columns,
-    #     \(.x) {
-    #         coef_channel <- coef_data[coef_data$channel == .x,]
-    #         nirs_fitted <- paste0(.x, "_fitted")
-    #
-    #         list(
-    #             geom_line(
-    #                 aes(y = .data[[nirs_fitted]], colour = "fitted"),
-    #                 linewidth = 1),
-    #             geom_segment(
-    #                 data = tibble::tibble(
-    #                     x = coef_channel[[fit_sample]],
-    #                     y = coef_channel[[nirs_fitted]]),
-    #                 aes(x = x, xend = x, y = y, yend = -Inf),
-    #                 arrow = arrow(), linewidth = 0.8),
-    #             geom_point(
-    #                 data = tibble::tibble(
-    #                     x = coef_channel[[fit_sample]],
-    #                     y = coef_channel[[nirs_fitted]]),
-    #                 aes(x = x, y = y, fill = "fitted"),
-    #                 size = 3, shape = 21, stroke = 1)
-    #         )
-    #     }) +
+    map(nirs_columns,
+        \(.x) {
+            coef_channel <- coef_data[coef_data$channel == .x,]
+            nirs_fitted <- paste0(.x, "_fitted")
+
+            list(
+                geom_line(
+                    aes(y = .data[[nirs_fitted]], colour = "fitted"),
+                    linewidth = 1),
+                geom_segment(
+                    data = tibble::tibble(
+                        x = coef_channel[[fit_sample]],
+                        y = coef_channel[[nirs_fitted]]),
+                    aes(x = x, xend = x, y = y, yend = -Inf),
+                    arrow = arrow(), linewidth = 0.8),
+                geom_point(
+                    data = tibble::tibble(
+                        x = coef_channel[[fit_sample]],
+                        y = coef_channel[[nirs_fitted]]),
+                    aes(x = x, y = y, colour = "fitted"),
+                    size = 3, shape = 21, stroke = 1)
+            )
+        }) +
     NULL
 
 
-
-
-# geom_line(
-#     data = display_data[!is.na(display_data[nirs_fitted]),],
-#     aes(y = .data[[nirs_fitted]], colour = "fitted"))
