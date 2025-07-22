@@ -8,6 +8,8 @@ suppressPackageStartupMessages({
     library(tidyverse)
 })
 
+# devtools::install_github("jemarnold/mNIRS", force = TRUE)
+
 options(digits = 5, digits.secs = 3, scipen = 3,
         dplyr.summarise.inform = FALSE,
         tibble.print_min = 20,
@@ -39,12 +41,12 @@ ui <- fluidPage(
                     ## Tell it which columns are which
                     textInput("nirs_columns",
                               label = "mNIRS Channel Names\n(accepts multiple)",
-                              value = "smo2 = SmO2",
+                              # value = "smo2 = SmO2",
                               placeholder = "new_name = file_name",
                               updateOn = "blur"),
                     textInput("sample_column",
                               label = "Time/Sample Column Name",
-                              value = "time = Timestamp (seconds passed)",
+                              # value = "time = Timestamp (seconds passed)",
                               placeholder = "new_name = file_name",
                               updateOn = "blur"),
                     textInput("event_column",
@@ -88,7 +90,7 @@ ui <- fluidPage(
                     checkboxInput("replace_missing", "Replace Missing Values"),
 
                     ## reset start time to zero
-                    checkboxInput("zero_start_time", "Zero Start Time", value = TRUE),
+                    checkboxInput("zero_start_time", "Zero Start Time"),
 
                     ## Filter/smooth data (column wise)
                     selectInput("filter_method",
@@ -185,6 +187,9 @@ ui <- fluidPage(
                         choices = c("Monoexponential", "Half-Recovery Time",
                                     "Peak Slope")),
                     uiOutput("peak_slope_width_ui"),
+
+                    downloadButton("download_kinetics_data",
+                                   "Download Kinetics Data"),
 
                 ),
 
@@ -952,6 +957,19 @@ server <- function(input, output, session) {
             )
         )
     })
+
+
+
+    output$download_kinetics_data <- downloadHandler(
+
+        filename = function() {
+            paste0("mNIRS_Kinetic_coefs_", Sys.time(), ".xlsx")
+        },
+
+        content = function(file) {
+            writexl::write_xlsx(kinetics_coef_data(), path = file)
+        }
+    )
 
 }
 
