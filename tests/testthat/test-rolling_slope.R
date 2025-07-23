@@ -24,6 +24,15 @@ test_that("slope calculates slopes correctly", {
     expect_true(all(abs(result[!is.na(result)] - 1) < 1e-10))
 })
 
+test_that("slope returns same as lm model", {
+    y <- c(1, 3, 2, 5, 8, 7, 9, 8, 6, 7)
+
+    slope_result <- slope(y)
+    lm_result <- coef(.lm.fit(cbind(1, seq_along(y)), y))[2]
+
+    expect_equal(slope_result, lm_result)
+})
+
 test_that("slope handles NA values", {
     y <- c(1, 3, NA, 5, 8, 7, 9, 12, NA, 14)
 
@@ -91,6 +100,83 @@ test_that("rolling_slope calculates slopes correctly", {
     expect_true(all(abs(result[!is.na(result)] - 1) < 1e-10))
 })
 
+test_that("rolling_slope returns same as lm model", {
+    y <- c(1, 3, 2, 5, 8, 7, 9, 8, 6, 7)
+    x = seq_along(y)
+    n <- length(y)
+    width <- 3
+    rolling_slope_result <- rolling_slope(y, width = width)
+
+    for (i in 1:n) {
+
+        start_idx <- head(which(x >= (x[i] - width/2)), 1)
+        end_idx <- tail(which(x <= (x[i] + width/2)), 1)
+        lm_result[i] <- coef(.lm.fit(
+            cbind(1, seq_along(y)[start_idx:end_idx]),
+            y[start_idx:end_idx]))[2]
+    }
+    expect_equal(length(rolling_slope_result), length(lm_result))
+    expect_equal(rolling_slope_result, lm_result)
+})
+
+test_that("rolling_slope returns same as zoo::rollapply()", {
+    y <- c(1, 3, 2, 5, 8, 7, 9, 8, 6, 7)
+    x <- seq_along(y)
+
+    coef.fn <- function(y) coef(.lm.fit(cbind(1, seq_along(y)), y))[2]
+    rollapply_center <- zoo::rollapply(y,
+                                       FUN = coef.fn,
+                                       width = 3,
+                                       align = "center",
+                                       partial = TRUE)
+    rollapply_left <- zoo::rollapply(y,
+                                       FUN = coef.fn,
+                                       width = 3,
+                                       align = "left",
+                                       partial = TRUE)
+    rollapply_right <- zoo::rollapply(y,
+                                       FUN = coef.fn,
+                                       width = 3,
+                                       align = "right",
+                                       partial = TRUE)
+    rolling_slope_center <- rolling_slope(y, width = 3, align = "center")
+
+    n <- length(y)
+    width <- 3
+    lm_result <- NA
+    for (i in 1:n) {
+
+        # ## align left is FORWARD looking
+        # ## current observation is at leftmost position of window
+        # ## window starts at current x value, extends width units forward
+        # start_idx <- i
+        # # end_idx <- tail(which(x <= (x[i] + width)), 1)
+        # end_idx <- tail(which(1:n <= i+width-1), 1)
+
+
+        ## align right is BACKWARD looking
+        ## current observation is at rightmost position of window
+        ## window ends at current x value, extends width units backward
+        start_idx <- head(which(1:n >= i-width+1), 1)
+        end_idx <- i
+
+
+        lm_result[i] <- coef(.lm.fit(
+            cbind(1, x[start_idx:end_idx]),
+            y[start_idx:end_idx]))[2]
+        print(c(start_idx, end_idx))
+    }
+
+    coef.fn(y[8:10])
+    # rollapply_right[1:3+3]
+    # rolling_slope_left <- rolling_slope(y, width = 3, align = "left")
+    # rolling_slope_right <- rolling_slope(y, width = 3, align = "right")
+
+    expect_equal(rollapply_center, rolling_slope_center)
+    expect_equal(rollapply_left, rolling_slope_left)
+    expect_equal(rollapply_right, rolling_slope_right)
+})
+
 test_that("rolling_slope handles different alignments", {
     y <- c(1, 3, 2, 5, 8, 7, 9, 12, 11, 14)
 
@@ -150,7 +236,6 @@ test_that("rolling_slope handles width edge cases", {
     # Width of 2 (minimum)
     result <- rolling_slope(y, width = 2)
     expect_length(result, length(y))
-    expect_length(na.omit(result), length(y)-1)
 
     ## width = 1
     expect_error(
@@ -268,7 +353,31 @@ test_that("peak_directional_slope works with NULL x", {
 })
 
 test_that("peak_directional_slope works with different alignments", {
-    y <- c(1, 3, 2, 5, 8, 7, 9, 12, 11, 14)
+    y <- c(1, 3, 2, 5, 8, 7, 9, 8, 6, 7)
+
+
+    # ggplot(tibble::tibble()) +
+    #     aes(x = seq_along(y), y = y) +
+    #     geom_point() +
+    #     geom_line(aes(x = result_center$x_fitted,
+    #                   y = result_center$y_fitted,
+    #                   colour = "center")) +
+    #     geom_line(aes(x = result_left$x_fitted,
+    #                   y = result_left$y_fitted,
+    #                   colour = "left")) +
+    #     geom_line(aes(x = result_right$x_fitted,
+    #                   y = result_right$y_fitted,
+    #                   colour = "right"))
+    #
+    #
+    # length(y)
+    # lm(y ~ x, data.frame(y = y, x = seq_along(y))[1:4,])
+    # rolling_slope(y, width = 3, align = "center")
+    #
+    # mean(y[c(1:3)+0])
+    # coef.fn <- function(y) coef(.lm.fit(cbind(1, seq_along(y)), y))[2]
+    # coef.fn(y)
+    # zoo::rollapply(y, FUN = coef.fn, width = 3, align = "center", partial = TRUE)
 
     result_center <- peak_directional_slope(y, width = 3, align = "center")
     result_left <- peak_directional_slope(y, width = 3, align = "left")

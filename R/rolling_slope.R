@@ -59,7 +59,9 @@ slope <- function(
 #' @param width An integer scalar defining the window width (in units of `x`)
 #'  for rolling calculations.
 #' @param align Specifies the window alignment of `width` as *"center"*
-#'  (the default), *"left"*, or *"right"*.
+#'  (the default), *"left"*, or *"right"*. Where *"left"* is *forward looking*, and
+#'  *"right"* is *backward looking* by the window `width` from the current
+#'  observation.
 #' @param na.rm A logical indicating whether to exclude NA values from rolling slope
 #'  calculations.
 #'
@@ -126,10 +128,14 @@ rolling_slope <- function(
             start_idx <- head(which(x >= (x[i] - width/2)), 1)
             end_idx <- tail(which(x <= (x[i] + width/2)), 1)
         } else if (align == "left") {
+            ## align left is FORWARD looking
+            ## current observation is at leftmost position of window
             ## window starts at current x value, extends width units forward
             start_idx <- i
             end_idx <- tail(which(x <= (x[i] + width)), 1)
         } else if (align == "right") {
+            ## align right is BACKWARD looking
+            ## current observation is at rightmost position of window
             ## window ends at current x value, extends width units backward
             start_idx <- head(which(x >= (x[i] - width)), 1)
             end_idx <- i
@@ -222,10 +228,14 @@ peak_directional_slope <- function(
         start_idx <- head(which(x >= (x[peak_idx] - width/2)), 1)
         end_idx <- tail(which(x <= (x[peak_idx] + width/2)), 1)
     } else if (align == "left") {
+        ## align left is FORWARD looking
+        ## current observation is at leftmost position of window
         ## window starts at current x value, extends width units forward
         start_idx <- peak_idx
         end_idx <- tail(which(x <= (x[peak_idx] + width)), 1)
     } else if (align == "right") {
+        ## align right is BACKWARD looking
+        ## current observation is at rightmost position of window
         ## window ends at current x value, extends width units backward
         start_idx <- head(which(x >= (x[peak_idx] - width)), 1)
         end_idx <- peak_idx
