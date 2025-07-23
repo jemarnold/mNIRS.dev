@@ -21,7 +21,9 @@ rolling_slope(
 for rolling calculations.}
 
 \item{align}{Specifies the window alignment of \code{width} as \emph{"center"}
-(the default), \emph{"left"}, or \emph{"right"}.}
+(the default), \emph{"left"}, or \emph{"right"}. Where \emph{"left"} is \emph{forward looking}, and
+\emph{"right"} is \emph{backward looking} by the window \code{width} from the current
+observation.}
 
 \item{na.rm}{A logical indicating whether to exclude NA values from rolling slope
 calculations.}

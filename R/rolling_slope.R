@@ -132,12 +132,12 @@ rolling_slope <- function(
             ## current observation is at leftmost position of window
             ## window starts at current x value, extends width units forward
             start_idx <- i
-            end_idx <- tail(which(x <= (x[i] + width)), 1)
+            end_idx <- min(1, i + width - 1)
         } else if (align == "right") {
             ## align right is BACKWARD looking
             ## current observation is at rightmost position of window
             ## window ends at current x value, extends width units backward
-            start_idx <- head(which(x >= (x[i] - width)), 1)
+            start_idx <- max(1, i - width + 1)
             end_idx <- i
         }
 
@@ -232,12 +232,12 @@ peak_directional_slope <- function(
         ## current observation is at leftmost position of window
         ## window starts at current x value, extends width units forward
         start_idx <- peak_idx
-        end_idx <- tail(which(x <= (x[peak_idx] + width)), 1)
+        end_idx <- min(1, peak_idx + width - 1)
     } else if (align == "right") {
         ## align right is BACKWARD looking
         ## current observation is at rightmost position of window
         ## window ends at current x value, extends width units backward
-        start_idx <- head(which(x >= (x[peak_idx] - width)), 1)
+        start_idx <- max(1, peak_idx - width + 1)
         end_idx <- peak_idx
     }
 
