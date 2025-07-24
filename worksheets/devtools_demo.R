@@ -108,6 +108,7 @@ or
 
 12. devtools::build_site()
 - pkgdown site
+- (1 to remove)
 
 13. remotes::install_github("jemarnold/mNIRS")
 
@@ -142,17 +143,18 @@ usethis::use_git_remote("origin", "https://github.com/yourusername/packagename.g
 
 ## 4. Set Up GitHub Actions
 # Standard R package checks
-usethis::use_github_actions_check() ## DOESNT EXIST
+# usethis::use_github_actions_check() ## DOESNT EXIST
 
 # Test coverage
-usethis::use_github_actions_test_coverage()
+# usethis::use_github_actions_test_coverage()
+usethis::use_github_action()
 
 # pkgdown site deployment
 usethis::use_pkgdown_github_pages()
 
 ## 5. Configure pkgdown
 # Initialise pkgdown
-usethis::use_pkgdown()
+# usethis::use_pkgdown()
 
 # Build site locally to test
 pkgdown::build_site()

@@ -17,6 +17,7 @@ knitr::opts_chunk$set(
 <!-- # mNIRS <img src='man/figures/logo.png' align="right" height="240" /> -->
 
 <!-- badges: start -->
+[![R-CMD-check](https://github.com/jemarnold/mNIRS/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jemarnold/mNIRS/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 `{mNIRS}` is a package to allow for importing, processing, and analysing data 
