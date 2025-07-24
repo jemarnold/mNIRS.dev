@@ -106,9 +106,12 @@ or
 - devtools::load_all() then devtools::test() for all function tests
 - devtools::check() will run tests
 
-12. devtools::build_site()
+12. usethis::use_github_action("pkgdown")
+- usethis::use_pkgdown_github_pages()
+- NEED TO REMOVE `docs` FROM GITIGNORE
+- locally build devtools::build_site()
 - pkgdown site
-- (1 to remove)
+- (pkgdown::clean_site() to remove)
 
 13. remotes::install_github("jemarnold/mNIRS")
 
