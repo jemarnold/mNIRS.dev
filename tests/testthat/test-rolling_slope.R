@@ -47,7 +47,7 @@ test_that("slope handles NA values", {
 
 test_that("slope handles edge cases", {
     ## single value
-    expect_true(is.na(slope(5)))
+    expect_true(slope(5) == 0)
 
     ## all identical values
     result <- slope(rep(5, 10))
@@ -106,6 +106,7 @@ test_that("rolling_slope returns same as lm model", {
     n <- length(y)
     width <- 3
     rolling_slope_result <- rolling_slope(y, width = width)
+    lm_result <- NA
 
     for (i in 1:n) {
 
@@ -121,7 +122,7 @@ test_that("rolling_slope returns same as lm model", {
 
 test_that("rolling_slope returns same as zoo::rollapply()", {
     y <- c(1, 3, 2, 5, 8, 7, 9, 8, 6, 7)
-    x <- seq_along(y)
+    x <- seq(22, along = y)
 
     coef.fn <- function(y) coef(.lm.fit(cbind(1, seq_along(y)), y))[2]
     rollapply_center <- zoo::rollapply(y,
@@ -142,37 +143,6 @@ test_that("rolling_slope returns same as zoo::rollapply()", {
     rolling_slope_center <- rolling_slope(y, width = 3, align = "center")
     rolling_slope_left <- rolling_slope(y, width = 3, align = "left")
     rolling_slope_right <- rolling_slope(y, width = 3, align = "right")
-
-    n <- length(y)
-    width <- 3
-    lm_result <- NA
-    for (i in 1:n) {
-
-        # ## align left is FORWARD looking
-        # ## current observation is at leftmost position of window
-        # ## window starts at current x value, extends width units forward
-        # start_idx <- i
-        # # end_idx <- tail(which(x <= (x[i] + width)), 1)
-        # end_idx <- tail(which(1:n <= i+width-1), 1)
-
-
-        ## align right is BACKWARD looking
-        ## current observation is at rightmost position of window
-        ## window ends at current x value, extends width units backward
-        start_idx <- head(which(1:n >= i-width+1), 1)
-        end_idx <- i
-
-
-        lm_result[i] <- coef(.lm.fit(
-            cbind(1, x[start_idx:end_idx]),
-            y[start_idx:end_idx]))[2]
-        print(c(start_idx, end_idx))
-    }
-
-    coef.fn(y[8:10])
-    # rollapply_right[1:3+3]
-    # rolling_slope_left <- rolling_slope(y, width = 3, align = "left")
-    # rolling_slope_right <- rolling_slope(y, width = 3, align = "right")
 
     expect_equal(rollapply_center, rolling_slope_center)
     expect_equal(rollapply_left, rolling_slope_left)
@@ -289,11 +259,11 @@ test_that("peak_directional_slope returns correct structure", {
     result <- peak_directional_slope(y, width = 3)
 
     expect_type(result, "list")
-    expect_named(result, c("slope", "x", "y_fitted", "x_fitted"))
+    expect_named(result, c("x", "slope", "x_fitted", "y_fitted"))
     expect_type(result$slope, "double")
-    expect_type(result$x, "integer")
+    expect_type(result$x, "double")
     expect_type(result$y_fitted, "double")
-    expect_type(result$x_fitted, "integer")
+    expect_type(result$x_fitted, "double")
     expect_true(is.vector(result$y_fitted))
     expect_true(is.vector(result$x_fitted))
 })
@@ -356,64 +326,40 @@ test_that("peak_directional_slope works with NULL x", {
 
 test_that("peak_directional_slope works with different alignments", {
     y <- c(1, 3, 2, 5, 8, 7, 9, 8, 6, 7)
+    x <- seq(22, along = y)
 
+    result_center <- peak_directional_slope(y, x, width = 3, align = "center")
+    result_left <- peak_directional_slope(y, x, width = 3, align = "left")
+    result_right <- peak_directional_slope(y, x, width = 3, align = "right")
 
-    # ggplot(tibble::tibble()) +
-    #     aes(x = seq_along(y), y = y) +
-    #     geom_point() +
-    #     geom_line(aes(x = result_center$x_fitted,
-    #                   y = result_center$y_fitted,
-    #                   colour = "center")) +
-    #     geom_line(aes(x = result_left$x_fitted,
-    #                   y = result_left$y_fitted,
-    #                   colour = "left")) +
-    #     geom_line(aes(x = result_right$x_fitted,
-    #                   y = result_right$y_fitted,
-    #                   colour = "right"))
-    #
-    #
-    # length(y)
-    # lm(y ~ x, data.frame(y = y, x = seq_along(y))[1:4,])
-    # rolling_slope(y, width = 3, align = "center")
-    #
-    # mean(y[c(1:3)+0])
-    # coef.fn <- function(y) coef(.lm.fit(cbind(1, seq_along(y)), y))[2]
-    # coef.fn(y)
-    # zoo::rollapply(y, FUN = coef.fn, width = 3, align = "center", partial = TRUE)
+    expect_equal(result_center$x, result_left$x + 1)
+    expect_equal(result_center$x, result_right$x - 1)
+    expect_equal(result_left$x + 1, result_right$x - 1)
 
-    result_center <- peak_directional_slope(y, width = 3, align = "center")
-    result_left <- peak_directional_slope(y, width = 3, align = "left")
-    result_right <- peak_directional_slope(y, width = 3, align = "right")
-
-    expect_type(result_center$slope, "double")
-    expect_type(result_left$slope, "double")
-    expect_type(result_right$slope, "double")
-    expect_equal(result_center$x, result_left$x+1)
-    expect_equal(result_center$x, result_right$x-1)
-    expect_equal(result_left$x+1, result_right$x-1)
+    expect_equal(result_center$y, result_left$y)
+    expect_equal(result_center$y, result_right$y)
+    expect_equal(result_left$y, result_right$y)
 })
 
 test_that("peak_directional_slope handles edge cases", {
     ## single value
-    expect_error(
-        peak_directional_slope(5, width = 3),
-        "should be of length 2 or greater")
+    expect_error(peak_directional_slope(y = 5, width = 3),
+                 "should be of length 2 or greater")
 
     ## two values
-    result <- peak_directional_slope(c(1, 3), width = 3)
+    result <- peak_directional_slope(y = c(1, 3), width = 3)
     expect_type(result$slope, "double")
     expect_gte(result$x, 1)
     expect_lte(result$x, 2)
 
     ## all identical values
-    y_flat <- rep(5, 10)
-    result <- peak_directional_slope(y_flat, width = 3)
+    result <- peak_directional_slope(y = rep(5, 10), width = 3)
     expect_equal(result$slope, 0)
     expect_gte(result$x, 1)
 
     ## all NA
     expect_error(
-        peak_directional_slope(rep(NA, 5), width = 3, na.rm = TRUE),
+        peak_directional_slope(y = rep(NA, 5), width = 3),
         "should contain at least 2 or more non-NA values")
 })
 

@@ -29,7 +29,7 @@ slope <- function(
 
     ## check for sufficient non-NA observations
     if (length(x) < 2) {
-        overall_slope <- NA
+        overall_slope <- 0
         return(overall_slope)
     }
 
@@ -101,7 +101,7 @@ rolling_slope <- function(
     align <- match.arg(align)
 
     ## where `x` is not defined
-    if (is.null(x)) {x <- seq_along(y)}
+    if (is.null(x)) {x <- as.numeric(seq_along(y))}
 
     n <- length(y)
     slopes <- numeric(n)
@@ -125,14 +125,14 @@ rolling_slope <- function(
     for (i in 1:n) {
         ## find indices for x values between width (in units of x) based on align
         if (align == "center") {
-            start_idx <- head(which(x >= (x[i] - width/2)), 1)
-            end_idx <- tail(which(x <= (x[i] + width/2)), 1)
+            start_idx <- max(1, i - (width - 1) %/% 2)
+            end_idx <- min(n, i + width %/% 2)
         } else if (align == "left") {
             ## align left is FORWARD looking
             ## current observation is at leftmost position of window
             ## window starts at current x value, extends width units forward
             start_idx <- i
-            end_idx <- min(1, i + width - 1)
+            end_idx <- min(n, i + width - 1)
         } else if (align == "right") {
             ## align right is BACKWARD looking
             ## current observation is at rightmost position of window
@@ -201,7 +201,7 @@ peak_directional_slope <- function(
     align <- match.arg(align)
 
     ## where `x` is not defined
-    if (is.null(x)) {x <- seq_along(y)}
+    if (is.null(x)) {x <- as.numeric(seq_along(y))}
 
     n <- length(y)
 
@@ -225,14 +225,14 @@ peak_directional_slope <- function(
     ## return window around peak slope sample
     ## find indices for x values between width (in units of x) based on align
     if (align == "center") {
-        start_idx <- head(which(x >= (x[peak_idx] - width/2)), 1)
-        end_idx <- tail(which(x <= (x[peak_idx] + width/2)), 1)
+        start_idx <- max(1, peak_idx - (width - 1) %/% 2)
+        end_idx <- min(n, peak_idx + width %/% 2)
     } else if (align == "left") {
         ## align left is FORWARD looking
         ## current observation is at leftmost position of window
         ## window starts at current x value, extends width units forward
         start_idx <- peak_idx
-        end_idx <- min(1, peak_idx + width - 1)
+        end_idx <- min(n, peak_idx + width - 1)
     } else if (align == "right") {
         ## align right is BACKWARD looking
         ## current observation is at rightmost position of window
@@ -254,6 +254,6 @@ peak_directional_slope <- function(
         fitted <- NA
     }
 
-    return(list(slope = peak_slope, x = x[peak_idx],
-                y_fitted = fitted, x_fitted = x_window))
+    return(list(x = x[peak_idx], slope = peak_slope,
+                x_fitted = x_window, y_fitted = fitted))
 }
