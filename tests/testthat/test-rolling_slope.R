@@ -143,6 +143,37 @@ test_that("rolling_slope returns same as zoo::rollapply()", {
     rolling_slope_left <- rolling_slope(y, width = 3, align = "left")
     rolling_slope_right <- rolling_slope(y, width = 3, align = "right")
 
+    n <- length(y)
+    width <- 3
+    lm_result <- NA
+    for (i in 1:n) {
+
+        # ## align left is FORWARD looking
+        # ## current observation is at leftmost position of window
+        # ## window starts at current x value, extends width units forward
+        # start_idx <- i
+        # # end_idx <- tail(which(x <= (x[i] + width)), 1)
+        # end_idx <- tail(which(1:n <= i+width-1), 1)
+
+
+        ## align right is BACKWARD looking
+        ## current observation is at rightmost position of window
+        ## window ends at current x value, extends width units backward
+        start_idx <- head(which(1:n >= i-width+1), 1)
+        end_idx <- i
+
+
+        lm_result[i] <- coef(.lm.fit(
+            cbind(1, x[start_idx:end_idx]),
+            y[start_idx:end_idx]))[2]
+        print(c(start_idx, end_idx))
+    }
+
+    coef.fn(y[8:10])
+    # rollapply_right[1:3+3]
+    # rolling_slope_left <- rolling_slope(y, width = 3, align = "left")
+    # rolling_slope_right <- rolling_slope(y, width = 3, align = "right")
+
     expect_equal(rollapply_center, rolling_slope_center)
     expect_equal(rollapply_left, rolling_slope_left)
     expect_equal(rollapply_right, rolling_slope_right)
