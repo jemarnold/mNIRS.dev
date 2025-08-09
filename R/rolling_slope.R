@@ -42,7 +42,7 @@ slope <- function(
     ## variance of x (spread of x around mean of x)
     denominator <- sum((x - x_mean)^2, na.rm = na.rm)
     ## best-fit line gradient faster than calling `lm()`
-    overall_slope <- if (denominator == 0) {0} else {numerator / denominator}
+    overall_slope <- if (denominator == 0) 0 else round(numerator/denominator, 8)
 
     return(overall_slope)
 }
@@ -56,7 +56,7 @@ slope <- function(
 #'
 #' @param y A numeric vector of response values.
 #' @param x A numeric vector of predictor values. If `NULL`, uses `seq_along(y)`.
-#' @param width An integer scalar defining the window width (in units of `x`)
+#' @param width A numeric scalar defining the window width (in units of `x`)
 #'  for rolling calculations.
 #' @param align Specifies the window alignment of `width` as *"center"*
 #'  (the default), *"left"*, or *"right"*. Where *"left"* is *forward looking*, and
@@ -117,35 +117,40 @@ rolling_slope <- function(
             "{.arg y} should contain at least 2 or more non-NA values."))
     }
 
-    ## validation length of width
-    if (width < 2) {
-        cli::cli_abort("{.arg width} should be equal to 2 or greater.")
-    }
-
     for (i in 1:n) {
+        current_x <- x[i]
+
         ## find indices for x values between width (in units of x) based on align
         if (align == "center") {
-            start_idx <- max(1, i - (width - 1) %/% 2)
-            end_idx <- min(n, i + width %/% 2)
+            start_x <- max(x[1], current_x - width / 2)
+            end_x <- min(x[n], current_x + width / 2)
         } else if (align == "left") {
             ## align left is FORWARD looking
             ## current observation is at leftmost position of window
             ## window starts at current x value, extends width units forward
-            start_idx <- i
-            end_idx <- min(n, i + width - 1)
+            start_x <- current_x
+            end_x <- min(x[n], current_x + width)
         } else if (align == "right") {
             ## align right is BACKWARD looking
             ## current observation is at rightmost position of window
             ## window ends at current x value, extends width units backward
-            start_idx <- max(1, i - width + 1)
-            end_idx <- i
+            start_x <- max(x[1], current_x - width)
+            end_x <- current_x
         }
 
-        ## extract data within window
-        x_window <- x[start_idx:end_idx]
-        y_window <- y[start_idx:end_idx]
+        ## avoid floating point issues
+        tol <- .Machine$double.eps^0.5
+        ## find indices for x within width
+        window_idx <- which(x >= (start_x - tol) & x <= (end_x + tol))
 
-        slopes[i] <- slope(y = y_window, x = x_window, na.rm)
+        ## extract data within window
+        if (length(window_idx) >= 2) {
+            x_window <- x[window_idx]
+            y_window <- y[window_idx]
+            slopes[i] <- slope(y = y_window, x = x_window, na.rm = na.rm)
+        } else {
+            slopes[i] <- 0
+        }
     }
 
     return(slopes)
@@ -164,7 +169,7 @@ rolling_slope <- function(
 #'
 #' @param y A numeric vector of response values.
 #' @param x A numeric vector of predictor values. If `NULL`, uses `seq_along(y)`.
-#' @param width An integer scalar defining the window width (in units of `x`)
+#' @param width A numeric scalar defining the window width (in units of `x`)
 #'  for rolling calculations.
 #' @param align Specifies the window alignment of `width` as *"center"*
 #'  (the default), *"left"*, or *"right"*.
@@ -222,28 +227,37 @@ peak_directional_slope <- function(
     ## return peak slope from peak slope sample
     peak_slope <- slopes[peak_idx]
 
+
+
     ## return window around peak slope sample
+    current_x <- x[peak_idx]
+
     ## find indices for x values between width (in units of x) based on align
     if (align == "center") {
-        start_idx <- max(1, peak_idx - (width - 1) %/% 2)
-        end_idx <- min(n, peak_idx + width %/% 2)
+        start_x <- max(x[1], current_x - width / 2)
+        end_x <- min(x[n], current_x + width / 2)
     } else if (align == "left") {
         ## align left is FORWARD looking
         ## current observation is at leftmost position of window
         ## window starts at current x value, extends width units forward
-        start_idx <- peak_idx
-        end_idx <- min(n, peak_idx + width - 1)
+        start_x <- current_x
+        end_x <- min(x[n], current_x + width)
     } else if (align == "right") {
         ## align right is BACKWARD looking
         ## current observation is at rightmost position of window
         ## window ends at current x value, extends width units backward
-        start_idx <- max(1, peak_idx - width + 1)
-        end_idx <- peak_idx
+        start_x <- max(x[1], current_x - width)
+        end_x <- current_x
     }
 
-    ## extract peak window data
-    x_window <- x[start_idx:end_idx]
-    y_window <- y[start_idx:end_idx]
+    ## avoid floating point issues
+    tol <- .Machine$double.eps^0.5
+    ## find indices for x within width
+    window_idx <- which(x >= (start_x - tol) & x <= (end_x + tol))
+
+    ## extract data within window
+    x_window <- x[window_idx]
+    y_window <- y[window_idx]
 
     ## calculate fitted values using peak slope
     if (length(x_window) >= 2) {

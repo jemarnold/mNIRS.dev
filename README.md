@@ -7,6 +7,7 @@
 
 <!-- badges: start -->
 
+[![R-CMD-check](https://github.com/jemarnold/mNIRS/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jemarnold/mNIRS/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 `{mNIRS}` is a package to allow for importing, processing, and analysing
@@ -262,16 +263,16 @@ development.
 This package have been tested successfully with the following mNIRS
 devices:
 
+- [Artinis](https://www.artinis.com/nirs-devices) Portamon and Oxymon
 - [Moxy](https://www.moxymonitor.com/) 5 and 3
 - [Train.Red](https://train.red/) FYER and Plus
-- [Artinis](https://www.artinis.com/nirs-devices) Portamon and Oxymon
 
 This package have been tested successfully with mNIRS data exported from
 the following devices and apps:
 
-- [Moxy](https://www.moxymonitor.com/) onboard export (.csv)
-- [Train.Red](https://train.red/) app (.csv)
 - [Artinis Oxysoft](https://www.artinis.com/oxysoft) software (.csv and
   .xlsx)
-- [VO2 Master Manager](https://vo2master.com/features/) app (.xlsx)
+- [Moxy](https://www.moxymonitor.com/) onboard export (.csv)
 - [PerfPro](https://perfprostudio.com/) software (.xlsx)
+- [Train.Red](https://train.red/) app (.csv)
+- [VO2 Master Manager](https://vo2master.com/features/) app (.xlsx)

@@ -899,7 +899,13 @@ server <- function(input, output, session) {
                                     x = coef_channel$MRT,
                                     y = coef_channel[[MRT_nirs_value]]),
                                 aes(x = x, xend = x, y = y, yend = -Inf),
-                                arrow = arrow(), linewidth = 1)
+                                arrow = arrow(), linewidth = 1),
+                            geom_point(
+                                data = tibble::tibble(
+                                    x = coef_channel$MRT,
+                                    y = coef_channel[[MRT_nirs_value]]),
+                                aes(x = x, y = y, colour = "fitted"),
+                                size = 4, shape = 21, stroke = 1.2)
                         )
                     })
             }} +
