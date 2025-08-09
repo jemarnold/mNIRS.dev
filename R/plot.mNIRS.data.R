@@ -1,8 +1,8 @@
 #' Plot mNIRS.data objects
 #'
-#' Create a simple plot for objects returned from [create_mNIRS_data()].
+#' Create a simple plot for objects returned from [create_mNIRS.data()].
 #'
-#' @param data Object of class `mNIRS.data` as returned from [create_mNIRS_data()]
+#' @param data Object of class `mNIRS.data` as returned from [create_mNIRS.data()]
 #' @param na.omit A logical indicating whether missing data (`NA`) should be omitted
 #' (`TRUE`) for better display of disconnected lines, or included (`FALSE`, the
 #' default) to better recognise where data are missing.

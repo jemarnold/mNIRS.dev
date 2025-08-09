@@ -228,7 +228,7 @@ prepare_kinetics_data <- function(
                     dplyr::relocate(tidyselect::any_of(c(
                         fit_column, sample_column, event_column, nirs_columns)))
 
-                kinetics_data <- create_mNIRS_data(kinetics_data, metadata)
+                kinetics_data <- create_mNIRS.data(kinetics_data, metadata)
 
                 return(kinetics_data)
             }) |>
@@ -256,7 +256,7 @@ prepare_kinetics_data <- function(
             ) |>
             dplyr::relocate(tidyselect::any_of(fit_column))
 
-        kinetics_data_list <- list(create_mNIRS_data(kinetics_data, metadata))
+        kinetics_data_list <- list(create_mNIRS.data(kinetics_data, metadata))
 
     } else if (is.numeric(unlist(group_events))) {
 
@@ -294,7 +294,7 @@ prepare_kinetics_data <- function(
                     dplyr::relocate(
                         tidyselect::any_of(fit_column))
 
-                kinetics_data <- create_mNIRS_data(kinetics_data, metadata)
+                kinetics_data <- create_mNIRS.data(kinetics_data, metadata)
 
                 return(kinetics_data)
             }) |>

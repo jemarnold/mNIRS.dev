@@ -7,7 +7,7 @@
 \method{plot}{mNIRS.data}(data, na.omit = FALSE, ...)
 }
 \arguments{
-\item{data}{Object of class \code{mNIRS.data} as returned from \code{\link[=create_mNIRS_data]{create_mNIRS_data()}}}
+\item{data}{Object of class \code{mNIRS.data} as returned from \code{\link[=create_mNIRS.data]{create_mNIRS.data()}}}
 
 \item{na.omit}{A logical indicating whether missing data (\code{NA}) should be omitted
 (\code{TRUE}) for better display of disconnected lines, or included (\code{FALSE}, the
@@ -19,5 +19,5 @@ default) to better recognise where data are missing.}
 A \link[ggplot2:ggplot]{ggplot2} object.
 }
 \description{
-Create a simple plot for objects returned from \code{\link[=create_mNIRS_data]{create_mNIRS_data()}}.
+Create a simple plot for objects returned from \code{\link[=create_mNIRS.data]{create_mNIRS.data()}}.
 }

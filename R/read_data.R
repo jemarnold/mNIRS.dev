@@ -4,6 +4,15 @@
 #'
 #' @param data A dataframe.
 #' @param metadata Metadata passed along with the dataframe.
+#'  - nirs_device
+#'  - nirs_columns
+#'  - sample_column
+#'  - event_column
+#'  - sample_rate
+#'  - event_sample_list
+#'  - fit_window
+#'  - display_window
+#'  - end_kinetics_window
 #'
 #' @return A [tibble][tibble::tibble-package] of class `mNIRS.data` with
 #'  metadata available with `attributes()`.
@@ -25,7 +34,7 @@
 #'                  C = seq(11, 33, 11))
 #' attributes(df)
 #'
-#' nirs_data <- create_mNIRS_data(
+#' nirs_data <- create_mNIRS.data(
 #'     df,
 #'     metadata = list(nirs_columns = c("B", "C"),
 #'                     sample_column = "A",
@@ -34,7 +43,7 @@
 #' attributes(nirs_data)
 #'
 #' @export
-create_mNIRS_data <- function(
+create_mNIRS.data <- function(
         data,
         metadata
 ) {
@@ -499,7 +508,7 @@ read_data <- function(
         event_column = names(event_column),
         sample_rate = sample_rate)
 
-    mNIRS_data <- create_mNIRS_data(data_prepared, metadata)
+    mNIRS_data <- create_mNIRS.data(data_prepared, metadata)
 
     return(mNIRS_data)
 } ## read_data
