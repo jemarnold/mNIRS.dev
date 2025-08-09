@@ -67,7 +67,7 @@ regression within a moving window.</p>
 
 
 <dt id="arg-width">width<a class="anchor" aria-label="anchor" href="#arg-width"></a></dt>
-<dd><p>An integer scalar defining the window width (in units of <code>x</code>)
+<dd><p>A numeric scalar defining the window width (in units of <code>x</code>)
 for rolling calculations.</p></dd>
 
 
@@ -109,7 +109,8 @@ valid points remain in a window, <code>NA</code> will be returned for that posit
 <span class="r-in"><span><span class="co">## with custom x values and left alignment</span></span></span>
 <span class="r-in"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, length.out <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">rolling_slope</span><span class="op">(</span><span class="va">y</span>, <span class="va">x</span>, width <span class="op">=</span> <span class="fl">3</span>, align <span class="op">=</span> <span class="st">"left"</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [1]  4.5  9.0 27.0  9.0  4.5 22.5  9.0  9.0 27.0  0.0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [1] 12.76364 12.90000 13.71429 12.21429 11.57143 14.40000 12.60000  9.00000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [9] 27.00000  0.00000</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## handling missing values with `na.rm = TRUE`</span></span></span>
 <span class="r-in"><span><span class="va">y_na</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">3</span>, <span class="cn">NA</span>, <span class="fl">5</span>, <span class="fl">8</span>, <span class="fl">7</span>, <span class="fl">9</span>, <span class="fl">12</span>, <span class="cn">NA</span>, <span class="fl">14</span><span class="op">)</span></span></span>
