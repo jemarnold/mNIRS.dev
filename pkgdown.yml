@@ -3,7 +3,7 @@ pkgdown: 2.1.3
 pkgdown_sha: ~
 articles:
   processing-mNIRS-data: processing-mNIRS-data.html
-last_built: 2025-08-09T23:18Z
+last_built: 2025-08-10T01:46Z
 urls:
   reference: https://jemarnold.github.io/mNIRS/reference
   article: https://jemarnold.github.io/mNIRS/articles
