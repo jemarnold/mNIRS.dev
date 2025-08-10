@@ -13,9 +13,10 @@ peak_directional_slope(
 )
 }
 \arguments{
-\item{y}{A numeric vector of response values.}
+\item{y}{A numeric vector of the response variable.}
 
-\item{x}{A numeric vector of predictor values. If \code{NULL}, uses \code{seq_along(y)}.}
+\item{x}{An \emph{optional} numeric vector of the predictor variable.
+If \code{x = NULL}, uses \code{x = seq_along(y)}.}
 
 \item{width}{A numeric scalar defining the window width (in units of \code{x})
 for rolling calculations.}
@@ -23,8 +24,8 @@ for rolling calculations.}
 \item{align}{Specifies the window alignment of \code{width} as \emph{"center"}
 (the default), \emph{"left"}, or \emph{"right"}.}
 
-\item{na.rm}{A logical indicating whether to exclude NA values from rolling slope
-calculations.}
+\item{na.rm}{A logical indicating whether to exclude NA values from rolling
+slope calculations.}
 }
 \value{
 A list containing \code{L$y}, a numeric scalar of the peak slope value,

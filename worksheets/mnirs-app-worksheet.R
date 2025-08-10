@@ -46,7 +46,7 @@ data_raw <- mNIRS::read_data(
     ) |>
     print()
 
-filter(data_raw, !is.na(event))
+dplyr::filter(data_raw, !is.na(event))
 # plot(data_raw)
 (sample_column <- attributes(data_raw)$sample_column)
 (fit_sample_name <- paste0("fit_", sample_column))
@@ -54,6 +54,26 @@ filter(data_raw, !is.na(event))
 # event_sample <- c(370, 1085)
 event_sample <- c(24675, 66670)
 # event_sample <- 876
+
+
+
+
+## TODO
+## iterate over sub-dataframes / NIRS channels
+## input (list item per event):
+## - processed mNIRS.data
+## - list of sub-dataframes
+## - list of vectors of NIRS channels
+## - list of vectors of kinetics methods
+## - list of named vector (or list) of additional args (e.g. width)
+## output list:
+## - aggregate table of coefs
+## - aggregate table of diagnostics
+## - list of plots per event; lines (colours) per NIRS channel
+
+
+
+
 
 data_list <- prepare_kinetics_data(
     data_raw,
@@ -63,19 +83,11 @@ data_list <- prepare_kinetics_data(
 ) |>
     print()
 
-## TODO
-## iterate over prepared_kinetics_data_list
-## dataframe / NIRS channel
-## output list:
-## - aggregate table of coefs
-## - aggregate table of diagnostics
-
-
 
 model_list <- tidyr::expand_grid(
     .df = data_list,
     .nirs = attributes(data_raw)$nirs_columns,
-    .method = "monoexp") |>
+    .method = "half_time") |>
     purrr::pmap(
         \(.df, .nirs, .method)
         process_kinetics(x = fit_sample_name,
@@ -237,9 +249,15 @@ ggplot(display_data) +
 #
 ## process_kinetics example ===================================
 set.seed(13)
-x <- seq(-10, 60, by = 2)
+x1 <- seq(-10, 60, by = 2)
 A <- 10; B <- 100; TD <- 5; tau <- 12
-y <- monoexponential(x, A, B, TD, tau) + rnorm(length(x), 0, 3)
+y1 <- monoexponential(x1, A, B, TD, tau) + rnorm(length(x1), 0, 3)
+
+
+data <- tibble::tibble(xx = x1, yy = y1)
+process_kinetics(y = y1, x = NULL, data = NULL)
+process_kinetics(y = y1, x = x1, data = NULL)
+process_kinetics(y = y1, x = x1, data = NULL)
 
 ## monoexponential kinetics ===============================
 model <- process_kinetics(x, y, method = "monoexponential")

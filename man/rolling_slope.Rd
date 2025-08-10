@@ -13,9 +13,10 @@ rolling_slope(
 )
 }
 \arguments{
-\item{y}{A numeric vector of response values.}
+\item{y}{A numeric vector of the response variable.}
 
-\item{x}{A numeric vector of predictor values. If \code{NULL}, uses \code{seq_along(y)}.}
+\item{x}{An \emph{optional} numeric vector of the predictor variable.
+If \code{x = NULL}, uses \code{x = seq_along(y)}.}
 
 \item{width}{A numeric scalar defining the window width (in units of \code{x})
 for rolling calculations.}
@@ -25,8 +26,8 @@ for rolling calculations.}
 and \emph{"right"} is \emph{backward looking} by the window \code{width} from the current
 observation.}
 
-\item{na.rm}{A logical indicating whether to exclude NA values from rolling slope
-calculations.}
+\item{na.rm}{A logical indicating whether to exclude NA values from rolling
+slope calculations.}
 }
 \value{
 A numeric vector of rolling local slopes of the same length as \code{y}.

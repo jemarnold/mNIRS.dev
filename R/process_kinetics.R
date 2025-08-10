@@ -1,25 +1,23 @@
-#' Process Kinetics
+#' Fit Kinetics
 #'
-#' Fit mNIRS vector data with parametric curve fitting or non-parametric estimation
-#' of mNIRS kinetics.
+#' Process parametric curve fitting or non-parametric estimation of mNIRS kinetics
+#' on vector data.
 #'
-#' @param x A numeric vector specifying the predictor variable for `y` if `y` is
-#'  defined. Otherwise, `x` is assumed to define the response variable.
-#' @param y (*Optional*). A numeric vector specifying the response variable. If `y`
-#'  is not defined, the response variable is assumed to be defined by `x`, with
-#'  `idx = seq_along(x)` as the predictor variable.
-#' @param data (*Optional*). A dataframe containing at least the response variable
-#'  (`x`), or the predictor and response variables (`x` and `y`).
+#' @param y A numeric vector of the response variable, or the name of the variable.
+#' @param x An *optional* numeric vector of the predictor variable, or the name
+#'  of the variable. If `x = NULL`, uses `x = seq_along(y)`.
+#' @param data An *optional* dataframe containing the predictor and response
+#'  variables named in `x` and `y`.
 #' @param x0 A numeric scalar indicating the value of the predictor variable `x`
-#'  representing the start of the kinetics event (*default x0 = 0*).
-#' @param method Indicates which model to use to evaluate the kinetics event
-#'  (see *Details* for each model coefficients).
+#'  representing the start of the kinetics event (*default `x0 = 0`*).
+#' @param method Indicates which model to evaluate the kinetics event
+#'  (see *Details* for method parametrisation).
 #'  \describe{
 #'      \item{`method = "monoexponential"`}{A four-parameter monoexponential
-#'          association function in the form
+#'          association function in the form:
 #'          `ifelse(x <= TD, A, A + (B - A) * (1 - exp((TD - x) / tau)))`.}
 #'      \item{`method = "sigmoidal"`}{A four-parameter generalised logistic
-#'          (sigmoidal) function in the form
+#'          (sigmoidal) function in the form:
 #'          `A + (B - A) / (1 + exp((xmid - x) / scal))`.}
 #'      \item{`method = "half_time"`}{A non-parametric estimate of the time
 #'          to recover half of the total reoxygenation amplitude.}
@@ -73,7 +71,7 @@
 #' y <- monoexponential(x, A, B, TD, tau) + rnorm(length(x), 0, 3)
 #'
 #' ## monoexponential kinetics ===============================
-#' model <- process_kinetics(x, y, method = "monoexponential")
+#' model <- process_kinetics(y, x, method = "monoexponential")
 #' model
 #'
 #' \dontrun{
@@ -94,7 +92,7 @@
 #' }
 #'
 #' ## sigmoidal kinetics ===============================
-#' model <- process_kinetics(x, y, method = "sigmoidal")
+#' model <- process_kinetics(y, x, method = "sigmoidal")
 #' model
 #'
 #' \dontrun{
@@ -115,7 +113,7 @@
 #' }
 #'
 #' ## half recovery time ===============================
-#' model <- process_kinetics(x, y, method = "half_time")
+#' model <- process_kinetics(y, x, method = "half_time")
 #' model
 #'
 #' \dontrun{
@@ -130,7 +128,7 @@
 #' }
 #'
 #' ## peak slope ===============================
-#' model <- process_kinetics(x, y, method = "peak_slope", width = 10)
+#' model <- process_kinetics(y, x, method = "peak_slope", width = 10)
 #' model
 #'
 #' \dontrun{
@@ -148,8 +146,8 @@
 #' @rdname process_kinetics
 #' @export
 process_kinetics <- function(
-        x,
-        y = NULL,
+        y,
+        x = NULL,
         data = NULL,
         x0 = 0,
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
@@ -157,12 +155,12 @@ process_kinetics <- function(
 ) {
     method <- match.arg(method)
 
-    x_exp <- substitute(x)
-    x_name <- deparse(x_exp)
+    y_exp <- substitute(y)
+    y_name <- deparse(y_exp)
 
-    class(x_name) <- method
+    class(y_name) <- method
 
-    UseMethod("process_kinetics", x_name)
+    UseMethod("process_kinetics", y_name)
 }
 
 ## TODO 2025-07-19 fix fitted models up to first peak with no greater peaks within X samples
@@ -174,14 +172,15 @@ process_kinetics <- function(
 #' @rdname process_kinetics
 #' @export
 process_kinetics.monoexponential <- function(
-        x,
-        y = NULL,
+        y,
+        x = NULL,
         data = NULL,
         x0 = 0,
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         ...
 ) {
-    intake <- process_names_for_kinetics(x = x, y = y, data = data, x0 = x0)
+    intake <- eval(substitute(
+        process_names_for_kinetics(y = y, x = x, data = data, x0 = x0)))
     data <- intake$data
     df <- intake$df
     x <- intake$x
@@ -244,14 +243,15 @@ process_kinetics.monoexponential <- function(
 #' @rdname process_kinetics
 #' @export
 process_kinetics.sigmoidal <- function(
-        x,
-        y = NULL,
+        y,
+        x = NULL,
         data = NULL,
         x0 = 0,
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         ...
 ) {
-    intake <- process_names_for_kinetics(x = x, y = y, data = data, x0 = x0)
+    intake <- eval(substitute(
+        process_names_for_kinetics(y = y, x = x, data = data, x0 = x0)))
     data <- intake$data
     df <- intake$df
     x <- intake$x
@@ -312,14 +312,15 @@ process_kinetics.sigmoidal <- function(
 #' @rdname process_kinetics
 #' @export
 process_kinetics.half_time <- function(
-        x,
-        y = NULL,
+        y,
+        x = NULL,
         data = NULL,
         x0 = 0,
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         ...
 ) {
-    intake <- process_names_for_kinetics(x = x, y = y, data = data, x0 = x0)
+    intake <- eval(substitute(
+        process_names_for_kinetics(y = y, x = x, data = data, x0 = x0)))
     data <- intake$data
     df <- intake$df
     x <- intake$x
@@ -386,15 +387,26 @@ process_kinetics.half_time <- function(
 #' @rdname process_kinetics
 #' @export
 process_kinetics.peak_slope <- function(
-        x,
-        y = NULL,
+        y,
+        x = NULL,
         data = NULL,
         x0 = 0,
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         ...
 ) {
-    args <- list(...)
+    intake <- eval(substitute(
+        process_names_for_kinetics(y = y, x = x, data = data, x0 = x0)))
+    data <- intake$data
+    df <- intake$df
+    x <- intake$x
+    x_exp <- intake$x_exp
+    x_name <- intake$x_name
+    y <- intake$y
+    y_exp <- intake$y_exp
+    y_name <- intake$y_name
+    fitted_name <- paste0(y_name, "_fitted")
 
+    args <- list(...)
     if ("width" %in% names(args)) {
         width <- args$width
     }
@@ -405,17 +417,6 @@ process_kinetics.peak_slope <- function(
     } else {
         align <- match.arg("center", choices = align_choices)
     }
-
-    intake <- process_names_for_kinetics(x = x, y = y, data = data, x0 = x0)
-    data <- intake$data
-    df <- intake$df
-    x <- intake$x
-    x_exp <- intake$x_exp
-    x_name <- intake$x_name
-    y <- intake$y
-    y_exp <- intake$y_exp
-    y_name <- intake$y_name
-    fitted_name <- paste0(y_name, "_fitted")
 
     slopes <- rolling_slope(y, x, width, align, na.rm = TRUE)
     peak_slope <- peak_directional_slope(y, x, width, align, na.rm = TRUE)
@@ -458,85 +459,56 @@ process_kinetics.peak_slope <- function(
 
 
 #' @keywords internal
-process_names_for_kinetics <- function(
-        x,
-        y,
-        data,
-        x0
-) {
-    if (!is.null(data) & !is.data.frame(data)) {
-        ## data must be a dataframe
-        cli::cli_abort("{.arg data} must be a dataframe")
-
-    } else if (!is.null(data) & is.data.frame(data)) {
-
-        ## deparse(substitute()) works for unquoted
-        x_exp <- substitute(x) ## symbol from unquoted object name of x
-        x_name <- tryCatch(
-            rlang::as_name(x), ## as_name() works for quoted
-            error = \(e) {
-                ## for unquoted "object not found" error:
-                if (grepl("object", e$message)) {
-                    ## deparse() works for unquoted
-                    gsub('^"|"$', '', deparse(x_exp)) ## quoted object name of x
-                }})
-
-        if (x_name %in% names(data)) {
-            x <- data[[x_name]]
-        } else {
-            cli::cli_abort("{.arg x} not found in {.arg data}")
-        }
-
-        if (is.null(y) | missing(y)) {
-            y_exp <- substitute(x) ## symbol from unquoted object name of x
-            y_name <- x_name ## quoted object name of x
-            x_exp <- substitute(index)
+process_names_for_kinetics <- function(y, x, data, x0) {
+    if (is.null(data)) {
+        if (!is.numeric(y)) {
+            cli::cli_abort("{.arg y} must be a {.cls numeric} vector.")
+        } else if (is.null(x)) {
+            x_exp <- substitute(index) ## for x = NULL, name as "index"
             x_name <- "index"
-            y <- x
-            x <- seq_along(y)
-
-            data[[x_name]] <- x
-
-        } else {
-            ## deparse(substitute()) works for unquoted
             y_exp <- substitute(y) ## symbol from unquoted object name of y
-            y_name <- tryCatch(
-                rlang::as_name(y), ## as_name() works for quoted
-                error = \(e) {
-                    ## for unquoted "object not found" error:
-                    if (grepl("object", e$message)) {
-                        ## deparse() works for unquoted
-                        gsub('^"|"$', '', deparse(y_exp)) ## quoted object name of y
-                    }})
-
-            if (y_name %in% names(data)) {
-                y <- data[[y_name]]
-            } else {
-                cli::cli_abort("{.arg y} not found in {.arg data}")
-            }
-        }
-
-        data <- data[c(x_name, y_name)]
-
-    } else if (is.null(data)) {
-        if (is.null(y)) {
-            y_exp <- substitute(x) ## symbol from unquoted object name of x
-            y_name <- deparse(y_exp) ## quoted object name of x
-            x_exp <- substitute(index)
-            x_name <- "index"
-            y <- x
+            y_name <- deparse(y_exp) ## quoted string name of y
             x <- seq_along(y)
+        } else if (!is.numeric(x)) {
+            cli::cli_abort("{.arg x} must be a {.cls numeric} vector.")
         } else {
             x_exp <- substitute(x) ## symbol from unquoted object name of x
-            x_name <- deparse(x_exp) ## quoted object name of x
+            x_name <- deparse(x_exp) ## quoted string name of x
             y_exp <- substitute(y) ## symbol from unquoted object name of y
-            y_name <- deparse(y_exp) ## quoted object name of y
-            x <- x
-            y <- y
+            y_name <- deparse(y_exp) ## quoted string name of y
         }
 
         data <- tibble::tibble(x, y)
         names(data) <- c(x_name, y_name)
+    } else if (!is.data.frame(data)) {
+        ## data must be a dataframe
+        cli::cli_abort("{.arg data} must be a dataframe.")
+    } else if (is.data.frame(data)) {
+        y_exp <- substitute(y) ## symbol from unquoted object name of y
+        y_name <- as_name(y_exp) ## quoted string name of y
+
+        if (y_name %in% names(data)) {
+            y <- data[[y_name]]
+        } else {
+            cli::cli_abort("{.arg y = {y_name}} not found in {.arg data}.")
+        }
+
+        if (is.null(substitute(x))) {
+            x_exp <- substitute(index) ## for x = NULL, name as "index"
+            x_name <- "index"
+            x <- seq_along(y)
+            data[[x_name]] <- x
+            cli::cli_alert_info("{.arg x = {x_name}} added to {.arg data}.")
+        } else if (as_name(substitute(x)) %in% names(data)) {
+            x_exp <- substitute(x) ## symbol from unquoted object name of x
+            x_name <- as_name(x_exp) ## quoted string name of x
+            x <- data[[x_name]]
+        } else {
+            cli::cli_abort(paste("{.arg x = {as_name(substitute(x))}}",
+            "not found in {.arg data}."))
+        }
+
+        data <- data[c(x_name, y_name)]
     }
 
     x <- x - x0

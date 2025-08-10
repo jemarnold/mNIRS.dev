@@ -2,10 +2,11 @@
 #'
 #' Computes the rate of change for a numeric response variable `y`.
 #'
-#' @param y A numeric vector of response values.
-#' @param x A numeric vector of predictor values. If `NULL`, uses `seq_along(y)`.
-#' @param na.rm A logical indicating whether to exclude NA values from rolling slope
-#'  calculations.
+#' @param y A numeric vector of the response variable.
+#' @param x An *optional* numeric vector of the predictor variable.
+#'  If `x = NULL`, uses `x = seq_along(y)`.
+#' @param na.rm A logical indicating whether to exclude NA values from rolling
+#'  slope calculations.
 #'
 #' @return A numeric slope value.
 #'
@@ -54,16 +55,17 @@ slope <- function(
 #' Computes rolling first derivative (slope) of `y` over `x` using least squares
 #' regression within a moving window.
 #'
-#' @param y A numeric vector of response values.
-#' @param x A numeric vector of predictor values. If `NULL`, uses `seq_along(y)`.
+#' @param y A numeric vector of the response variable.
+#' @param x An *optional* numeric vector of the predictor variable.
+#'  If `x = NULL`, uses `x = seq_along(y)`.
 #' @param width A numeric scalar defining the window width (in units of `x`)
 #'  for rolling calculations.
 #' @param align Specifies the window alignment of `width` as *"center"*
 #'  (*the default*), *"left"*, or *"right"*. Where *"left"* is *forward looking*,
 #'  and *"right"* is *backward looking* by the window `width` from the current
 #'  observation.
-#' @param na.rm A logical indicating whether to exclude NA values from rolling slope
-#'  calculations.
+#' @param na.rm A logical indicating whether to exclude NA values from rolling
+#'  slope calculations.
 #'
 #' @details
 #' The function uses the least squares formula:
@@ -167,14 +169,15 @@ rolling_slope <- function(
 #' Computes the peak positive or negative slope for upward or downward trending
 #' data, respectively. Using [rolling slope][rolling_slope()] analysis.
 #'
-#' @param y A numeric vector of response values.
-#' @param x A numeric vector of predictor values. If `NULL`, uses `seq_along(y)`.
+#' @param y A numeric vector of the response variable.
+#' @param x An *optional* numeric vector of the predictor variable.
+#'  If `x = NULL`, uses `x = seq_along(y)`.
 #' @param width A numeric scalar defining the window width (in units of `x`)
 #'  for rolling calculations.
 #' @param align Specifies the window alignment of `width` as *"center"*
 #'  (the default), *"left"*, or *"right"*.
-#' @param na.rm A logical indicating whether to exclude NA values from rolling slope
-#'  calculations.
+#' @param na.rm A logical indicating whether to exclude NA values from rolling
+#'  slope calculations.
 #'
 #' @details
 #' The function first calculates rolling slopes using [rolling_slope()], then

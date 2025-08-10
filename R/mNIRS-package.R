@@ -4,6 +4,7 @@
 ## usethis namespace: start
 #' @importFrom rlang .data
 #' @importFrom rlang :=
+#' @importFrom rlang as_name
 #' @importFrom stats as.formula
 #' @importFrom stats coef
 #' @importFrom stats fitted

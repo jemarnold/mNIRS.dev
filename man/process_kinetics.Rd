@@ -6,11 +6,11 @@
 \alias{process_kinetics.sigmoidal}
 \alias{process_kinetics.half_time}
 \alias{process_kinetics.peak_slope}
-\title{Process Kinetics}
+\title{Fit Kinetics}
 \usage{
 \method{process_kinetics}{monoexponential}(
-  x,
-  y = NULL,
+  y,
+  x = NULL,
   data = NULL,
   x0 = 0,
   method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
@@ -18,8 +18,8 @@
 )
 
 \method{process_kinetics}{sigmoidal}(
-  x,
-  y = NULL,
+  y,
+  x = NULL,
   data = NULL,
   x0 = 0,
   method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
@@ -27,8 +27,8 @@
 )
 
 \method{process_kinetics}{half_time}(
-  x,
-  y = NULL,
+  y,
+  x = NULL,
   data = NULL,
   x0 = 0,
   method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
@@ -36,8 +36,8 @@
 )
 
 \method{process_kinetics}{peak_slope}(
-  x,
-  y = NULL,
+  y,
+  x = NULL,
   data = NULL,
   x0 = 0,
   method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
@@ -45,27 +45,25 @@
 )
 }
 \arguments{
-\item{x}{A numeric vector specifying the predictor variable for \code{y} if \code{y} is
-defined. Otherwise, \code{x} is assumed to define the response variable.}
+\item{y}{A numeric vector of the response variable, or the name of the variable.}
 
-\item{y}{(\emph{Optional}). A numeric vector specifying the response variable. If \code{y}
-is not defined, the response variable is assumed to be defined by \code{x}, with
-\code{idx = seq_along(x)} as the predictor variable.}
+\item{x}{An \emph{optional} numeric vector of the predictor variable, or the name
+of the variable. If \code{x = NULL}, uses \code{x = seq_along(y)}.}
 
-\item{data}{(\emph{Optional}). A dataframe containing at least the response variable
-(\code{x}), or the predictor and response variables (\code{x} and \code{y}).}
+\item{data}{An \emph{optional} dataframe containing the predictor and response
+variables named in \code{x} and \code{y}.}
 
 \item{x0}{A numeric scalar indicating the value of the predictor variable \code{x}
-representing the start of the kinetics event (\emph{default x0 = 0}).}
+representing the start of the kinetics event (\emph{default \code{x0 = 0}}).}
 
-\item{method}{Indicates which model to use to evaluate the kinetics event
-(see \emph{Details} for each model coefficients).
+\item{method}{Indicates which model to evaluate the kinetics event
+(see \emph{Details} for method parametrisation).
 \describe{
 \item{\code{method = "monoexponential"}}{A four-parameter monoexponential
-association function in the form
+association function in the form:
 \code{ifelse(x <= TD, A, A + (B - A) * (1 - exp((TD - x) / tau)))}.}
 \item{\code{method = "sigmoidal"}}{A four-parameter generalised logistic
-(sigmoidal) function in the form
+(sigmoidal) function in the form:
 \code{A + (B - A) / (1 + exp((xmid - x) / scal))}.}
 \item{\code{method = "half_time"}}{A non-parametric estimate of the time
 to recover half of the total reoxygenation amplitude.}
@@ -109,8 +107,8 @@ fixed parameters.}
 \item{\code{call}}{The model call.}
 }
 \description{
-Fit mNIRS vector data with parametric curve fitting or non-parametric estimation
-of mNIRS kinetics.
+Process parametric curve fitting or non-parametric estimation of mNIRS kinetics
+on vector data.
 }
 \details{
 \code{method \%in\% c("monoexponential", "sigmoidal")} use \link[stats:nls]{nls()}
@@ -123,7 +121,7 @@ A <- 10; B <- 100; TD <- 5; tau <- 12
 y <- monoexponential(x, A, B, TD, tau) + rnorm(length(x), 0, 3)
 
 ## monoexponential kinetics ===============================
-model <- process_kinetics(x, y, method = "monoexponential")
+model <- process_kinetics(y, x, method = "monoexponential")
 model
 
 \dontrun{
@@ -144,7 +142,7 @@ plot(model) +
 }
 
 ## sigmoidal kinetics ===============================
-model <- process_kinetics(x, y, method = "sigmoidal")
+model <- process_kinetics(y, x, method = "sigmoidal")
 model
 
 \dontrun{
@@ -165,7 +163,7 @@ plot(model) +
 }
 
 ## half recovery time ===============================
-model <- process_kinetics(x, y, method = "half_time")
+model <- process_kinetics(y, x, method = "half_time")
 model
 
 \dontrun{
@@ -180,7 +178,7 @@ plot(model) +
 }
 
 ## peak slope ===============================
-model <- process_kinetics(x, y, method = "peak_slope", width = 10)
+model <- process_kinetics(y, x, method = "peak_slope", width = 10)
 model
 
 \dontrun{
