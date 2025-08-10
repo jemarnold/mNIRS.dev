@@ -71,17 +71,17 @@ data_list <- prepare_kinetics_data(
 kinetics_model_list <- purrr::pmap(
     tidyr::expand_grid(
         .df = data_list,
-        .nirs = attributes(data_raw)$nirs_columns),
-    \(.df, .nirs)
+        .nirs = attributes(data_raw)$nirs_columns) |>
+        dplyr::mutate(.A = c(-19, 40, -19, 40)),
+    \(.df, .nirs, .A)
     process_kinetics(x = fit_sample_name,
                      y = .nirs,
                      data = .df,
                      method = "monoexp",
-                     width = 10*50)
+                     width = 10*50,
+                     A = .A)
 ) |>
     print()
-
-kinetics_model_list[[1]]$fit_criteria
 
 
 ## coef table =====================================

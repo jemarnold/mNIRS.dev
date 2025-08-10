@@ -22,3 +22,4 @@ coefficients are not modified when optimising for best fit.
 If additional arguments are left blank, or if a coefficient does not exist in
 the model, the model will be returned unchanged.
 }
+\keyword{internal}
