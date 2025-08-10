@@ -472,12 +472,12 @@ server <- function(input, output, session) {
 
         raw_data <- raw_data()
         nirs_columns <- attributes(raw_data)$nirs_columns
-        nirs_columns_list <- setNames(c(1:length(nirs_columns)), nirs_columns)
+        # nirs_columns_list <- setNames(c(1:length(nirs_columns)), nirs_columns)
 
         checkboxGroupInput("kinetics_y",
                            "Select all mNIRS channels that apply",
-                           choices = nirs_columns_list,
-                           selected = 1:length(nirs_columns))
+                           choices = nirs_columns,
+                           selected = nirs_columns)
     })
 
 
@@ -778,7 +778,10 @@ server <- function(input, output, session) {
         nirs_data <- nirs_data()
         kinetics_model_list <- kinetics_model_list()
         sample_column <- attributes(nirs_data)$sample_column
-        nirs_columns <- attributes(nirs_data)$nirs_columns
+        # nirs_columns <- attributes(nirs_data)$nirs_columns
+        # nirs_columns <- intersect(input$kinetics_y,
+        #                           attributes(nirs_data)$nirs_columns)
+        nirs_columns <- input$kinetics_y
         # nirs_fitted <- paste0(nirs_columns, "_fitted")
         fit_sample <- paste0("fit_", sample_column)
 
@@ -845,7 +848,10 @@ server <- function(input, output, session) {
         nirs_data <- nirs_data()
         kinetics_model_list <- kinetics_model_list()
         sample_column <- attributes(nirs_data)$sample_column
-        nirs_columns <- attributes(nirs_data)$nirs_columns
+        # nirs_columns <- attributes(nirs_data)$nirs_columns
+        # nirs_columns <- intersect(input$kinetics_y,
+        #                           attributes(nirs_data)$nirs_columns)
+        nirs_columns <- input$kinetics_y
         nirs_fitted <- paste0(nirs_columns, "_fitted")
         fit_sample <- paste0("fit_", sample_column)
 

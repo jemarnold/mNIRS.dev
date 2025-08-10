@@ -163,9 +163,9 @@ prepare_kinetics_data <- function(
 
     } else {event_label_sample <- NULL}
 
-    event_sample_list <- sort(c(event_index_sample,
-                                event_sample,
-                                event_label_sample))
+    event_sample_list <- sort(unique(c(event_index_sample,
+                                       event_sample,
+                                       event_label_sample)))
 
     fit_window[1] <- -abs(fit_window[1])
     display_window[1] <- -abs(display_window[1])

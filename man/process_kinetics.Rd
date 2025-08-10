@@ -25,7 +25,7 @@ is not defined, the response variable is assumed to be defined by \code{x}, with
 (\code{x}), or the predictor and response variables (\code{x} and \code{y}).}
 
 \item{x0}{A numeric scalar indicating the value of the predictor variable \code{x}
-or \code{idx} representing the start of the kinetics event.}
+or \code{idx} representing the start of the kinetics event (\emph{default x0 = 0}).}
 
 \item{method}{Indicates how to process the kinetics.
 \describe{
