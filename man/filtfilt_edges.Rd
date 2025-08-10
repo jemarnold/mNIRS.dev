@@ -68,8 +68,11 @@ noise <- rnorm(150, mean = 0, sd = 6)
 noisy_sin <- sin + noise
 filt_without_edge <- filtfilt_edges(x = noisy_sin, n = 2, W = 0.1, edges = "none")
 filt_with_edge <- filtfilt_edges(x = noisy_sin, n = 2, W = 0.1, edges = "rep1")
+
+\dontrun{
 plot(noisy_sin, type = "l")
 lines(filt_without_edge, col = "red", lwd = 4)
 lines(filt_with_edge, col = "blue", lwd = 4)
+}
 
 }

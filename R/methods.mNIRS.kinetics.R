@@ -3,7 +3,7 @@
 #' Methods defined for objects returned from [process_kinetics()].
 #'
 #' @param x Object of class `mNIRS.kinetics` returned from [process_kinetics()].
-#' @param ... Additional arguments (see *Value*).
+#' @param ... Additional arguments.
 #'
 #' @name mNIRS.kinetics-methods
 #' @rdname mNIRS.kinetics-methods
@@ -34,11 +34,11 @@ print.mNIRS.kinetics <- function(x, ...) {
         cat("\n\n")
         cat("  Model Coefficients")
         cat("\n")
-        print(round(unlist(x$coefs), 3))
+        print(round(as.data.frame(x$coefs), 3))
         cat("\n")
-        cat("  Fit Criteria")
+        cat("  Model Diagnostics")
         cat("\n")
-        print(round(unlist(x$fit_criteria), 3))
+        print(round(as.data.frame(x$diagnostics), 3))
         cat("\n")
 
     } else if (x$method == "sigmoidal") {
@@ -46,8 +46,8 @@ print.mNIRS.kinetics <- function(x, ...) {
         cat("\n")
         cat("Sigmoidal (Generalised Logistic) Nonlinear nls() Regression")
         cat("\n")
-        cat("  model:        ", names(x$data)[2], " ~ SSlogis(",
-            names(x$data)[1], ", Asym, xmid, scal)", sep = "")
+        cat("  model:        ", names(x$data)[2], " ~ SSfpl(",
+            names(x$data)[1], ", A, B, xmid, scal)", sep = "")
         cat("\n")
         if (!is.null(x$call$data)) {
             cat("  data:        ", x$call$data)
@@ -56,15 +56,15 @@ print.mNIRS.kinetics <- function(x, ...) {
                 ", y = ", names(x$data)[2], ")", sep = "")
         }
         cat("\n")
-        cat("  equation:     y ~ Asym / (1 + exp((xmid - x) / scal))")
+        cat("  equation:     y ~ A + (B - A) / (1 + exp((xmid - x) / scal))")
         cat("\n\n")
         cat("  Model Coefficients")
         cat("\n")
-        print(round(unlist(x$coefs), 3))
+        print(round(as.data.frame(x$coefs), 3))
         cat("\n")
-        cat("  Fit Criteria")
+        cat("  Model Diagnostics")
         cat("\n")
-        print(round(unlist(x$fit_criteria), 3))
+        print(round(as.data.frame(x$diagnostics), 3))
         cat("\n")
 
     } else if (x$method == "half_time") {
@@ -78,10 +78,12 @@ print.mNIRS.kinetics <- function(x, ...) {
             cat("  data:        data.frame(x = ", names(x$data)[1],
                 ", y = ", names(x$data)[2], ")", sep = "")
         }
+        cat("\n")
+        cat("  equation:     half_value ~ A + (B - A) / 2")
         cat("\n\n")
         cat("  Model Coefficients")
         cat("\n")
-        print(round(unlist(x$coefs), 3))
+        print(round(as.data.frame(x$coefs), 3))
         cat("\n")
 
     } else if (x$method == "peak_slope") {
@@ -95,10 +97,12 @@ print.mNIRS.kinetics <- function(x, ...) {
             cat("  data:        data.frame(x = ", names(x$data)[1],
                 ", y = ", names(x$data)[2], ")", sep = "")
         }
+        cat("\n")
+        cat("  equation:     <under development>")
         cat("\n\n")
         cat("  Model Coefficients")
         cat("\n")
-        print(round(unlist(x$coefs), 3))
+        print(round(as.data.frame(x$coefs), 3))
         cat("\n")
 
     } else {
@@ -119,7 +123,7 @@ print.mNIRS.kinetics <- function(x, ...) {
 #' @method plot mNIRS.kinetics
 #' @importFrom ggplot2 ggplot aes waiver expansion scale_x_continuous
 #'  scale_y_continuous scale_colour_manual guides guide_legend geom_line
-#'  geom_point geom_vline
+#'  geom_point geom_segment geom_vline arrow
 #'
 #' @export
 plot.mNIRS.kinetics <- function(x,  ...) {
@@ -155,64 +159,76 @@ plot.mNIRS.kinetics <- function(x,  ...) {
     ggplot(data, aes(x = x)) +
         theme_mNIRS(legend.position = "top") +
         scale_x_continuous(
-            name = deparse(sym(call$x)),
+            name = deparse(rlang::sym(call$x)),
             breaks = if (rlang::is_installed("scales")) {
                 scales::breaks_pretty(n = 8)
-            } else {
-                waiver()
-            },
+            } else {waiver()},
             expand = expansion(mult = 0.01)) +
         scale_y_continuous(
-            name = deparse(sym(call$y)),
+            name = deparse(rlang::sym(call$y)),
             breaks = if (rlang::is_installed("scales")) {
                 scales::breaks_pretty(n = 6)
-            } else {
-                waiver()
-            },
+            } else {waiver()},
             expand = expansion(mult = 0.01)) +
         scale_colour_manual(
             name = NULL,
             values = setNames(c(scales::hue_pal()(1), "black"),
-                              c(deparse(sym(call$y)), "fitted")),
+                              c(deparse(rlang::sym(call$y)), "fitted")),
             limits = force) +
         geom_vline(xintercept = x0, linetype = "dotted") +
-        geom_line(aes(y = y, colour = deparse(sym(call$y)))) +
-        {if (x$method %in% c("monoexponential", "sigmoidal")) {
+        geom_line(aes(y = y, colour = deparse(rlang::sym(call$y)))) +
+        {if (x$method == "monoexponential") {list(
             geom_line(
                 data = data[!is.na(data$fitted),],
-                aes(y = fitted, colour = "fitted"), linewidth = 0.8)
-        }} +
+                aes(y = fitted, colour = "fitted"), linewidth = 0.8),
+            geom_segment(
+                data = tibble::tibble(x = coefs$MRT, y = coefs[[6]]),
+                aes(xend = x, y = y, yend = -Inf),
+                arrow = arrow(), linewidth = 0.8),
+            geom_point(
+                data = tibble::tibble(x = coefs$MRT, y = coefs[[6]]),
+                aes(y = y, colour = "fitted"),
+                size = 4, shape = 21, stroke = 1.2)
+        )}} +
+        {if (x$method == "sigmoidal") {list(
+            geom_line(
+                data = data[!is.na(data$fitted),],
+                aes(y = fitted, colour = "fitted"), linewidth = 0.8),
+            ## TODO 2025-08-10 report xmid_yvalue
+            geom_segment(
+                data = tibble::tibble(x = coefs$xmid, y = coefs[[5]]),
+                aes(xend = x, y = y, yend = -Inf),
+                arrow = arrow(), linewidth = 0.8),
+            geom_point(
+                data = tibble::tibble(x = coefs$xmid, y = coefs[[5]]),
+                aes(y = y, colour = "fitted"),
+                size = 4, shape = 21, stroke = 1.2)
+        )}} +
         {if (x$method == "half_time") {list(
-            annotate( ## horizontal
-                geom = "segment",
-                x = coefs$A_sample + x0, xend = coefs$B_sample + x0,
-                y = coefs$A, yend = coefs$A,
-                linewidth = 0.8, linetype = "dashed"),
-            annotate( ## vertical
-                geom = "segment",
-                x = coefs$B_sample + x0, xend = coefs$B_sample + x0,
-                y = coefs$A, yend = coefs$B,
-                linewidth = 0.8, linetype = "dashed"),
-            annotate( ## half-horizontal
-                geom = "segment",
-                x = coefs$half_sample + x0, xend = coefs$B_sample + x0,
-                y = coefs$half_value, yend = coefs$half_value,
-                linewidth = 0.8, linetype = "dashed"),
-            annotate(
-                geom = "segment", aes(colour = "fitted"),
-                x = coefs$half_sample + x0, xend = coefs$half_sample + x0,
-                y = coefs$half_value, yend = -Inf,
+            # annotate( ## horizontal
+            #     geom = "segment",
+            #     x = coefs[[1]] + x0, xend = coefs[[3]] + x0,
+            #     y = coefs[[2]], yend = coefs[[2]],
+            #     linewidth = 0.8, linetype = "dashed"),
+            # annotate( ## vertical
+            #     geom = "segment",
+            #     x = coefs[[3]] + x0, xend = coefs[[3]] + x0,
+            #     y = coefs[[2]], yend = coefs[[4]],
+            #     linewidth = 0.8, linetype = "dashed"),
+            # annotate( ## half-horizontal
+            #     geom = "segment",
+            #     x = coefs[[5]] + x0, xend = coefs[[3]] + x0,
+            #     y = coefs$half_value, yend = coefs$half_value,
+            #     linewidth = 0.8, linetype = "dashed"),
+            geom_segment(
+                data = tibble::tibble(x = coefs[[5]] + x0, y = coefs[[7]]),
+                aes(xend = x, y = y, yend = -Inf),
                 arrow = arrow(), linewidth = 0.8),
             geom_point(
                 data = tibble::tibble(
-                    x = c(coefs$A_sample,
-                          coefs$B_sample,
-                          coefs$half_sample,
-                          coefs$half_sample) + x0,
-                    y = c(coefs$A, coefs$B,
-                          coefs$half_value,
-                          coefs$nirs_value)),
-                aes(x = x, y = y, colour = "fitted"),
+                    x = c(coefs[[1]], coefs[[3]], coefs[[5]]) + x0,
+                    y = c(coefs[[2]], coefs[[4]], coefs[[7]])),
+                aes(y = y, colour = "fitted"),
                 size = 3, shape = 21, stroke = 1)
         )}} +
         {if (x$method == "peak_slope") {list(
@@ -221,15 +237,15 @@ plot.mNIRS.kinetics <- function(x,  ...) {
                 aes(y = fitted, colour = "fitted"), linewidth = 0.8),
             geom_segment(
                 data = tibble::tibble(
-                    x = coefs$sample + x0,
+                    x = coefs[[1]] + x0,
                     y = data$fitted[data$x %in% x]),
-                aes(x = x, xend = x, y = y, yend = -Inf),
+                aes(xend = x, y = y, yend = -Inf),
                 arrow = arrow(), linewidth = 0.8),
             geom_point(
                 data = tibble::tibble(
-                    x = coefs$sample + x0,
+                    x = coefs[[1]] + x0,
                     y = data$fitted[data$x %in% x]),
-                aes(x = x, y = y, colour = "fitted"),
+                aes(y = y, colour = "fitted"),
                 size = 3, shape = 21, stroke = 1)
         )}} +
         NULL

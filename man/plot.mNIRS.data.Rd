@@ -4,20 +4,22 @@
 \alias{plot.mNIRS.data}
 \title{Plot mNIRS.data objects}
 \usage{
-\method{plot}{mNIRS.data}(data, na.omit = FALSE, ...)
+\method{plot}{mNIRS.data}(x, ...)
 }
 \arguments{
-\item{data}{Object of class \code{mNIRS.data} as returned from \code{\link[=create_mNIRS.data]{create_mNIRS.data()}}}
+\item{x}{Object of class \code{mNIRS.data} as returned from \code{\link[=create_mNIRS_data]{create_mNIRS_data()}}}
 
-\item{na.omit}{A logical indicating whether missing data (\code{NA}) should be omitted
-(\code{TRUE}) for better display of disconnected lines, or included (\code{FALSE}, the
-default) to better recognise where data are missing.}
-
-\item{...}{Additional arguments (\emph{currently not used}).}
+\item{...}{Additional arguments,
+\describe{
+\item{\code{na.omit = FALSE}}{A logical indicating whether missing data (\code{NA})
+should be omitted (\code{TRUE}) for better display of disconnected lines,
+or included (\code{FALSE}, \emph{the default}) to better recognise where data
+are missing.}
+}}
 }
 \value{
 A \link[ggplot2:ggplot]{ggplot2} object.
 }
 \description{
-Create a simple plot for objects returned from \code{\link[=create_mNIRS.data]{create_mNIRS.data()}}.
+Create a simple plot for objects returned from \code{\link[=create_mNIRS_data]{create_mNIRS_data()}}.
 }

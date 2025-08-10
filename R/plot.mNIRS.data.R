@@ -1,12 +1,15 @@
 #' Plot mNIRS.data objects
 #'
-#' Create a simple plot for objects returned from [create_mNIRS.data()].
+#' Create a simple plot for objects returned from [create_mNIRS_data()].
 #'
-#' @param data Object of class `mNIRS.data` as returned from [create_mNIRS.data()]
-#' @param na.omit A logical indicating whether missing data (`NA`) should be omitted
-#' (`TRUE`) for better display of disconnected lines, or included (`FALSE`, the
-#' default) to better recognise where data are missing.
-#' @param ... Additional arguments (*currently not used*).
+#' @param x Object of class `mNIRS.data` as returned from [create_mNIRS_data()]
+#' @param ... Additional arguments,
+#'  \describe{
+#'      \item{`na.omit = FALSE`}{A logical indicating whether missing data (`NA`)
+#'          should be omitted (`TRUE`) for better display of disconnected lines,
+#'          or included (`FALSE`, *the default*) to better recognise where data
+#'          are missing.}
+#'  }
 #'
 #' @return A [ggplot2][ggplot2::ggplot()] object.
 #'
@@ -14,19 +17,21 @@
 #'  scale_y_continuous geom_line geom_point
 #'
 #' @export
-plot.mNIRS.data <- function(data, na.omit = FALSE, ...) {
+plot.mNIRS.data <- function(x, ...) {
 
-    # if (!requireNamespace("ggplot2", quietly = TRUE)) {
-    #     cli::cli_abort(paste(
-    #         "Package {.pkg ggplot2} is required for plotting.",
-    #         "Please install it."))
-    # }
     rlang::check_installed("ggplot2", reason = "to plot mNIRS data")
 
-    nirs_columns <- attributes(data)$nirs_columns
-    sample_column <- attributes(data)$sample_column
+    args <- list(...)
+    if ("na.omit" %in% names(args)) {
+        na.omit <- args$na.omit
+    } else {
+        na.omit <- FALSE
+    }
 
-    plot <- data |>
+    nirs_columns <- attributes(x)$nirs_columns
+    sample_column <- attributes(x)$sample_column
+
+    plot <- x |>
         ## pivot all `nirs_columns` to `y` and plot by group
         tidyr::pivot_longer(
             cols = tidyselect::all_of(nirs_columns),
@@ -42,17 +47,13 @@ plot.mNIRS.data <- function(data, na.omit = FALSE, ...) {
             # name = sample_column,
             breaks = if (rlang::is_installed("scales")) {
                 scales::breaks_pretty(n = 6)
-            } else {
-                waiver()
-            },
+            } else {waiver()},
             expand = expansion(mult = 0.01)) +
         scale_y_continuous(
             name = "mNIRS Signals",
             breaks = if (rlang::is_installed("scales")) {
                 scales::breaks_pretty(n = 6)
-            } else {
-                waiver()
-            },
+            } else {waiver()},
             expand = expansion(mult = 0.01)) +
         geom_line()
 

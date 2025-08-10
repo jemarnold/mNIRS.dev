@@ -1,7 +1,7 @@
 #' Process Kinetics
 #'
-#' Fit mNIRS kinetics vector data with a parametric or non-parametric curve fitting
-#' model.
+#' Fit mNIRS vector data with parametric curve fitting or non-parametric estimation
+#' of mNIRS kinetics.
 #'
 #' @param x A numeric vector specifying the predictor variable for `y` if `y` is
 #'  defined. Otherwise, `x` is assumed to define the response variable.
@@ -11,33 +11,141 @@
 #' @param data (*Optional*). A dataframe containing at least the response variable
 #'  (`x`), or the predictor and response variables (`x` and `y`).
 #' @param x0 A numeric scalar indicating the value of the predictor variable `x`
-#'  or `idx` representing the start of the kinetics event (*default x0 = 0*).
-#' @param method Indicates how to process the kinetics.
+#'  representing the start of the kinetics event (*default x0 = 0*).
+#' @param method Indicates which model to use to evaluate the kinetics event
+#'  (see *Details* for each model coefficients).
 #'  \describe{
-#'      \item{`method = "monoexponential"`}{...}
-#'      \item{`method = "sigmoidal"`}{...}
-#'      \item{`method = "half_time"`}{...}
-#'      \item{`method = "peak_slope"`}{...}
+#'      \item{`method = "monoexponential"`}{A four-parameter monoexponential
+#'          association function in the form
+#'          `ifelse(x <= TD, A, A + (B - A) * (1 - exp((TD - x) / tau)))`.}
+#'      \item{`method = "sigmoidal"`}{A four-parameter generalised logistic
+#'          (sigmoidal) function in the form
+#'          `A + (B - A) / (1 + exp((xmid - x) / scal))`.}
+#'      \item{`method = "half_time"`}{A non-parametric estimate of the time
+#'          to recover half of the total reoxygenation amplitude.}
+#'      \item{`method = "peak_slope"`}{A non-parametric estimate of the time
+#'          to reach the peak rolling linear regression slope within a window
+#'          defined by `width`.}
 #'  }
-#' @param ... Additional arguments. Used to define fixed parameters which will
-#'  not be optimised by the kinetics methods. e.g. `A = 10` will define
-#'  `SSmonoexp(x, A = 10, B, TD, tau)`
+#' @param ... Additional arguments.
+#'  \describe{
+#'      \item{`width`}{A numeric scalar defining the window width (in units of
+#'          the predictor variable `x`) for rolling slope calculations (only used
+#'          for `method =` *`"peak_slope"`*).}
+#'      \item{`align = c(`*`"center", "left", "right"`*`)`}{Specifies the window
+#'          alignment of `width` as *"center"* (*the default*), *"left"*,
+#'          or *"right"*. Where *"left"* is *forward looking*, and *"right"*
+#'          is *backward looking* by the window `width` from the current
+#'          observation (only used for `method =` *`"peak_slope"`*).}
+#'      \item{*fixed parameters*}{Parameters (coefficients) of the parametric
+#'          models (*"monoexponential"* and *"sigmoidal"*) can be defined
+#'          a priori and fixed, to exclude them from the model fitting
+#'          optimisation. e.g., `A = 10` will define the function
+#'          `SSmonoexp(x, A = 10, B, TD, tau)`.}
+#'  }
 #'
 #' @details
 #' `method %in% c("monoexponential", "sigmoidal")` use [nls()][stats::nls()]
 #' for nonlinear (weighted) least-squares estimates.
 #'
-#' @seealso [stats::nls()], [stats::SSasymp()], [stats::SSlogis()],
+#' @seealso [stats::nls()], [stats::SSasymp()], [stats::SSfpl()],
 #'
 #' @return A list `L` of class `mNIRS.kinetics` with components `L$...`:
+#'      \item{`method`}{The kinetics method used.}
 #'      \item{`model`}{The model object.}
-#'      \item{`data`}{A dataframe of input and fitted model data.}
+#'      \item{`model_equation`}{The equation of the kinetics model used.}
+#'      \item{`data`}{A dataframe of original and fitted model data.}
 #'      \item{`fitted`}{A vector of fitted values returned by the model.}
-#'      \item{`coefs`}{A vector of model coefficients, including manually
+#'      \item{`residuals`}{A vector of residuals between original and fitted
+#'          values returned by the model.}
+#'      \item{`x0`}{The value of the predictor variable indicating the start of
+#'          kinetics.}
+#'      \item{`coefs`}{A dataframe of model coefficients, including manually
 #'      fixed parameters.}
-#'      \item{`fit_criteria`}{A vector of model fit criteria
-#'      (`AIC`, `BIC`, `R2`, `RMSE`, `RSE`, `MAE`, `MAPE`).}
+#'      \item{`diagnostics`}{A dataframe of model goodness-of-fit metrics
+#'      (`AIC`, `BIC`, `R2`, `RMSE`, `RSE`, `SNR`, `MAE`, `MAPE`).}
+#'      \item{`call`}{The model call.}
 #'
+#' @examples
+#' set.seed(13)
+#' x <- seq(-10, 60, by = 2)
+#' A <- 10; B <- 100; TD <- 5; tau <- 12
+#' y <- monoexponential(x, A, B, TD, tau) + rnorm(length(x), 0, 3)
+#'
+#' ## monoexponential kinetics ===============================
+#' model <- process_kinetics(x, y, method = "monoexponential")
+#' model
+#'
+#' \dontrun{
+#' ## add coefs & diagnostics text
+#' coef_text <- paste(names(model$coefs), round(model$coefs, 1),
+#'                    sep = " = ", collapse = "\n")
+#' diag_text <- paste(names(model$diagnostics), round(model$diagnostics, 2),
+#'                    sep = " = ", collapse = "\n")
+#'
+#' ## require(ggplot2)
+#' plot(model) +
+#'     ggplot2::geom_hline(yintercept = 0, linetype = "dotted") +
+#'     ggplot2::geom_line(ggplot2::aes(y = model$residuals)) +
+#'     ggplot2::annotate("text", x = 2, y = 100,
+#'                       label = coef_text, size = 4, hjust = 0, vjust = 1) +
+#'     ggplot2::annotate("text", x = 58, y = 0,
+#'                       label = diag_text, size = 4, hjust = 1, vjust = -0.3)
+#' }
+#'
+#' ## sigmoidal kinetics ===============================
+#' model <- process_kinetics(x, y, method = "sigmoidal")
+#' model
+#'
+#' \dontrun{
+#' ## add coefs & diagnostics text
+#' coef_text <- paste(names(model$coefs), round(model$coefs, 1),
+#'                    sep = " = ", collapse = "\n")
+#' diag_text <- paste(names(model$diagnostics), round(model$diagnostics, 2),
+#'                    sep = " = ", collapse = "\n")
+#'
+#' ## require(ggplot2)
+#' plot(model) +
+#'     ggplot2::geom_hline(yintercept = 0, linetype = "dotted") +
+#'     ggplot2::geom_line(ggplot2::aes(y = model$residuals)) +
+#'     ggplot2::annotate("text", x = 2, y = 100,
+#'                       label = coef_text, size = 4, hjust = 0, vjust = 1) +
+#'     ggplot2::annotate("text", x = 58, y = 0,
+#'                       label = diag_text, size = 4, hjust = 1, vjust = -0.3)
+#' }
+#'
+#' ## half recovery time ===============================
+#' model <- process_kinetics(x, y, method = "half_time")
+#' model
+#'
+#' \dontrun{
+#' ## add coefs & diagnostics text
+#' coef_text <- paste(names(model$coefs), round(model$coefs, 1),
+#'                    sep = " = ", collapse = "\n")
+#'
+#' ## require(ggplot2)
+#' plot(model) +
+#'     ggplot2::annotate("text", x = 2, y = 100,
+#'                       label = coef_text, size = 4, hjust = 0, vjust = 1)
+#' }
+#'
+#' ## peak slope ===============================
+#' model <- process_kinetics(x, y, method = "peak_slope", width = 10)
+#' model
+#'
+#' \dontrun{
+#' ## add coefs & diagnostics text
+#' coef_text <- paste(names(model$coefs), round(model$coefs, 1),
+#'                    sep = " = ", collapse = "\n")
+#'
+#' ## require(ggplot2)
+#' plot(model) +
+#'     ggplot2::annotate("text", x = 2, y = 100,
+#'                       label = coef_text, size = 4, hjust = 0, vjust = 1)
+#' }
+#'
+#' @usage NULL
+#' @rdname process_kinetics
 #' @export
 process_kinetics <- function(
         x,
@@ -57,16 +165,13 @@ process_kinetics <- function(
     UseMethod("process_kinetics", x_name)
 }
 
-
-
-
-## DONE TODO fix sigmoidal (custom self-start function?)
 ## TODO 2025-07-19 fix fitted models up to first peak with no greater peaks within X samples
 ## TODO 2025-07-19 fix half-time to use neighbouring median around peak value B
-## TODO 2025-08-10 width in units of x
-## DONE TODO 2025-08-10 pre-process function for x/y_exp, _name
-## DONE TODO 2025-08-10 export tibbles instead of named vectors
 
+
+
+
+#' @rdname process_kinetics
 #' @export
 process_kinetics.monoexponential <- function(
         x,
@@ -98,7 +203,7 @@ process_kinetics.monoexponential <- function(
                 ", A, B, TD, tau)) : ", e$message, "\n", sep = "")
             NA})
 
-    ## process coefs, fit_criteria, fitted
+    ## process coefs, diagnostics, fitted
     model_output <- process_model(model)
     data[[fitted_name]] <- model_output$fitted
     ## include explicitly defined coefs
@@ -109,7 +214,7 @@ process_kinetics.monoexponential <- function(
     ## calculate MRT
     coefs$MRT <- coefs$TD + coefs$tau
     ## predict value for y at MRT x value
-    coefs[[paste0(y_name, "_MRT")]] <- predict(model, tibble::tibble(x = coefs$MRT))
+    coefs[[paste0("MRT_", y_name)]] <- predict(model, tibble::tibble(x = coefs$MRT))
 
     ## save call
     return_call <- match.call()
@@ -123,9 +228,10 @@ process_kinetics.monoexponential <- function(
             model_equation = model_equation,
             data = data,
             fitted = model_output$fitted,
+            residuals = model_output$residuals,
             x0 = x0,
             coefs = coefs,
-            fit_criteria = model_output$fit_criteria,
+            diagnostics = model_output$diagnostics,
             call = return_call),
         class = "mNIRS.kinetics")
 
@@ -135,7 +241,7 @@ process_kinetics.monoexponential <- function(
 
 
 
-
+#' @rdname process_kinetics
 #' @export
 process_kinetics.sigmoidal <- function(
         x,
@@ -158,27 +264,29 @@ process_kinetics.sigmoidal <- function(
 
     ## create the model and update for any fixed coefs
     model <- tryCatch(
-        nls(y ~ stats::SSlogis(x, Asym, xmid, scal),
+        nls(y ~ stats::SSfpl(x, A, B, xmid, scal),
             data = df,
             na.action = na.exclude) |>
             update_fixed_coefs(...),
         error = function(e) {
-            cat("Error in nls(", y_exp, " ~ SSlogis(", x_exp,
-                ", Asym, xmid, scal)) : ", e$message, "\n", sep = "")
+            cat("Error in nls(", y_exp, " ~ SSfpl(", x_exp,
+                ", A, B, xmid, scal)) : ", e$message, "\n", sep = "")
             NA})
 
-    ## process coefs, fit_criteria, fitted
+    ## process coefs, diagnostics, fitted
     model_output <- process_model(model)
     data[[fitted_name]] <- model_output$fitted
     ## include explicitly defined coefs
     coefs <- c(..., model_output$coefs)
-    coefs <- coefs[match(c("Asym", "xmid", "scal"), names(coefs))]
+    coefs <- coefs[match(c("A", "B", "xmid", "scal"), names(coefs))]
     ## convert named vector to dataframe
     coefs <- tibble::as_tibble(as.list(coefs))
+    ## predict value for y at xmid
+    coefs[[paste0("xmid_", y_name)]] <- predict(model, tibble::tibble(x = coefs$xmid))
 
     ## save call
     return_call <- match.call()
-    model_equation <- as.formula(y ~ Asym / (1 + exp((xmid - x) / scal)))
+    model_equation <- as.formula(y ~ A + (B - A) / (1 + exp((xmid - x) / scal)))
     # return_call$model_equation <- list(call = list(formula = model_equation))
 
     out <- structure(
@@ -188,9 +296,10 @@ process_kinetics.sigmoidal <- function(
             model_equation = model_equation,
             data = data,
             fitted = model_output$fitted,
+            residuals = model_output$residuals,
             x0 = x0,
             coefs = coefs,
-            fit_criteria = model_output$fit_criteria,
+            diagnostics = model_output$diagnostics,
             call = return_call),
         class = "mNIRS.kinetics")
 
@@ -200,7 +309,7 @@ process_kinetics.sigmoidal <- function(
 
 
 
-
+#' @rdname process_kinetics
 #' @export
 process_kinetics.half_time <- function(
         x,
@@ -274,18 +383,29 @@ process_kinetics.half_time <- function(
 
 
 
-
+#' @rdname process_kinetics
 #' @export
 process_kinetics.peak_slope <- function(
         x,
         y = NULL,
         data = NULL,
         x0 = 0,
-        width,
-        align = c("center", "left", "right"),
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         ...
 ) {
+    args <- list(...)
+
+    if ("width" %in% names(args)) {
+        width <- args$width
+    }
+
+    align_choices <- c("center", "left", "right")
+    if ("align" %in% names(args)) {
+        align <- match.arg(args$align, choices = align_choices)
+    } else {
+        align <- match.arg("center", choices = align_choices)
+    }
+
     intake <- process_names_for_kinetics(x = x, y = y, data = data, x0 = x0)
     data <- intake$data
     df <- intake$df
@@ -295,19 +415,17 @@ process_kinetics.peak_slope <- function(
     y <- intake$y
     y_exp <- intake$y_exp
     y_name <- intake$y_name
-
     fitted_name <- paste0(y_name, "_fitted")
 
-    align <- match.arg(align)
     slopes <- rolling_slope(y, x, width, align, na.rm = TRUE)
-    peak_slope_model <- peak_directional_slope(y, x, width, align, na.rm = TRUE)
+    peak_slope <- peak_directional_slope(y, x, width, align, na.rm = TRUE)
 
     data[[fitted_name]] <- NA_real_
-    data[[fitted_name]][x %in% peak_slope_model$x_fitted] <- peak_slope_model$y_fitted
-    coefs <- c(peak_slope_model$x[1],
-               y[x %in% peak_slope_model$x][1],
-               data[[fitted_name]][x %in% peak_slope_model$x][1],
-               peak_slope_model$slope)
+    data[[fitted_name]][x %in% peak_slope$x_fitted] <- peak_slope$y_fitted
+    coefs <- c(peak_slope$x[1],
+               y[x %in% peak_slope$x][1],
+               data[[fitted_name]][x %in% peak_slope$x][1],
+               peak_slope$slope)
     names(coefs) <- c(x_name, y_name, fitted_name, "peak_slope")
     coefs <- tibble::as_tibble(as.list(coefs))
 
@@ -444,28 +562,32 @@ process_model <- function(
 ) {
     if (is.na(model[1])) {
         fitted <- NA_real_
+        residuals <- NA_real_
         coefs <- tibble::tibble(A = NA_real_, B = NA_real_, TD = NA_real_,
                                 tau = NA_real_, MRT = NA_real_,
-                                Asym = NA_real_, xmid = NA_real_, scal = NA_real_)
-        fit_criteria <- tibble::tibble(
+                                xmid = NA_real_, scal = NA_real_)
+        diagnostics <- tibble::tibble(
             AIC = NA_real_, BIC = NA_real_, R2 = NA_real_, RMSE = NA_real_,
             RSE = NA_real_, MAE = NA_real_, MAPE = NA_real_)
     } else {
         y <- model$m$getEnv()$y
         fitted <- as.vector(fitted(model))
+        residuals <- as.vector(residuals(model))
         coefs <- coef(model)
-        fit_criteria <- tibble::tibble(
+        diagnostics <- tibble::tibble(
             AIC = stats::AIC(model),
             BIC = stats::BIC(model),
             R2 = 1 - sum((y - fitted)^2)/sum((y - mean(y, na.rm = TRUE))^2),
             RMSE = sqrt(mean(summary(model)$residuals^2)),
             RSE = summary(model)$sigma,
+            SNR = diff(range(fitted, na.rm = TRUE)) / RSE,
             MAE = mean(abs(summary(model)$residuals)),
             MAPE = mean(abs(summary(model)$residuals/y)) * 100)
     }
 
     return(list(
         fitted = fitted,
+        residuals = residuals,
         coefs = coefs,
-        fit_criteria = fit_criteria))
+        diagnostics = diagnostics))
 }

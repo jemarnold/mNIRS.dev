@@ -13,6 +13,7 @@ Useful links:
 \itemize{
   \item \url{https://github.com/jemarnold/mNIRS}
   \item \url{https://jemarnold.github.io/mNIRS/}
+  \item \url{https://jemarnold.github.io/mNIRS.dev/}
   \item Report bugs at \url{https://github.com/jemarnold/mNIRS/issues}
 }
 

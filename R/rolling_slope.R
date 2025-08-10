@@ -59,8 +59,8 @@ slope <- function(
 #' @param width A numeric scalar defining the window width (in units of `x`)
 #'  for rolling calculations.
 #' @param align Specifies the window alignment of `width` as *"center"*
-#'  (the default), *"left"*, or *"right"*. Where *"left"* is *forward looking*, and
-#'  *"right"* is *backward looking* by the window `width` from the current
+#'  (*the default*), *"left"*, or *"right"*. Where *"left"* is *forward looking*,
+#'  and *"right"* is *backward looking* by the window `width` from the current
 #'  observation.
 #' @param na.rm A logical indicating whether to exclude NA values from rolling slope
 #'  calculations.

@@ -7,22 +7,26 @@
 monoexponential(x, A, B, TD, tau)
 }
 \arguments{
-\item{x}{A numeric vector for the predictor variable at which to calculate
-the response variable.}
+\item{x}{A numeric predictor variable at which to evaluate the response
+variable \code{y}.}
 
-\item{A}{A numeric parameter for the starting baseline value.}
+\item{A}{A numeric parameter for the starting (baseline) value of the response
+variable \code{y}.}
 
-\item{B}{A numeric parameter for the ending asymptote value.}
+\item{B}{A numeric parameter for the ending (asymptote) value of the response
+variable \code{y}.}
 
-\item{TD}{A numeric parameter for the time delay in the units of \code{x}
-before inflection.}
+\item{TD}{A numeric parameter for the time delay before exponential inflection
+of the curve, in units of the predictor variable \code{x}.}
 
-\item{tau}{A numeric parameter for the time constant of the exponential
-inflection in the units of \code{x}. The time constant \verb{tau (𝜏)} is equal
-to \code{1/k}, where \code{k} is the rate constant of the same monoexponential curve.}
+\item{tau}{A numeric parameter for the time constant \verb{tau (𝜏)} of the
+exponential curve, in units of the predictor variable \code{x}. \code{tau} is equal to
+the reciprocal of \code{k} (\code{tau = 1/k}), where \code{k} is the rate constant of the
+same function.}
 }
 \value{
-A numeric vector of fitted values from a monoexponential function.
+A numeric vector for the response variabel \code{y} of the same length as
+the predictor variable \code{x} returned from the monoexponential function.
 }
 \description{
 Calculate a four-parameter monoexponential curve.
@@ -41,9 +45,11 @@ model <- nls(y ~ SSmonoexp(x, A, B, TD, tau), data = data)
 model
 fitted <- fitted(model)
 
+\dontrun{
 plot(x, y)
 lines(x, y)
 points(x, y)
 lines(x, fitted, col = "red")
+}
 
 }

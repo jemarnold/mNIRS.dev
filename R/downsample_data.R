@@ -174,7 +174,7 @@ downsample_data <- function(
     metadata$sample_column <- unlist(sample_column)
     metadata$sample_rate <- downsample_rate
 
-    y <- create_mNIRS.data(y, metadata)
+    y <- create_mNIRS_data(y, metadata)
 
     return(y)
 }

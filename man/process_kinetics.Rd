@@ -2,9 +2,40 @@
 % Please edit documentation in R/process_kinetics.R
 \name{process_kinetics}
 \alias{process_kinetics}
+\alias{process_kinetics.monoexponential}
+\alias{process_kinetics.sigmoidal}
+\alias{process_kinetics.half_time}
+\alias{process_kinetics.peak_slope}
 \title{Process Kinetics}
 \usage{
-process_kinetics(
+\method{process_kinetics}{monoexponential}(
+  x,
+  y = NULL,
+  data = NULL,
+  x0 = 0,
+  method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
+  ...
+)
+
+\method{process_kinetics}{sigmoidal}(
+  x,
+  y = NULL,
+  data = NULL,
+  x0 = 0,
+  method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
+  ...
+)
+
+\method{process_kinetics}{half_time}(
+  x,
+  y = NULL,
+  data = NULL,
+  x0 = 0,
+  method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
+  ...
+)
+
+\method{process_kinetics}{peak_slope}(
   x,
   y = NULL,
   data = NULL,
@@ -25,38 +56,145 @@ is not defined, the response variable is assumed to be defined by \code{x}, with
 (\code{x}), or the predictor and response variables (\code{x} and \code{y}).}
 
 \item{x0}{A numeric scalar indicating the value of the predictor variable \code{x}
-or \code{idx} representing the start of the kinetics event (\emph{default x0 = 0}).}
+representing the start of the kinetics event (\emph{default x0 = 0}).}
 
-\item{method}{Indicates how to process the kinetics.
+\item{method}{Indicates which model to use to evaluate the kinetics event
+(see \emph{Details} for each model coefficients).
 \describe{
-\item{\code{method = "monoexponential"}}{...}
-\item{\code{method = "sigmoidal"}}{...}
-\item{\code{method = "half_time"}}{...}
-\item{\code{method = "peak_slope"}}{...}
+\item{\code{method = "monoexponential"}}{A four-parameter monoexponential
+association function in the form
+\code{ifelse(x <= TD, A, A + (B - A) * (1 - exp((TD - x) / tau)))}.}
+\item{\code{method = "sigmoidal"}}{A four-parameter generalised logistic
+(sigmoidal) function in the form
+\code{A + (B - A) / (1 + exp((xmid - x) / scal))}.}
+\item{\code{method = "half_time"}}{A non-parametric estimate of the time
+to recover half of the total reoxygenation amplitude.}
+\item{\code{method = "peak_slope"}}{A non-parametric estimate of the time
+to reach the peak rolling linear regression slope within a window
+defined by \code{width}.}
 }}
 
-\item{...}{Additional arguments. Used to define fixed parameters which will
-not be optimised by the kinetics methods. e.g. \code{A = 10} will define
-\code{SSmonoexp(x, A = 10, B, TD, tau)}}
+\item{...}{Additional arguments.
+\describe{
+\item{\code{width}}{A numeric scalar defining the window width (in units of
+the predictor variable \code{x}) for rolling slope calculations (only used
+for \verb{method =} \emph{\code{"peak_slope"}}).}
+\item{\verb{align = c(}\emph{\verb{"center", "left", "right"}}\verb{)}}{Specifies the window
+alignment of \code{width} as \emph{"center"} (\emph{the default}), \emph{"left"},
+or \emph{"right"}. Where \emph{"left"} is \emph{forward looking}, and \emph{"right"}
+is \emph{backward looking} by the window \code{width} from the current
+observation (only used for \verb{method =} \emph{\code{"peak_slope"}}).}
+\item{\emph{fixed parameters}}{Parameters (coefficients) of the parametric
+models (\emph{"monoexponential"} and \emph{"sigmoidal"}) can be defined
+a priori and fixed, to exclude them from the model fitting
+optimisation. e.g., \code{A = 10} will define the function
+\code{SSmonoexp(x, A = 10, B, TD, tau)}.}
+}}
 }
 \value{
 A list \code{L} of class \code{mNIRS.kinetics} with components \code{L$...}:
+\item{\code{method}}{The kinetics method used.}
 \item{\code{model}}{The model object.}
-\item{\code{data}}{A dataframe of input and fitted model data.}
+\item{\code{model_equation}}{The equation of the kinetics model used.}
+\item{\code{data}}{A dataframe of original and fitted model data.}
 \item{\code{fitted}}{A vector of fitted values returned by the model.}
-\item{\code{coefs}}{A vector of model coefficients, including manually
+\item{\code{residuals}}{A vector of residuals between original and fitted
+values returned by the model.}
+\item{\code{x0}}{The value of the predictor variable indicating the start of
+kinetics.}
+\item{\code{coefs}}{A dataframe of model coefficients, including manually
 fixed parameters.}
-\item{\code{fit_criteria}}{A vector of model fit criteria
-(\code{AIC}, \code{BIC}, \code{R2}, \code{RMSE}, \code{RSE}, \code{MAE}, \code{MAPE}).}
+\item{\code{diagnostics}}{A dataframe of model goodness-of-fit metrics
+(\code{AIC}, \code{BIC}, \code{R2}, \code{RMSE}, \code{RSE}, \code{SNR}, \code{MAE}, \code{MAPE}).}
+\item{\code{call}}{The model call.}
 }
 \description{
-Fit mNIRS kinetics vector data with a parametric or non-parametric curve fitting
-model.
+Fit mNIRS vector data with parametric curve fitting or non-parametric estimation
+of mNIRS kinetics.
 }
 \details{
 \code{method \%in\% c("monoexponential", "sigmoidal")} use \link[stats:nls]{nls()}
 for nonlinear (weighted) least-squares estimates.
 }
+\examples{
+set.seed(13)
+x <- seq(-10, 60, by = 2)
+A <- 10; B <- 100; TD <- 5; tau <- 12
+y <- monoexponential(x, A, B, TD, tau) + rnorm(length(x), 0, 3)
+
+## monoexponential kinetics ===============================
+model <- process_kinetics(x, y, method = "monoexponential")
+model
+
+\dontrun{
+## add coefs & diagnostics text
+coef_text <- paste(names(model$coefs), round(model$coefs, 1),
+                   sep = " = ", collapse = "\n")
+diag_text <- paste(names(model$diagnostics), round(model$diagnostics, 2),
+                   sep = " = ", collapse = "\n")
+
+## require(ggplot2)
+plot(model) +
+    ggplot2::geom_hline(yintercept = 0, linetype = "dotted") +
+    ggplot2::geom_line(ggplot2::aes(y = model$residuals)) +
+    ggplot2::annotate("text", x = 2, y = 100,
+                      label = coef_text, size = 4, hjust = 0, vjust = 1) +
+    ggplot2::annotate("text", x = 58, y = 0,
+                      label = diag_text, size = 4, hjust = 1, vjust = -0.3)
+}
+
+## sigmoidal kinetics ===============================
+model <- process_kinetics(x, y, method = "sigmoidal")
+model
+
+\dontrun{
+## add coefs & diagnostics text
+coef_text <- paste(names(model$coefs), round(model$coefs, 1),
+                   sep = " = ", collapse = "\n")
+diag_text <- paste(names(model$diagnostics), round(model$diagnostics, 2),
+                   sep = " = ", collapse = "\n")
+
+## require(ggplot2)
+plot(model) +
+    ggplot2::geom_hline(yintercept = 0, linetype = "dotted") +
+    ggplot2::geom_line(ggplot2::aes(y = model$residuals)) +
+    ggplot2::annotate("text", x = 2, y = 100,
+                      label = coef_text, size = 4, hjust = 0, vjust = 1) +
+    ggplot2::annotate("text", x = 58, y = 0,
+                      label = diag_text, size = 4, hjust = 1, vjust = -0.3)
+}
+
+## half recovery time ===============================
+model <- process_kinetics(x, y, method = "half_time")
+model
+
+\dontrun{
+## add coefs & diagnostics text
+coef_text <- paste(names(model$coefs), round(model$coefs, 1),
+                   sep = " = ", collapse = "\n")
+
+## require(ggplot2)
+plot(model) +
+    ggplot2::annotate("text", x = 2, y = 100,
+                      label = coef_text, size = 4, hjust = 0, vjust = 1)
+}
+
+## peak slope ===============================
+model <- process_kinetics(x, y, method = "peak_slope", width = 10)
+model
+
+\dontrun{
+## add coefs & diagnostics text
+coef_text <- paste(names(model$coefs), round(model$coefs, 1),
+                   sep = " = ", collapse = "\n")
+
+## require(ggplot2)
+plot(model) +
+    ggplot2::annotate("text", x = 2, y = 100,
+                      label = coef_text, size = 4, hjust = 0, vjust = 1)
+}
+
+}
 \seealso{
-\code{\link[stats:nls]{stats::nls()}}, \code{\link[stats:SSasymp]{stats::SSasymp()}}, \code{\link[stats:SSlogis]{stats::SSlogis()}},
+\code{\link[stats:nls]{stats::nls()}}, \code{\link[stats:SSasymp]{stats::SSasymp()}}, \code{\link[stats:SSfpl]{stats::SSfpl()}},
 }

@@ -227,7 +227,7 @@ prepare_kinetics_data <- function(
                     dplyr::relocate(tidyselect::any_of(c(
                         fit_column, sample_column, event_column, nirs_columns)))
 
-                return(create_mNIRS.data(kinetics_data, metadata))
+                return(create_mNIRS_data(kinetics_data, metadata))
             }) |>
             setNames(paste0(sample_column, "_", event_sample_list))
         ## TODO 2025-07-19 set names based on events or sample or index number
@@ -235,7 +235,7 @@ prepare_kinetics_data <- function(
     } else if (head(unlist(group_events), 1) == "ensemble") {
 
         kinetics_data_list <- list(
-            create_mNIRS.data(ensemble_data(data_list), metadata))
+            create_mNIRS_data(ensemble_data(data_list), metadata))
 
     } else if (is.numeric(unlist(group_events))) {
 
@@ -248,7 +248,7 @@ prepare_kinetics_data <- function(
         kinetics_data_list <- lapply(
             if (is.list(group_events)) {group_events} else {list(group_events)},
             \(.x)
-            create_mNIRS.data(ensemble_data(data_list[.x]), metadata)
+            create_mNIRS_data(ensemble_data(data_list[.x]), metadata)
         ) |>
             setNames(paste0(sample_column, "_", event_sample_list))
     }

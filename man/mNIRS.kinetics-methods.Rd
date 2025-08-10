@@ -13,7 +13,7 @@
 \arguments{
 \item{x}{Object of class \code{mNIRS.kinetics} returned from \code{\link[=process_kinetics]{process_kinetics()}}.}
 
-\item{...}{Additional arguments (see \emph{Value}).}
+\item{...}{Additional arguments.}
 }
 \value{
 Return:

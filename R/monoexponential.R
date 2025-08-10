@@ -2,17 +2,21 @@
 #'
 #' Calculate a four-parameter monoexponential curve.
 #'
-#' @param x A numeric vector for the predictor variable at which to calculate
-#'  the response variable.
-#' @param A A numeric parameter for the starting baseline value.
-#' @param B A numeric parameter for the ending asymptote value.
-#' @param TD A numeric parameter for the time delay in the units of `x`
-#'  before inflection.
-#' @param tau A numeric parameter for the time constant of the exponential
-#'  inflection in the units of `x`. The time constant `tau (𝜏)` is equal
-#'  to `1/k`, where `k` is the rate constant of the same monoexponential curve.
+#' @param x A numeric predictor variable at which to evaluate the response
+#'  variable `y`.
+#' @param A A numeric parameter for the starting (baseline) value of the response
+#'  variable `y`.
+#' @param B A numeric parameter for the ending (asymptote) value of the response
+#'  variable `y`.
+#' @param TD A numeric parameter for the time delay before exponential inflection
+#'  of the curve, in units of the predictor variable `x`.
+#' @param tau A numeric parameter for the time constant `tau (𝜏)` of the
+#'  exponential curve, in units of the predictor variable `x`. `tau` is equal to
+#'  the reciprocal of `k` (`tau = 1/k`), where `k` is the rate constant of the
+#'  same function.
 #'
-#' @return A numeric vector of fitted values from a monoexponential function.
+#' @return A numeric vector for the response variabel `y` of the same length as
+#'  the predictor variable `x` returned from the monoexponential function.
 #'
 #' @examples
 #' set.seed(13)
@@ -28,11 +32,14 @@
 #' model
 #' fitted <- fitted(model)
 #'
+#' \dontrun{
 #' plot(x, y)
 #' lines(x, y)
 #' points(x, y)
 #' lines(x, fitted, col = "red")
+#' }
 #'
+#' @rdname monoexponential
 #' @export
 monoexponential <- function(x, A, B, TD, tau) {
     ifelse(x <= TD, A, A + (B - A) * (1 - exp((TD - x) / tau)))
@@ -56,6 +63,7 @@ monoexponential <- function(x, A, B, TD, tau) {
 #' @return Initial starting estimates for parameters in the model called by
 #'  [SSmonoexp()].
 #'
+#' @rdname SSmonoexp
 #' @export
 monoexp_init <- function(
         mCall, data, LHS, ...
@@ -92,16 +100,19 @@ monoexp_init <- function(
 #' four-parameter [monoexponential()] function. For the parameters `A`, `B`,
 #' `TD`, and `tau`.
 #'
-#' @param x A numeric vector at which to evaluate the model.
-#' @param A A numeric parameter for the starting value.
-#' @param B A numeric parameter for the ending asymptote value.
-#' @param TD A numeric parameter for the time delay in the units of `x`
-#'  before inflection.
-#' @param tau A numeric parameter for the time constant of the exponential
-#'  inflection in the units of `x`.
+#' @param x A numeric predictor variable at which to evaluate the model.
+#' @param A A numeric parameter for the starting (baseline) value of the response
+#'  variable `y`.
+#' @param B A numeric parameter for the ending (asymptote) value of the response
+#'  variable `y`.
+#' @param TD A numeric parameter for the time delay before exponential inflection
+#'  of the curve, in units of the predictor variable `x`.
+#' @param tau A numeric parameter for the time constant (𝜏) of the exponential
+#'  curve, in units of the predictor variable `x`.
 #'
-#' @return A numeric vector of the same length as `x`. The value of the
-#'  expression `ifelse(x <= TD, A, A + (B - A) * (1 - exp((TD - x) / tau)))`.
+#' @return A numeric vector for the response variabel `y` of the same length as
+#'  the predictor variable `x`. Returned from the expression
+#'  `ifelse(x <= TD, A, A + (B - A) * (1 - exp((TD - x) / tau)))`.
 #'
 #' @seealso [stats::nls()], [stats::selfStart()], [monoexponential()]
 #'
@@ -124,6 +135,7 @@ monoexp_init <- function(
 #' points(x, y)
 #' lines(x, fitted, col = "red")
 #'
+#' @rdname SSmonoexp
 #' @export
 SSmonoexp <- selfStart(
     model = monoexponential,

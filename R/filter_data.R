@@ -90,10 +90,12 @@
 #' y.LP <- filter_data(y, method = "butterworth", n = 2, W = 0.05)
 #' y.MA <- filter_data(y, method = "moving-average", width = 30)
 #'
+#' \dontrun{
 #' plot(x, y)
 #' lines(x, y.spline, lwd = 2, col = "blue")
 #' lines(x, y.LP, lwd = 2, col = "red")
 #' lines(x, y.MA, lwd = 2, col = "green4")
+#' }
 #'
 #' @return A numeric vector of filtered data.
 #'

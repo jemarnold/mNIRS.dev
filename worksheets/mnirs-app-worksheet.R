@@ -4,7 +4,7 @@ suppressPackageStartupMessages({
     library(mNIRS)
     library(tidyverse)
 })
-# devtools::load_all()
+devtools::load_all()
 
 # options(digits = 5, digits.secs = 3, scipen = 3,
 #         dplyr.summarise.inform = FALSE,
@@ -66,20 +66,23 @@ data_list <- prepare_kinetics_data(
 ## TODO
 ## iterate over prepared_kinetics_data_list
 ## dataframe / NIRS channel
+## output list:
+## - aggregate table of coefs
+## - aggregate table of diagnostics
 
 
 
-kinetics_model_list <- purrr::pmap(
-    tidyr::expand_grid(
-        .df = data_list,
-        .nirs = attributes(data_raw)$nirs_columns),
-    \(.df, .nirs)
-    process_kinetics(x = fit_sample_name,
-                     y = .nirs,
-                     data = .df,
-                     method = "monoexp",
-                     width = 10*50)
-) |>
+kinetics_model_list <- tidyr::expand_grid(
+    .df = data_list,
+    .nirs = attributes(data_raw)$nirs_columns) |>
+    purrr::pmap(
+        \(.df, .nirs)
+        process_kinetics(x = fit_sample_name,
+                         y = .nirs,
+                         data = .df,
+                         method = "monoexp",
+                         width = 10*50)
+    ) |>
     print()
 
 ## coef table =====================================
@@ -219,4 +222,81 @@ ggplot(display_data) +
     #     }) +
     NULL
 
+#
+## process_kinetics example ===================================
+set.seed(13)
+x <- seq(-10, 60, by = 2)
+A <- 10; B <- 100; TD <- 5; tau <- 12
+y <- monoexponential(x, A, B, TD, tau) + rnorm(length(x), 0, 3)
 
+## monoexponential kinetics ===============================
+model <- process_kinetics(x, y, method = "monoexponential")
+model
+
+## add coefs & diagnostics text
+coef_text <- paste(names(model$coefs), round(model$coefs, 1),
+                   sep = " = ", collapse = "\n")
+diag_text <- paste(names(model$diagnostics), round(model$diagnostics, 2),
+                   sep = " = ", collapse = "\n")
+
+# \dontrun{
+## require(ggplot2)
+plot(model) +
+    ggplot2::geom_hline(yintercept = 0, linetype = "dotted") +
+    ggplot2::geom_line(ggplot2::aes(y = model$residuals)) +
+    ggplot2::annotate("text", x = 2, y = 100,
+                      label = coef_text, size = 4, hjust = 0, vjust = 1) +
+    ggplot2::annotate("text", x = 58, y = 0,
+                      label = diag_text, size = 4, hjust = 1, vjust = -0.3)
+# }
+
+## sigmoidal kinetics ===============================
+model <- process_kinetics(x, y, method = "sigmoidal")
+model
+
+## add coefs & diagnostics text
+coef_text <- paste(names(model$coefs), round(model$coefs, 1),
+                   sep = " = ", collapse = "\n")
+diag_text <- paste(names(model$diagnostics), round(model$diagnostics, 2),
+                   sep = " = ", collapse = "\n")
+
+# \dontrun{
+## require(ggplot2)
+plot(model) +
+    ggplot2::geom_hline(yintercept = 0, linetype = "dotted") +
+    ggplot2::geom_line(ggplot2::aes(y = model$residuals)) +
+    ggplot2::annotate("text", x = 2, y = 100,
+                      label = coef_text, size = 4, hjust = 0, vjust = 1) +
+    ggplot2::annotate("text", x = 58, y = 0,
+                      label = diag_text, size = 4, hjust = 1, vjust = -0.3)
+# }
+
+## half recovery time ===============================
+model <- process_kinetics(x, y, method = "half_time")
+model
+
+## add coefs & diagnostics text
+coef_text <- paste(names(model$coefs), round(model$coefs, 1),
+                   sep = " = ", collapse = "\n")
+
+# \dontrun{
+## require(ggplot2)
+plot(model) +
+    ggplot2::annotate("text", x = 2, y = 100,
+                      label = coef_text, size = 4, hjust = 0, vjust = 1)
+# }
+
+## peak slope ===============================
+model <- process_kinetics(x, y, method = "peak_slope", width = 10)
+model
+
+## add coefs & diagnostics text
+coef_text <- paste(names(model$coefs), round(model$coefs, 1),
+                   sep = " = ", collapse = "\n")
+
+# \dontrun{
+## require(ggplot2)
+plot(model) +
+    ggplot2::annotate("text", x = 2, y = 100,
+                      label = coef_text, size = 4, hjust = 0, vjust = 1)
+# }

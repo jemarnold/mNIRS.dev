@@ -45,9 +45,11 @@
 #' idO <- which(x != y) ## identify outlier indices
 #' outliers <- x[idO] ## identify outlier values
 #'
-#' plot(1:1024, x, type="l")
-#' points(idO, outliers, pch=21, col="darkred")
-#' lines(y, col="blue")
+#' \dontrun{
+#' plot(1:1024, x, type = "l")
+#' points(idO, outliers, pch = 21, col = "darkred")
+#' lines(y, col = "blue")
+#' }
 #'
 #' @return A numeric vector of filtered data.
 #'
