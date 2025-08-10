@@ -1,6 +1,6 @@
 #' Update a model object with Fixed coefficients
 #'
-#' Re-fit a model with fixed coefficients provided as an argument. Fixed
+#' Re-fit a model with fixed coefficients provided as additional arguments. Fixed
 #' coefficients are not modified when optimising for best fit.
 #'
 #' @param model An existing model object from `lm`, `nls`, `glm`, and many others.
@@ -41,7 +41,7 @@ update_fixed_coefs <- function(model, ...) {
     start_params <- current_params[!names(current_params) %in% names(fixed_params)]
     ## construct the updated formula expression
     updated_formula <- do.call(substitute, list(formula(model), fixed_params))
-    ## Update the model
+    ## update the model
     update(object = model,
            formula = updated_formula,
            start = start_params,

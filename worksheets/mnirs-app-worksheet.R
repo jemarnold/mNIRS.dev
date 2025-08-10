@@ -4,6 +4,7 @@ suppressPackageStartupMessages({
     library(mNIRS)
     library(tidyverse)
 })
+devtools::load_all()
 
 # options(digits = 5, digits.secs = 3, scipen = 3,
 #         dplyr.summarise.inform = FALSE,
@@ -71,18 +72,15 @@ data_list <- prepare_kinetics_data(
 kinetics_model_list <- purrr::pmap(
     tidyr::expand_grid(
         .df = data_list,
-        .nirs = attributes(data_raw)$nirs_columns) |>
-        dplyr::mutate(.A = c(-19, 40, -19, 40)),
-    \(.df, .nirs, .A)
+        .nirs = attributes(data_raw)$nirs_columns),
+    \(.df, .nirs)
     process_kinetics(x = fit_sample_name,
                      y = .nirs,
                      data = .df,
-                     method = "monoexp",
-                     width = 10*50,
-                     A = .A)
+                     method = "sigmoid",
+                     width = 10*50)
 ) |>
     print()
-
 
 ## coef table =====================================
 coef_data <- purrr::imap(

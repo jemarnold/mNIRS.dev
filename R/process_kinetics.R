@@ -47,7 +47,6 @@ process_kinetics <- function(
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         ...
 ) {
-
     method <- match.arg(method)
 
     x_exp <- substitute(x)
@@ -61,7 +60,7 @@ process_kinetics <- function(
 
 
 
-## TODO fix sigmoidal (custom self-start function?)
+## DONE TODO fix sigmoidal (custom self-start function?)
 ## TODO 2025-07-19 fix fitted models up to first peak with no greater peaks within X samples
 ## TODO 2025-07-19 fix half-time to use neighbouring median around peak value B
 ## TODO 2025-08-10 width in units of x
@@ -176,7 +175,6 @@ process_kinetics.sigmoidal <- function(
     coefs <- coefs[match(c("Asym", "xmid", "scal"), names(coefs))]
     ## convert named vector to dataframe
     coefs <- tibble::as_tibble(as.list(coefs))
-
 
     ## save call
     return_call <- match.call()
@@ -447,7 +445,8 @@ process_model <- function(
     if (is.na(model[1])) {
         fitted <- NA_real_
         coefs <- tibble::tibble(A = NA_real_, B = NA_real_, TD = NA_real_,
-                                tau = NA_real_, MRT = NA_real_)
+                                tau = NA_real_, MRT = NA_real_,
+                                Asym = NA_real_, xmid = NA_real_, scal = NA_real_)
         fit_criteria <- tibble::tibble(
             AIC = NA_real_, BIC = NA_real_, R2 = NA_real_, RMSE = NA_real_,
             RSE = NA_real_, MAE = NA_real_, MAPE = NA_real_)
