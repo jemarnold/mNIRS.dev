@@ -4,7 +4,7 @@ suppressPackageStartupMessages({
     library(mNIRS)
     library(tidyverse)
 })
-devtools::load_all()
+# devtools::load_all()
 
 # options(digits = 5, digits.secs = 3, scipen = 3,
 #         dplyr.summarise.inform = FALSE,
@@ -48,7 +48,7 @@ data_raw <- mNIRS::read_data(
 
 filter(data_raw, !is.na(event))
 # plot(data_raw)
-sample_column <- attributes(data_raw)$sample_column
+(sample_column <- attributes(data_raw)$sample_column)
 (fit_sample_name <- paste0("fit_", sample_column))
 
 # event_sample <- c(370, 1085)
@@ -77,7 +77,7 @@ kinetics_model_list <- purrr::pmap(
     process_kinetics(x = fit_sample_name,
                      y = .nirs,
                      data = .df,
-                     method = "sigmoid",
+                     method = "monoexp",
                      width = 10*50)
 ) |>
     print()
@@ -96,6 +96,7 @@ coef_data <- purrr::imap(
 ) |>
     purrr::list_rbind() |>
     print()
+
 
 ## kinetics plot ======================================
 # kinetics_model_list[[1]]$data

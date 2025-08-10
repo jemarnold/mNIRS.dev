@@ -27,7 +27,7 @@ A \link[tibble:tibble-package]{tibble} of class \code{mNIRS.data} with
 metadata available with \code{attributes()}.
 }
 \description{
-Manually add class "mNIRS.data" and metadata to an existing dataframe.
+Manually add class \code{"mNIRS.data"} and metadata to an existing dataframe.
 }
 \examples{
 ## currently implemented metadata

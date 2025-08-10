@@ -16,28 +16,33 @@ prepare_kinetics_data(
 )
 }
 \arguments{
-\item{data}{A dataframe.}
+\item{data}{A dataframe of class \code{"mNIRS.data"}.}
 
-\item{event_index}{(\emph{Optional}). A numeric vector indicating the start
-indices of kinetics events. Any of \code{event_label}, \code{event_index}, or
-\code{event_sample} will be passed along for further analysis.}
+\item{event_index}{(\emph{Optional}). A numeric vector indicating the starting row
+indices of kinetics events. i.e., to identify the start of kinetic events by
+row number.}
 
-\item{event_sample}{(\emph{Optional}). A vector in the same class as
-\code{sample_column} indicating the start of kinetic events.}
+\item{event_sample}{(\emph{Optional}). A numeric vector corresponding to values of
+\code{sample_column} indicating the start of kinetic events. i.e., to identify
+the start of kinetic events by time value or sample number.}
 
-\item{event_label}{(\emph{Optional}). A character vector specified in
-\code{event_column} indicating the start of kinetics events.}
+\item{event_label}{(\emph{Optional}). A character vector corresponding to values of
+\code{event_column} indicating the start of kinetics events. i.e., to identify
+the start of kinetic events by an event string such as \emph{"end work"}.}
 
-\item{fit_window}{A two-element numeric vector defining the number of
-samples around the kinetics events to include in the fitting process (see
-\emph{Details}).}
+\item{fit_window}{A two-element numeric vector in the form \code{c(before, after)}
+in units of the \code{sample_column}, defining the window before and after the
+kinetics events to include in the model fitting process
+(\emph{default = c(30, 180)}).}
 
-\item{display_window}{(\emph{Optional}). A two-element numeric vector defining
-the number of samples around the kinetics events to include for display (see
-\emph{Details}).}
+\item{display_window}{(\emph{Optional}). A two-element numeric vector in the form
+\code{c(before, after)} in units of the \code{sample_column}, defining the window before
+and after the kinetics events to include for display, but not for model
+fitting.}
 
-\item{group_events}{Indicates how kinetics events should be analysed
-(see \emph{Details}).}
+\item{group_events}{Indicates how kinetics events should be analysed. Typically
+either \emph{"distinct"} (\emph{the default}) or \emph{"ensemble"}, but can be manually
+specified (see \emph{Details}).}
 
 \item{...}{Additional arguments.}
 }
@@ -46,18 +51,9 @@ A list of \link[tibble:tibble-package]{tibbles} of class \code{mNIRS.data}
 with metadata available with \code{attributes()}.
 }
 \description{
-Processes a dataframe for kinetics analysis.
+Processes a dataframe of class \code{"mNIRS.data"} for kinetics analysis.
 }
 \details{
-\code{fit_window} is a two-element vector \code{c(before, after)} specifying the number of
-samples before and after the kinetics event to include in the kinetics fitting
-process.
-
-\code{display_window} is a two-element vector \code{c(before, after)} specifying the
-number of samples before and after the kinetics event to include in the prepared
-kinetics dataframes, to allow for plotting of data beyond the bounds of the
-fitting process.
-
 \code{group_events} indicates how kinetics events should be analysed, either
 separately, or grouped and ensemble averaged similar to oxygen uptake kinetics.
 
@@ -69,6 +65,6 @@ ensemble-averaged data from all mNIRS kinetics events.}
 \item{\code{group_events = list(c(1, 2), c(3, 4))}}{Will group kinetic events
 together in sequence of appearance, and prepare a list of ensemble-averaged
 dataframes for each group. Any kinetic events detected in the data but
-not explicitly defined here will return as un-grouped dataframes.}
+not explicitly defined here will return as a distinct dataframe.}
 }
 }

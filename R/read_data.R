@@ -1,6 +1,6 @@
 #' Create an mNIRS Dataframe with Metadata
 #'
-#' Manually add class "mNIRS.data" and metadata to an existing dataframe.
+#' Manually add class `"mNIRS.data"` and metadata to an existing dataframe.
 #'
 #' @param data A dataframe.
 #' @param metadata Metadata passed along with the dataframe.
@@ -77,7 +77,7 @@ create_mNIRS.data <- function(
 
 #' Read mNIRS Data From File
 #'
-#' Create an mNIRS dataframe imported from file.
+#' Create a dataframe of class `"mNIRS.data"`, imported from file.
 #'
 #' @param file_path The file path including extension (either *".xlsx"*,
 #'  *".xls"*, or *".csv"*) to import.
@@ -123,7 +123,7 @@ create_mNIRS.data <- function(
 #'
 #' Columns and rows which are entirely missing (`NA`) are omitted.
 #'
-#' @return A [tibble][tibble::tibble-package] of class `mNIRS.data` with
+#' @return A [tibble][tibble::tibble-package] of class `"mNIRS.data"` with
 #'  metadata available with `attributes()`.
 #'
 #' @export

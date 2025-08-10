@@ -48,11 +48,11 @@ messages which can be used for data error checking. \code{FALSE} will silence th
 messages. Errors will always be returned.}
 }
 \value{
-A \link[tibble:tibble-package]{tibble} of class \code{mNIRS.data} with
+A \link[tibble:tibble-package]{tibble} of class \code{"mNIRS.data"} with
 metadata available with \code{attributes()}.
 }
 \description{
-Create an mNIRS dataframe imported from file.
+Create a dataframe of class \code{"mNIRS.data"}, imported from file.
 }
 \details{
 Column names are matched to a single row, anywhere in the data file, not
