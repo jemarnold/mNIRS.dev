@@ -14,7 +14,7 @@
   data = NULL,
   x0 = 0,
   method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
-  verbse = TRUE,
+  verbose = TRUE,
   ...
 )
 
@@ -24,7 +24,7 @@
   data = NULL,
   x0 = 0,
   method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
-  verbse = TRUE,
+  verbose = TRUE,
   ...
 )
 
@@ -34,7 +34,7 @@
   data = NULL,
   x0 = 0,
   method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
-  verbse = TRUE,
+  verbose = TRUE,
   ...
 )
 
@@ -44,7 +44,7 @@
   data = NULL,
   x0 = 0,
   method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
-  verbse = TRUE,
+  verbose = TRUE,
   ...
 )
 }
@@ -76,6 +76,10 @@ to reach the peak rolling linear regression slope within a window
 defined by \code{width}.}
 }}
 
+\item{verbose}{A logical. \code{TRUE} (\emph{default}) will return warnings and
+messages which can be used for data error checking. \code{FALSE} will silence these
+messages. Errors will always be returned.}
+
 \item{...}{Additional arguments.
 \describe{
 \item{\code{width}}{A numeric scalar defining the window width (in units of
@@ -92,10 +96,6 @@ a priori and fixed, to exclude them from the model fitting
 optimisation. e.g., \code{A = 10} will define the function
 \code{SSmonoexp(x, A = 10, B, TD, tau)}.}
 }}
-
-\item{verbose}{A logical. \code{TRUE} (\emph{default}) will return warnings and
-messages which can be used for data error checking. \code{FALSE} will silence these
-messages. Errors will always be returned.}
 }
 \value{
 A list \code{L} of class \code{mNIRS.kinetics} with components \code{L$...}:

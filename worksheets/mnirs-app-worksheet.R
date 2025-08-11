@@ -87,7 +87,7 @@ data_list <- prepare_kinetics_data(
 model_list <- tidyr::expand_grid(
     .df = data_list,
     .nirs = attributes(data_raw)$nirs_columns,
-    .method = "half_time") |>
+    .method = "monoexp") |>
     purrr::pmap(
         \(.df, .nirs, .method)
         process_kinetics(x = fit_sample_name,
@@ -339,6 +339,192 @@ x1 <- seq(-10, 10, by = 2)
 y1 <- 2 + 0.4 * x1 + 0.04 * x1^2 + rnorm(length(x1), 0, 3)
 mydata <- tibble::tibble(xx = x1/2, yy = y1)
 
+myfun <- function(y, x = NULL, data = NULL) {
+    y_quo <- enquo(y)
+    x_quo <- enquo(x)
+    data_quo <- enquo(data)
+
+    y_name <- as_name(y_quo)
+    x_name <- if (!quo_is_null(x_quo)) {as_name(x_quo)} else {"index"}
+    data_name <- if (!quo_is_null(data_quo)) {as_name(data_quo)} else {NULL}
+
+    if (is.null(data)) {
+        if (!is.numeric(y)) {
+            cli::cli_abort("{.arg y = {y_name}} must be a {.cls numeric} vector.")
+        } else {
+            y <- eval_tidy(y_quo)
+        }
+
+        if (is.null(x)) {
+            x <- seq_along(y)
+        } else if (!is.numeric(x)) {
+            cli::cli_abort("{.arg x = {x_name}} must be a {.cls numeric} vector.")
+        } else if (length(x) != length(y)) {
+            cli::cli_abort(paste(
+                "{.arg x = {x_name}} and {.arg y = {y_name}}",
+                "must have the same length."))
+        } else {
+            x <- eval_tidy(x_quo)
+        }
+
+        data <- tibble(!!x_name := x, !!y_name := y)
+        data_name <- "data"
+    } else if (!is.data.frame(data)) {
+        cli::cli_abort("{.arg data = {data_name}} must be a dataframe.")
+    } else if (!has_name(data, y_name)) {
+        cli::cli_abort("{.arg y = {y_name}} not found in {.arg data = {data_name}}.")
+    } else { ## is.data.frame & has_name
+        y <- data[[y_name]]
+
+        if (quo_is_null(x_quo)) {
+            x <- seq_along(y)
+            data[[x_name]] <- x
+            # if (verbose) {
+                cli::cli_alert_info(
+                    "{.arg x = {x_name}} added to {.arg data = {data_name}}.")
+            # }
+        } else if (!has_name(data, x_name)) {
+            cli::cli_abort("{.arg x = {x_name}} not found in {.arg data = {data_name}}.")
+        } else {
+            x <- data[[x_name]]
+        }
+
+        data <- data[c(x_name, y_name)]
+    }
+
+    # x <- x - x0
+    df <- tibble::tibble(x, y)
+
+    return(rlang::list2(
+        !!data_name := head(data),
+        df = head(df),
+        quo = c(y_quo, x_quo, data_quo),
+        names = c(y_name, x_name, data_name)
+    ))
+}
+
+myfun(y1, x = NULL, data = NULL)
+myfun(y1, x = x1, data = NULL)
+myfun(y1, data = mydata) ##
+myfun(yy, x = NULL, data = mydata)
+myfun(yy, x1, data = mydata) ##
+myfun(yy, xx, data = mydata)
+myfun("yy", "xx", data = mydata)
+myfun("yy", xx, data = mydata)
+myfun(yy, "xx", data = mydata)
+myfun("y1", xx, data = mydata) ##
+myfun(yy, "x1", data = mydata) ##
+
+
+## generic function ================================
+library(rlang)
+
+y1 <- 1:5
+
+namesfun <- function(y, x = NULL, data = NULL) {
+    y_quo <- enquo(y)
+    x_quo <- enquo(x)
+    data_quo <- enquo(data)
+
+    y_name <- as_name(y_quo)
+    x_name <- if (!quo_is_null(x_quo)) {as_name(x_quo)} else {"index"}
+    data_name <- if (!quo_is_null(data_quo)) {as_name(data_quo)} else {NULL}
+
+    if (is.null(data)) {
+        if (!is.numeric(y)) {
+            cli::cli_abort("{.arg y = {y_name}} must be a {.cls numeric} vector.")
+        } else {
+            y <- eval_tidy(y_quo)
+        }
+
+        if (is.null(x)) {
+            x <- seq_along(y)
+        } else if (!is.numeric(x)) {
+            cli::cli_abort("{.arg x = {x_name}} must be a {.cls numeric} vector.")
+        } else if (length(x) != length(y)) {
+            cli::cli_abort(paste(
+                "{.arg x = {x_name}} and {.arg y = {y_name}}",
+                "must have the same length."))
+        } else {
+            x <- eval_tidy(x_quo)
+        }
+
+        data <- tibble(!!x_name := x, !!y_name := y)
+        data_name <- "data"
+    } else if (!is.data.frame(data)) {
+        cli::cli_abort("{.arg data = {data_name}} must be a dataframe.")
+    } else if (!has_name(data, y_name)) {
+        cli::cli_abort("{.arg y = {y_name}} not found in {.arg data = {data_name}}.")
+    } else { ## is.data.frame & has_name
+        y <- data[[y_name]]
+
+        if (quo_is_null(x_quo)) {
+            x <- seq_along(y)
+            data[[x_name]] <- x
+            # if (verbose) {
+                cli::cli_alert_info(
+                    "{.arg x = {x_name}} added to {.arg data = {data_name}}.")
+            # }
+        } else if (!has_name(data, x_name)) {
+            cli::cli_abort("{.arg x = {x_name}} not found in {.arg data = {data_name}}.")
+        } else {
+            x <- data[[x_name]]
+        }
+
+        data <- data[c(x_name, y_name)]
+    }
+
+    # x <- x - x0
+    df <- tibble::tibble(x, y)
+
+    return(rlang::list2(
+        !!data_name := head(data),
+        df = head(df),
+        # quo = c(y_quo, x_quo, data_quo),
+        names = c(y_name, x_name, data_name)
+    ))
+}
+
+genfun <- function(y, x = NULL, data = NULL, method = c("A"), ...) {
+    method <- match.arg(method)
+    y_name <- as_name(enquo(y))
+    class(y_name) <- method
+
+    UseMethod("genfun", y_name)
+}
+
+# genfun(y1)
+
+genfun.A <- function(y, x = NULL, data = NULL, method = c("A"), ...) {
+
+    print(y)
+    print(substitute(y))
+    print(deparse(substitute(y)))
+    print(enquo(y))
+    print(sym(deparse(substitute(y))))
+
+    namesfun(y)
+}
+
+
+genfun(y1)
+genfun(y1, x = x1, data = NULL)
+genfun(y1, x = NULL, data = mydata) ##
+genfun(yy, x = NULL, data = mydata)
+genfun(yy, x1, data = mydata) ##
+genfun(yy, xx, data = mydata)
+genfun("yy", "xx", data = mydata)
+genfun("yy", xx, data = mydata)
+genfun(yy, "xx", data = mydata)
+genfun("y1", xx, data = mydata) ##
+genfun(yy, "x1", data = mydata) ##
+
+
+
+
+
+
+## function nesting =====================================
 inner <- function(x, data = NULL) {
     x_quo <- enquo(x)
     data_quo <- enquo(data)
@@ -366,7 +552,7 @@ inner <- function(x, data = NULL) {
 }
 
 inner(x1, data = NULL)
-inner(x1, data = mydata) ##
+# inner(x1, data = mydata) ##
 inner(xx, data = mydata)
 inner("xx", data = mydata)
 
@@ -379,7 +565,7 @@ middle <- function(x, data = NULL) {
     x_name <- as_name(x_quo)
     data_name <- if (!quo_is_null(data_quo)) as_name(data_quo) else NULL
 
-    inner_result <- inject(inner(!!x_quo, !!data_quo))
+    inner_result <- inject(inner(!!x_quo, data))
 
     list(
         df = inner_result$df,

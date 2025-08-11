@@ -154,13 +154,13 @@ process_kinetics <- function(
         data = NULL,
         x0 = 0,
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
-        verbse = TRUE,
+        verbose = TRUE,
         ...
 ) {
     method <- match.arg(method)
 
-    # y_exp <- substitute(y)
-    # y_name <- deparse(y_exp)
+    # y_name <- deparse(substitute(y))
+    y <- as_name(enquo(y))
 
     class(y) <- method
 
@@ -181,7 +181,7 @@ process_kinetics.monoexponential <- function(
         data = NULL,
         x0 = 0,
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
-        verbse = TRUE,
+        verbose = TRUE,
         ...
 ) {
     args <- list(...)
@@ -259,7 +259,7 @@ process_kinetics.sigmoidal <- function(
         data = NULL,
         x0 = 0,
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
-        verbse = TRUE,
+        verbose = TRUE,
         ...
 ) {
     args <- list(...)
@@ -331,7 +331,7 @@ process_kinetics.half_time <- function(
         data = NULL,
         x0 = 0,
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
-        verbse = TRUE,
+        verbose = TRUE,
         ...
 ) {
     args <- list(...)
@@ -409,7 +409,7 @@ process_kinetics.peak_slope <- function(
         data = NULL,
         x0 = 0,
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
-        verbse = TRUE,
+        verbose = TRUE,
         ...
 ) {
     args <- list(...)
@@ -568,6 +568,62 @@ process_names_for_kinetics <- function(y, x, data, x0, verbose = TRUE) {
         y_exp = y_exp,
         y_name = y_name))
 }
+
+## tried this inside the generic function. doesn't like that
+# y_quo <- enquo(y)
+# x_quo <- enquo(x)
+# data_quo <- enquo(data)
+#
+# y_name <- as_name(y_quo)
+# x_name <- if (!quo_is_null(x_quo)) {as_name(x_quo)} else {"index"}
+# data_name <- if (!quo_is_null(data_quo)) {as_name(data_quo)} else {NULL}
+#
+# if (is.null(data)) {
+#     if (!is.numeric(y)) {
+#         cli::cli_abort("{.arg y = {y_name}} must be a {.cls numeric} vector.")
+#     } else {
+#         y <- eval_tidy(y_quo)
+#     }
+#
+#     if (is.null(x)) {
+#         x <- seq_along(y)
+#     } else if (!is.numeric(x)) {
+#         cli::cli_abort("{.arg x = {x_name}} must be a {.cls numeric} vector.")
+#     } else if (length(x) != length(y)) {
+#         cli::cli_abort(paste(
+#             "{.arg x = {x_name}} and {.arg y = {y_name}}",
+#             "must have the same length."))
+#     } else {
+#         x <- eval_tidy(x_quo)
+#     }
+#
+#     data <- tibble(!!x_name := x, !!y_name := y)
+#     data_name <- "data"
+# } else if (!is.data.frame(data)) {
+#     cli::cli_abort("{.arg data = {data_name}} must be a dataframe.")
+# } else if (!has_name(data, y_name)) {
+#     cli::cli_abort("{.arg y = {y_name}} not found in {.arg data = {data_name}}.")
+# } else { ## is.data.frame & has_name
+#     y <- data[[y_name]]
+#
+#     if (quo_is_null(x_quo)) {
+#         x <- seq_along(y)
+#         data[[x_name]] <- x
+#         if (verbose) {
+#             cli::cli_alert_info(
+#                 "{.arg x = {x_name}} added to {.arg data = {data_name}}.")
+#         }
+#     } else if (!has_name(data, x_name)) {
+#         cli::cli_abort("{.arg x = {x_name}} not found in {.arg data = {data_name}}.")
+#     } else {
+#         x <- data[[x_name]]
+#     }
+#
+#     data <- data[c(x_name, y_name)]
+# }
+#
+# x <- x - x0
+# df <- tibble::tibble(x, y)
 
 
 

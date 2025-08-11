@@ -45,11 +45,7 @@ devtools::build_readme()
 usethis::use_package("rlang")
 usethis::use_package("purrr", type = "suggest")
 
-usethis::use_import_from("stats",
-                         c("as.formula", "coef", "fitted", "formula",
-                           "median", "na.exclude", "nls", "predict", "setNames",
-                           "sortedXyData", "update"))
-usethis::use_import_from("rlang", c("as_name"))
+usethis::use_import_from("cli", c("cli_alert_info", "cli_abort"))
 
 usethis::use_vignette("processing-mNIRS-data.qmd")
 devtools::build_rmd("vignettes/processing-mNIRS-data.qmd")
