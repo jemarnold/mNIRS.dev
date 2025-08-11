@@ -59,11 +59,12 @@ data, respectively. Using <a href="rolling_slope.html">rolling slope</a> analysi
 
 
 <dl><dt id="arg-y">y<a class="anchor" aria-label="anchor" href="#arg-y"></a></dt>
-<dd><p>A numeric vector of response values.</p></dd>
+<dd><p>A numeric vector of the response variable.</p></dd>
 
 
 <dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
-<dd><p>A numeric vector of predictor values. If <code>NULL</code>, uses <code>seq_along(y)</code>.</p></dd>
+<dd><p>An <em>optional</em> numeric vector of the predictor variable.
+If <code>x = NULL</code>, uses <code>x = seq_along(y)</code>.</p></dd>
 
 
 <dt id="arg-width">width<a class="anchor" aria-label="anchor" href="#arg-width"></a></dt>
@@ -77,8 +78,8 @@ for rolling calculations.</p></dd>
 
 
 <dt id="arg-na-rm">na.rm<a class="anchor" aria-label="anchor" href="#arg-na-rm"></a></dt>
-<dd><p>A logical indicating whether to exclude NA values from rolling slope
-calculations.</p></dd>
+<dd><p>A logical indicating whether to exclude NA values from rolling
+slope calculations.</p></dd>
 
 </dl></div>
     <div class="section level2">
