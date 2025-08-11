@@ -25,6 +25,9 @@
 #'          to reach the peak rolling linear regression slope within a window
 #'          defined by `width`.}
 #'  }
+#' @param verbose A logical. `TRUE` (*default*) will return warnings and
+#' messages which can be used for data error checking. `FALSE` will silence these
+#' messages. Errors will always be returned.
 #' @param ... Additional arguments.
 #'  \describe{
 #'      \item{`width`}{A numeric scalar defining the window width (in units of
@@ -40,9 +43,6 @@
 #'          a priori and fixed, to exclude them from the model fitting
 #'          optimisation. e.g., `A = 10` will define the function
 #'          `SSmonoexp(x, A = 10, B, TD, tau)`.}
-#'      \item{`verbose`}{A logical. `TRUE` (*default*) will return warnings and
-#'          messages which can be used for data error checking. `FALSE` will
-#'          silence these messages. Errors will always be returned.}
 #'  }
 #'
 #' @details
@@ -69,12 +69,12 @@
 #'
 #' @examples
 #' set.seed(13)
-#' x <- seq(-10, 60, by = 2)
+#' x1 <- seq(-10, 60, by = 2)
 #' A <- 10; B <- 100; TD <- 5; tau <- 12
-#' y <- monoexponential(x, A, B, TD, tau) + rnorm(length(x), 0, 3)
+#' y1 <- monoexponential(x, A, B, TD, tau) + rnorm(length(x), 0, 3)
 #'
 #' ## monoexponential kinetics ===============================
-#' model <- process_kinetics(y, x, method = "monoexponential")
+#' model <- process_kinetics(y1, x1, method = "monoexponential")
 #' model
 #'
 #' \dontrun{
@@ -95,7 +95,7 @@
 #' }
 #'
 #' ## sigmoidal kinetics ===============================
-#' model <- process_kinetics(y, x, method = "sigmoidal")
+#' model <- process_kinetics(y1, x1, method = "sigmoidal")
 #' model
 #'
 #' \dontrun{
@@ -116,7 +116,7 @@
 #' }
 #'
 #' ## half recovery time ===============================
-#' model <- process_kinetics(y, x, method = "half_time")
+#' model <- process_kinetics(y1, x1, method = "half_time")
 #' model
 #'
 #' \dontrun{
@@ -131,7 +131,7 @@
 #' }
 #'
 #' ## peak slope ===============================
-#' model <- process_kinetics(y, x, method = "peak_slope", width = 10)
+#' model <- process_kinetics(y1, x1, method = "peak_slope", width = 10)
 #' model
 #'
 #' \dontrun{
@@ -154,16 +154,17 @@ process_kinetics <- function(
         data = NULL,
         x0 = 0,
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
+        verbse = TRUE,
         ...
 ) {
     method <- match.arg(method)
 
-    y_exp <- substitute(y)
-    y_name <- deparse(y_exp)
+    # y_exp <- substitute(y)
+    # y_name <- deparse(y_exp)
 
-    class(y_name) <- method
+    class(y) <- method
 
-    UseMethod("process_kinetics", y_name)
+    UseMethod("process_kinetics", y)
 }
 
 ## TODO 2025-07-19 fix fitted models up to first peak with no greater peaks within X samples
@@ -180,12 +181,10 @@ process_kinetics.monoexponential <- function(
         data = NULL,
         x0 = 0,
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
+        verbse = TRUE,
         ...
 ) {
     args <- list(...)
-    if ("verbose" %in% names(args)) {
-        verbose <- args$verbose
-    } else {verbose <- TRUE}
 
     # intake <- eval(substitute(process_names_for_kinetics(y, x, data, x0)))
     # intake <- eval(call("process_names_for_kinetics",
@@ -260,12 +259,10 @@ process_kinetics.sigmoidal <- function(
         data = NULL,
         x0 = 0,
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
+        verbse = TRUE,
         ...
 ) {
     args <- list(...)
-    if ("verbose" %in% names(args)) {
-        verbose <- args$verbose
-    } else {verbose <- TRUE}
 
     # intake <- eval(substitute(process_names_for_kinetics(y, x, data, x0)))
     intake <- process_names_for_kinetics(y, x, data, x0, verbose)
@@ -334,12 +331,10 @@ process_kinetics.half_time <- function(
         data = NULL,
         x0 = 0,
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
+        verbse = TRUE,
         ...
 ) {
     args <- list(...)
-    if ("verbose" %in% names(args)) {
-        verbose <- args$verbose
-    } else {verbose <- TRUE}
 
     # intake <- eval(substitute(process_names_for_kinetics(y, x, data, x0)))
     intake <- process_names_for_kinetics(y, x, data, x0, verbose)
@@ -414,13 +409,10 @@ process_kinetics.peak_slope <- function(
         data = NULL,
         x0 = 0,
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
+        verbse = TRUE,
         ...
 ) {
     args <- list(...)
-    if ("verbose" %in% names(args)) {
-        verbose <- args$verbose
-    } else {verbose <- TRUE}
-
     if ("width" %in% names(args)) {
         width <- args$width
     }

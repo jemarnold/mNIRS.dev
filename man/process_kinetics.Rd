@@ -14,6 +14,7 @@
   data = NULL,
   x0 = 0,
   method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
+  verbse = TRUE,
   ...
 )
 
@@ -23,6 +24,7 @@
   data = NULL,
   x0 = 0,
   method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
+  verbse = TRUE,
   ...
 )
 
@@ -32,6 +34,7 @@
   data = NULL,
   x0 = 0,
   method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
+  verbse = TRUE,
   ...
 )
 
@@ -41,6 +44,7 @@
   data = NULL,
   x0 = 0,
   method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
+  verbse = TRUE,
   ...
 )
 }
@@ -87,10 +91,11 @@ models (\emph{"monoexponential"} and \emph{"sigmoidal"}) can be defined
 a priori and fixed, to exclude them from the model fitting
 optimisation. e.g., \code{A = 10} will define the function
 \code{SSmonoexp(x, A = 10, B, TD, tau)}.}
-\item{\code{verbose}}{A logical. \code{TRUE} (\emph{default}) will return warnings and
-messages which can be used for data error checking. \code{FALSE} will
-silence these messages. Errors will always be returned.}
 }}
+
+\item{verbose}{A logical. \code{TRUE} (\emph{default}) will return warnings and
+messages which can be used for data error checking. \code{FALSE} will silence these
+messages. Errors will always be returned.}
 }
 \value{
 A list \code{L} of class \code{mNIRS.kinetics} with components \code{L$...}:
@@ -119,12 +124,12 @@ for nonlinear (weighted) least-squares estimates.
 }
 \examples{
 set.seed(13)
-x <- seq(-10, 60, by = 2)
+x1 <- seq(-10, 60, by = 2)
 A <- 10; B <- 100; TD <- 5; tau <- 12
-y <- monoexponential(x, A, B, TD, tau) + rnorm(length(x), 0, 3)
+y1 <- monoexponential(x, A, B, TD, tau) + rnorm(length(x), 0, 3)
 
 ## monoexponential kinetics ===============================
-model <- process_kinetics(y, x, method = "monoexponential")
+model <- process_kinetics(y1, x1, method = "monoexponential")
 model
 
 \dontrun{
@@ -145,7 +150,7 @@ plot(model) +
 }
 
 ## sigmoidal kinetics ===============================
-model <- process_kinetics(y, x, method = "sigmoidal")
+model <- process_kinetics(y1, x1, method = "sigmoidal")
 model
 
 \dontrun{
@@ -166,7 +171,7 @@ plot(model) +
 }
 
 ## half recovery time ===============================
-model <- process_kinetics(y, x, method = "half_time")
+model <- process_kinetics(y1, x1, method = "half_time")
 model
 
 \dontrun{
@@ -181,7 +186,7 @@ plot(model) +
 }
 
 ## peak slope ===============================
-model <- process_kinetics(y, x, method = "peak_slope", width = 10)
+model <- process_kinetics(y1, x1, method = "peak_slope", width = 10)
 model
 
 \dontrun{

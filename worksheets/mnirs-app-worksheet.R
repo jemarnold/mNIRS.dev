@@ -87,7 +87,7 @@ data_list <- prepare_kinetics_data(
 model_list <- tidyr::expand_grid(
     .df = data_list,
     .nirs = attributes(data_raw)$nirs_columns,
-    .method = "monoexp") |>
+    .method = "half_time") |>
     purrr::pmap(
         \(.df, .nirs, .method)
         process_kinetics(x = fit_sample_name,
@@ -259,14 +259,8 @@ x1 <- seq(-10, 60, by = 2)
 A <- 10; B <- 100; TD <- 5; tau <- 12
 y1 <- monoexponential(x1, A, B, TD, tau) + rnorm(length(x1), 0, 3)
 
-
-data <- tibble::tibble(xx = x1, yy = y1)
-process_kinetics(y = y1, x = NULL, data = NULL)
-process_kinetics(y = y1, x = x1, data = NULL)
-process_kinetics(y = y1, x = x1, data = NULL)
-
 ## monoexponential kinetics ===============================
-model <- process_kinetics(x, y, method = "monoexponential")
+model <- process_kinetics(y1, x1, method = "monoexponential")
 model
 
 ## add coefs & diagnostics text
@@ -287,7 +281,7 @@ plot(model) +
 # }
 
 ## sigmoidal kinetics ===============================
-model <- process_kinetics(x, y, method = "sigmoidal")
+model <- process_kinetics(y1, x1, method = "sigmoidal")
 model
 
 ## add coefs & diagnostics text
@@ -308,7 +302,7 @@ plot(model) +
 # }
 
 ## half recovery time ===============================
-model <- process_kinetics(x, y, method = "half_time")
+model <- process_kinetics(y1, x1, method = "half_time")
 model
 
 ## add coefs & diagnostics text
@@ -323,7 +317,7 @@ plot(model) +
 # }
 
 ## peak slope ===============================
-model <- process_kinetics(x, y, method = "peak_slope", width = 10)
+model <- process_kinetics(y1, x1, method = "peak_slope", width = 10)
 model
 
 ## add coefs & diagnostics text
@@ -336,3 +330,131 @@ plot(model) +
     ggplot2::annotate("text", x = 2, y = 100,
                       label = coef_text, size = 4, hjust = 0, vjust = 1)
 # }
+
+## metaprogramming worksheet =======================================
+library(rlang)
+
+set.seed(13)
+x1 <- seq(-10, 10, by = 2)
+y1 <- 2 + 0.4 * x1 + 0.04 * x1^2 + rnorm(length(x1), 0, 3)
+mydata <- tibble::tibble(xx = x1/2, yy = y1)
+
+inner <- function(x, data = NULL) {
+    x_quo <- enquo(x)
+    data_quo <- enquo(data)
+
+    x_name <- as_name(x_quo)
+    data_name <- if (!quo_is_null(data_quo)) as_name(data_quo) else NULL
+
+    if (is.null(data)) {
+        x_value <- eval_tidy(x_quo)
+    } else if (has_name(data, x_name)) {
+        # x_value <- eval_tidy(x_quo, data)
+        x_value <- data[[x_name]]
+    } else {
+        cli::cli_abort("{.arg x = {x_name}} not found in {.arg data = {data_name}}.")
+    }
+
+    df <- tibble::tibble(!!x_name := x_value)
+
+    list(
+        df = df,
+        value = x_value,
+        names = c(x_name, data_name),
+        level = "inner"
+    )
+}
+
+inner(x1, data = NULL)
+inner(x1, data = mydata) ##
+inner(xx, data = mydata)
+inner("xx", data = mydata)
+
+
+
+middle <- function(x, data = NULL) {
+    x_quo <- enquo(x)
+    data_quo <- enquo(data)
+
+    x_name <- as_name(x_quo)
+    data_name <- if (!quo_is_null(data_quo)) as_name(data_quo) else NULL
+
+    inner_result <- inject(inner(!!x_quo, !!data_quo))
+
+    list(
+        df = inner_result$df,
+        value = inner_result$value,
+        middle_names = c(x_name, data_name),
+        inner_names = inner_result$names,
+        level = "middle"
+    )
+}
+
+middle(x1, data = NULL)
+middle(x1, data = mydata) ##
+middle(xx, data = mydata)
+middle("xx", data = mydata)
+
+outer <- function(x, data = NULL) {
+    x_quo <- enquo(x)
+    data_quo <- enquo(data)
+
+    x_name <- as_name(x_quo)
+    data_name <- if (!quo_is_null(data_quo)) as_name(data_quo) else NULL
+
+    middle_result <- inject(middle(!!x_quo, data))
+
+    list(
+        df = middle_result$df,
+        value = middle_result$value,
+        outer_names = c(x_name, data_name),
+        middle_names = middle_result$middle_names,
+        inner_names = middle_result$inner_names,
+        level = "outer"
+    )
+}
+
+
+outer(x1, data = NULL)
+outer(x1, data = mydata) ##
+outer(xx, data = mydata)
+outer("xx", data = mydata)
+
+
+# Tests
+test_that("NSE functions work with numeric objects", {
+    my_var <- 42
+    result <- outer(my_var)
+
+    expect_equal(result$value, 42)
+    expect_equal(result$name, "my_var")
+    expect_equal(result$level, "outer")
+    expect_equal(result$middle_result$inner_result$value, 42)
+})
+
+test_that("NSE functions work with dataframe columns", {
+    df <- data.frame(col1 = 1:3, col2 = 4:6)
+
+    # Unquoted column name
+    result <- outer(col1, data = df)
+    expect_equal(result$value, 1:3)
+    expect_equal(result$name, "col1")
+
+    # Expression with columns
+    result2 <- outer(col1 + col2, data = df)
+    expect_equal(result2$value, c(5, 7, 9))
+    expect_equal(result2$name, "col1 + col2")
+})
+
+test_that("All levels preserve name and value", {
+    test_val <- 100
+    result <- outer(test_val)
+
+    expect_equal(result$name, "test_val")
+    expect_equal(result$middle_result$name, "test_val")
+    expect_equal(result$middle_result$inner_result$name, "test_val")
+
+    expect_equal(result$value, 100)
+    expect_equal(result$middle_result$value, 100)
+    expect_equal(result$middle_result$inner_result$value, 100)
+})

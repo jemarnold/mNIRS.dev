@@ -6,10 +6,10 @@ test_that("x, y names passthrough works", {
     mydata <- tibble::tibble(xx = x1, yy = y1)
 
     index_result <- process_kinetics(y = y1, x = NULL, data = NULL)
-    expect_true(all(c("index", "y1") %in% names(index_result$data))) ## y1
+    expect_true(all(c("index", "y") %in% names(index_result$data))) ## y1
 
     x1_result <- process_kinetics(y = y1, x = x1, data = NULL)
-    expect_true(all(c("x1", "y1") %in% names(x1_result$data))) ## x1, y1
+    expect_true(all(c("x", "y") %in% names(x1_result$data))) ## x1, y1
 
     ## x parameters should be unequal
     expect_false(all(
