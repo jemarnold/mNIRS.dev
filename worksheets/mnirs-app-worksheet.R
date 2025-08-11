@@ -25,7 +25,7 @@ devtools::load_all()
 upload_file <- r"(C:\R-Projects\mNIRS.dev\inst\extdata\oxysoft_interval_example.xlsx)"
 # upload_file <- r"(C:\R-Projects\mNIRS.dev\inst\extdata\moxy_ramp_example.xlsx)"
 
-data_raw <- mNIRS::read_data(
+data_raw <- read_data(
     file_path = upload_file,
     # nirs_columns = c(SmO2 = "SmO2 Live"),
     # sample_column = c(time = "hh:mm:ss"),
@@ -40,7 +40,7 @@ data_raw <- mNIRS::read_data(
         # time = sample/50,
     ) |>
     # slice_head(by = time, n = 1) |>
-    mNIRS::downsample_data(
+    downsample_data(
         # sample_column = "time",
         downsample_rate = 10
     ) |>
@@ -87,7 +87,7 @@ data_list <- prepare_kinetics_data(
 model_list <- tidyr::expand_grid(
     .df = data_list,
     .nirs = attributes(data_raw)$nirs_columns,
-    .method = "half_time") |>
+    .method = "monoexp") |>
     purrr::pmap(
         \(.df, .nirs, .method)
         process_kinetics(x = fit_sample_name,
@@ -179,13 +179,19 @@ ggplot(display_data) +
 
                 list(
                     geom_line(aes(y = .data[[nirs_fitted]], colour = "fitted"),
-                              linewidth = 1),
+                              linewidth = 0.8),
                     geom_segment(
                         data = tibble::tibble(
                             x = coef_channel$MRT,
                             y = coef_channel[[MRT_nirs_value]]),
                         aes(x = x, xend = x, y = y, yend = -Inf),
-                        arrow = arrow(), linewidth = 1)
+                        arrow = arrow(), linewidth = 0.8),
+                    geom_point(
+                        data = tibble::tibble(
+                            x = coef_channel$MRT,
+                            y = coef_channel[[MRT_nirs_value]]),
+                        aes(x = x, y = y, colour = "fitted"),
+                        size = 4, shape = 21, stroke = 1)
                 )
             })
     }} +
@@ -229,7 +235,7 @@ ggplot(display_data) +
                 list(
                     geom_line(
                         aes(y = .data[[nirs_fitted]], colour = "fitted"),
-                        linewidth = 1),
+                        linewidth = 0.8),
                     geom_segment(
                         data = tibble::tibble(
                             x = coef_channel[[fit_sample]],

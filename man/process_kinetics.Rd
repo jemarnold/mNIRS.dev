@@ -87,6 +87,9 @@ models (\emph{"monoexponential"} and \emph{"sigmoidal"}) can be defined
 a priori and fixed, to exclude them from the model fitting
 optimisation. e.g., \code{A = 10} will define the function
 \code{SSmonoexp(x, A = 10, B, TD, tau)}.}
+\item{\code{verbose}}{A logical. \code{TRUE} (\emph{default}) will return warnings and
+messages which can be used for data error checking. \code{FALSE} will
+silence these messages. Errors will always be returned.}
 }}
 }
 \value{

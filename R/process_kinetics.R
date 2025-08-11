@@ -40,6 +40,9 @@
 #'          a priori and fixed, to exclude them from the model fitting
 #'          optimisation. e.g., `A = 10` will define the function
 #'          `SSmonoexp(x, A = 10, B, TD, tau)`.}
+#'      \item{`verbose`}{A logical. `TRUE` (*default*) will return warnings and
+#'          messages which can be used for data error checking. `FALSE` will
+#'          silence these messages. Errors will always be returned.}
 #'  }
 #'
 #' @details
@@ -179,8 +182,17 @@ process_kinetics.monoexponential <- function(
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         ...
 ) {
-    intake <- eval(substitute(
-        process_names_for_kinetics(y = y, x = x, data = data, x0 = x0)))
+    args <- list(...)
+    if ("verbose" %in% names(args)) {
+        verbose <- args$verbose
+    } else {verbose <- TRUE}
+
+    # intake <- eval(substitute(process_names_for_kinetics(y, x, data, x0)))
+    # intake <- eval(call("process_names_for_kinetics",
+    #                     y = substitute(y),
+    #                     x = substitute(x),
+    #                     data = data, x0 = x0))
+    intake <- process_names_for_kinetics(y, x, data, x0, verbose)
     data <- intake$data
     df <- intake$df
     x <- intake$x
@@ -250,8 +262,13 @@ process_kinetics.sigmoidal <- function(
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         ...
 ) {
-    intake <- eval(substitute(
-        process_names_for_kinetics(y = y, x = x, data = data, x0 = x0)))
+    args <- list(...)
+    if ("verbose" %in% names(args)) {
+        verbose <- args$verbose
+    } else {verbose <- TRUE}
+
+    # intake <- eval(substitute(process_names_for_kinetics(y, x, data, x0)))
+    intake <- process_names_for_kinetics(y, x, data, x0, verbose)
     data <- intake$data
     df <- intake$df
     x <- intake$x
@@ -319,8 +336,13 @@ process_kinetics.half_time <- function(
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         ...
 ) {
-    intake <- eval(substitute(
-        process_names_for_kinetics(y = y, x = x, data = data, x0 = x0)))
+    args <- list(...)
+    if ("verbose" %in% names(args)) {
+        verbose <- args$verbose
+    } else {verbose <- TRUE}
+
+    # intake <- eval(substitute(process_names_for_kinetics(y, x, data, x0)))
+    intake <- process_names_for_kinetics(y, x, data, x0, verbose)
     data <- intake$data
     df <- intake$df
     x <- intake$x
@@ -394,19 +416,11 @@ process_kinetics.peak_slope <- function(
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         ...
 ) {
-    intake <- eval(substitute(
-        process_names_for_kinetics(y = y, x = x, data = data, x0 = x0)))
-    data <- intake$data
-    df <- intake$df
-    x <- intake$x
-    x_exp <- intake$x_exp
-    x_name <- intake$x_name
-    y <- intake$y
-    y_exp <- intake$y_exp
-    y_name <- intake$y_name
-    fitted_name <- paste0(y_name, "_fitted")
-
     args <- list(...)
+    if ("verbose" %in% names(args)) {
+        verbose <- args$verbose
+    } else {verbose <- TRUE}
+
     if ("width" %in% names(args)) {
         width <- args$width
     }
@@ -417,6 +431,18 @@ process_kinetics.peak_slope <- function(
     } else {
         align <- match.arg("center", choices = align_choices)
     }
+
+    # intake <- eval(substitute(process_names_for_kinetics(y, x, data, x0)))
+    intake <- process_names_for_kinetics(y, x, data, x0, verbose)
+    data <- intake$data
+    df <- intake$df
+    x <- intake$x
+    x_exp <- intake$x_exp
+    x_name <- intake$x_name
+    y <- intake$y
+    y_exp <- intake$y_exp
+    y_name <- intake$y_name
+    fitted_name <- paste0(y_name, "_fitted")
 
     slopes <- rolling_slope(y, x, width, align, na.rm = TRUE)
     peak_slope <- peak_directional_slope(y, x, width, align, na.rm = TRUE)
@@ -459,7 +485,8 @@ process_kinetics.peak_slope <- function(
 
 
 #' @keywords internal
-process_names_for_kinetics <- function(y, x, data, x0) {
+## new version not entirely working...
+process_names_for_kinetics <- function(y, x, data, x0, verbose = TRUE) {
     if (is.null(data)) {
         if (!is.numeric(y)) {
             cli::cli_abort("{.arg y} must be a {.cls numeric} vector.")
@@ -468,14 +495,19 @@ process_names_for_kinetics <- function(y, x, data, x0) {
             x_name <- "index"
             y_exp <- substitute(y) ## symbol from unquoted object name of y
             y_name <- deparse(y_exp) ## quoted string name of y
+            y <- y
             x <- seq_along(y)
         } else if (!is.numeric(x)) {
             cli::cli_abort("{.arg x} must be a {.cls numeric} vector.")
+        } else if (length(x) != length(y)) {
+            cli::cli_abort("{.arg x} and {.arg y} must have the same length.")
         } else {
             x_exp <- substitute(x) ## symbol from unquoted object name of x
             x_name <- deparse(x_exp) ## quoted string name of x
             y_exp <- substitute(y) ## symbol from unquoted object name of y
             y_name <- deparse(y_exp) ## quoted string name of y
+            y <- y
+            x <- x
         }
 
         data <- tibble::tibble(x, y)
@@ -485,7 +517,15 @@ process_names_for_kinetics <- function(y, x, data, x0) {
         cli::cli_abort("{.arg data} must be a dataframe.")
     } else if (is.data.frame(data)) {
         y_exp <- substitute(y) ## symbol from unquoted object name of y
-        y_name <- as_name(y_exp) ## quoted string name of y
+        # y_name <- as_name(y_exp) ## quoted string name of y
+        y_name <- tryCatch(
+            rlang::as_name(y), ## as_name() works for quoted
+            error = \(e) {
+                ## for unquoted "object not found" error:
+                if (grepl("object", e$message)) {
+                    ## deparse() works for unquoted
+                    gsub('^"|"$', '', deparse(y_exp)) ## quoted object name of y
+                }})
 
         if (y_name %in% names(data)) {
             y <- data[[y_name]]
@@ -493,19 +533,31 @@ process_names_for_kinetics <- function(y, x, data, x0) {
             cli::cli_abort("{.arg y = {y_name}} not found in {.arg data}.")
         }
 
-        if (is.null(substitute(x))) {
+        if (is.null(x)) {
             x_exp <- substitute(index) ## for x = NULL, name as "index"
             x_name <- "index"
             x <- seq_along(y)
             data[[x_name]] <- x
-            cli::cli_alert_info("{.arg x = {x_name}} added to {.arg data}.")
-        } else if (as_name(substitute(x)) %in% names(data)) {
-            x_exp <- substitute(x) ## symbol from unquoted object name of x
-            x_name <- as_name(x_exp) ## quoted string name of x
-            x <- data[[x_name]]
+            if (verbose) {
+                cli::cli_alert_info("{.arg x = {x_name}} added to {.arg data}.")
+            }
         } else {
-            cli::cli_abort(paste("{.arg x = {as_name(substitute(x))}}",
-            "not found in {.arg data}."))
+            x_exp <- substitute(x) ## symbol from unquoted object name of x
+            # x_name <- as_name(x_exp) ## quoted string name of x
+            x_name <- tryCatch(
+                rlang::as_name(x), ## as_name() works for quoted
+                error = \(e) {
+                    ## for unquoted "object not found" error:
+                    if (grepl("object", e$message)) {
+                        ## deparse() works for unquoted
+                        gsub('^"|"$', '', deparse(x_exp)) ## quoted object name of x
+                    }})
+
+            if (x_name %in% names(data)) {
+                x <- data[[x_name]]
+            } else {
+                cli::cli_abort("{.arg x = {x_name}} not found in {.arg data}.")
+            }
         }
 
         data <- data[c(x_name, y_name)]
@@ -524,6 +576,96 @@ process_names_for_kinetics <- function(y, x, data, x0) {
         y_exp = y_exp,
         y_name = y_name))
 }
+
+
+
+
+##old version corrected for x & y swap
+# process_names_for_kinetics <- function(y, x, data, x0) {
+#     if (!is.null(data) & !is.data.frame(data)) {
+#         ## data must be a dataframe
+#         cli::cli_abort("{.arg data} must be a dataframe")
+#
+#     } else if (!is.null(data) & is.data.frame(data)) {
+#         ## deparse(substitute()) works for unquoted
+#         y_exp <- substitute(y) ## symbol from unquoted object name of y
+#         y_name <- tryCatch(
+#             rlang::as_name(y), ## as_name() works for quoted
+#             error = \(e) {
+#                 ## for unquoted "object not found" error:
+#                 if (grepl("object", e$message)) {
+#                     ## deparse() works for unquoted
+#                     gsub('^"|"$', '', deparse(y_exp)) ## quoted object name of y
+#                 }})
+#
+#         if (y_name %in% names(data)) {
+#             y <- data[[y_name]]
+#         } else {
+#             cli::cli_abort("{.arg y} not found in {.arg data}")
+#         }
+#
+#         if (is.null(x) | missing(x)) {
+#             x_exp <- substitute(index)
+#             x_name <- "index"
+#             x <- seq_along(y)
+#
+#             data[[x_name]] <- x
+#
+#         } else {
+#             ## deparse(substitute()) works for unquoted
+#             x_exp <- substitute(x) ## symbol from unquoted object name of x
+#             x_name <- tryCatch(
+#                 rlang::as_name(x), ## as_name() works for quoted
+#                 error = \(e) {
+#                     ## for unquoted "object not found" error:
+#                     if (grepl("object", e$message)) {
+#                         ## deparse() works for unquoted
+#                         gsub('^"|"$', '', deparse(x_exp)) ## quoted object name of x
+#                     }})
+#
+#             if (x_name %in% names(data)) {
+#                 x <- data[[x_name]]
+#             } else {
+#                 cli::cli_abort("{.arg x} not found in {.arg data}")
+#             }
+#         }
+#
+#         data <- data[c(x_name, y_name)]
+#
+#     } else if (is.null(data)) {
+#         if (is.null(x)) {
+#             y_exp <- substitute(y) ## symbol from unquoted object name of x
+#             y_name <- deparse(y_exp) ## quoted object name of x
+#             x_exp <- substitute(index)
+#             x_name <- "index"
+#             y <- y
+#             x <- seq_along(y)
+#         } else {
+#             x_exp <- substitute(x) ## symbol from unquoted object name of x
+#             x_name <- deparse(x_exp) ## quoted object name of x
+#             y_exp <- substitute(y) ## symbol from unquoted object name of y
+#             y_name <- deparse(y_exp) ## quoted object name of y
+#             x <- x
+#             y <- y
+#         }
+#
+#         data <- tibble::tibble(x, y)
+#         names(data) <- c(x_name, y_name)
+#     }
+#
+#     x <- x - x0
+#     df <- tibble::tibble(x, y)
+#
+#     return(list(
+#         data = data,
+#         df = df,
+#         x = x,
+#         x_exp = x_exp,
+#         x_name = x_name,
+#         y = y,
+#         y_exp = y_exp,
+#         y_name = y_name))
+# }
 
 
 
