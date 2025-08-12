@@ -49,13 +49,14 @@
 )
 }
 \arguments{
-\item{y}{A numeric vector of the response variable, or the name of the variable.}
+\item{y}{A numeric vector of the response variable, or the name of the
+variable within a dataframe.}
 
 \item{x}{An \emph{optional} numeric vector of the predictor variable, or the name
-of the variable. If \code{x = NULL}, uses \code{x = seq_along(y)}.}
+of the variable within a dataframe. If \code{x = NULL}, uses \code{x = seq_along(y)}.}
 
 \item{data}{An \emph{optional} dataframe containing the predictor and response
-variables named in \code{x} and \code{y}.}
+variables named in \code{x} and \code{y}. Names for \code{x} and \code{y} must be in quotations.}
 
 \item{x0}{A numeric scalar indicating the value of the predictor variable \code{x}
 representing the start of the kinetics event (\emph{default \code{x0 = 0}}).}
@@ -101,7 +102,7 @@ optimisation. e.g., \code{A = 10} will define the function
 A list \code{L} of class \code{mNIRS.kinetics} with components \code{L$...}:
 \item{\code{method}}{The kinetics method used.}
 \item{\code{model}}{The model object.}
-\item{\code{model_equation}}{The equation of the kinetics model used.}
+\item{\code{equation}}{The equation of the kinetics model used.}
 \item{\code{data}}{A dataframe of original and fitted model data.}
 \item{\code{fitted}}{A vector of fitted values returned by the model.}
 \item{\code{residuals}}{A vector of residuals between original and fitted
@@ -111,22 +112,60 @@ kinetics.}
 \item{\code{coefs}}{A dataframe of model coefficients, including manually
 fixed parameters.}
 \item{\code{diagnostics}}{A dataframe of model goodness-of-fit metrics
-(\code{AIC}, \code{BIC}, \code{R2}, \code{RMSE}, \code{RSE}, \code{SNR}, \code{MAE}, \code{MAPE}).}
+(\code{AIC}, \code{BIC}, \code{R2adj} \code{RMSE}, \code{MAE}, \code{MAPE}).}
 \item{\code{call}}{The model call.}
 }
 \description{
-Process parametric curve fitting or non-parametric estimation of mNIRS kinetics
+Perform parametric curve fitting or non-parametric estimation of mNIRS kinetics
 on vector data.
 }
 \details{
 \code{method \%in\% c("monoexponential", "sigmoidal")} use \link[stats:nls]{nls()}
 for nonlinear (weighted) least-squares estimates.
+
+Model Parameterisation
+
+"monoexponential": A four-parameter monoexponential association function
+in the form: \code{ifelse(x <= TD, A, A + (B - A) * (1 - exp((TD - x) / tau)))}.
+\itemize{
+\item \code{A}: text
+\item \code{B}: text
+\item \code{TD}: text
+\item \code{tau}: text
+\item \code{MRT}: text
+}
+
+"sigmoidal": A four-parameter generalised logistic (sigmoidal) function
+in the form: \code{A + (B - A) / (1 + exp((xmid - x) / scal))}.
+\itemize{
+\item \code{A}: text
+\item \code{B}: text
+\item \code{xmid}: text
+\item \code{scal}: text
+}
+
+"half_time": A non-parametric estimate of the time to recover half of
+the total reoxygenation amplitude.
+\itemize{
+\item \code{A}: text
+\item \code{B}: text
+\item \code{half_value}: text
+}
+
+"peak_slope": A non-parametric estimate of the time to reach the peak
+rolling linear regression slope within a window defined by \code{width}.
+\itemize{
+\item \code{A}: text
+\item \code{B}: text
+\item \code{x_fitted}: text
+\item \code{peak_slope}: text
+}
 }
 \examples{
 set.seed(13)
 x1 <- seq(-10, 60, by = 2)
 A <- 10; B <- 100; TD <- 5; tau <- 12
-y1 <- monoexponential(x, A, B, TD, tau) + rnorm(length(x), 0, 3)
+y1 <- monoexponential(x1, A, B, TD, tau) + rnorm(length(x1), 0, 3)
 
 ## monoexponential kinetics ===============================
 model <- process_kinetics(y1, x1, method = "monoexponential")

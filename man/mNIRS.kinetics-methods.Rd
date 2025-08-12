@@ -13,7 +13,16 @@
 \arguments{
 \item{x}{Object of class \code{mNIRS.kinetics} returned from \code{\link[=process_kinetics]{process_kinetics()}}.}
 
-\item{...}{Additional arguments.}
+\item{...}{Additional arguments.
+\describe{
+\item{\code{plot_coefs}}{\code{plot_coefs = TRUE} will display kinetics coefficients
+at the top left of the plot.}
+\item{\code{plot_diagnostics}}{\code{plot_diagnostics = TRUE} will display kinetics
+model diagnostic metrics at the bottom right of the plot.}
+\item{\code{plot_residuals}}{\code{plot_diagnostics = TRUE} will display kinetics
+model residuals along the bottom of the plot. Residual values are correctly
+scaled about the zero dotted line}
+}}
 }
 \value{
 Return:
@@ -21,5 +30,5 @@ Return:
 \item{\code{plot}}{Returns a \link[ggplot2:ggplot]{ggplot2} object}
 }
 \description{
-Methods defined for objects returned from \code{\link[=process_kinetics]{process_kinetics()}}.
+Generic methods defined for objects returned from \code{\link[=process_kinetics]{process_kinetics()}}.
 }

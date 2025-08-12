@@ -45,7 +45,7 @@ devtools::build_readme()
 usethis::use_package("rlang")
 usethis::use_package("purrr", type = "suggest")
 
-usethis::use_import_from()
+usethis::use_import_from("stats", c("AIC", "BIC"))
 
 usethis::use_vignette("processing-mNIRS-data.qmd")
 devtools::build_rmd("vignettes/processing-mNIRS-data.qmd")

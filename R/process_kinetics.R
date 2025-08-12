@@ -1,13 +1,14 @@
 #' Fit Kinetics
 #'
-#' Process parametric curve fitting or non-parametric estimation of mNIRS kinetics
+#' Perform parametric curve fitting or non-parametric estimation of mNIRS kinetics
 #' on vector data.
 #'
-#' @param y A numeric vector of the response variable, or the name of the variable.
+#' @param y A numeric vector of the response variable, or the name of the
+#'  variable within a dataframe.
 #' @param x An *optional* numeric vector of the predictor variable, or the name
-#'  of the variable. If `x = NULL`, uses `x = seq_along(y)`.
+#'  of the variable within a dataframe. If `x = NULL`, uses `x = seq_along(y)`.
 #' @param data An *optional* dataframe containing the predictor and response
-#'  variables named in `x` and `y`.
+#'  variables named in `x` and `y`. Names for `x` and `y` must be in quotations.
 #' @param x0 A numeric scalar indicating the value of the predictor variable `x`
 #'  representing the start of the kinetics event (*default `x0 = 0`*).
 #' @param method Indicates which model to evaluate the kinetics event
@@ -49,12 +50,42 @@
 #' `method %in% c("monoexponential", "sigmoidal")` use [nls()][stats::nls()]
 #' for nonlinear (weighted) least-squares estimates.
 #'
+#' Model Parameterisation
+#'
+#' "monoexponential": A four-parameter monoexponential association function
+#'  in the form: `ifelse(x <= TD, A, A + (B - A) * (1 - exp((TD - x) / tau)))`.
+#'  - `A`: text
+#'  - `B`: text
+#'  - `TD`: text
+#'  - `tau`: text
+#'  - `MRT`: text
+#'
+#' "sigmoidal": A four-parameter generalised logistic (sigmoidal) function
+#'  in the form: `A + (B - A) / (1 + exp((xmid - x) / scal))`.
+#'  - `A`: text
+#'  - `B`: text
+#'  - `xmid`: text
+#'  - `scal`: text
+#'
+#' "half_time": A non-parametric estimate of the time to recover half of
+#'  the total reoxygenation amplitude.
+#'  - `A`: text
+#'  - `B`: text
+#'  - `half_value`: text
+#'
+#' "peak_slope": A non-parametric estimate of the time to reach the peak
+#'  rolling linear regression slope within a window defined by `width`.
+#'  - `A`: text
+#'  - `B`: text
+#'  - `x_fitted`: text
+#'  - `peak_slope`: text
+#'
 #' @seealso [stats::nls()], [stats::SSasymp()], [stats::SSfpl()],
 #'
 #' @return A list `L` of class `mNIRS.kinetics` with components `L$...`:
 #'      \item{`method`}{The kinetics method used.}
 #'      \item{`model`}{The model object.}
-#'      \item{`model_equation`}{The equation of the kinetics model used.}
+#'      \item{`equation`}{The equation of the kinetics model used.}
 #'      \item{`data`}{A dataframe of original and fitted model data.}
 #'      \item{`fitted`}{A vector of fitted values returned by the model.}
 #'      \item{`residuals`}{A vector of residuals between original and fitted
@@ -64,14 +95,14 @@
 #'      \item{`coefs`}{A dataframe of model coefficients, including manually
 #'      fixed parameters.}
 #'      \item{`diagnostics`}{A dataframe of model goodness-of-fit metrics
-#'      (`AIC`, `BIC`, `R2`, `RMSE`, `RSE`, `SNR`, `MAE`, `MAPE`).}
+#'      (`AIC`, `BIC`, `R2adj` `RMSE`, `MAE`, `MAPE`).}
 #'      \item{`call`}{The model call.}
 #'
 #' @examples
 #' set.seed(13)
 #' x1 <- seq(-10, 60, by = 2)
 #' A <- 10; B <- 100; TD <- 5; tau <- 12
-#' y1 <- monoexponential(x, A, B, TD, tau) + rnorm(length(x), 0, 3)
+#' y1 <- monoexponential(x1, A, B, TD, tau) + rnorm(length(x1), 0, 3)
 #'
 #' ## monoexponential kinetics ===============================
 #' model <- process_kinetics(y1, x1, method = "monoexponential")
@@ -148,6 +179,7 @@
 #' @usage NULL
 #' @rdname process_kinetics
 #' @export
+## generic function =====================================
 process_kinetics <- function(
         y,
         x = NULL,
@@ -174,6 +206,7 @@ process_kinetics <- function(
 
 #' @rdname process_kinetics
 #' @export
+## monoexponential =====================================
 process_kinetics.monoexponential <- function(
         y,
         x = NULL,
@@ -186,7 +219,7 @@ process_kinetics.monoexponential <- function(
     method <- match.arg(method)
     args <- list(...)
 
-    intake <- process_names_for_kinetics(y, x, data, x0, verbose)
+    intake <- pre_process_kinetics_names(y, x, data, x0, verbose)
     df <- intake$df
     x <- intake$df$x
     y <- intake$df$y
@@ -223,14 +256,14 @@ process_kinetics.monoexponential <- function(
     ## predict value for y at MRT x value
     coefs[[paste0("MRT_", y_name)]] <- predict(model, tibble(x = coefs$MRT))
 
-    model_equation <- as.formula(y ~ A + (B - A) * (1 - exp((TD - x) / tau)))
+    equation <- paste("y ~ A + (B - A) * (1 - exp((TD - x) / tau))")
     diagnostics <- as_tibble(as.list(model_output$diagnostics))
 
     out <- structure(
         list(
             method = method,
             model = model,
-            model_equation = model_equation,
+            equation = equation,
             data = data,
             fitted = model_output$fitted,
             residuals = model_output$residuals,
@@ -248,6 +281,7 @@ process_kinetics.monoexponential <- function(
 
 #' @rdname process_kinetics
 #' @export
+## sigmoidal =====================================
 process_kinetics.sigmoidal <- function(
         y,
         x = NULL,
@@ -260,8 +294,7 @@ process_kinetics.sigmoidal <- function(
     method <- match.arg(method)
     args <- list(...)
 
-    # intake <- eval(substitute(process_names_for_kinetics(y, x, data, x0)))
-    intake <- process_names_for_kinetics(y, x, data, x0, verbose)
+    intake <- pre_process_kinetics_names(y, x, data, x0, verbose)
     df <- intake$df
     x <- intake$df$x
     y <- intake$df$y
@@ -275,7 +308,7 @@ process_kinetics.sigmoidal <- function(
 
     ## create the model and update for any fixed coefs
     model <- tryCatch(
-        nls(y ~ stats::SSfpl(x, A, B, xmid, scal),
+        nls(y ~ SSfpl(x, A, B, xmid, scal),
             data = df,
             na.action = na.exclude) |>
             update_fixed_coefs(...), ## TODO 2025-08-11 supply from fixed_coefs
@@ -296,14 +329,14 @@ process_kinetics.sigmoidal <- function(
     ## predict value for y at xmid
     coefs[[paste0("xmid_", y_name)]] <- predict(model, tibble(x = coefs$xmid))
 
-    model_equation <- as.formula(y ~ A + (B - A) / (1 + exp((xmid - x) / scal)))
+    equation <- paste("y ~ A + (B - A) / (1 + exp((xmid - x) / scal))")
     diagnostics <- as_tibble(as.list(model_output$diagnostics))
 
     out <- structure(
         list(
             method = method,
             model = model,
-            model_equation = model_equation,
+            equation = equation,
             data = data,
             fitted = model_output$fitted,
             residuals = model_output$residuals,
@@ -321,6 +354,7 @@ process_kinetics.sigmoidal <- function(
 
 #' @rdname process_kinetics
 #' @export
+## half_time =====================================
 process_kinetics.half_time <- function(
         y,
         x = NULL,
@@ -333,8 +367,7 @@ process_kinetics.half_time <- function(
     method <- match.arg(method)
     args <- list(...)
 
-    # intake <- eval(substitute(process_names_for_kinetics(y, x, data, x0)))
-    intake <- process_names_for_kinetics(y, x, data, x0, verbose)
+    intake <- pre_process_kinetics_names(y, x, data, x0, verbose)
     df <- intake$df
     x <- intake$df$x
     y <- intake$df$y
@@ -379,12 +412,12 @@ process_kinetics.half_time <- function(
                       paste0("half_", y_name, "_value"))
     coefs <- as_tibble(as.list(coefs))
 
-    model_equation <- as.formula(half_value ~ A + (B - A) / 2)
+    equation <- paste0("half_", x_name, " ~ interp_x(y = A + (B - A) / 2)")
 
     out <- structure(
         list(
             method = method,
-            model_equation = model_equation,
+            equation = equation,
             data = data,
             x0 = x0,
             coefs = coefs,
@@ -399,6 +432,7 @@ process_kinetics.half_time <- function(
 
 #' @rdname process_kinetics
 #' @export
+## peak_slope =====================================
 process_kinetics.peak_slope <- function(
         y,
         x = NULL,
@@ -421,8 +455,7 @@ process_kinetics.peak_slope <- function(
         align <- match.arg("center", choices = align_choices)
     }
 
-    # intake <- eval(substitute(process_names_for_kinetics(y, x, data, x0)))
-    intake <- process_names_for_kinetics(y, x, data, x0, verbose)
+    intake <- pre_process_kinetics_names(y, x, data, x0, verbose)
     df <- intake$df
     x <- intake$df$x
     y <- intake$df$y
@@ -436,6 +469,7 @@ process_kinetics.peak_slope <- function(
 
     data[[fitted_name]] <- NA_real_
     data[[fitted_name]][x %in% peak_slope$x_fitted] <- peak_slope$y_fitted
+    residuals <- c(na.omit(data[[2]] - data[[fitted_name]]))
     coefs <- c(peak_slope$x[1],
                y[x %in% peak_slope$x][1],
                data[[fitted_name]][x %in% peak_slope$x][1],
@@ -443,16 +477,15 @@ process_kinetics.peak_slope <- function(
     names(coefs) <- c(x_name, y_name, fitted_name, "peak_slope")
     coefs <- as_tibble(as.list(coefs))
 
-    model_equation <- as.formula(
-        TODO ~ sum((x_window - x_mean) * (y_window - y_mean)) /
-            sum((x_window - x_mean)^2))
+    equation <- paste0("peak_slope ~ max(rolling_slope(y ~ x, width = ", width, "))")
 
     out <- structure(
         list(
             method = method,
-            model_equation = model_equation,
+            equation = equation,
             data = data,
             fitted = peak_slope$y_fitted,
+            residuals = residuals,
             rolling_slopes = rolling_slopes,
             x0 = x0,
             width = width,
@@ -476,7 +509,7 @@ process_kinetics.peak_slope <- function(
 ## `y_name = "y"` is not being found in the supplied dataframe ¯\_(ツ)_/¯
 ## but rlang::as_name(y) properly recognises `y = yy`, it just doesn't
 ## recognise `yy` as an environment object????
-process_names_for_kinetics <- function(y, x, data, x0, verbose = TRUE) {
+pre_process_kinetics_names <- function(y, x, data, x0, verbose = TRUE) {
     if (is.null(data)) {
         y_exp <- substitute(y) ## symbol from unquoted object name of y
         y_name <- deparse(y_exp) ## quoted string name of y
@@ -560,7 +593,7 @@ process_names_for_kinetics <- function(y, x, data, x0, verbose = TRUE) {
 
 
 ##old version corrected for x & y swap
-# process_names_for_kinetics <- function(y, x, data, x0) {
+# pre_process_kinetics_names <- function(y, x, data, x0) {
 #     if (!is.null(data) & !is.data.frame(data)) {
 #         ## data must be a dataframe
 #         cli::cli_abort("{.arg data} must be a dataframe")
@@ -658,22 +691,29 @@ process_model <- function(model) {
                    tau = NA_real_, MRT = NA_real_,
                    xmid = NA_real_, scal = NA_real_)
         diagnostics <- c(
-            AIC = NA_real_, BIC = NA_real_, R2 = NA_real_, RMSE = NA_real_,
-            RSE = NA_real_, MAE = NA_real_, MAPE = NA_real_)
+            AIC = NA_real_, BIC = NA_real_,
+            R2adj = NA_real_, RMSE = NA_real_,
+            MAE = NA_real_, MAPE = NA_real_)
     } else {
         y <- model$m$getEnv()$y
-        fitted <- as.vector(fitted(model))
-        residuals <- as.vector(residuals(model))
+        fitted <- c(fitted(model))
+        residuals <- c(residuals(model))
+        ## MSE & RMSE https://stackoverflow.com/a/43123619/15389854
+        RSS <- c(crossprod(residuals))
+        n <- length(residuals)
+        total_var <- c(crossprod(y - mean(y, na.rm = TRUE)))
         coefs <- coef(model)
+
         diagnostics <- c(
             AIC = AIC(model),
             BIC = BIC(model),
-            R2 = 1 - sum((y - fitted)^2)/sum((y - mean(y, na.rm = TRUE))^2),
-            RMSE = sqrt(mean(summary(model)$residuals^2)),
-            RSE = summary(model)$sigma,
-            SNR = diff(range(fitted, na.rm = TRUE)) / summary(model)$sigma,
-            MAE = mean(abs(summary(model)$residuals)),
-            MAPE = mean(abs(summary(model)$residuals/y)) * 100)
+            ## see ?performance::r2 & ?performance::r2_efron
+            # R2 = 1 - RSS / total_var,
+            ## see https://stats.stackexchange.com/a/584551
+            R2adj = 1 - ((RSS / (n - length(coefs))) / ((total_var / (n - 1)))),
+            RMSE = sqrt(RSS / n),
+            MAE = mean(abs(residuals)),
+            MAPE = mean(abs(residuals / y), na.rm = TRUE) * 100)
     }
 
     return(list(
