@@ -52,6 +52,7 @@ on vector data.</p>
 <span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  x0 <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"monoexponential"</span>, <span class="st">"sigmoidal"</span>, <span class="st">"half_time"</span>, <span class="st">"peak_slope"</span><span class="op">)</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -62,6 +63,7 @@ on vector data.</p>
 <span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  x0 <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"monoexponential"</span>, <span class="st">"sigmoidal"</span>, <span class="st">"half_time"</span>, <span class="st">"peak_slope"</span><span class="op">)</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -72,6 +74,7 @@ on vector data.</p>
 <span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  x0 <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"monoexponential"</span>, <span class="st">"sigmoidal"</span>, <span class="st">"half_time"</span>, <span class="st">"peak_slope"</span><span class="op">)</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -82,6 +85,7 @@ on vector data.</p>
 <span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  x0 <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"monoexponential"</span>, <span class="st">"sigmoidal"</span>, <span class="st">"half_time"</span>, <span class="st">"peak_slope"</span><span class="op">)</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -134,6 +138,12 @@ defined by <code>width</code>.</p></dd>
 </dl></dd>
 
 
+<dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
+<dd><p>A logical. <code>TRUE</code> (<em>default</em>) will return warnings and
+messages which can be used for data error checking. <code>FALSE</code> will silence these
+messages. Errors will always be returned.</p></dd>
+
+
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>Additional arguments.</p><dl><dt><code>width</code></dt>
 <dd><p>A numeric scalar defining the window width (in units of
@@ -153,11 +163,6 @@ models (<em>"monoexponential"</em> and <em>"sigmoidal"</em>) can be defined
 a priori and fixed, to exclude them from the model fitting
 optimisation. e.g., <code>A = 10</code> will define the function
 <code>SSmonoexp(x, A = 10, B, TD, tau)</code>.</p></dd>
-
-<dt><code>verbose</code></dt>
-<dd><p>A logical. <code>TRUE</code> (<em>default</em>) will return warnings and
-messages which can be used for data error checking. <code>FALSE</code> will
-silence these messages. Errors will always be returned.</p></dd>
 
 
 </dl></dd>
@@ -214,27 +219,16 @@ for nonlinear (weighted) least-squares estimates.</p>
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">13</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="op">-</span><span class="fl">10</span>, <span class="fl">60</span>, by <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">x1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="op">-</span><span class="fl">10</span>, <span class="fl">60</span>, by <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">A</span> <span class="op">&lt;-</span> <span class="fl">10</span>; <span class="va">B</span> <span class="op">&lt;-</span> <span class="fl">100</span>; <span class="va">TD</span> <span class="op">&lt;-</span> <span class="fl">5</span>; <span class="va">tau</span> <span class="op">&lt;-</span> <span class="fl">12</span></span></span>
-<span class="r-in"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="monoexponential.html">monoexponential</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">A</span>, <span class="va">B</span>, <span class="va">TD</span>, <span class="va">tau</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>, <span class="fl">0</span>, <span class="fl">3</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">y1</span> <span class="op">&lt;-</span> <span class="fu"><a href="monoexponential.html">monoexponential</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">A</span>, <span class="va">B</span>, <span class="va">TD</span>, <span class="va">tau</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>, <span class="fl">0</span>, <span class="fl">3</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'x' not found</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## monoexponential kinetics ===============================</span></span></span>
-<span class="r-in"><span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu">process_kinetics</span><span class="op">(</span><span class="va">y</span>, <span class="va">x</span>, method <span class="op">=</span> <span class="st">"monoexponential"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu">process_kinetics</span><span class="op">(</span><span class="va">y1</span>, <span class="va">x1</span>, method <span class="op">=</span> <span class="st">"monoexponential"</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'y1' not found</span>
 <span class="r-in"><span><span class="va">model</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Monoexponential Nonlinear nls() Regression</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   model:        y ~ SSmonoexp(x, A, B, TD, tau)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   data:        data.frame(x = x, y = y)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   equation:     y ~ A + (B - A) * (1 - exp((TD - x))/tau)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Model Coefficients</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        A      B    TD    tau    MRT  MRT_y</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 11.973 98.899 5.436 11.646 17.082 66.921</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Model Diagnostics</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       AIC     BIC    R2 RMSE   RSE    SNR   MAE  MAPE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 180.958 188.875 0.994  2.6 2.758 31.231 2.046 5.465</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'model' not found</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="co">## add coefs &amp; diagnostics text</span></span></span>
@@ -254,22 +248,10 @@ for nonlinear (weighted) least-squares estimates.</p>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## sigmoidal kinetics ===============================</span></span></span>
-<span class="r-in"><span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu">process_kinetics</span><span class="op">(</span><span class="va">y</span>, <span class="va">x</span>, method <span class="op">=</span> <span class="st">"sigmoidal"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu">process_kinetics</span><span class="op">(</span><span class="va">y1</span>, <span class="va">x1</span>, method <span class="op">=</span> <span class="st">"sigmoidal"</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'y1' not found</span>
 <span class="r-in"><span><span class="va">model</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Sigmoidal (Generalised Logistic) Nonlinear nls() Regression</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   model:        y ~ SSfpl(x, A, B, xmid, scal)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   data:        data.frame(x = x, y = y)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   equation:     y ~ A + (B - A) / (1 + exp((xmid - x) / scal))</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Model Coefficients</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       A      B   xmid  scal xmid_y</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 7.929 95.468 13.919 5.178 51.699</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Model Diagnostics</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       AIC     BIC   R2  RMSE   RSE    SNR   MAE  MAPE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 199.881 207.798 0.99 3.381 3.587 24.166 2.661 9.035</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'model' not found</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="co">## add coefs &amp; diagnostics text</span></span></span>
@@ -289,17 +271,10 @@ for nonlinear (weighted) least-squares estimates.</p>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## half recovery time ===============================</span></span></span>
-<span class="r-in"><span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu">process_kinetics</span><span class="op">(</span><span class="va">y</span>, <span class="va">x</span>, method <span class="op">=</span> <span class="st">"half_time"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu">process_kinetics</span><span class="op">(</span><span class="va">y1</span>, <span class="va">x1</span>, method <span class="op">=</span> <span class="st">"half_time"</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'y1' not found</span>
 <span class="r-in"><span><span class="va">model</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Non-parametric Half-Time</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   data:        data.frame(x = x, y = y)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   equation:     half_value ~ A + (B - A) / 2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Model Coefficients</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   A_x      A B_x       B half_x half_value y_value</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1   0 11.663  52 100.752     16     56.207  58.445</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'model' not found</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="co">## add coefs &amp; diagnostics text</span></span></span>
@@ -313,17 +288,10 @@ for nonlinear (weighted) least-squares estimates.</p>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## peak slope ===============================</span></span></span>
-<span class="r-in"><span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu">process_kinetics</span><span class="op">(</span><span class="va">y</span>, <span class="va">x</span>, method <span class="op">=</span> <span class="st">"peak_slope"</span>, width <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu">process_kinetics</span><span class="op">(</span><span class="va">y1</span>, <span class="va">x1</span>, method <span class="op">=</span> <span class="st">"peak_slope"</span>, width <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'y1' not found</span>
 <span class="r-in"><span><span class="va">model</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Peak Linear Slope</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   data:        data.frame(x = x, y = y)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   equation:     &lt;under development&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Model Coefficients</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   x      y y_fitted peak_slope</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 8 33.223   29.717       5.11</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'model' not found</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="co">## add coefs &amp; diagnostics text</span></span></span>
