@@ -24,6 +24,7 @@
 #' @importFrom stats predict
 #' @importFrom stats setNames
 #' @importFrom stats sortedXyData
+#' @importFrom stats SSfpl
 #' @importFrom stats update
 #' @importFrom tibble as_tibble
 #' @importFrom tibble tibble

@@ -45,7 +45,7 @@ devtools::build_readme()
 usethis::use_package("rlang")
 usethis::use_package("purrr", type = "suggest")
 
-usethis::use_import_from("cli", c("cli_alert_info", "cli_abort"))
+usethis::use_import_from()
 
 usethis::use_vignette("processing-mNIRS-data.qmd")
 devtools::build_rmd("vignettes/processing-mNIRS-data.qmd")

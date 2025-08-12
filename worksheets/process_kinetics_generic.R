@@ -159,6 +159,7 @@ process_kinetics <- function(
 ) {
     method <- match.arg(method)
 
+    # y_name <- deparse(substitute(y))
     y <- as_name(enquo(y))
 
     class(y) <- method
@@ -183,29 +184,32 @@ process_kinetics.monoexponential <- function(
         verbose = TRUE,
         ...
 ) {
-    method <- match.arg(method)
     args <- list(...)
 
+    # intake <- eval(substitute(process_names_for_kinetics(y, x, data, x0)))
+    # intake <- eval(call("process_names_for_kinetics",
+    #                     y = substitute(y),
+    #                     x = substitute(x),
+    #                     data = data, x0 = x0))
     intake <- process_names_for_kinetics(y, x, data, x0, verbose)
-    df <- intake$df
-    x <- intake$df$x
-    y <- intake$df$y
     data <- intake$data
-    x_name <- names(intake$data)[1]
-    y_name <- names(intake$data)[2]
+    df <- intake$df
+    x <- intake$x
+    x_exp <- intake$x_exp
+    x_name <- intake$x_name
+    y <- intake$y
+    y_exp <- intake$y_exp
+    y_name <- intake$y_name
     fitted_name <- paste0(y_name, "_fitted")
-
-    ## custom list of permissable fixed coefs
-    fixed_coefs <- unlist(args[names(args) %in% c("A", "B", "TD")])
 
     ## create the model and update for any fixed coefs
     model <- tryCatch(
         nls(y ~ SSmonoexp(x, A, B, TD, tau),
             data = df,
             na.action = na.exclude) |>
-            update_fixed_coefs(...), ## TODO 2025-08-11 supply from fixed_coefs
+            update_fixed_coefs(...),
         error = function(e) {
-            cat("Error in nls(", y_name, " ~ SSmonoexp(", x_name,
+            cat("Error in nls(", y_exp, " ~ SSmonoexp(", x_exp,
                 ", A, B, TD, tau)) : ", e$message, "\n", sep = "")
             NA})
 
@@ -213,22 +217,23 @@ process_kinetics.monoexponential <- function(
     model_output <- process_model(model)
     data[[fitted_name]] <- model_output$fitted
     ## include explicitly defined coefs
-    coefs <- c(fixed_coefs, model_output$coefs) |>
-        (\(.x) .x[match(names(formals(SSmonoexp)), names(.x))] )() |>
-        (\(.x) .x[!is.na(.x)])() |>
-        (\(.x) as_tibble(as.list(.x)))()
-
+    coefs <- c(..., model_output$coefs)
+    coefs <- coefs[match(c("A", "B", "TD", "tau"), names(coefs))]
+    ## convert named vector to dataframe
+    coefs <- tibble::as_tibble(as.list(coefs))
     ## calculate MRT
     coefs$MRT <- coefs$TD + coefs$tau
     ## predict value for y at MRT x value
-    coefs[[paste0("MRT_", y_name)]] <- predict(model, tibble(x = coefs$MRT))
+    coefs[[paste0("MRT_", y_name)]] <- predict(model, tibble::tibble(x = coefs$MRT))
 
+    ## save call
+    return_call <- match.call()
     model_equation <- as.formula(y ~ A + (B - A) * (1 - exp((TD - x) / tau)))
-    diagnostics <- as_tibble(as.list(model_output$diagnostics))
+    # return_call$model_equation <- list(call = list(formula = model_equation))
 
     out <- structure(
         list(
-            method = method,
+            method = "monoexponential",
             model = model,
             model_equation = model_equation,
             data = data,
@@ -236,8 +241,8 @@ process_kinetics.monoexponential <- function(
             residuals = model_output$residuals,
             x0 = x0,
             coefs = coefs,
-            diagnostics = diagnostics,
-            call = match.call()),
+            diagnostics = model_output$diagnostics,
+            call = return_call),
         class = "mNIRS.kinetics")
 
     return(out)
@@ -257,30 +262,28 @@ process_kinetics.sigmoidal <- function(
         verbose = TRUE,
         ...
 ) {
-    method <- match.arg(method)
     args <- list(...)
 
     # intake <- eval(substitute(process_names_for_kinetics(y, x, data, x0)))
     intake <- process_names_for_kinetics(y, x, data, x0, verbose)
-    df <- intake$df
-    x <- intake$df$x
-    y <- intake$df$y
     data <- intake$data
-    x_name <- names(intake$data)[1]
-    y_name <- names(intake$data)[2]
+    df <- intake$df
+    x <- intake$x
+    x_exp <- intake$x_exp
+    x_name <- intake$x_name
+    y <- intake$y
+    y_exp <- intake$y_exp
+    y_name <- intake$y_name
     fitted_name <- paste0(y_name, "_fitted")
-
-    ## custom list of permissable fixed coefs
-    fixed_coefs <- unlist(args[names(args) %in% c("A", "B")])
 
     ## create the model and update for any fixed coefs
     model <- tryCatch(
         nls(y ~ stats::SSfpl(x, A, B, xmid, scal),
             data = df,
             na.action = na.exclude) |>
-            update_fixed_coefs(...), ## TODO 2025-08-11 supply from fixed_coefs
+            update_fixed_coefs(...),
         error = function(e) {
-            cat("Error in nls(", y_name, " ~ SSfpl(", x_name,
+            cat("Error in nls(", y_exp, " ~ SSfpl(", x_exp,
                 ", A, B, xmid, scal)) : ", e$message, "\n", sep = "")
             NA})
 
@@ -288,20 +291,21 @@ process_kinetics.sigmoidal <- function(
     model_output <- process_model(model)
     data[[fitted_name]] <- model_output$fitted
     ## include explicitly defined coefs
-    coefs <- c(fixed_coefs, model_output$coefs) |>
-        (\(.x) .x[match(names(formals(SSfpl)), names(.x))] )() |>
-        (\(.x) .x[!is.na(.x)])() |>
-        (\(.x) as_tibble(as.list(.x)))()
-
+    coefs <- c(..., model_output$coefs)
+    coefs <- coefs[match(c("A", "B", "xmid", "scal"), names(coefs))]
+    ## convert named vector to dataframe
+    coefs <- tibble::as_tibble(as.list(coefs))
     ## predict value for y at xmid
-    coefs[[paste0("xmid_", y_name)]] <- predict(model, tibble(x = coefs$xmid))
+    coefs[[paste0("xmid_", y_name)]] <- predict(model, tibble::tibble(x = coefs$xmid))
 
+    ## save call
+    return_call <- match.call()
     model_equation <- as.formula(y ~ A + (B - A) / (1 + exp((xmid - x) / scal)))
-    diagnostics <- as_tibble(as.list(model_output$diagnostics))
+    # return_call$model_equation <- list(call = list(formula = model_equation))
 
     out <- structure(
         list(
-            method = method,
+            method = "sigmoidal",
             model = model,
             model_equation = model_equation,
             data = data,
@@ -309,8 +313,8 @@ process_kinetics.sigmoidal <- function(
             residuals = model_output$residuals,
             x0 = x0,
             coefs = coefs,
-            diagnostics = diagnostics,
-            call = match.call()),
+            diagnostics = model_output$diagnostics,
+            call = return_call),
         class = "mNIRS.kinetics")
 
     return(out)
@@ -330,21 +334,18 @@ process_kinetics.half_time <- function(
         verbose = TRUE,
         ...
 ) {
-    method <- match.arg(method)
     args <- list(...)
 
     # intake <- eval(substitute(process_names_for_kinetics(y, x, data, x0)))
     intake <- process_names_for_kinetics(y, x, data, x0, verbose)
-    df <- intake$df
-    x <- intake$df$x
-    y <- intake$df$y
     data <- intake$data
-    x_name <- names(intake$data)[1]
-    y_name <- names(intake$data)[2]
-
-    ## custom list of permissable fixed coefs
-    ## TODO 2025-08-11 allow for fixing A & B in half_time
-    fixed_coefs <- unlist(args[names(args) %in% c("A", "B")])
+    df <- intake$df
+    x <- intake$x
+    x_exp <- intake$x_exp
+    x_name <- intake$x_name
+    y <- intake$y
+    y_exp <- intake$y_exp
+    y_name <- intake$y_name
 
     ## determine overall trend using direct least squares calculation
     valid_idx <- !is.na(x) & !is.na(y)
@@ -376,19 +377,22 @@ process_kinetics.half_time <- function(
                       paste0("B_", x_name), "B",
                       paste0("half_", x_name),
                       "half_value",
-                      paste0("half_", y_name, "_value"))
-    coefs <- as_tibble(as.list(coefs))
+                      paste0(y_name, "_value"))
+    coefs <- tibble::as_tibble(as.list(coefs))
 
+    ## save call
+    return_call <- match.call()
     model_equation <- as.formula(half_value ~ A + (B - A) / 2)
+    # return_call$model_equation <- list(call = list(formula = model_equation))
 
     out <- structure(
         list(
-            method = method,
+            method = "half_time",
             model_equation = model_equation,
             data = data,
             x0 = x0,
             coefs = coefs,
-            call = match.call()),
+            call = return_call),
         class = "mNIRS.kinetics")
 
     return(out)
@@ -408,7 +412,6 @@ process_kinetics.peak_slope <- function(
         verbose = TRUE,
         ...
 ) {
-    method <- match.arg(method)
     args <- list(...)
     if ("width" %in% names(args)) {
         width <- args$width
@@ -423,15 +426,17 @@ process_kinetics.peak_slope <- function(
 
     # intake <- eval(substitute(process_names_for_kinetics(y, x, data, x0)))
     intake <- process_names_for_kinetics(y, x, data, x0, verbose)
-    df <- intake$df
-    x <- intake$df$x
-    y <- intake$df$y
     data <- intake$data
-    x_name <- names(intake$data)[1]
-    y_name <- names(intake$data)[2]
+    df <- intake$df
+    x <- intake$x
+    x_exp <- intake$x_exp
+    x_name <- intake$x_name
+    y <- intake$y
+    y_exp <- intake$y_exp
+    y_name <- intake$y_name
     fitted_name <- paste0(y_name, "_fitted")
 
-    rolling_slopes <- rolling_slope(y, x, width, align, na.rm = TRUE)
+    slopes <- rolling_slope(y, x, width, align, na.rm = TRUE)
     peak_slope <- peak_directional_slope(y, x, width, align, na.rm = TRUE)
 
     data[[fitted_name]] <- NA_real_
@@ -441,24 +446,25 @@ process_kinetics.peak_slope <- function(
                data[[fitted_name]][x %in% peak_slope$x][1],
                peak_slope$slope)
     names(coefs) <- c(x_name, y_name, fitted_name, "peak_slope")
-    coefs <- as_tibble(as.list(coefs))
+    coefs <- tibble::as_tibble(as.list(coefs))
 
+    ## save call
+    return_call <- match.call()
     model_equation <- as.formula(
         TODO ~ sum((x_window - x_mean) * (y_window - y_mean)) /
             sum((x_window - x_mean)^2))
 
     out <- structure(
         list(
-            method = method,
+            method = "peak_slope",
             model_equation = model_equation,
             data = data,
-            fitted = peak_slope$y_fitted,
-            rolling_slopes = rolling_slopes,
+            slopes = slopes,
             x0 = x0,
             width = width,
             align = align,
             coefs = coefs,
-            call = match.call()),
+            call = return_call),
         class = "mNIRS.kinetics")
 
     return(out)
@@ -469,49 +475,49 @@ process_kinetics.peak_slope <- function(
 
 
 
+
 #' @keywords internal
-## TODO 2025-08-11 new version not entirely working for unquotted data colnames
-## TODO 2025-08-11 obj `y` is being substituted and enquosed as `y` instead of
-## whatever `y = y1` was assigned to in the outer function. Therefore,
-## `y_name = "y"` is not being found in the supplied dataframe ¯\_(ツ)_/¯
-## but rlang::as_name(y) properly recognises `y = yy`, it just doesn't
-## recognise `yy` as an environment object????
+## new version not entirely working...
 process_names_for_kinetics <- function(y, x, data, x0, verbose = TRUE) {
     if (is.null(data)) {
-        y_exp <- substitute(y) ## symbol from unquoted object name of y
-        y_name <- deparse(y_exp) ## quoted string name of y
-
-        x_exp <- if (!is.null(x)) {substitute(x)} else {substitute(index)}
-        x_name <- if (!is.null(x)) {deparse(x_exp)} else {"index"}
-
         if (!is.numeric(y)) {
-            cli::cli_abort("{.arg y = {y_name}} must be a {.cls numeric} vector.")
+            cli::cli_abort("{.arg y} must be a {.cls numeric} vector.")
         } else if (is.null(x)) {
+            x_exp <- substitute(index) ## for x = NULL, name as "index"
+            x_name <- "index"
+            y_exp <- substitute(y) ## symbol from unquoted object name of y
+            y_name <- deparse(y_exp) ## quoted string name of y
+            y <- y
             x <- seq_along(y)
         } else if (!is.numeric(x)) {
-            cli::cli_abort("{.arg x = {x_name}} must be a {.cls numeric} vector.")
+            cli::cli_abort("{.arg x} must be a {.cls numeric} vector.")
         } else if (length(x) != length(y)) {
-            cli::cli_abort(paste(
-                "{.arg x = {x_name}} and {.arg y = {y_name}}",
-                "must have the same length."))
+            cli::cli_abort("{.arg x} and {.arg y} must have the same length.")
+        } else {
+            x_exp <- substitute(x) ## symbol from unquoted object name of x
+            x_name <- deparse(x_exp) ## quoted string name of x
+            y_exp <- substitute(y) ## symbol from unquoted object name of y
+            y_name <- deparse(y_exp) ## quoted string name of y
+            y <- y
+            x <- x
         }
 
-        data <- tibble(x, y)
+        data <- tibble::tibble(x, y)
         names(data) <- c(x_name, y_name)
     } else if (!is.data.frame(data)) {
+        ## data must be a dataframe
         cli::cli_abort("{.arg data} must be a dataframe.")
     } else if (is.data.frame(data)) {
         y_exp <- substitute(y) ## symbol from unquoted object name of y
-        ## TODO 2025-08-11 UNQUOTED WITH DATA IS FAILING HERE
-        y_name <- as_name(y) ## works for quoted, object not found error for sym
-        # y_name <- tryCatch(
-        #     as_name(y), ## works for quoted, object not found error for sym
-        #     error = \(e) {
-        #         ## for unquoted "object not found" error:
-        #         if (grepl("object", e$message)) {
-        #             ## deparse() works for unquoted
-        #             gsub('^"|"$', '', deparse(y_exp)) ## quoted object name of y
-        #         }})
+        # y_name <- as_name(y_exp) ## quoted string name of y
+        y_name <- tryCatch(
+            rlang::as_name(y), ## as_name() works for quoted
+            error = \(e) {
+                ## for unquoted "object not found" error:
+                if (grepl("object", e$message)) {
+                    ## deparse() works for unquoted
+                    gsub('^"|"$', '', deparse(y_exp)) ## quoted object name of y
+                }})
 
         if (y_name %in% names(data)) {
             y <- data[[y_name]]
@@ -529,15 +535,15 @@ process_names_for_kinetics <- function(y, x, data, x0, verbose = TRUE) {
             }
         } else {
             x_exp <- substitute(x) ## symbol from unquoted object name of x
-            x_name <- as_name(x) ## works for quoted, object not found error for sym
-            # x_name <- tryCatch(
-            #     as_name(x), ## works for quoted, object not found error for sym
-            #     error = \(e) {
-            #         ## for unquoted "object not found" error:
-            #         if (grepl("object", e$message)) {
-            #             ## deparse() works for unquoted
-            #             gsub('^"|"$', '', deparse(x_exp)) ## quoted object name of x
-            #         }})
+            # x_name <- as_name(x_exp) ## quoted string name of x
+            x_name <- tryCatch(
+                rlang::as_name(x), ## as_name() works for quoted
+                error = \(e) {
+                    ## for unquoted "object not found" error:
+                    if (grepl("object", e$message)) {
+                        ## deparse() works for unquoted
+                        gsub('^"|"$', '', deparse(x_exp)) ## quoted object name of x
+                    }})
 
             if (x_name %in% names(data)) {
                 x <- data[[x_name]]
@@ -550,12 +556,75 @@ process_names_for_kinetics <- function(y, x, data, x0, verbose = TRUE) {
     }
 
     x <- x - x0
-    df <- tibble(x, y)
+    df <- tibble::tibble(x, y)
 
     return(list(
         data = data,
-        df = df))
+        df = df,
+        x = x,
+        x_exp = x_exp,
+        x_name = x_name,
+        y = y,
+        y_exp = y_exp,
+        y_name = y_name))
 }
+
+## tried this inside the generic function. doesn't like that
+# y_quo <- enquo(y)
+# x_quo <- enquo(x)
+# data_quo <- enquo(data)
+#
+# y_name <- as_name(y_quo)
+# x_name <- if (!quo_is_null(x_quo)) {as_name(x_quo)} else {"index"}
+# data_name <- if (!quo_is_null(data_quo)) {as_name(data_quo)} else {NULL}
+#
+# if (is.null(data)) {
+#     if (!is.numeric(y)) {
+#         cli::cli_abort("{.arg y = {y_name}} must be a {.cls numeric} vector.")
+#     } else {
+#         y <- eval_tidy(y_quo)
+#     }
+#
+#     if (is.null(x)) {
+#         x <- seq_along(y)
+#     } else if (!is.numeric(x)) {
+#         cli::cli_abort("{.arg x = {x_name}} must be a {.cls numeric} vector.")
+#     } else if (length(x) != length(y)) {
+#         cli::cli_abort(paste(
+#             "{.arg x = {x_name}} and {.arg y = {y_name}}",
+#             "must have the same length."))
+#     } else {
+#         x <- eval_tidy(x_quo)
+#     }
+#
+#     data <- tibble(!!x_name := x, !!y_name := y)
+#     data_name <- "data"
+# } else if (!is.data.frame(data)) {
+#     cli::cli_abort("{.arg data = {data_name}} must be a dataframe.")
+# } else if (!has_name(data, y_name)) {
+#     cli::cli_abort("{.arg y = {y_name}} not found in {.arg data = {data_name}}.")
+# } else { ## is.data.frame & has_name
+#     y <- data[[y_name]]
+#
+#     if (quo_is_null(x_quo)) {
+#         x <- seq_along(y)
+#         data[[x_name]] <- x
+#         if (verbose) {
+#             cli::cli_alert_info(
+#                 "{.arg x = {x_name}} added to {.arg data = {data_name}}.")
+#         }
+#     } else if (!has_name(data, x_name)) {
+#         cli::cli_abort("{.arg x = {x_name}} not found in {.arg data = {data_name}}.")
+#     } else {
+#         x <- data[[x_name]]
+#     }
+#
+#     data <- data[c(x_name, y_name)]
+# }
+#
+# x <- x - x0
+# df <- tibble::tibble(x, y)
+
 
 
 
@@ -650,14 +719,16 @@ process_names_for_kinetics <- function(y, x, data, x0, verbose = TRUE) {
 
 
 #' @keywords internal
-process_model <- function(model) {
+process_model <- function(
+        model
+) {
     if (is.na(model[1])) {
         fitted <- NA_real_
         residuals <- NA_real_
-        coefs <- c(A = NA_real_, B = NA_real_, TD = NA_real_,
-                   tau = NA_real_, MRT = NA_real_,
-                   xmid = NA_real_, scal = NA_real_)
-        diagnostics <- c(
+        coefs <- tibble::tibble(A = NA_real_, B = NA_real_, TD = NA_real_,
+                                tau = NA_real_, MRT = NA_real_,
+                                xmid = NA_real_, scal = NA_real_)
+        diagnostics <- tibble::tibble(
             AIC = NA_real_, BIC = NA_real_, R2 = NA_real_, RMSE = NA_real_,
             RSE = NA_real_, MAE = NA_real_, MAPE = NA_real_)
     } else {
@@ -665,13 +736,13 @@ process_model <- function(model) {
         fitted <- as.vector(fitted(model))
         residuals <- as.vector(residuals(model))
         coefs <- coef(model)
-        diagnostics <- c(
-            AIC = AIC(model),
-            BIC = BIC(model),
+        diagnostics <- tibble::tibble(
+            AIC = stats::AIC(model),
+            BIC = stats::BIC(model),
             R2 = 1 - sum((y - fitted)^2)/sum((y - mean(y, na.rm = TRUE))^2),
             RMSE = sqrt(mean(summary(model)$residuals^2)),
             RSE = summary(model)$sigma,
-            SNR = diff(range(fitted, na.rm = TRUE)) / summary(model)$sigma,
+            SNR = diff(range(fitted, na.rm = TRUE)) / RSE,
             MAE = mean(abs(summary(model)$residuals)),
             MAPE = mean(abs(summary(model)$residuals/y)) * 100)
     }

@@ -90,13 +90,15 @@ model_list <- tidyr::expand_grid(
     .method = "monoexp") |>
     purrr::pmap(
         \(.df, .nirs, .method)
-        process_kinetics(x = fit_sample_name,
-                         y = .nirs,
+        process_kinetics(y = .nirs,
+                         x = fit_sample_name,
                          data = .df,
                          method = .method,
                          width = 10*50)
     ) |>
     print()
+
+process_kinetics(y = "O2Hb", x = fit_sample_name, data_list[[1]])
 
 ## coef table =====================================
 coef_data <- purrr::imap(
@@ -419,7 +421,9 @@ myfun(yy, "x1", data = mydata) ##
 ## generic function ================================
 library(rlang)
 
-y1 <- 1:5
+x1 <- 1:5
+y1 <- round(x1 + rnorm(length(x1), 0, 0.1), 2)
+mydata <- tibble::tibble(xx = x1/2, yy = y1)
 
 namesfun <- function(y, x = NULL, data = NULL) {
     y_quo <- enquo(y)
@@ -498,20 +502,20 @@ genfun <- function(y, x = NULL, data = NULL, method = c("A"), ...) {
 genfun.A <- function(y, x = NULL, data = NULL, method = c("A"), ...) {
 
     print(y)
+    print(eval_tidy(y))
     print(substitute(y))
     print(deparse(substitute(y)))
     print(enquo(y))
-    print(sym(deparse(substitute(y))))
 
-    namesfun(y)
+    namesfun(y, x, data)
 }
 
 
-genfun(y1)
+genfun(y1, x = NULL, data = NULL)
 genfun(y1, x = x1, data = NULL)
-genfun(y1, x = NULL, data = mydata) ##
+# genfun(y1, x = NULL, data = mydata) ##
 genfun(yy, x = NULL, data = mydata)
-genfun(yy, x1, data = mydata) ##
+# genfun(yy, x1, data = mydata) ##
 genfun(yy, xx, data = mydata)
 genfun("yy", "xx", data = mydata)
 genfun("yy", xx, data = mydata)
@@ -644,3 +648,319 @@ test_that("All levels preserve name and value", {
     expect_equal(result$middle_result$value, 100)
     expect_equal(result$middle_result$inner_result$value, 100)
 })
+
+
+## single function re-write ==========================================
+
+onefun <- function(
+        y,
+        x = NULL,
+        data = NULL,
+        x0 = 0,
+        method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
+        verbose = TRUE,
+        ...
+) {
+    method <- match.arg(method)
+    args <- list(...)
+
+    y_quo <- enquo(y)
+    x_quo <- enquo(x)
+    data_quo <- enquo(data)
+
+    y_name <- as_name(y_quo)
+    x_name <- if (!quo_is_null(x_quo)) {as_name(x_quo)} else {"index"}
+    data_name <- if (!quo_is_null(data_quo)) {as_name(data_quo)} else {NULL}
+
+    if (is.null(data)) {
+        if (!is.numeric(y)) {
+            cli::cli_abort("{.arg y = {y_name}} must be a {.cls numeric} vector.")
+        } else {
+            y <- eval_tidy(y_quo)
+        }
+
+        if (is.null(x)) {
+            x <- seq_along(y)
+        } else if (!is.numeric(x)) {
+            cli::cli_abort("{.arg x = {x_name}} must be a {.cls numeric} vector.")
+        } else if (length(x) != length(y)) {
+            cli::cli_abort(paste(
+                "{.arg x = {x_name}} and {.arg y = {y_name}}",
+                "must have the same length."))
+        } else {
+            x <- eval_tidy(x_quo)
+        }
+
+        data <- tibble(!!x_name := x, !!y_name := y)
+        data_name <- "data"
+    } else if (!is.data.frame(data)) {
+        cli::cli_abort("{.arg data = {data_name}} must be a dataframe.")
+    } else if (!has_name(data, y_name)) {
+        cli::cli_abort("{.arg y = {y_name}} not found in {.arg data = {data_name}}.")
+    } else { ## is.data.frame & has_name
+        y <- data[[y_name]]
+
+        if (quo_is_null(x_quo)) {
+            x <- seq_along(y)
+            data[[x_name]] <- x
+            if (verbose) {
+                cli::cli_alert_info(
+                    "{.arg x = {x_name}} added to {.arg data = {data_name}}.")
+            }
+        } else if (!has_name(data, x_name)) {
+            cli::cli_abort("{.arg x = {x_name}} not found in {.arg data = {data_name}}.")
+        } else {
+            x <- data[[x_name]]
+        }
+
+        data <- data[c(x_name, y_name)]
+    }
+
+    x <- x - x0
+    df <- tibble::tibble(x, y)
+    fitted_name <- paste0(y_name, "_fitted")
+
+    ## custom list of permissable fixed coefs
+    fixed_coefs <- unlist(args[names(args) %in% c("A", "B", "TD")])
+
+    # process_model <- function(model) {
+    #     if (is.na(model[1])) {
+    #         fitted <- NA_real_
+    #         residuals <- NA_real_
+    #         coefs <- c(A = NA_real_, B = NA_real_, TD = NA_real_,
+    #                         tau = NA_real_, MRT = NA_real_,
+    #                         xmid = NA_real_, scal = NA_real_)
+    #         diagnostics <- c(
+    #             AIC = NA_real_, BIC = NA_real_, R2 = NA_real_, RMSE = NA_real_,
+    #             RSE = NA_real_, MAE = NA_real_, MAPE = NA_real_)
+    #     } else {
+    #         y <- model$m$getEnv()$y
+    #         fitted <- as.vector(fitted(model))
+    #         residuals <- as.vector(residuals(model))
+    #         coefs <- coef(model)
+    #         diagnostics <- c(
+    #             AIC = AIC(model),
+    #             BIC = BIC(model),
+    #             R2 = 1 - sum((y - fitted)^2)/sum((y - mean(y, na.rm = TRUE))^2),
+    #             RMSE = sqrt(mean(summary(model)$residuals^2)),
+    #             RSE = summary(model)$sigma,
+    #             SNR = diff(range(fitted, na.rm = TRUE)) / summary(model)$sigma,
+    #             MAE = mean(abs(summary(model)$residuals)),
+    #             MAPE = mean(abs(summary(model)$residuals/y)) * 100)
+    #     }
+    #
+    #     return(list(
+    #         fitted = fitted,
+    #         residuals = residuals,
+    #         coefs = coefs,
+    #         diagnostics = diagnostics))
+    # }
+
+    if (method == "monoexponential") {
+        ## create the model and update for any fixed coefs
+        model <- tryCatch(
+            nls(y ~ mNIRS:::SSmonoexp(x, A, B, TD, tau),
+                data = df,
+                na.action = na.exclude) |>
+                mNIRS:::update_fixed_coefs(...), ## TODO 2025-08-11 supply from fixed_coefs
+            error = function(e) {
+                cat("Error in nls(", y_name, " ~ SSmonoexp(", x_name,
+                    ", A, B, TD, tau)) : ", e$message, "\n", sep = "")
+                NA})
+
+        ## process coefs, diagnostics, fitted
+        model_output <- process_model(model)
+        data[[fitted_name]] <- model_output$fitted
+        ## include explicitly defined coefs
+        coefs <- c(fixed_coefs, model_output$coefs) |>
+            (\(.x) .x[match(names(formals(mNIRS:::SSmonoexp)), names(.x))] )() |>
+            (\(.x) .x[!is.na(.x)])() |>
+            (\(.x) as_tibble(as.list(.x)))()
+
+        ## calculate MRT
+        coefs$MRT <- coefs$TD + coefs$tau
+        ## predict value for y at MRT x value
+        coefs[[paste0("MRT_", y_name)]] <- predict(model, tibble(x = coefs$MRT))
+
+        model_equation <- as.formula(y ~ A + (B - A) * (1 - exp((TD - x) / tau)))
+        fitted <- model_output$fitted
+        residuals <- model_output$residuals
+        diagnostics <- model_output$diagnostics
+
+    } else if (method == "sigmoidal") {
+        ## create the model and update for any fixed coefs
+        model <- tryCatch(
+            nls(y ~ SSfpl(x, A, B, xmid, scal),
+                data = df,
+                na.action = na.exclude) |>
+                mNIRS:::update_fixed_coefs(...), ## TODO 2025-08-11 supply from fixed_coefs
+            error = function(e) {
+                cat("Error in nls(", y_name, " ~ SSfpl(", x_name,
+                    ", A, B, xmid, scal)) : ", e$message, "\n", sep = "")
+                NA})
+
+        ## process coefs, diagnostics, fitted
+        model_output <- process_model(model)
+        data[[fitted_name]] <- model_output$fitted
+        ## include explicitly defined coefs
+        coefs <- c(fixed_coefs, model_output$coefs) |>
+            (\(.x) .x[match(names(formals(SSfpl)), names(.x))] )() |>
+            (\(.x) .x[!is.na(.x)])() |>
+            (\(.x) as_tibble(as.list(.x)))()
+
+        ## predict value for y at xmid
+        coefs[[paste0("xmid_", y_name)]] <- predict(model, tibble(x = coefs$xmid))
+
+        model_equation <- as.formula(y ~ A + (B - A) / (1 + exp((xmid - x) / scal)))
+        fitted <- model_output$fitted
+        residuals <- model_output$residuals
+        diagnostics <- model_output$diagnostics
+
+    } else if (method == "half_time") {
+        ## determine overall trend using direct least squares calculation
+        valid_idx <- !is.na(x) & !is.na(y)
+        x_clean <- x[valid_idx]
+        y_clean <- y[valid_idx]
+
+        x_mean <- mean(x_clean)
+        y_mean <- mean(y_clean)
+
+        ## covariance between x & y (+ve when they move in same direction)
+        numerator <- sum((x_clean - x_mean) * (y_clean - y_mean), na.rm = TRUE)
+        ## variance of x (spread of x around mean of x)
+        denominator <- sum((x_clean - x_mean)^2, na.rm = TRUE)
+        ## best-fit line gradient faster than calling `lm()`
+        overall_slope <- if (denominator == 0) {0} else {numerator / denominator}
+        ## TRUE == UP, FALSE == DOWN
+        direction <- overall_slope >= 0
+
+        A_sample <- ifelse(all(x > 0), x[1], 0)
+        ## TODO 2025-08-11 need to allow fixing A & B for half_time
+        A <- mean(y[ifelse(all(x > 0), x[1], which(x <= 0))])
+        B <- ifelse(direction, max(y), min(y))
+        B_sample <- x[y == B][1]
+        half_value <- A + diff(c(A, B))/2
+        half_sample <- ifelse(direction, x[y >= half_value][1], x[y <= half_value][1])
+        nirs_value <- y[x == half_sample][1]
+
+        coefs <- c(A_sample, A, B_sample, B, half_sample, half_value, nirs_value)
+        names(coefs) <- c(paste0("A_", x_name), "A",
+                          paste0("B_", x_name), "B",
+                          paste0("half_", x_name),
+                          "half_value",
+                          paste0(y_name, "_value"))
+
+        model <- NULL
+        model_equation <- as.formula(half_value ~ A + (B - A) / 2)
+        fitted <- NULL
+        residuals <- NULL
+        diagnostics <- NULL
+
+    } else if (method == "peak_slope") {
+        if ("width" %in% names(args)) {
+            width <- args$width
+        }
+
+        align_choices <- c("center", "left", "right")
+        if ("align" %in% names(args)) {
+            align <- match.arg(args$align, choices = align_choices)
+        } else {
+            align <- match.arg("center", choices = align_choices)
+        }
+
+        ## calculate all rolling slopes
+        slopes <- rolling_slope(y, x, width, align, na.rm = TRUE)
+        ## calculate peak rolling slope in the appropraite direction
+        peak_slope <- peak_directional_slope(y, x, width, align, na.rm = TRUE)
+
+        data[[fitted_name]] <- NA_real_
+        data[[fitted_name]][x %in% peak_slope$x_fitted] <- peak_slope$y_fitted
+        coefs <- c(peak_slope$x[1],
+                   y[x %in% peak_slope$x][1],
+                   data[[fitted_name]][x %in% peak_slope$x][1],
+                   peak_slope$slope)
+        names(coefs) <- c(x_name, y_name, fitted_name, "peak_slope")
+
+        model <- NULL
+        model_equation <- as.formula(
+            TODO ~ sum((x_window - x_mean) * (y_window - y_mean)) /
+                sum((x_window - x_mean)^2))
+        fitted <- peak_slope$y_fitted
+        residuals <- NULL
+        diagnostics <- NULL
+    }
+
+    out <- structure(
+        list(
+            method = method,
+            model = model,
+            model_equation = model_equation,
+            data = data,
+            fitted = fitted,
+            residuals = residuals,
+            x0 = x0,
+            coefs = as_tibble(as.list(coefs)),
+            diagnostics = as_tibble(as.list(diagnostics)),
+            call = match.call()),
+        class = "mNIRS.kinetics")
+
+    return(out)
+}
+
+set.seed(13)
+x1 <- seq(-10, 60, by = 2)
+A <- 10; B <- 100; TD <- 5; tau <- 12
+y1 <- monoexponential(x1, A, B, TD, tau) + rnorm(length(x1), 0, 3)
+mydata <- tibble::tibble(xx = x1/2, yy = y1)
+rm(A); rm(B); rm(TD); rm(tau)
+# plot(x1, y1)
+
+process_model <- function(model) {
+    if (is.na(model[1])) {
+        fitted <- NA_real_
+        residuals <- NA_real_
+        coefs <- c(A = NA_real_, B = NA_real_, TD = NA_real_,
+                   tau = NA_real_, MRT = NA_real_,
+                   xmid = NA_real_, scal = NA_real_)
+        diagnostics <- c(
+            AIC = NA_real_, BIC = NA_real_, R2 = NA_real_, RMSE = NA_real_,
+            RSE = NA_real_, MAE = NA_real_, MAPE = NA_real_)
+    } else {
+        y <- model$m$getEnv()$y
+        fitted <- as.vector(fitted(model))
+        residuals <- as.vector(residuals(model))
+        coefs <- coef(model)
+        diagnostics <- c(
+            AIC = AIC(model),
+            BIC = BIC(model),
+            R2 = 1 - sum((y - fitted)^2)/sum((y - mean(y, na.rm = TRUE))^2),
+            RMSE = sqrt(mean(summary(model)$residuals^2)),
+            RSE = summary(model)$sigma,
+            SNR = diff(range(fitted, na.rm = TRUE)) / summary(model)$sigma,
+            MAE = mean(abs(summary(model)$residuals)),
+            MAPE = mean(abs(summary(model)$residuals/y)) * 100)
+    }
+
+    return(list(
+        fitted = fitted,
+        residuals = residuals,
+        coefs = coefs,
+        diagnostics = diagnostics))
+}
+
+.method <- "monoexp"
+onefun(y1, x = NULL, data = NULL, width = 5, method = .method)
+onefun(y1, x = x1, data = NULL, width = 5, method = .method)
+onefun(y1, x = NULL, data = mydata, width = 5, method = .method) ##
+onefun(yy, x = NULL, data = mydata, width = 5, method = .method)
+onefun(yy, x1, data = mydata, width = 5, method = .method) ##
+onefun(yy, xx, data = mydata, width = 5, method = .method)
+onefun("yy", "xx", data = mydata, width = 5, method = .method)
+onefun("yy", xx, data = mydata, width = 5, method = .method)
+onefun(yy, "xx", data = mydata, width = 5, method = .method)
+onefun("y1", xx, data = mydata, width = 5, method = .method) ##
+onefun(yy, "x1", data = mydata, width = 5, method = .method) ##
+
+onefun(yy, xx, data = mydata, width = 5, method = .method)
+onefun(yy, xx, data = mydata, width = 5, method = .method, A = 20)
+
