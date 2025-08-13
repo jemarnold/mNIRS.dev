@@ -26,7 +26,7 @@ same function.}
 }
 \value{
 A numeric vector for the response variabel \code{y} of the same length as
-the predictor variable \code{x} returned from the monoexponential function.
+the predictor variable \code{x}.
 }
 \description{
 Calculate a four-parameter monoexponential curve.
@@ -34,22 +34,18 @@ Calculate a four-parameter monoexponential curve.
 \examples{
 set.seed(13)
 x <- seq(0, 60, by = 2)
-A <- 10
-B <- 100
-TD <- 15
-tau <- 8
+A <- 10; B <- 100; TD <- 15; tau <- 8
 y <- monoexponential(x, A, B, TD, tau) + rnorm(length(x), 0, 3)
 data <- data.frame(x, y)
 
 model <- nls(y ~ SSmonoexp(x, A, B, TD, tau), data = data)
 model
-fitted <- fitted(model)
 
 \dontrun{
 plot(x, y)
 lines(x, y)
 points(x, y)
-lines(x, fitted, col = "red")
+lines(x, fitted(model), col = "red")
 }
 
 }

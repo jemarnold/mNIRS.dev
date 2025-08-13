@@ -20,6 +20,7 @@ theme_mNIRS <- function(
         ...
 ) {
     rlang::check_installed("ggplot2", reason = "to plot mNIRS data")
+    args <- list(...)
 
     half_line = base_size/2
     border = match.arg(border)
@@ -52,5 +53,5 @@ theme_mNIRS <- function(
             legend.box.spacing = unit(half_line/2, "pt"),
             strip.background = element_rect(fill = "grey95"),
             strip.text = element_text(margin = margin(rep(half_line/2, 4))),
-        ) + theme(...)
+        ) + theme(args)
 }

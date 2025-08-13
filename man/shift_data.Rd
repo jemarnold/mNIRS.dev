@@ -35,7 +35,7 @@ over which the \code{position} is determined. e.g., \code{mean_samples = 1} look
 the single minimum, maximum, or first value. \code{mean_samples = 30} would
 use the mean of the lowest, highest, or first \code{30} samples.}
 
-\item{shift_by}{(\emph{Optional}). A numeric scalar by which the data signals can
+\item{shift_by}{An \emph{optional} numeric scalar by which the data signals can
 be shifted by a set amount.}
 }
 \value{

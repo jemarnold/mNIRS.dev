@@ -9,8 +9,13 @@
 #'  of the variable within a dataframe. If `x = NULL`, uses `x = seq_along(y)`.
 #' @param data An *optional* dataframe containing the predictor and response
 #'  variables named in `x` and `y`. Names for `x` and `y` must be in quotations.
-#' @param x0 A numeric scalar indicating the value of the predictor variable `x`
-#'  representing the start of the kinetics event (*default `x0 = 0`*).
+#' @param x0 (*Default = 0*) A numeric scalar indicating the value of the predictor variable `x`
+#'  representing the start of the kinetics event.
+#' @param window (*Default = 30*) A numeric scalar indicating the local window in units of
+#'  the predictor variable `x` after the kinetics extreme (peak or trough) value
+#'  to look for subsequent greater extremes. The kinetics model will be fit to the
+#'  data up to the first local extreme with no subsequent greater extremes within
+#'  the lesser of either the `window` or the limits of the data.
 #' @param method Indicates which model to evaluate the kinetics event
 #'  (see *Details* for method parametrisation).
 #'  \describe{
@@ -185,6 +190,7 @@ process_kinetics <- function(
         x = NULL,
         data = NULL,
         x0 = 0,
+        window = 30,
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         verbose = TRUE,
         ...
@@ -212,6 +218,7 @@ process_kinetics.monoexponential <- function(
         x = NULL,
         data = NULL,
         x0 = 0,
+        window = 30,
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         verbose = TRUE,
         ...
@@ -219,7 +226,8 @@ process_kinetics.monoexponential <- function(
     method <- match.arg(method)
     args <- list(...)
 
-    intake <- pre_process_kinetics_names(y, x, data, x0, verbose)
+    intake <- pre_process_kinetics_names(y = y, x = x, data = data, x0 = x0,
+                                         verbose = verbose)
     df <- intake$df
     x <- intake$df$x
     y <- intake$df$y
@@ -287,6 +295,7 @@ process_kinetics.sigmoidal <- function(
         x = NULL,
         data = NULL,
         x0 = 0,
+        window = 30,
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         verbose = TRUE,
         ...
@@ -294,7 +303,8 @@ process_kinetics.sigmoidal <- function(
     method <- match.arg(method)
     args <- list(...)
 
-    intake <- pre_process_kinetics_names(y, x, data, x0, verbose)
+    intake <- pre_process_kinetics_names(y = y, x = x, data = data, x0 = x0,
+                                         verbose = verbose)
     df <- intake$df
     x <- intake$df$x
     y <- intake$df$y
@@ -360,6 +370,7 @@ process_kinetics.half_time <- function(
         x = NULL,
         data = NULL,
         x0 = 0,
+        window = 30,
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         verbose = TRUE,
         ...
@@ -367,7 +378,8 @@ process_kinetics.half_time <- function(
     method <- match.arg(method)
     args <- list(...)
 
-    intake <- pre_process_kinetics_names(y, x, data, x0, verbose)
+    intake <- pre_process_kinetics_names(y = y, x = x, data = data, x0 = x0,
+                                         verbose = verbose)
     df <- intake$df
     x <- intake$df$x
     y <- intake$df$y
@@ -430,6 +442,10 @@ process_kinetics.half_time <- function(
 
 
 
+
+
+
+
 #' @rdname process_kinetics
 #' @export
 ## peak_slope =====================================
@@ -438,24 +454,20 @@ process_kinetics.peak_slope <- function(
         x = NULL,
         data = NULL,
         x0 = 0,
+        window = 30,
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         verbose = TRUE,
         ...
 ) {
     method <- match.arg(method)
     args <- list(...)
-    if ("width" %in% names(args)) {
-        width <- args$width
-    }
+    width <- args$width %||% width ## fails with object 'width' not found
 
     align_choices <- c("center", "left", "right")
-    if ("align" %in% names(args)) {
-        align <- match.arg(args$align, choices = align_choices)
-    } else {
-        align <- match.arg("center", choices = align_choices)
-    }
+    align <- match.arg(args$align %||% "center", choices = align_choices)
 
-    intake <- pre_process_kinetics_names(y, x, data, x0, verbose)
+    intake <- pre_process_kinetics_names(y = y, x = x, data = data, x0 = x0,
+                                         verbose = verbose)
     df <- intake$df
     x <- intake$df$x
     y <- intake$df$y
@@ -465,7 +477,7 @@ process_kinetics.peak_slope <- function(
     fitted_name <- paste0(y_name, "_fitted")
 
     rolling_slopes <- rolling_slope(y, x, width, align, na.rm = TRUE)
-    peak_slope <- peak_directional_slope(y, x, width, align, na.rm = TRUE)
+    peak_slope <- peak_slope(y, x, width, align, na.rm = TRUE)
 
     data[[fitted_name]] <- NA_real_
     data[[fitted_name]][x %in% peak_slope$x_fitted] <- peak_slope$y_fitted
@@ -509,7 +521,14 @@ process_kinetics.peak_slope <- function(
 ## `y_name = "y"` is not being found in the supplied dataframe ¯\_(ツ)_/¯
 ## but rlang::as_name(y) properly recognises `y = yy`, it just doesn't
 ## recognise `yy` as an environment object????
-pre_process_kinetics_names <- function(y, x, data, x0, verbose = TRUE) {
+pre_process_kinetics_names <- function(
+        y,
+        x,
+        data,
+        x0,
+        window = 30,
+        verbose = TRUE
+) {
     if (is.null(data)) {
         y_exp <- substitute(y) ## symbol from unquoted object name of y
         y_name <- deparse(y_exp) ## quoted string name of y
@@ -526,7 +545,7 @@ pre_process_kinetics_names <- function(y, x, data, x0, verbose = TRUE) {
         } else if (length(x) != length(y)) {
             cli::cli_abort(paste(
                 "{.arg x = {x_name}} and {.arg y = {y_name}}",
-                "must have the same length."))
+                "must be the same length."))
         }
 
         data <- tibble(x, y)
@@ -583,6 +602,10 @@ pre_process_kinetics_names <- function(y, x, data, x0, verbose = TRUE) {
     }
 
     x <- x - x0
+
+    ## TODO 2025-08-12 implement extreme$x & extreme$y
+    # extreme <- find_first_extreme(y = y, x = x, window = window)
+
     df <- tibble(x, y)
 
     return(list(
@@ -592,93 +615,79 @@ pre_process_kinetics_names <- function(y, x, data, x0, verbose = TRUE) {
 
 
 
-##old version corrected for x & y swap
-# pre_process_kinetics_names <- function(y, x, data, x0) {
-#     if (!is.null(data) & !is.data.frame(data)) {
-#         ## data must be a dataframe
-#         cli::cli_abort("{.arg data} must be a dataframe")
-#
-#     } else if (!is.null(data) & is.data.frame(data)) {
-#         ## deparse(substitute()) works for unquoted
-#         y_exp <- substitute(y) ## symbol from unquoted object name of y
-#         y_name <- tryCatch(
-#             rlang::as_name(y), ## as_name() works for quoted
-#             error = \(e) {
-#                 ## for unquoted "object not found" error:
-#                 if (grepl("object", e$message)) {
-#                     ## deparse() works for unquoted
-#                     gsub('^"|"$', '', deparse(y_exp)) ## quoted object name of y
-#                 }})
-#
-#         if (y_name %in% names(data)) {
-#             y <- data[[y_name]]
-#         } else {
-#             cli::cli_abort("{.arg y} not found in {.arg data}")
-#         }
-#
-#         if (is.null(x) | missing(x)) {
-#             x_exp <- substitute(index)
-#             x_name <- "index"
-#             x <- seq_along(y)
-#
-#             data[[x_name]] <- x
-#
-#         } else {
-#             ## deparse(substitute()) works for unquoted
-#             x_exp <- substitute(x) ## symbol from unquoted object name of x
-#             x_name <- tryCatch(
-#                 rlang::as_name(x), ## as_name() works for quoted
-#                 error = \(e) {
-#                     ## for unquoted "object not found" error:
-#                     if (grepl("object", e$message)) {
-#                         ## deparse() works for unquoted
-#                         gsub('^"|"$', '', deparse(x_exp)) ## quoted object name of x
-#                     }})
-#
-#             if (x_name %in% names(data)) {
-#                 x <- data[[x_name]]
-#             } else {
-#                 cli::cli_abort("{.arg x} not found in {.arg data}")
-#             }
-#         }
-#
-#         data <- data[c(x_name, y_name)]
-#
-#     } else if (is.null(data)) {
-#         if (is.null(x)) {
-#             y_exp <- substitute(y) ## symbol from unquoted object name of x
-#             y_name <- deparse(y_exp) ## quoted object name of x
-#             x_exp <- substitute(index)
-#             x_name <- "index"
-#             y <- y
-#             x <- seq_along(y)
-#         } else {
-#             x_exp <- substitute(x) ## symbol from unquoted object name of x
-#             x_name <- deparse(x_exp) ## quoted object name of x
-#             y_exp <- substitute(y) ## symbol from unquoted object name of y
-#             y_name <- deparse(y_exp) ## quoted object name of y
-#             x <- x
-#             y <- y
-#         }
-#
-#         data <- tibble::tibble(x, y)
-#         names(data) <- c(x_name, y_name)
-#     }
-#
-#     x <- x - x0
-#     df <- tibble::tibble(x, y)
-#
-#     return(list(
-#         data = data,
-#         df = df,
-#         x = x,
-#         x_exp = x_exp,
-#         x_name = x_name,
-#         y = y,
-#         y_exp = y_exp,
-#         y_name = y_name))
-# }
+#' @keywords internal
+find_first_extreme <- function(y, x = NULL, window = 30) {
+    ## where `x` is not defined
+    if (is.null(x)) {x <- seq_along(y)}
 
+    if (length(x) != length(y)) {
+        cli::cli_abort("{.arg x} and {.arg} must be the same length.")
+    }
+
+    x <- round(x, 8); y <- round(y, 8) ## avoid floating point precision issues
+
+    ## filter for positive x values
+    positive_x <- x[x > 0]
+    positive_y <- y[x > 0]
+
+    ## find local extrema
+    n <- length(positive_x)
+    y_lag <- c(NA, positive_y[-n])
+    y_lead <- c(positive_y[-1], NA)
+
+    ## detect trend direction
+    trend <- detect_direction(y = positive_y, x = positive_x)
+
+    is_extreme <- if (trend) {
+        ## positive is TRUE, looking for maxima
+        positive_y > y_lag & positive_y > y_lead
+    } else {
+        ## negative is FALSE, looking for minima
+        positive_y < y_lag & positive_y < y_lead
+    }
+
+    is_extreme[1] <- FALSE ## remove boundary effect at start
+    is_extreme[n] <- TRUE ## add boundary effect at end for monotonic
+    extreme_indices <- which(is_extreme)
+
+    if (length(extreme_indices) == 0) {
+        ## this shouldn't happen because I've added end boundary effect
+        cli::cli_abort("{.fn find_first_extreme} failed. No extrema found.")
+    }
+
+    ## check for greater extrema within each local window
+    for (extreme_idx in extreme_indices) {
+        extreme_x <- positive_x[extreme_idx]
+        extreme_y <- positive_y[extreme_idx]
+
+        # Find y values within window
+        window_end <- extreme_x + window
+        window_y <- y[x > extreme_x & x <= window_end]
+
+        ## check if this extreme is the greatest in the window
+        is_dominant <- if (trend) {
+            extreme_y >= max(window_y, na.rm = TRUE)
+        } else {
+            extreme_y <= min(window_y, na.rm = TRUE)
+        }
+
+        if (is_dominant) {
+            ## subset x & y by is_extreme
+            y <- y[x <= window_end]
+            x <- x[x <= window_end]
+
+            return(list(
+                x = x,
+                y = y,
+                extreme = tibble(x = extreme_x, y = extreme_y)
+            ))
+        } ## end of if (is_dominant)
+    } ## end of for loop
+
+    ## no qualifying peak found.
+    ## this shouldn't happen because I've added end boundary effect
+    return(list(x = x, y = y, extreme = tibble(x = NA, y = NA)))
+}
 
 
 

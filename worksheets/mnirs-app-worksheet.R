@@ -79,7 +79,8 @@ data_list <- prepare_kinetics_data(
     data_raw,
     event_sample = event_sample,
     event_label = c("E7"),
-    fit_window = c(30*50, 120*50)
+    fit_window = c(30*50, 120*50),
+    # group_events = list(2)
 ) |>
     print()
 
@@ -98,7 +99,10 @@ model_list <- tidyr::expand_grid(
     ) |>
     print()
 
-process_kinetics(y = "O2Hb", x = fit_sample_name, data_list[[1]])
+peaks <- find_first_extreme(y = data_list[[1]]$HHb,
+                            x = data_list[[1]]$fit_sample,
+                            window = 15*50)
+peaks$extreme
 
 ## coef table =====================================
 coef_data <- purrr::imap(
@@ -252,34 +256,34 @@ ggplot(display_data) +
                         size = 3, shape = 21, stroke = 1)
                 )
             })
-    }}
+    }} +
+    annotate("point", x = peaks$extreme$x, y = peaks$extreme$y,
+             shape = 21, size = 4, stroke = 1)
 
 #
 ## process_kinetics example ===================================
 set.seed(13)
-x1 <- seq(-10, 60, by = 2)
+x1 <- seq(-10, 120, by = 2)
 A <- 10; B <- 100; TD <- 5; tau <- 12
-y1 <- monoexponential(x1, A, B, TD, tau) + rnorm(length(x1), 0, 3)
+y1 <- -monoexponential(x1, A, B, TD, tau) + rnorm(length(x1), 0, 3)
 
 ## monoexponential kinetics ===============================
-model <- process_kinetics(y1, x1, method = "monoexponential")
-model
 
-## add coefs & diagnostics text
-coef_text <- paste(names(model$coefs), round(model$coefs, 1),
-                   sep = " = ", collapse = "\n")
-diag_text <- paste(names(model$diagnostics), round(model$diagnostics, 2),
-                   sep = " = ", collapse = "\n")
+
+
+(peaks <- find_first_extreme(y1, x1, window = 15))
+peaks_data <- as_tibble(peaks[1:2])
+model <- process_kinetics(y = "y", x = "x", peaks_data, method = "monoexponential")
+model
 
 # \dontrun{
 ## require(ggplot2)
-plot(model) +
-    ggplot2::geom_hline(yintercept = 0, linetype = "dotted") +
-    ggplot2::geom_line(ggplot2::aes(y = model$residuals)) +
-    ggplot2::annotate("text", x = 2, y = 100,
-                      label = coef_text, size = 4, hjust = 0, vjust = 1) +
-    ggplot2::annotate("text", x = 58, y = 0,
-                      label = diag_text, size = 4, hjust = 1, vjust = -0.3)
+plot(model, plot_coefs = TRUE, plot_diagnostics = TRUE) +
+    annotate("point", x = peaks$extreme$x, y = peaks$extreme$y,
+             shape = 21, size = 4, stroke = 1) +
+    theme(panel.grid.major = element_line()) +
+    scale_x_continuous(breaks = scales::pretty_breaks(n=40)) +
+    scale_y_continuous(breaks = scales::pretty_breaks(n=40))
 # }
 
 ## sigmoidal kinetics ===============================

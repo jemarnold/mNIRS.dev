@@ -16,27 +16,23 @@
 #'  same function.
 #'
 #' @return A numeric vector for the response variabel `y` of the same length as
-#'  the predictor variable `x` returned from the monoexponential function.
+#'  the predictor variable `x`.
 #'
 #' @examples
 #' set.seed(13)
 #' x <- seq(0, 60, by = 2)
-#' A <- 10
-#' B <- 100
-#' TD <- 15
-#' tau <- 8
+#' A <- 10; B <- 100; TD <- 15; tau <- 8
 #' y <- monoexponential(x, A, B, TD, tau) + rnorm(length(x), 0, 3)
 #' data <- data.frame(x, y)
 #'
 #' model <- nls(y ~ SSmonoexp(x, A, B, TD, tau), data = data)
 #' model
-#' fitted <- fitted(model)
 #'
 #' \dontrun{
 #' plot(x, y)
 #' lines(x, y)
 #' points(x, y)
-#' lines(x, fitted, col = "red")
+#' lines(x, fitted(model), col = "red")
 #' }
 #'
 #' @rdname monoexponential
@@ -50,7 +46,8 @@ monoexponential <- function(x, A, B, TD, tau) {
 
 #' Initiate Self-Starting `nls` Monoexponential Model
 #'
-#' Return initial values for the parameters in a `selfStart` model.
+#' [monoexp_init()]: Returns initial values for the parameters in a `selfStart`
+#' model.
 #'
 #' @param mCall A matched call to the function `model`.
 #' @param data A data frame in which to interpret the variables in `mCall`.
@@ -58,11 +55,10 @@ monoexponential <- function(x, A, B, TD, tau) {
 #'  call to `nls`.
 #' @param ... Additional arguments.
 #'
-#' @seealso [stats::nls()], [stats::selfStart()], [SSmonoexp()], [monoexponential()]
+#' @return [monoexp_init()]: Initial starting estimates for parameters in the model
+#'  called by [SSmonoexp()].
 #'
-#' @return Initial starting estimates for parameters in the model called by
-#'  [SSmonoexp()].
-#'
+#' @name SSmonoexp
 #' @rdname SSmonoexp
 #' @export
 monoexp_init <- function(
@@ -94,24 +90,17 @@ monoexp_init <- function(
 
 
 
-#' Self-Starting `nls` 4-Parameter Monoexponential Model
+
+#' Self-Starting `nls` Four-Parameter Monoexponential Model
 #'
-#' Create initial coefficient estimates for a `selfStart` model for the
-#' four-parameter [monoexponential()] function. For the parameters `A`, `B`,
+#' [SSmonoexp()]: Creates initial coefficient estimates for a `selfStart` model
+#' for the four-parameter [monoexponential()] function. For the parameters `A`, `B`,
 #' `TD`, and `tau`.
 #'
-#' @param x A numeric predictor variable at which to evaluate the model.
-#' @param A A numeric parameter for the starting (baseline) value of the response
-#'  variable `y`.
-#' @param B A numeric parameter for the ending (asymptote) value of the response
-#'  variable `y`.
-#' @param TD A numeric parameter for the time delay before exponential inflection
-#'  of the curve, in units of the predictor variable `x`.
-#' @param tau A numeric parameter for the time constant (𝜏) of the exponential
-#'  curve, in units of the predictor variable `x`.
+#' @inheritParams monoexponential
 #'
-#' @return A numeric vector for the response variabel `y` of the same length as
-#'  the predictor variable `x`. Returned from the expression
+#' @return [SSmonoexp()]: A numeric vector for the response variabel `y` of the
+#'  same length as the predictor variable `x`. Returned from the expression
 #'  `ifelse(x <= TD, A, A + (B - A) * (1 - exp((TD - x) / tau)))`.
 #'
 #' @seealso [stats::nls()], [stats::selfStart()], [monoexponential()]
@@ -119,21 +108,19 @@ monoexp_init <- function(
 #' @examples
 #' set.seed(13)
 #' x <- seq(0, 60, by = 2)
-#' A <- 10
-#' B <- 100
-#' TD <- 15
-#' tau <- 8
+#' A <- 10; B <- 100; TD <- 15; tau <- 8
 #' y <- monoexponential(x, A, B, TD, tau) + rnorm(length(x), 0, 3)
 #' data <- data.frame(x, y)
 #'
 #' model <- nls(y ~ SSmonoexp(x, A, B, TD, tau), data = data)
 #' model
-#' fitted <- fitted(model)
 #'
+#' \dontrun{
 #' plot(x, y)
 #' lines(x, y)
 #' points(x, y)
-#' lines(x, fitted, col = "red")
+#' lines(x, fitted(model), col = "red")
+#' }
 #'
 #' @rdname SSmonoexp
 #' @export

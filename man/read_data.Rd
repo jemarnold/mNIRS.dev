@@ -23,15 +23,15 @@ read_data(
 to import from the target file. Must match exactly. A named character vector
 can be used to rename columns (see \emph{Details}).}
 
-\item{sample_column}{(\emph{Optional}). A character scalar indicating the name of
+\item{sample_column}{An \emph{optional} character scalar indicating the name of
 a time or sample data column. Must match exactly. A named character vector
 can be used to rename columns.}
 
-\item{event_column}{(\emph{Optional}). A character scalar indicating the name of
+\item{event_column}{An \emph{optional} character scalar indicating the name of
 an event or lap data column. Must match exactly. A named character vector
 can be used to rename columns.}
 
-\item{sample_rate}{(\emph{Optional}). A numeric scalar for the sample rate in Hz.
+\item{sample_rate}{An \emph{optional} numeric scalar for the sample rate in Hz.
 If not defined explicitly, will be estimated from the file data
 (see \emph{Details}).}
 

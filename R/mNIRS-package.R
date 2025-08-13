@@ -5,6 +5,7 @@
 #' @importFrom cli cli_abort
 #' @importFrom cli cli_alert_info
 #' @importFrom rlang !!
+#' @importFrom rlang %||%
 #' @importFrom rlang .data
 #' @importFrom rlang :=
 #' @importFrom rlang as_name

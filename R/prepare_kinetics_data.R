@@ -1,33 +1,55 @@
 #' Prepare mNIRS Data for Kinetics Analysis
 #'
-#' Processes a dataframe of class `"mNIRS.data"` for kinetics analysis.
+#' Processes a list of one or more dataframes of class `"mNIRS.data"` representing
+#' distinct or ensembled kinetics events for further analysis.
 #'
 #' @param data A dataframe of class `"mNIRS.data"`.
-#' @param event_index (*Optional*). A numeric vector indicating the starting row
+#' @param event_sample An *optional* numeric vector corresponding to values of
+#'  `sample_column` indicating the start of kinetic events. i.e., by time value
+#'  or sample number.
+#' @param event_label An *optional* character vector corresponding to values of
+#'  `event_column` indicating the start of kinetics events. i.e., by an event
+#'  label such as *"end work"*.
+#' @param event_index An *optional* numeric vector indicating the starting row
 #'  indices of kinetics events. i.e., to identify the start of kinetic events by
 #'  row number.
-#' @param event_sample (*Optional*). A numeric vector corresponding to values of
-#'  `sample_column` indicating the start of kinetic events. i.e., to identify
-#'  the start of kinetic events by time value or sample number.
-#' @param event_label (*Optional*). A character vector corresponding to values of
-#'  `event_column` indicating the start of kinetics events. i.e., to identify
-#'  the start of kinetic events by an event string such as *"end work"*.
 #' @param fit_window A two-element numeric vector in the form `c(before, after)`
-#'  in units of the `sample_column`, defining the window before and after the
-#'  kinetics events to include in the model fitting process
-#'  (*default = c(30, 180)*).
-#' @param display_window (*Optional*). A two-element numeric vector in the form
-#'  `c(before, after)` in units of the `sample_column`, defining the window before
-#'  and after the kinetics events to include for display, but not for model
-#'  fitting.
+#'  in units of `sample_column`, defining the window around the kinetics events
+#'  to include in the model fitting process (*default = c(30, 180)*).
+#' @param display_window (*Not currently implemented*)
+#'  An *optional* two-element numeric vector in the form
+#'  `c(before, after)` in units of `sample_column`, defining the window around
+#'  the kinetics events to include for display, but not for model fitting.
+#' @param peak_window A numeric scalar indicating the local window in units of
+#'  `sample_column` after the kinetics peak (trough) value to look for subsequent
+#'  higher (lower) values. The kinetics model will be fit to the data up to the
+#'  first local peak (trough) value with no subsequent higher (lower) values
+#'  within the lesser of either the `peak_window` or the limits of `fit_window`.
 #' @param group_events Indicates how kinetics events should be analysed. Typically
 #'  either *"distinct"* (*the default*) or *"ensemble"*, but can be manually
 #'  specified (see *Details*).
+#' @param nirs_columns An *optional* character vector indicating the mNIRS data
+#'  columns to be processed from your dataframe. Must match exactly. Defining
+#'  column names explicitly will overwrite metadata.
+#' @param sample_column An *optional* character scalar indicating the name of
+#'  a time or sample data column. Must match exactly. Defining
+#'  column names explicitly will overwrite metadata.
+#' @param event_column An *optional* character scalar indicating the name of
+#'  an event or lap data column. Must match exactly. Defining
+#'  column names explicitly will overwrite metadata.
 #' @param ... Additional arguments.
 #'
 #' @details
+#' `display_window` defines the widest range of data before and after the kinetics
+#'  event which will be passed on in the dataframe, but not necessarily included
+#'  in the modelling process. `fit_window` defines the widest extent of data
+#'  before and after the kinetics event which will be included in the modelling
+#'  process. `peak_window` limits the extent of data included to be modelled after
+#'  the kinetics event to the first local peak (trough) value of the response
+#'  variable (i.e. `y`), with no higher (lower) values within that window.
+#'
 #' `group_events` indicates how kinetics events should be analysed, either
-#' separately, or grouped and ensemble averaged similar to oxygen uptake kinetics.
+#'  separately, or grouped and ensemble averaged similar to oxygen uptake kinetics.
 #'
 #'  \describe{
 #'      \item{`group_events = "distinct"`}{Will prepare a list of unique dataframes
@@ -46,112 +68,94 @@
 #' @export
 prepare_kinetics_data <- function(
         data,
-        event_index = NULL, ## 59
-        event_sample = NULL, ## c(3, 4)
-        event_label = NULL, ## "end stage"
+        event_sample = NULL,
+        event_label = NULL,
+        event_index = NULL,
         fit_window = c(30, 180),
         display_window = NULL,
+        peak_window = 30,
         group_events = list("distinct", "ensemble"),
+        nirs_columns = NULL,
+        sample_column = NULL,
+        event_column = NULL,
         ...
 ) {
     ## Validation =================================
     metadata <- attributes(data)
     args <- list(...)
 
-    ## define `nirs_columns`
-    if ("nirs_columns" %in% names(args)) {
-        ## priority is manually defined columns
-        nirs_columns <- args$nirs_columns
-
-    } else if (!is.null(metadata$nirs_columns)) {
-        ## otherwise take existing metadata columns
+    ## define `nirs_columns` manually overrides metadata
+    if (is.null(nirs_columns) & is.null(metadata$nirs_columns)) {
+        cli::cli_abort(paste(
+            "{.arg nirs_columns} not found in metadata. Please check your data",
+            "attributes or define {.arg nirs_columns} explicitly."))
+    } else if (is.null(nirs_columns) & !is.null(metadata$nirs_columns)) {
         nirs_columns <- metadata$nirs_columns
-
-    }
-
-    ## validation: `nirs_columns` must match expected dataframe names
-    if (!all(unlist(nirs_columns) %in% names(data))) {
+    } else if (!is.character(nirs_columns) || !all(nirs_columns %in% names(data))) {
         cli::cli_abort(paste(
-            "{.arg nirs_columns} must be a list of names.",
-            "Make sure column names match dataframe exactly."))
+            "{.arg nirs_columns} must be a vector of column names within",
+            "{.arg data}. Make sure column names match exactly."))
     }
 
-    ## define `sample_column`
-    if ("sample_column" %in% names(args)) {
-        ## priority is manually defined columns
-        sample_column <- args$sample_column
-
-    } else if (!is.null(metadata$sample_column)) {
-        ## otherwise take existing metadata columns
+    ## define `sample_column` manually overrides metadata
+    if (is.null(sample_column) & is.null(metadata$sample_column)) {
+        cli::cli_abort(paste(
+            "{.arg sample_column} not found in metadata. Please check your data",
+            "attributes or define {.arg sample_column} explicitly."))
+    } else if (is.null(sample_column) & !is.null(metadata$sample_column)) {
         sample_column <- metadata$sample_column
-
-    } else {sample_column <- NULL}
-
-    ## validation: `sample_column` must match expected dataframe names
-    if (!all(unlist(sample_column) %in% names(data))) {
+    } else if (!is.character(sample_column) || !sample_column %in% names(data)) {
         cli::cli_abort(paste(
-            "{.arg sample_column} not found. Make sure column names",
-            "match dataframe exactly."))
+            "{.arg sample_column} must be a column name within your {.arg data}.",
+            "Make sure column names match exactly."))
     }
 
-    ## define `event_column`
-    if ("event_column" %in% names(args)) {
-        ## priority is manually defined columns
-        event_column <- args$event_column
-
-    } else if (!is.null(metadata$event_column)) {
-        ## otherwise take existing metadata columns
+    ## define `event_column` manually overrides metadata
+    if (is.null(event_label)) {
+        ## this is probably a bad way to write this
+    } else if (is.null(event_column) & is.null(metadata$event_column)) {
+        cli::cli_abort(paste(
+            "You have defined {.arg event_label} but {.arg event_column}",
+            "not found in metadata. Please check your data attributes or define",
+            "{.arg event_column} explicitly."))
+    } else if (is.null(event_column) & !is.null(metadata$event_column)) {
         event_column <- metadata$event_column
-
-    } else {event_column <- NULL}
-
-    ## validation: `event_column` must match expected dataframe names
-    if (!all(unlist(event_column) %in% names(data))) {
+    } else if (!is.character(event_column) || !event_column %in% names(data)) {
         cli::cli_abort(paste(
-            "{.arg event_column} not found. Make sure column names",
-            "match dataframe exactly."))
+            "{.arg event_column} must be a column name within your {.arg data}.",
+            "Make sure column names match exactly."))
     }
 
-    ## fit windows ========================================
     ## validation: `fit_windows` must be numeric scalar
-    if (!is.numeric(fit_window) | !length(fit_window) == 2) {
+    if (!is.numeric(fit_window) || !length(fit_window) == 2) {
         cli::cli_abort(paste(
             "{.arg fit_window} must be a two-element {.cls numeric} vector",
             "{.val c(before, after)}."))
     }
 
     ## define & validation: `display_window`
-    if (is.null(display_window)) {
-
-        display_window <- fit_window
-
-    } else if (!is.numeric(display_window) | !length(display_window) == 2) {
-
-        cli::cli_abort(paste(
-            "{.arg display_window} must be a two-element {.cls numeric} vector",
-            "{.val c(before, after)}."))
-
-    }
+    ## TODO 2025-08-12 NOT CURRENTLY IMPLEMENTED
+    # if (is.null(display_window)) {
+    display_window <- fit_window
+    # } else if (!is.numeric(display_window) || !length(display_window) == 2) {
+    #     cli::cli_abort(paste(
+    #         "{.arg display_window} must be a two-element {.cls numeric} vector",
+    #         "{.val c(before, after)}."))
+    # }
     #
     ## Event Indices ===================================
 
     if (!is.null(event_index)) {
 
-        event_index_sample <- data |>
-            dplyr::mutate(index = dplyr::row_number()) |>
-            dplyr::filter(index %in% event_index) |>
-            dplyr::pull(tidyselect::any_of(sample_column))
+        event_index_sample <- data[[sample_column]][event_index]
 
     } else {event_index_sample <- NULL}
 
     if (!is.null(event_label)) {
 
-        event_label_sample <- data |>
-            dplyr::filter(
-                grepl(paste(event_label, collapse = "|"),
-                      .data[[event_column]], ignore.case = TRUE)
-            ) |>
-            dplyr::pull(tidyselect::any_of(sample_column))
+        pattern <- paste(event_label, collapse = "|")
+        matches <- grepl(pattern, data[[event_column]], ignore.case = TRUE)
+        event_label_sample <- data[[sample_column]][matches]
 
     } else {event_label_sample <- NULL}
 
@@ -173,35 +177,39 @@ prepare_kinetics_data <- function(
     metadata$event_column <- event_column
     metadata$event_sample_list <- event_sample_list
     metadata$fit_window <- fit_window
-    metadata$display_window <- display_window
+    ## TODO 2025-08-12 NOT CURRENTLY IMPLEMENTED
+    # metadata$display_window <- display_window
 
     ## data list =================================
     data_list <- lapply(
         event_sample_list,
-        \(.x)
-        data |>
-            dplyr::mutate(
-                display_sample = signif(.data[[sample_column]] - .x, 5)
-            ) |>
-            ## include the dataframe only within the display_window bounds
-            dplyr::filter(
-                dplyr::between(display_sample, display_start, display_end)
-            ) |>
-            ## create a new column with x values for model fitting, and NA
-            ## where outside of fit_window bounds
-            dplyr::mutate(
-                "{fit_column}" := dplyr::if_else(
-                    dplyr::between(display_sample, fit_window[1], fit_window[2]),
-                    display_sample, NA_real_),
-            ) |>
-            dplyr::select(-c(display_sample)) |>
-            dplyr::relocate(tidyselect::all_of(fit_column))
-    )
+        \(.x) {
+            ## sample vector zeroed to the kinetics event
+            ## TODO 2025-08-12 display_sample currently not implemented in
+            ## outgoing data_list. Only being used to define fit_sample
+            ## round to avoid floating point error
+            display_sample <- round(data[[sample_column]] - .x, 8)
+            keep_idx <- display_sample >= display_start & display_sample <= display_end
+
+            ## filter data & display_sample vector within the kinetics event window
+            event_data <- data[keep_idx, ]
+            display_sample <- display_sample[keep_idx]
+
+            ## create new fit_sample column named from `fit_column`
+            ## as a sample vector zeroed to the kinetics event
+            ## filtered within the `fit_window`
+            event_data[[fit_column]] <- ifelse(
+                display_sample >= fit_window[1] & display_sample <= fit_window[2],
+                display_sample, NA_real_)
+
+            ## relocates `fit_column` as the first col, includes remaining cols
+            event_data[c(fit_column, setdiff(names(event_data), fit_column))]
+        })
 
     ensemble_data <- function(data) {
         data |>
             dplyr::bind_rows() |>
-            dplyr::select(-tidyselect::any_of(event_column)) |>
+            dplyr::select(-tidyselect::any_of(c(sample_column, event_column))) |>
             dplyr::summarise(
                 .by = tidyselect::any_of(fit_column),
                 dplyr::across(
@@ -214,18 +222,17 @@ prepare_kinetics_data <- function(
             dplyr::mutate(
                 dplyr::across(
                     tidyselect::where(is.numeric),
-                    \(.x) ifelse(.x %in% c(Inf, -Inf, NaN), NA_real_, .x)),
+                    \(.x) ifelse(is.infinite(.x) | is.nan(.x), NA_real_, .x)),
             )
     }
 
-    if (head(unlist(group_events), 1) == "distinct") {
+    if (length(data_list) == 1 || head(unlist(group_events), 1) == "distinct") {
 
         kinetics_data_list <- lapply(
             data_list,
             \(.df) {
-                kinetics_data <- .df |>
-                    dplyr::relocate(tidyselect::any_of(c(
-                        fit_column, sample_column, event_column, nirs_columns)))
+                cols <- c(fit_column, sample_column, event_column, nirs_columns)
+                kinetics_data <- .df[c(cols, setdiff(names(.df), cols))]
 
                 return(create_mNIRS_data(kinetics_data, metadata))
             }) |>
@@ -235,11 +242,12 @@ prepare_kinetics_data <- function(
     } else if (head(unlist(group_events), 1) == "ensemble") {
 
         kinetics_data_list <- list(
-            create_mNIRS_data(ensemble_data(data_list), metadata))
+            create_mNIRS_data(ensemble_data(data_list), metadata)) |>
+            setNames("ensemble")
 
     } else if (is.numeric(unlist(group_events))) {
 
-        ungrouped_events <- setdiff(1:length(data_list), unlist(group_events))
+        ungrouped_events <- setdiff(seq_along(data_list), unlist(group_events))
 
         for (i in seq_along(ungrouped_events)) {
             group_events[[length(group_events) + 1]] <- ungrouped_events[i]
@@ -250,7 +258,7 @@ prepare_kinetics_data <- function(
             \(.x)
             create_mNIRS_data(ensemble_data(data_list[.x]), metadata)
         ) |>
-            setNames(paste0(sample_column, "_", event_sample_list))
+            setNames(lapply(group_events, paste, collapse = "_"))
     }
 
     ## TODO 2025-07-18 keep this as list() of one?
@@ -260,31 +268,3 @@ prepare_kinetics_data <- function(
     return(kinetics_data_list)
     # }
 }
-#
-# (data <- mNIRS::read_data(
-#     file_path = "C:/OneDrive - UBC/Body Position Study/Raw Data/BP01-oxysoft-2025-04-01.xlsx",
-#     nirs_columns = c("PS_O2Hb" = "2",
-#                      "PS_HHb" = "3",
-#                      "VL_O2Hb" = "5",
-#                      "VL_HHb" = "6"),
-#     sample_column = c("sample" = "1"),
-#     event_column = c("label" = "...11"),
-#     .keep_all = FALSE))
-# # # attributes(data)
-# # # # # # #
-# (data_list <- mNIRS::prepare_kinetics_data(
-#     data,
-#     nirs_columns = c("PS_HHb", "VL_HHb"),
-#     sample_column = "sample",
-#     event_column = "label",
-#     event_index = NULL,
-#     event_sample = NULL,
-#     event_label = c("end RP", "end UP", "end stage"),
-#     fit_baseline_window = 30,
-#     fit_kinetics_window = 180,
-#     display_baseline_window = 40,
-#     display_kinetics_window = 240,
-#     group_events = "ensemble"
-#     # group_events = list(c(1, 3, 5), c(2, 4)) #"ensemble"
-# ))
-# attributes(data_list[[1]])

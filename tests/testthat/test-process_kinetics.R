@@ -37,8 +37,8 @@ test_that("monoexponential x, y names passthrough works", {
                  "not found in `data")
 
     quoted_yy_result <- process_kinetics(y = "yy", x = NULL,
-                                         data = mydata, method = .method,
-                                         verbose = FALSE)
+                                             data = mydata, method = .method,
+                                             verbose = FALSE)
     expect_true(all(c("index", "yy") %in% names(quoted_yy_result$data)))
     expect_true(all(round(index_result$coef, 3) == round(quoted_yy_result$coef, 3)))
 

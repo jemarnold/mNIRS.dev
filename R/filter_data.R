@@ -181,23 +181,3 @@ filter_data <- function(
 
     return(y)
 }
-#
-# df <- mNIRS::read_data(
-#     file_path = r"(C:\OneDrive - UBC\EPL\Matt Fliss\matt pitshark.csv)",
-#     nirs_columns = c(smo2_673 = "SmO2_673", smo2_702 = "SmO2_702"),
-#     sample_column = c(time = "Timestamp (seconds passed)")
-# ) |>
-#     dplyr::mutate(
-#         # smo2_filt = filter_data(smo2_673, method = "smooth-spline", spar = 0.8),
-#         # smo2_filt = filter_data(smo2_673, method = "butterworth", n = 1, W = 0.1),
-#         # smo2_filt = filter_data(smo2_673, method = "butterworth", n = 2, critical_frequency = 0.5, sample_rate = 10),
-#         smo2_filt = filter_data(smo2_673, method = "moving-average", width = 50),
-#     ) |>
-#     print()
-# #
-# ggplot2::ggplot(df, ggplot2::aes(x = time)) +
-#     {list( ## Settings
-#         # JAPackage::theme_JA(),
-#         ggplot2::geom_line(ggplot2::aes(y = smo2_673)),
-#         ggplot2::geom_line(ggplot2::aes(y = smo2_filt, colour = "filt")),
-#         NULL)} ## Data

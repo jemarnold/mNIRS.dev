@@ -19,6 +19,8 @@ slope <- function(
     ## where `x` is not defined
     if (is.null(x)) {x <- seq_along(y)}
 
+    x <- round(x, 8); y <- round(y, 8) ## avoid floating point precision issues
+
     ## handle `NA`
     ## `na.rm = FALSE` will return peak value of the remaining non-`NA` slopes
     ## `na.rm = TRUE` will return peak value of `NA`-excluded slopes
@@ -103,7 +105,9 @@ rolling_slope <- function(
     align <- match.arg(align)
 
     ## where `x` is not defined
-    if (is.null(x)) {x <- as.numeric(seq_along(y))}
+    if (is.null(x)) {x <- seq_along(y)}
+
+    x <- round(x, 8); y <- round(y, 8) ## avoid floating point precision issues
 
     n <- length(y)
     slopes <- numeric(n)
@@ -192,14 +196,14 @@ rolling_slope <- function(
 #' @examples
 #' # Upward trending data returns peak positive slope
 #' y_up <- c(1, 3, 2, 5, 8, 7, 9, 12, 11, 14)
-#' peak_directional_slope(y_up, width = 3)
+#' peak_slope(y_up, width = 3)
 #'
 #' # Downward trending data returns peak negative slope
 #' y_down <- c(14, 11, 12, 9, 7, 8, 5, 2, 3, 1)
-#' peak_directional_slope(y_down, width = 3)
+#' peak_slope(y_down, width = 3)
 #'
 #' @export
-peak_directional_slope <- function(
+peak_slope <- function(
         y,
         x = NULL,
         width,
@@ -209,28 +213,24 @@ peak_directional_slope <- function(
     align <- match.arg(align)
 
     ## where `x` is not defined
-    if (is.null(x)) {x <- as.numeric(seq_along(y))}
+    if (is.null(x)) {x <- seq_along(y)}
+
+    x <- round(x, 8); y <- round(y, 8) ## avoid floating point precision issues
 
     n <- length(y)
-
-    ## return overall slope
-    ## na.rm hard-coded TRUE to always return overall_slope for direction test
-    overall_slope <- slope(y, x, na.rm = TRUE)
 
     ## return local rolling slopes
     slopes <- rolling_slope(y, x, width, align, na.rm)
 
     ## return peak slope sample based on trend direction
-    if (overall_slope >= 0) {
-        peak_idx <- which.max(slopes)
+    if (detect_direction(y, x)) {
+        peak_idx <- which.max(slopes) ## positive
     } else {
-        peak_idx <- which.min(slopes)
+        peak_idx <- which.min(slopes) ## negative
     }
 
     ## return peak slope from peak slope sample
     peak_slope <- slopes[peak_idx]
-
-
 
     ## return window around peak slope sample
     current_x <- x[peak_idx]
@@ -273,4 +273,32 @@ peak_directional_slope <- function(
 
     return(list(x = x[peak_idx], slope = peak_slope,
                 x_fitted = x_window, y_fitted = fitted))
+}
+
+
+
+
+
+
+
+
+
+
+
+#' @keywords internal
+detect_direction <- function(y, x = NULL) {
+    ## where `x` is not defined
+    if (is.null(x)) {x <- seq_along(y)}
+
+    ## calculate correlation coefficient between x and y
+    correlation <- stats::cor(x, y, use = "complete.obs")
+
+    if (is.na(correlation)) {
+        ## correlation is NA for example with y <- rep(5, 10)
+        ## should still return 0. Can fail elsewhere
+        return(TRUE)
+    }
+
+    ## positive correlation is TRUE, negative is FALSE
+    return(correlation >= 0)
 }

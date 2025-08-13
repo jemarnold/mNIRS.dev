@@ -283,10 +283,10 @@ test_that("rolling_slope zero denominator handling", {
 
 
 
-## peak_directional_slope
-test_that("peak_directional_slope returns correct structure", {
+## peak_slope
+test_that("peak_slope returns correct structure", {
     y <- c(1, 3, 2, 5, 8, 7, 9, 12, 11, 14)
-    result <- peak_directional_slope(y, width = 3)
+    result <- peak_slope(y, width = 3)
 
     expect_type(result, "list")
     expect_named(result, c("x", "slope", "x_fitted", "y_fitted"))
@@ -298,60 +298,60 @@ test_that("peak_directional_slope returns correct structure", {
     expect_true(is.vector(result$x_fitted))
 })
 
-test_that("peak_directional_slope works with upward trend", {
+test_that("peak_slope works with upward trend", {
     y <- c(1, 3, 5, 7, 9)
-    result <- peak_directional_slope(y, width = 3)
+    result <- peak_slope(y, width = 3)
 
     expect_gt(result$slope, 0)
     expect_gte(result$x, 1)
     expect_lte(result$x, length(y))
 })
 
-test_that("peak_directional_slope works with downward trend", {
+test_that("peak_slope works with downward trend", {
     y <- c(9, 7, 5, 3, 1)
-    result <- peak_directional_slope(y, width = 3)
+    result <- peak_slope(y, width = 3)
 
     expect_lt(result$slope, 0)
     expect_gte(result$x, 1)
     expect_lte(result$x, length(y))
 })
 
-test_that("peak_directional_slope handles NA values correctly", {
+test_that("peak_slope handles NA values correctly", {
     y <- c(1, 3, NA, 5, 8, 7, 9, 12, NA, 14)
 
     ## na.rm = FALSE returns NAs for `rolling_slope()`,
-    ## but returns numeric for `peak_directional_slope()`
-    results_rm_false <- peak_directional_slope(y, width = 3, na.rm = FALSE)
+    ## but returns numeric for `peak_slope()`
+    results_rm_false <- peak_slope(y, width = 3, na.rm = FALSE)
     expect_true(is.na(results_rm_false$slope) | is.numeric(results_rm_false$slope))
     expect_type(results_rm_false$slope, "double")
     expect_gte(results_rm_false$x, 1)
     expect_lte(results_rm_false$x, length(y))
 
     ## na.rm = TRUE should
-    results_rm_true <- peak_directional_slope(y, width = 3, na.rm = TRUE)
+    results_rm_true <- peak_slope(y, width = 3, na.rm = TRUE)
     expect_false(is.na(results_rm_true$slope))
     expect_type(results_rm_true$slope, "double")
     expect_gte(results_rm_true$x, 1)
     expect_lte(results_rm_true$x, length(y))
 })
 
-test_that("peak_directional_slope works with custom x values", {
+test_that("peak_slope works with custom x values", {
     y <- c(1, 4, 2, 8, 6, 10)
     x <- c(0, 1, 2, 3, 4, 5)
-    result <- peak_directional_slope(y, x, width = 3)
+    result <- peak_slope(y, x, width = 3)
 
     expect_type(result$slope, "double")
     expect_gte(result$x, 1)
     expect_lte(result$x, length(y))
 })
 
-test_that("peak_directional_slope handles width in units of x", {
+test_that("peak_slope handles width in units of x", {
     y <- c(1, 3, 2, 5, 8, 7, 9, 12, 11, 14)
     x_idx <- seq_along(y)
     x_5hz <- x_idx/5
 
-    results_idx <- peak_directional_slope(y, x_idx, width = 3)
-    results_5hz <- peak_directional_slope(y, x_5hz, width = 3/5)
+    results_idx <- peak_slope(y, x_idx, width = 3)
+    results_5hz <- peak_slope(y, x_5hz, width = 3/5)
 
     expect_equal(x_5hz[results_idx$x], results_5hz$x)
     expect_equal(results_idx$slope, results_5hz$slope/5)
@@ -361,7 +361,7 @@ test_that("peak_directional_slope handles width in units of x", {
     idx_unequal <- c(0.5, 1.5, 3, 3.5, 4, 5.5, 7, 8, 10, 11)
     n <- length(y)
     width <- 3
-    peak_slope_result <- peak_directional_slope(y, idx_unequal, width = 3)
+    peak_slope_result <- peak_slope(y, idx_unequal, width = 3)
     lm_result <- list(x = NA, slope = NA)
 
     for (i in 1:n) {
@@ -380,22 +380,22 @@ test_that("peak_directional_slope handles width in units of x", {
                  lm_result$x[which.max(lm_result$slope)])
 })
 
-test_that("peak_directional_slope works with NULL x", {
+test_that("peak_slope works with NULL x", {
     y <- c(1, 3, 5, 7, 9)
-    result_null <- peak_directional_slope(y, x = NULL, width = 3)
-    result_seq <- peak_directional_slope(y, x = seq_along(y), width = 3)
+    result_null <- peak_slope(y, x = NULL, width = 3)
+    result_seq <- peak_slope(y, x = seq_along(y), width = 3)
 
     expect_equal(result_null$slope, result_seq$slope)
     expect_equal(result_null$x, result_seq$x)
 })
 
-test_that("peak_directional_slope works with different alignments", {
+test_that("peak_slope works with different alignments", {
     y <- c(1, 3, 2, 5, 8, 7, 9, 8, 6, 7)
     x <- seq(22, along = y)
 
-    result_center <- peak_directional_slope(y, x, width = 3, align = "center")
-    result_left <- peak_directional_slope(y, x, width = 2, align = "left")
-    result_right <- peak_directional_slope(y, x, width = 2, align = "right")
+    result_center <- peak_slope(y, x, width = 3, align = "center")
+    result_left <- peak_slope(y, x, width = 2, align = "left")
+    result_right <- peak_slope(y, x, width = 2, align = "right")
 
     expect_equal(result_center$x, result_left$x + 1)
     expect_equal(result_center$x, result_right$x - 1)
@@ -406,25 +406,25 @@ test_that("peak_directional_slope works with different alignments", {
     expect_equal(result_left$y, result_right$y)
 })
 
-test_that("peak_directional_slope handles edge cases", {
+test_that("peak_slope handles edge cases", {
     ## single value
-    expect_error(peak_directional_slope(y = 5, width = 3),
+    expect_error(peak_slope(y = 5, width = 3),
                  "should be of length 2 or greater")
 
     ## two values
-    result <- peak_directional_slope(y = c(1, 3), width = 3)
+    result <- peak_slope(y = c(1, 3), width = 3)
     expect_type(result$slope, "double")
     expect_gte(result$x, 1)
     expect_lte(result$x, 2)
 
     ## all identical values
-    result <- peak_directional_slope(y = rep(5, 10), width = 3)
+    expect_warning(result <- peak_slope(y = rep(5, 10), width = 3))
     expect_equal(result$slope, 0)
     expect_gte(result$x, 1)
 
     ## all NA
     expect_error(
-        peak_directional_slope(y = rep(NA, 5), width = 3),
+        peak_slope(y = rep(NA, 5), width = 3),
         "should contain at least 2 or more non-NA values")
 })
 

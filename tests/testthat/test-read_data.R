@@ -11,7 +11,8 @@ test_that("read_data moxy.perfpro works", {
             numeric_time = FALSE,
             keep_all = FALSE,
             verbose = TRUE),
-        "non-sequential or repeating")
+        "non-sequential or repeating") |>
+        expect_message("Estimated sample rate")
 
     expect_s3_class(df.moxy.perfpro, "mNIRS.data")
 
@@ -51,7 +52,8 @@ test_that("read_data moxy.perfpro works", {
             nirs_columns = c(smo2 = "SmO2 Live",
                              smo2 = "SmO2 Live(2)"),
             verbose = TRUE),
-        "Duplicate input column")
+        "Duplicate input column") |>
+        expect_message("Sample rate set to 1 Hz")
 
     expect_message(
         read_data(
@@ -77,7 +79,8 @@ test_that("read_data train.red works", {
             sample_column = c(time = "Timestamp (seconds passed)"),
             keep_all = FALSE,
             verbose = TRUE),
-        "non-sequential or repeating")
+        "non-sequential or repeating") |>
+        expect_message("Estimated sample rate")
 
     expect_silent(
         read_data(
@@ -114,7 +117,8 @@ test_that("read_data train.red works", {
             nirs_columns = c(smo2 = "SmO2 unfiltered",
                              smo2 = "SmO2 unfiltered"),
             verbose = TRUE),
-        "Duplicate input column")
+        "Duplicate input column") |>
+        expect_message("Sample rate set to 1 Hz")
 
     expect_message(
         read_data(
@@ -167,7 +171,8 @@ test_that("read_data oxysoft works", {
                              smo2 = 6),
             sample_column = c(sample = 1),
             verbose = TRUE),
-        "Duplicate input column")
+        "Duplicate input column") |>
+        expect_message("Oxysoft detected sample rate")
 
     expect_message(
         read_data(
@@ -176,7 +181,8 @@ test_that("read_data oxysoft works", {
                              ICG_VL = 6),
             sample_column = NULL,
             verbose = TRUE),
-        "No `sample_column` provided")
+        "No `sample_column` provided") |>
+        expect_message("Oxysoft detected sample rate")
 })
 
 
@@ -223,7 +229,8 @@ test_that("read_data VMPro app works", {
                              smo2 = "SmO2 -  2[%]"),
             sample_column = c(time = "Time[utc]"),
             verbose = TRUE),
-        "Duplicate input column")
+        "Duplicate input column") |>
+        expect_message("Estimated sample rate")
 
     expect_message(
         read_data(

@@ -22,11 +22,7 @@ plot.mNIRS.data <- function(x, ...) {
     rlang::check_installed("ggplot2", reason = "to plot mNIRS data")
 
     args <- list(...)
-    if ("na.omit" %in% names(args)) {
-        na.omit <- args$na.omit
-    } else {
-        na.omit <- FALSE
-    }
+    na.omit <- args$na.omit %||% FALSE
 
     nirs_columns <- attributes(x)$nirs_columns
     sample_column <- attributes(x)$sample_column

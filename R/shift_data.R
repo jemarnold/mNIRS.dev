@@ -20,7 +20,7 @@
 #'  over which the `position` is determined. e.g., `mean_samples = 1` looks for
 #'  the single minimum, maximum, or first value. `mean_samples = 30` would
 #'  use the mean of the lowest, highest, or first `30` samples.
-#' @param shift_by (*Optional*). A numeric scalar by which the data signals can
+#' @param shift_by An *optional* numeric scalar by which the data signals can
 #'  be shifted by a set amount.
 #'
 #' @details
@@ -101,7 +101,6 @@ shift_data <- function(
                     \(.x) zoo::rollapply(
                         .x, width = mean_samples, FUN = mean,
                         align = "center", partial = TRUE, na.rm = TRUE)),
-                # \(.x) rolling_mean_fast(.x, mean_samples)),
             ) |>
             dplyr::summarise(
                 dplyr::across(
@@ -121,7 +120,6 @@ shift_data <- function(
                     dplyr::any_of(unlist(nirs_columns)),
                     \(.x) mean(.x, na.rm = TRUE))
             )
-
     }
 
     y <- lapply(
@@ -135,19 +133,12 @@ shift_data <- function(
                     dplyr::across(
                         tidyselect::any_of(.col),
                         \(.x) if (!is.null(shift_by) & is.null(shift_to)) {
-
                             .x + shift_by
-
                         } else if (position == "minimum") {
-
                             .x - min(shift_mean_value[.col]) + shift_to
-
                         } else if (position == "maximum") {
-
                             .x - max(shift_mean_value[.col]) + shift_to
-
                         } else if (position == "first") {
-
                             .x - dplyr::first(
                                 rowMeans(shift_mean_value[.col])) + shift_to
                         }
