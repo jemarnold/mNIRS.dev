@@ -54,7 +54,6 @@ replace_missing <- function(
         na.rm = FALSE,
         maxgap = Inf
 ) {
-
     method <- match.arg(method)
 
     ## validation: `x` must be a numeric vector
@@ -68,23 +67,20 @@ replace_missing <- function(
     }
 
     if (method == "linear") {
-
         rule <- ifelse(na.rm, 2, 1)
         y <- zoo::na.approx(x, rule = rule, na.rm = na.rm, maxgap = maxgap)
-
     } else if (method == "locf") {
-
+        # ## zoo::na.loct.default https://stackoverflow.com/a/19839474
+        # na_locf <- function(x) {
+        #     L <- !is.na(x)
+        #     c(x[L][1], x[L])[cumsum(L)+1]
+        # }
         y <- zoo::na.locf(x, na.rm = na.rm, maxgap = maxgap)
-
     } else if (method == "spline") {
-
         y <- zoo::na.spline(x, na.rm = na.rm, maxgap = maxgap)
-
     } else if (method == "omit") {
-
         x.all <- stats::setNames(x, seq_along(x))
         y <- stats::na.omit(x.all)[names(na.omit(x.all))]
-
     }
 
     return(y)

@@ -6,7 +6,8 @@
 #' @param y A numeric vector of the response variable, or the name of the
 #'  variable within a dataframe.
 #' @param x An *optional* numeric vector of the predictor variable, or the name
-#'  of the variable within a dataframe. If `x = NULL`, uses `x = seq_along(y)`.
+#'  of the variable within a dataframe. *Defaults* to using the index of
+#'  `x = seq_along(y)`.
 #' @param data An *optional* dataframe containing the predictor and response
 #'  variables named in `x` and `y`. Names for `x` and `y` must be in quotations.
 #' @param x0 (*Default = 0*) A numeric scalar indicating the value of the predictor variable `x`
@@ -87,7 +88,7 @@
 #'
 #' @seealso [stats::nls()], [stats::SSasymp()], [stats::SSfpl()],
 #'
-#' @return A list `L` of class `mNIRS.kinetics` with components `L$...`:
+#' @return A list of class `mNIRS.kinetics` with components `L$...`:
 #'      \item{`method`}{The kinetics method used.}
 #'      \item{`model`}{The model object.}
 #'      \item{`equation`}{The equation of the kinetics model used.}
@@ -114,20 +115,8 @@
 #' model
 #'
 #' \dontrun{
-#' ## add coefs & diagnostics text
-#' coef_text <- paste(names(model$coefs), round(model$coefs, 1),
-#'                    sep = " = ", collapse = "\n")
-#' diag_text <- paste(names(model$diagnostics), round(model$diagnostics, 2),
-#'                    sep = " = ", collapse = "\n")
-#'
 #' ## require(ggplot2)
-#' plot(model) +
-#'     ggplot2::geom_hline(yintercept = 0, linetype = "dotted") +
-#'     ggplot2::geom_line(ggplot2::aes(y = model$residuals)) +
-#'     ggplot2::annotate("text", x = 2, y = 100,
-#'                       label = coef_text, size = 4, hjust = 0, vjust = 1) +
-#'     ggplot2::annotate("text", x = 58, y = 0,
-#'                       label = diag_text, size = 4, hjust = 1, vjust = -0.3)
+#' plot(model, plot_coefs = TRUE, plot_diagnostics = TRUE, plot_residuals = TRUE)
 #' }
 #'
 #' ## sigmoidal kinetics ===============================
@@ -135,20 +124,8 @@
 #' model
 #'
 #' \dontrun{
-#' ## add coefs & diagnostics text
-#' coef_text <- paste(names(model$coefs), round(model$coefs, 1),
-#'                    sep = " = ", collapse = "\n")
-#' diag_text <- paste(names(model$diagnostics), round(model$diagnostics, 2),
-#'                    sep = " = ", collapse = "\n")
-#'
 #' ## require(ggplot2)
-#' plot(model) +
-#'     ggplot2::geom_hline(yintercept = 0, linetype = "dotted") +
-#'     ggplot2::geom_line(ggplot2::aes(y = model$residuals)) +
-#'     ggplot2::annotate("text", x = 2, y = 100,
-#'                       label = coef_text, size = 4, hjust = 0, vjust = 1) +
-#'     ggplot2::annotate("text", x = 58, y = 0,
-#'                       label = diag_text, size = 4, hjust = 1, vjust = -0.3)
+#' plot(model, plot_coefs = TRUE, plot_diagnostics = TRUE, plot_residuals = TRUE)
 #' }
 #'
 #' ## half recovery time ===============================
@@ -156,14 +133,8 @@
 #' model
 #'
 #' \dontrun{
-#' ## add coefs & diagnostics text
-#' coef_text <- paste(names(model$coefs), round(model$coefs, 1),
-#'                    sep = " = ", collapse = "\n")
-#'
 #' ## require(ggplot2)
-#' plot(model) +
-#'     ggplot2::annotate("text", x = 2, y = 100,
-#'                       label = coef_text, size = 4, hjust = 0, vjust = 1)
+#' plot(model, plot_coefs = TRUE, plot_diagnostics = TRUE, plot_residuals = TRUE)
 #' }
 #'
 #' ## peak slope ===============================
@@ -171,14 +142,8 @@
 #' model
 #'
 #' \dontrun{
-#' ## add coefs & diagnostics text
-#' coef_text <- paste(names(model$coefs), round(model$coefs, 1),
-#'                    sep = " = ", collapse = "\n")
-#'
 #' ## require(ggplot2)
-#' plot(model) +
-#'     ggplot2::annotate("text", x = 2, y = 100,
-#'                       label = coef_text, size = 4, hjust = 0, vjust = 1)
+#' plot(model, plot_coefs = TRUE, plot_diagnostics = TRUE, plot_residuals = TRUE)
 #' }
 #'
 #' @usage NULL
@@ -226,14 +191,13 @@ process_kinetics.monoexponential <- function(
     method <- match.arg(method)
     args <- list(...)
 
-    intake <- pre_process_kinetics_names(y = y, x = x, data = data, x0 = x0,
-                                         verbose = verbose)
+    intake <- pre_process_kinetics_names(y = y, x = x, data = data,
+                                         x0 = x0, verbose = verbose)
     df <- intake$df
-    x <- intake$df$x
-    y <- intake$df$y
     data <- intake$data
-    x_name <- names(intake$data)[1]
-    y_name <- names(intake$data)[2]
+    x_name <- names(data)[1]
+    y_name <- names(data)[2]
+    extreme <- setNames(intake$extreme, c(x_name, y_name))
     fitted_name <- paste0(y_name, "_fitted")
 
     ## custom list of permissable fixed coefs
@@ -252,7 +216,8 @@ process_kinetics.monoexponential <- function(
 
     ## process coefs, diagnostics, fitted
     model_output <- process_model(model)
-    data[[fitted_name]] <- model_output$fitted
+    ## add fitted data to original data, NA where excluded after first extreme
+    data[data[[x_name]] %in% df$x, fitted_name] <- model_output$fitted
     ## include explicitly defined coefs
     coefs <- c(fixed_coefs, model_output$coefs) |>
         (\(.x) .x[match(names(formals(SSmonoexp)), names(.x))] )() |>
@@ -276,6 +241,7 @@ process_kinetics.monoexponential <- function(
             fitted = model_output$fitted,
             residuals = model_output$residuals,
             x0 = x0,
+            extreme = extreme,
             coefs = coefs,
             diagnostics = diagnostics,
             call = match.call()),
@@ -303,14 +269,13 @@ process_kinetics.sigmoidal <- function(
     method <- match.arg(method)
     args <- list(...)
 
-    intake <- pre_process_kinetics_names(y = y, x = x, data = data, x0 = x0,
-                                         verbose = verbose)
+    intake <- pre_process_kinetics_names(y = y, x = x, data = data,
+                                         x0 = x0, verbose = verbose)
     df <- intake$df
-    x <- intake$df$x
-    y <- intake$df$y
     data <- intake$data
-    x_name <- names(intake$data)[1]
-    y_name <- names(intake$data)[2]
+    x_name <- names(data)[1]
+    y_name <- names(data)[2]
+    extreme <- setNames(intake$extreme, c(x_name, y_name))
     fitted_name <- paste0(y_name, "_fitted")
 
     ## custom list of permissable fixed coefs
@@ -329,7 +294,8 @@ process_kinetics.sigmoidal <- function(
 
     ## process coefs, diagnostics, fitted
     model_output <- process_model(model)
-    data[[fitted_name]] <- model_output$fitted
+    ## add fitted data to original data, NA where excluded after first extreme
+    data[data[[x_name]] %in% df$x, fitted_name] <- model_output$fitted
     ## include explicitly defined coefs
     coefs <- c(fixed_coefs, model_output$coefs) |>
         (\(.x) .x[match(names(formals(SSfpl)), names(.x))] )() |>
@@ -351,6 +317,7 @@ process_kinetics.sigmoidal <- function(
             fitted = model_output$fitted,
             residuals = model_output$residuals,
             x0 = x0,
+            extreme = extreme,
             coefs = coefs,
             diagnostics = diagnostics,
             call = match.call()),
@@ -378,45 +345,37 @@ process_kinetics.half_time <- function(
     method <- match.arg(method)
     args <- list(...)
 
-    intake <- pre_process_kinetics_names(y = y, x = x, data = data, x0 = x0,
-                                         verbose = verbose)
+    intake <- pre_process_kinetics_names(y = y, x = x, data = data,
+                                         x0 = x0, verbose = verbose)
     df <- intake$df
     x <- intake$df$x
     y <- intake$df$y
     data <- intake$data
-    x_name <- names(intake$data)[1]
-    y_name <- names(intake$data)[2]
+    x_name <- names(data)[1]
+    y_name <- names(data)[2]
+    extreme <- setNames(intake$extreme, c(x_name, y_name))
 
     ## custom list of permissable fixed coefs
     ## TODO 2025-08-11 allow for fixing A & B in half_time
     fixed_coefs <- unlist(args[names(args) %in% c("A", "B")])
 
-    ## determine overall trend using direct least squares calculation
-    valid_idx <- !is.na(x) & !is.na(y)
-    x_clean <- x[valid_idx]
-    y_clean <- y[valid_idx]
+    ## detect trend direction positive = TRUE, negative = FALSE
+    trend <- slope(y, x) >= 0
 
-    x_mean <- mean(x_clean)
-    y_mean <- mean(y_clean)
+    ## set A_x = 0 (adjusted for x0)
+    A_x <- ifelse(all(x > 0), x[1], 0)
+    ## find mean baseline x < 0
+    A <- mean(y[ifelse(all(x > 0), x[1], which(x <= 0))], na.rm = TRUE)
+    ## set B to the previously found extreme value
+    B_x <- extreme[[x_name]]
+    B <- extreme[[y_name]]
+    half_y <- A + (B - A)/2
+    ## take the first x where y >= half_y
+    half_x <- ifelse(trend, x[y >= half_y], x[y <= half_y])[1]
+    ## take the first y that actually exists where y >= half_y
+    half_nirs_value <- y[y >= half_y][1]
 
-    ## covariance between x & y (+ve when they move in same direction)
-    numerator <- sum((x_clean - x_mean) * (y_clean - y_mean), na.rm = TRUE)
-    ## variance of x (spread of x around mean of x)
-    denominator <- sum((x_clean - x_mean)^2, na.rm = TRUE)
-    ## best-fit line gradient faster than calling `lm()`
-    overall_slope <- if (denominator == 0) {0} else {numerator / denominator}
-    ## TRUE == UP, FALSE == DOWN
-    direction <- overall_slope >= 0
-
-    A_sample <- ifelse(all(x > 0), x[1], 0)
-    A <- mean(y[ifelse(all(x > 0), x[1], which(x <= 0))])
-    B <- ifelse(direction, max(y), min(y))
-    B_sample <- x[y == B][1]
-    half_value <- A + diff(c(A, B))/2
-    half_sample <- ifelse(direction, x[y >= half_value][1], x[y <= half_value][1])
-    nirs_value <- y[x == half_sample][1]
-
-    coefs <- c(A_sample, A, B_sample, B, half_sample, half_value, nirs_value)
+    coefs <- c(A_x, A, B_x, B, half_x, half_y, half_nirs_value)
     names(coefs) <- c(paste0("A_", x_name), "A",
                       paste0("B_", x_name), "B",
                       paste0("half_", x_name),
@@ -432,6 +391,7 @@ process_kinetics.half_time <- function(
             equation = equation,
             data = data,
             x0 = x0,
+            extreme = extreme,
             coefs = coefs,
             call = match.call()),
         class = "mNIRS.kinetics")
@@ -466,25 +426,27 @@ process_kinetics.peak_slope <- function(
     align_choices <- c("center", "left", "right")
     align <- match.arg(args$align %||% "center", choices = align_choices)
 
-    intake <- pre_process_kinetics_names(y = y, x = x, data = data, x0 = x0,
-                                         verbose = verbose)
+    intake <- pre_process_kinetics_names(y = y, x = x, data = data,
+                                         x0 = x0, verbose = verbose)
     df <- intake$df
     x <- intake$df$x
     y <- intake$df$y
     data <- intake$data
-    x_name <- names(intake$data)[1]
-    y_name <- names(intake$data)[2]
+    x_name <- names(data)[1]
+    y_name <- names(data)[2]
+    extreme <- setNames(intake$extreme, c(x_name, y_name))
     fitted_name <- paste0(y_name, "_fitted")
 
     rolling_slopes <- rolling_slope(y, x, width, align, na.rm = TRUE)
     peak_slope <- peak_slope(y, x, width, align, na.rm = TRUE)
 
-    data[[fitted_name]] <- NA_real_
-    data[[fitted_name]][x %in% peak_slope$x_fitted] <- peak_slope$y_fitted
-    residuals <- c(na.omit(data[[2]] - data[[fitted_name]]))
+    ## add fitted data to original data, NA beyond range of local slope
+    data[x %in% peak_slope$x_fitted, fitted_name] <- peak_slope$y_fitted
+    ## residuals between y and y_fitted
+    residuals <- c(na.omit(data[[y_name]] - data[[fitted_name]]))
     coefs <- c(peak_slope$x[1],
                y[x %in% peak_slope$x][1],
-               data[[fitted_name]][x %in% peak_slope$x][1],
+               peak_slope$y[1],
                peak_slope$slope)
     names(coefs) <- c(x_name, y_name, fitted_name, "peak_slope")
     coefs <- as_tibble(as.list(coefs))
@@ -500,6 +462,7 @@ process_kinetics.peak_slope <- function(
             residuals = residuals,
             rolling_slopes = rolling_slopes,
             x0 = x0,
+            extreme = extreme,
             width = width,
             align = align,
             coefs = coefs,
@@ -548,8 +511,7 @@ pre_process_kinetics_names <- function(
                 "must be the same length."))
         }
 
-        data <- tibble(x, y)
-        names(data) <- c(x_name, y_name)
+        data <- setNames(tibble(x, y), c(x_name, y_name))
     } else if (!is.data.frame(data)) {
         cli::cli_abort("{.arg data} must be a dataframe.")
     } else if (is.data.frame(data)) {
@@ -604,13 +566,15 @@ pre_process_kinetics_names <- function(
     x <- x - x0
 
     ## TODO 2025-08-12 implement extreme$x & extreme$y
-    # extreme <- find_first_extreme(y = y, x = x, window = window)
-
+    first_extreme <- find_first_extreme(y = y, x = x, window = window)
+    x <- first_extreme$x
+    y <- first_extreme$y
     df <- tibble(x, y)
 
     return(list(
         data = data,
-        df = df))
+        df = df,
+        extreme = first_extreme$extreme))
 }
 
 
@@ -636,7 +600,7 @@ find_first_extreme <- function(y, x = NULL, window = 30) {
     y_lead <- c(positive_y[-1], NA)
 
     ## detect trend direction
-    trend <- detect_direction(y = positive_y, x = positive_x)
+    trend <- slope(positive_y, positive_x) >= 0
 
     is_extreme <- if (trend) {
         ## positive is TRUE, looking for maxima

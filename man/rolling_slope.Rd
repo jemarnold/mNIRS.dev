@@ -6,7 +6,7 @@
 \usage{
 rolling_slope(
   y,
-  x = NULL,
+  x = seq_along(y),
   width,
   align = c("center", "left", "right"),
   na.rm = FALSE
@@ -15,47 +15,43 @@ rolling_slope(
 \arguments{
 \item{y}{A numeric vector of the response variable.}
 
-\item{x}{An \emph{optional} numeric vector of the predictor variable.
-If \code{x = NULL}, uses \code{x = seq_along(y)}.}
+\item{x}{A numeric vector of the predictor variable, defaults to using the
+index of \code{x = seq_along(y)}.}
 
-\item{width}{A numeric scalar defining the window width (in units of \code{x})
+\item{width}{A numeric scalar defining the window width in units of \code{x}
 for rolling calculations.}
 
 \item{align}{Specifies the window alignment of \code{width} as \emph{"center"}
-(\emph{the default}), \emph{"left"}, or \emph{"right"}. Where \emph{"left"} is \emph{forward looking},
+(the \emph{default}), \emph{"left"}, or \emph{"right"}. Where \emph{"left"} is \emph{forward looking},
 and \emph{"right"} is \emph{backward looking} by the window \code{width} from the current
-observation.}
+sample.}
 
-\item{na.rm}{A logical indicating whether to exclude NA values from rolling
-slope calculations.}
+\item{na.rm}{A logical indicating how missing data will be handled. \code{FALSE}
+(the \emph{default}) will perform complete case analysis and return the rolling
+slopes where all local \code{y} samples are valid. \code{TRUE} will return the rolling
+slopes where the local target \code{y} sample is valid.}
 }
 \value{
-A numeric vector of rolling local slopes of the same length as \code{y}.
+A numeric vector of rolling local slopes in units of \code{y/x} of the
+same length as \code{y}.
 }
 \description{
-Computes rolling first derivative (slope) of \code{y} over \code{x} using least squares
-regression within a moving window.
+Computes rolling first derivative (linear regression slope) for a numeric
+response variable \code{y} within a moving window.
 }
 \details{
-The function uses the least squares formula:
-\code{slope = sum((x - x_mean) * (y - y_mean)) / sum((x - x_mean)^2)}.
-
-When \code{na.rm = TRUE}, \code{NA} values are excluded from calculations. If fewer than 2
-valid points remain in a window, \code{NA} will be returned for that position.
+Uses the least squares formula on complete case analysis to calculate
+local slopes within a rolling window along \code{x} specified by \code{width} in units
+of \code{x}. i.e. \code{x = 10} would include samples within a 10-second window for
+time series data.
 }
 \examples{
-## basic usage with default centred alignment
-y <- c(1, 3, 2, 5, 8, 7, 9, 12, 11, 14)
+y <- c(1, 3, 2, 5, 8, 7, 9, 12, 11, 15, 14, 17, 18)
 rolling_slope(y, width = 3)
+rolling_slope(y, width = 3, align = "left")
 
-## with custom x values and left alignment
-x <- seq(0, 1, length.out = 10)
-rolling_slope(y, x, width = 3, align = "left")
-
-## handling missing values with `na.rm = TRUE`
-y_na <- c(1, 3, NA, 5, 8, 7, 9, 12, NA, 14)
-rolling_slope(y_na, width = 3, na.rm = FALSE)
-rolling_slope(y_na, width = 3, na.rm = TRUE)
+y_na <- c(1, 3, NA, 5, 8, 7, 9, 12, NA, NA, NA, 17, 18)
+rolling_slope(y_na, width = 3)
 
 }
 \seealso{

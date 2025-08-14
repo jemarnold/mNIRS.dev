@@ -57,7 +57,8 @@
 variable within a dataframe.}
 
 \item{x}{An \emph{optional} numeric vector of the predictor variable, or the name
-of the variable within a dataframe. If \code{x = NULL}, uses \code{x = seq_along(y)}.}
+of the variable within a dataframe. \emph{Defaults} to using the index of
+\code{x = seq_along(y)}.}
 
 \item{data}{An \emph{optional} dataframe containing the predictor and response
 variables named in \code{x} and \code{y}. Names for \code{x} and \code{y} must be in quotations.}
@@ -109,7 +110,7 @@ optimisation. e.g., \code{A = 10} will define the function
 }}
 }
 \value{
-A list \code{L} of class \code{mNIRS.kinetics} with components \code{L$...}:
+A list of class \code{mNIRS.kinetics} with components \code{L$...}:
 \item{\code{method}}{The kinetics method used.}
 \item{\code{model}}{The model object.}
 \item{\code{equation}}{The equation of the kinetics model used.}
@@ -182,20 +183,8 @@ model <- process_kinetics(y1, x1, method = "monoexponential")
 model
 
 \dontrun{
-## add coefs & diagnostics text
-coef_text <- paste(names(model$coefs), round(model$coefs, 1),
-                   sep = " = ", collapse = "\n")
-diag_text <- paste(names(model$diagnostics), round(model$diagnostics, 2),
-                   sep = " = ", collapse = "\n")
-
 ## require(ggplot2)
-plot(model) +
-    ggplot2::geom_hline(yintercept = 0, linetype = "dotted") +
-    ggplot2::geom_line(ggplot2::aes(y = model$residuals)) +
-    ggplot2::annotate("text", x = 2, y = 100,
-                      label = coef_text, size = 4, hjust = 0, vjust = 1) +
-    ggplot2::annotate("text", x = 58, y = 0,
-                      label = diag_text, size = 4, hjust = 1, vjust = -0.3)
+plot(model, plot_coefs = TRUE, plot_diagnostics = TRUE, plot_residuals = TRUE)
 }
 
 ## sigmoidal kinetics ===============================
@@ -203,20 +192,8 @@ model <- process_kinetics(y1, x1, method = "sigmoidal")
 model
 
 \dontrun{
-## add coefs & diagnostics text
-coef_text <- paste(names(model$coefs), round(model$coefs, 1),
-                   sep = " = ", collapse = "\n")
-diag_text <- paste(names(model$diagnostics), round(model$diagnostics, 2),
-                   sep = " = ", collapse = "\n")
-
 ## require(ggplot2)
-plot(model) +
-    ggplot2::geom_hline(yintercept = 0, linetype = "dotted") +
-    ggplot2::geom_line(ggplot2::aes(y = model$residuals)) +
-    ggplot2::annotate("text", x = 2, y = 100,
-                      label = coef_text, size = 4, hjust = 0, vjust = 1) +
-    ggplot2::annotate("text", x = 58, y = 0,
-                      label = diag_text, size = 4, hjust = 1, vjust = -0.3)
+plot(model, plot_coefs = TRUE, plot_diagnostics = TRUE, plot_residuals = TRUE)
 }
 
 ## half recovery time ===============================
@@ -224,14 +201,8 @@ model <- process_kinetics(y1, x1, method = "half_time")
 model
 
 \dontrun{
-## add coefs & diagnostics text
-coef_text <- paste(names(model$coefs), round(model$coefs, 1),
-                   sep = " = ", collapse = "\n")
-
 ## require(ggplot2)
-plot(model) +
-    ggplot2::annotate("text", x = 2, y = 100,
-                      label = coef_text, size = 4, hjust = 0, vjust = 1)
+plot(model, plot_coefs = TRUE, plot_diagnostics = TRUE, plot_residuals = TRUE)
 }
 
 ## peak slope ===============================
@@ -239,14 +210,8 @@ model <- process_kinetics(y1, x1, method = "peak_slope", width = 10)
 model
 
 \dontrun{
-## add coefs & diagnostics text
-coef_text <- paste(names(model$coefs), round(model$coefs, 1),
-                   sep = " = ", collapse = "\n")
-
 ## require(ggplot2)
-plot(model) +
-    ggplot2::annotate("text", x = 2, y = 100,
-                      label = coef_text, size = 4, hjust = 0, vjust = 1)
+plot(model, plot_coefs = TRUE, plot_diagnostics = TRUE, plot_residuals = TRUE)
 }
 
 }

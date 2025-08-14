@@ -6,7 +6,7 @@
 \usage{
 peak_slope(
   y,
-  x = NULL,
+  x = seq_along(y),
   width,
   align = c("center", "left", "right"),
   na.rm = FALSE
@@ -15,40 +15,54 @@ peak_slope(
 \arguments{
 \item{y}{A numeric vector of the response variable.}
 
-\item{x}{An \emph{optional} numeric vector of the predictor variable.
-If \code{x = NULL}, uses \code{x = seq_along(y)}.}
+\item{x}{A numeric vector of the predictor variable, defaults to using the
+index of \code{x = seq_along(y)}.}
 
-\item{width}{A numeric scalar defining the window width (in units of \code{x})
+\item{width}{A numeric scalar defining the window width in units of \code{x}
 for rolling calculations.}
 
 \item{align}{Specifies the window alignment of \code{width} as \emph{"center"}
-(the default), \emph{"left"}, or \emph{"right"}.}
+(the \emph{default}), \emph{"left"}, or \emph{"right"}. Where \emph{"left"} is \emph{forward looking},
+and \emph{"right"} is \emph{backward looking} by the window \code{width} from the current
+sample.}
 
-\item{na.rm}{A logical indicating whether to exclude NA values from rolling
-slope calculations.}
+\item{na.rm}{A logical indicating how missing data will be handled. \code{FALSE}
+(the \emph{default}) will perform rolling slopes with complete case analysis and
+return the peak of rolling slopes where all local \code{y} samples are valid.
+\code{TRUE} will return the peak of rolling slopes where the local target \code{y}
+sample is valid.}
 }
 \value{
-A list containing \code{L$y}, a numeric scalar of the peak slope value,
-and \code{L$idx}, the position index of the peak slope value.
+A list of class \code{mNIRS.kinetics} with components \code{L$...}:
+\item{\code{x}}{The \code{x} position of the local peak slope.}
+\item{\code{y}}{The \code{y} value predicted from linear regression at the local
+peak slope.}
+\item{\code{slope}}{The slope value in units of \code{y/x}.}
+\item{\code{x_fitted}}{The range of \code{x} values given by \code{width} corresponding
+to the local peak slope.}
+\item{\code{y_fitted}}{The range of \code{y} values given by \code{width} predicted
+from linear regression, corresponding to the local peak slope.}
 }
 \description{
-Computes the peak positive or negative slope for upward or downward trending
-data, respectively. Using \link[=rolling_slope]{rolling slope} analysis.
+Computes the peak directional linear regression slope for upward or downward
+trending response variable \code{y}, respectively using \code{\link[=rolling_slope]{rolling_slope()}} within
+a moving window.
 }
 \details{
-The function first calculates rolling slopes using \code{\link[=rolling_slope]{rolling_slope()}}, then
-determines overall trend direction using least squares regression. For upward
-trends (positive overall slope), returns the greatest positive rolling slope.
-For downward trends (negative overall slope), returns the greatest negative
-rolling slope.
+Uses the least squares formula on complete case analysis to calculate
+local slopes within a rolling window along \code{x} specified by \code{width} in units
+of \code{x}. i.e. \code{x = 10} would include samples within a 10-second window for
+time series data.
+
+The direction of \code{y} (upward or downward) will determine whether a positive
+or negative peak slope is returned. Peak positive slope will be returned for
+an overall slope >= 0.
 }
 \examples{
-# Upward trending data returns peak positive slope
-y_up <- c(1, 3, 2, 5, 8, 7, 9, 12, 11, 14)
-peak_slope(y_up, width = 3)
+y <- c(1, 3, 2, 5, 8, 7, 9, 12, 11, 14)
+peak_slope(y, width = 3)
 
-# Downward trending data returns peak negative slope
-y_down <- c(14, 11, 12, 9, 7, 8, 5, 2, 3, 1)
-peak_slope(y_down, width = 3)
+y <- c(14, 11, 12, 9, 7, 8, 5, 2, 3, 1)
+peak_slope(y, width = 3)
 
 }

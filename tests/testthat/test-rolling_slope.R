@@ -5,69 +5,80 @@ test_that("slope returns correct structure", {
 
     expect_type(result, "double")
     expect_equal(length(result), 1)
+    expect_gt(result, 0)
 })
 
-test_that("slope returns same as lm model", {
-    y <- c(1, 3, 2, 5, 8, 7, 9, 8, 6, 7)
-    x <- seq_along(y)
-
-    slope_result <- slope(y)
-    lm_result <- coef(.lm.fit(cbind(1, x), y))[2]
-
-    expect_equal(slope_result, lm_result)
-})
-
-test_that("slope works with NULL x", {
+test_that("slope calculates slopes correctly", {
     y <- c(1, 3, 5, 7, 9)
-    result_null <- slope(y, x = NULL)
+    result_null <- slope(y)
     result_seq <- slope(y, x = seq_along(y))
-
     expect_equal(result_null, result_seq)
-})
 
-test_that("slope calculates linear trend correctly", {
-    # Perfect linear trend
-    y <- c(1, 2, 3, 4, 5)
-    x <- c(1, 2, 3, 4, 5)
-    result <- slope(y, x)
-
-    # Should be close to 1 for perfect linear trend
-    expect_true(all(abs(result[!is.na(result)] - 1) < 1e-10))
-})
-
-test_that("slope handles NA values", {
-    y <- c(1, 3, NA, 5, 8, 7, 9, 12, NA, 14)
-
-    ## na.rm = FALSE
-    results_rm_false <- slope(y, na.rm = FALSE)
-    expect_true(any(is.na(results_rm_false)))
-
-    ## na.rm = TRUE
-    results_rm_true <- slope(y, na.rm = TRUE)
-    expect_true(sum(is.na(results_rm_true)) <= sum(is.na(y)))
-
-    expect_equal(results_rm_true[which(!is.na(results_rm_false))],
-                 results_rm_false[which(!is.na(results_rm_false))])
-})
-
-test_that("slope handles edge cases", {
+    ## horizontal
+    expect_equal(slope(1:5, 1:5), 1)
     ## single value
-    expect_true(slope(5) == 0)
-
+    expect_true(is.na(slope(5)))
     ## all identical values
     expect_true(slope(rep(5, 10)) == 0)
-
     ## all NA
     expect_true(is.na(slope(rep(NA, 5))))
+    ## all x values identical
+    ## TODO 2025-08-13 This should probably error to NA?
+    # expect_true(is.na(slope(1:5, rep(1, 5))))
+    expect_true(slope(1:5, rep(1, 5)) == 0)
 })
 
-test_that("slope zero denominator handling", {
-    # All x values identical
-    y <- c(1, 2, 3, 4, 5)
-    x <- rep(1, 5)
+test_that("slope handles NA and returns same as lm model", {
+    y <- c(1, 3, NA, 5, 8, 7, 9, 12, NA, NA, NA, 17, 18)
+    result <- slope(y)
+    lm_result <- lm(y ~ seq_along(y))
 
-    expect_true(slope(y, x) == 0)
+    expect_equal(result, coef(lm_result)[[2]])
+
+    ## boundary NA
+    y <- c(1, 3, NA, 5, 8, 7, 9, 12, NA, NA, NA, 17, NA)
+    result <- slope(y)
+    lm_result <- lm(y ~ seq_along(y))
+
+    expect_equal(result, coef(lm_result)[[2]])
+
+    # ggplot(tibble(x = seq_along(y), y = y)) +
+    #     aes(x, y) +
+    #     scale_x_continuous(breaks = scales::breaks_pretty(n=10)) +
+    #     geom_point(shape = 21, size = 3, stroke = 1) +
+    #     ggplot2::geom_abline(intercept = coef(lm_result)[[1]],
+    #                          slope = coef(lm_result)[[2]])
+
+    ## speed test
+    speed_result <- (\(y_length = 100, n_reps = 500, na_prop = 0.1) {
+        x <- 1:y_length
+        y <- rnorm(1, 0, 2) * x + rnorm(y_length, mean = 0, sd = 2)
+        y[sample(length(y), round(y_length * na_prop))] <- NA
+
+        f1 <- \() coef(lm(y ~ seq_along(y)))[[2]]
+        f2 <- \() slope(y)
+
+        val1 <- as.vector(replicate(n_reps, f1()))
+        val2 <- as.vector(replicate(n_reps, f2()))
+        MAE <- round(mean(abs(val1 - val2), na.rm = TRUE), 10)
+
+        t1 <- system.time(replicate(n_reps, f1()))["elapsed"]
+        t2 <- system.time(replicate(n_reps, f2()))["elapsed"]
+
+        data.frame(
+            method = c("lm", "slope"),
+            mean = c(mean(val1, na.rm = TRUE), mean(val2, na.rm = TRUE)),
+            MAE = MAE,
+            time_ms = round(c(t1, t2) / n_reps * 1000, 2),
+            speedup = round(c(t2/t1, t1/t2), 1))
+    })()
+
+    expect_equal(speed_result$mean[[1]], speed_result$mean[[2]])
+    expect_equal(speed_result$MAE[[1]], 0)
+    expect_gte(speed_result$time_ms[[1]], speed_result$time_ms[[2]])
 })
+
+
 
 
 
@@ -83,43 +94,107 @@ test_that("rolling_slope returns correct structure", {
 
     expect_type(result, "double")
     expect_equal(length(result), length(y))
+    expect_true(all(result >= 0))
 })
 
 test_that("rolling_slope calculates slopes correctly", {
-    # Perfect linear trend
-    y <- c(1, 2, 3, 4, 5)
-    x <- c(1, 2, 3, 4, 5)
-    result <- rolling_slope(y, x, width = 3)
+    y <- c(1, 3, 5, 7, 9)
+    result_null <- rolling_slope(y, width = 3)
+    result_seq <- rolling_slope(y, x = seq_along(y), width = 3)
+    expect_equal(result_null, result_seq)
 
-    # Should be close to 1 for perfect linear trend
-    expect_true(all(abs(result[!is.na(result)] - 1) < 1e-10))
+    ## horizontal
+    expect_true(all(rolling_slope(1:5, 1:5, width = 3) == 1))
+    ## single value returns 0
+    ## TODO 2025-08-13 or NA?
+    expect_equal(rolling_slope(5, width = 3), 0)
+    ## two values
+    result <- rolling_slope(c(1, 3), width = 3)
+    expect_length(result, 2)
+    expect_equal(diff(result), 0)
+    ## all identical values
+    expect_true(all(rolling_slope(rep(5, 10), width = 3) == 0))
+    ## all NA
+    expect_true(is.na(rolling_slope(rep(NA, 5), width = 3)))
+    ## all x values identical
+    ## TODO 2025-08-13 This should probably error to NA?
+    # expect_true(all(is.na(rolling_slope(y = 1:5, x = rep(1, 5), width = 3))))
+    expect_true(all(rolling_slope(y = 1:5, x = rep(1, 5), width = 3) == 0))
 })
 
 test_that("rolling_slope returns same as lm model", {
-    y <- c(1, 3, 2, 5, 8, 7, 9, 8, 6, 7)
-    x = seq_along(y)
-    n <- length(y)
+    y <- c(1, 3, 2, 5, 8, 7, 9, 12, 11, 15, 14, 17, 18)
+    result <- rolling_slope(y, width = 3)
+    x <- seq_along(y)
     width <- 3
-    rolling_slope_result <- rolling_slope(y, width = width)
-    lm_result <- NA
-
-    for (i in 1:n) {
-        current_x <- x[i]
-        start_x <- max(x[1], current_x - width / 2)
-        end_x <- min(x[n], current_x + width / 2)
+    n <- length(y)
+    lm_result <- sapply(1:length(y), \(.x) {
+        start_x <- max(x[1], .x - width/2)
+        end_x <- min(x[n], .x + width/2)
         window_idx <- which(x >= start_x & x <= end_x)
-        lm_result[i] <- coef(.lm.fit(
-            cbind(1, x[window_idx]), y[window_idx]))[2]
-    }
+        ## exception from lm() NA handling for all NA
+        if (sum(!is.na(y[window_idx])) > 1) {
+            coef(lm(y[window_idx] ~ x[window_idx]))[[2]]
+        } else {NA}
+    })
 
-    expect_equal(length(rolling_slope_result), length(lm_result))
-    expect_equal(rolling_slope_result, lm_result)
+    expect_equal(result, lm_result)
+
+    # ggplot(tibble(x = seq_along(y), y = y)) +
+    #     aes(x, y) +
+    #     scale_x_continuous(breaks = scales::breaks_pretty(n=10)) +
+    #     geom_line() +
+    #     geom_point(aes(y = result, colour = "rolling_slope"),
+    #                shape = 21, size = 5, stroke = 1) +
+    #     geom_point(aes(y = lm_result, colour = "lm"),
+    #                shape = 21, size = 3, stroke = 1)
+
+    # ## speed test
+    # speed_result <- (\(y_length = 100, n_reps = 10, na_prop = 0.1) {
+    #     x <- 1:y_length
+    #     y <- rnorm(1, 0, 2) * x + rnorm(y_length, mean = 0, sd = 2)
+    #     # y[sample(length(y), round(y_length * na_prop))] <- NA
+    #     width <- 10
+    #
+    #     f1 <- \() sapply(1:length(y), \(.x) {
+    #         start_x <- max(x[1], .x - width/2)
+    #         end_x <- min(x[y_length], .x + width/2)
+    #         window_idx <- which(x >= start_x & x <= end_x)
+    #         ## exception from lm() NA handling for all NA
+    #         if (sum(!is.na(y[window_idx])) > 1) {
+    #             coef(lm(y[window_idx] ~ x[window_idx]))[[2]]
+    #         } else {NA}
+    #     })
+    #
+    #     f2 <- \() rolling_slope(y, width = width)
+    #
+    #     val1 <- as.vector(replicate(n_reps, f1()))
+    #     val2 <- as.vector(replicate(n_reps, f2()))
+    #     MAE <- round(mean(abs(val1 - val2), na.rm = TRUE), 10)
+    #
+    #     t1 <- system.time(replicate(n_reps, f1()))["elapsed"]
+    #     t2 <- system.time(replicate(n_reps, f2()))["elapsed"]
+    #
+    #     data.frame(
+    #         method = c("lm", "rolling_slope"),
+    #         mean = c(mean(val1, na.rm = TRUE), mean(val2, na.rm = TRUE)),
+    #         MAE = MAE,
+    #         time_ms = round(c(t1, t2) / n_reps * 1000, 2),
+    #         speedup = round(c(t2/t1, t1/t2), 1))
+    # })()
+    #
+    # expect_equal(speed_result$mean[[1]], speed_result$mean[[2]])
+    # expect_equal(speed_result$MAE[[1]], 0)
+    # expect_gte(speed_result$time_ms[[1]], speed_result$time_ms[[2]])
 })
 
 test_that("rolling_slope returns same as zoo::rollapply()", {
-    y <- c(1, 3, 2, 5, 8, 7, 9, 8, 6, 7)
+    y <- c(1, 3, 2, 5, 8, 7, 9, 12, 11, 15, 14, 17, 18)
 
-    coef.fn <- function(y) coef(.lm.fit(cbind(1, seq_along(y)), y))[2]
+    ## returns 0 for one valid y value
+    coef.fn <- \(y) coef(.lm.fit(cbind(1, seq_along(y)), y))[2]
+    # ## returns NA for one valid y value
+    # coef.fn <- \(y) coef(lm(y ~ seq_along(y)))[[2]]
     rollapply_center <- zoo::rollapply(y,
                                        FUN = coef.fn,
                                        width = 3,
@@ -155,52 +230,22 @@ test_that("rolling_slope handles different alignments", {
     expect_length(result_left, length(y))
     expect_length(result_right, length(y))
 
-    # Different alignments should give different results
+    ## different align should give different results
     expect_false(identical(result_center, result_left))
     expect_false(identical(result_center, result_right))
     expect_equal(tail(result_right, 7), head(result_left, 7))
 })
 
-test_that("rolling_slope works with NULL x", {
-    y <- c(1, 3, 5, 7, 9)
-    result_null <- rolling_slope(y, x = NULL, width = 3)
-    result_seq <- rolling_slope(y, x = seq_along(y), width = 3)
+test_that("rolling_slope handles NA with na.rm", {
+    y <- c(1, 3, NA, 5, 8, 7, 9, 12, NA, NA, NA, 17, 18)
 
-    expect_equal(result_null, result_seq)
-})
+    ## 2025-08-13 na.rm = FALSE returns NA where any local y is NA
+    results <- rolling_slope(y, width = 3, na.rm = FALSE)
+    expect_true(all(which(is.na(results)) %in% c(2:4, 8:12)))
 
-test_that("rolling_slope handles NA values", {
-    y <- c(1, 3, NA, 5, 8, 7, 9, 12, NA, 14)
-
-    ## na.rm = FALSE
-    results_rm_false <- rolling_slope(y, width = 3, na.rm = FALSE)
-    expect_true(any(is.na(results_rm_false)))
-
-    ## na.rm = TRUE
-    results_rm_true <- rolling_slope(y, width = 3, na.rm = TRUE)
-    expect_true(sum(is.na(results_rm_true)) <= sum(is.na(y)))
-
-    expect_equal(results_rm_true[which(!is.na(results_rm_false))],
-                 results_rm_false[which(!is.na(results_rm_false))])
-})
-
-test_that("rolling_slope handles edge cases", {
-    ## single value
-    expect_error(rolling_slope(c(5), width = 3),
-                 "should be of length 2 or greater")
-
-    ## two values
-    result <- rolling_slope(c(1, 3), width = 3)
-    expect_length(result, 2)
-    expect_equal(diff(result), 0)
-
-    ## all identical values
-    result <- rolling_slope(rep(5, 10), width = 3)
-    expect_true(all(result == 0))
-
-    ## all NA
-    expect_error(rolling_slope(rep(NA, 5), width = 3, na.rm = TRUE),
-                 "should contain at least 2 or more non-NA values")
+    ## 2025-08-13 na.rm = TRUE returns NA where target y is NA
+    results_rmna <- rolling_slope(y, width = 3, na.rm = TRUE)
+    expect_true(all(which(is.na(results_rmna)) %in% c(3, 9:11)))
 })
 
 test_that("rolling_slope handles width in units of x", {
@@ -215,24 +260,21 @@ test_that("rolling_slope handles width in units of x", {
     n <- length(y)
     width <- 3
     rolling_slope_result <- rolling_slope(y, idx_unequal, width = 3)
-    lm_result <- NA
 
-    for (i in 1:n) {
-        current_x <- idx_unequal[i]
-        start_x <- max(idx_unequal[1], current_x - width / 2)
-        end_x <- min(idx_unequal[n], current_x + width / 2)
-        window_idx <- which(idx_unequal >= start_x & idx_unequal <= end_x)
-        lm_result[i] <- coef(.lm.fit(
-            cbind(1, idx_unequal[window_idx]), y[window_idx]))[2]
-    }
+    lm_result <- sapply(
+        1:n, \(.x) {
+            current_x <- idx_unequal[.x]
+            start_x <- max(idx_unequal[1], current_x - width / 2)
+            end_x <- min(idx_unequal[n], current_x + width / 2)
+            window_idx <- which(idx_unequal >= start_x & idx_unequal <= end_x)
+
+            coef(lm(y[window_idx] ~ idx_unequal[window_idx]))[[2]]
+        })
 
     expect_equal(rolling_slope_result, lm_result)
-})
 
-test_that("rolling_slope handles width edge cases", {
     y <- c(1, 3, 2, 5, 8)
-
-    # Width larger than data
+    ## width larger than data
     result <- rolling_slope(y, width = 10)
     expect_length(result, length(y))
     expect_true(var(result) == 0)
@@ -240,42 +282,41 @@ test_that("rolling_slope handles width edge cases", {
     ## width = 1
     result <- rolling_slope(y, width = 1)
     expect_length(result, length(y))
-    expect_true(all(result == 0, na.rm = TRUE))
+    expect_true(all(result == 0))
 })
 
 test_that("rolling_slope partial windows work correctly", {
-    y <- c(1, 3, 2, 5, 8, 7, 9, 12, 11, 14)
-    result <- rolling_slope(y, width = 3, align = "center")
+    y <- c(1, 3, NA, 5, 8, 7, 9, 12, NA, NA, NA, 17, 18)
 
     ## first and last positions should use partial windows
+    result <- rolling_slope(y, width = 3, na.rm = FALSE)
     expect_false(is.na(result[1]))
     expect_false(is.na(result[length(y)]))
     expect_equal(result[1], diff(y[1:2]))
-    expect_equal(result[2], diff(y[c(1, 3)])/2)
+    expect_equal(result[2], NA_real_)
     expect_equal(tail(result, 1), diff(tail(y, 2)))
-    expect_equal(tail(result, 2)[1], diff(tail(y, 3)[c(1, 3)])/2)
+    expect_equal(tail(result, 2)[1], NA_real_)
+
+    results_rmna <- rolling_slope(y, width = 3, na.rm = TRUE)
+    expect_false(is.na(results_rmna[1]))
+    expect_false(is.na(results_rmna[length(y)]))
+    expect_equal(results_rmna[1], diff(y[1:2]))
+    expect_equal(results_rmna[2], diff(y[1:2]))
+    expect_equal(tail(results_rmna, 1), diff(tail(y, 2)))
+    expect_equal(tail(results_rmna, 2)[1], diff(tail(y, 3)[c(2, 3)]))
 })
 
 test_that("rolling_slope match.arg works", {
     y <- c(1, 3, 2, 5, 8)
 
-    # Valid alignment
+    ## valid align
     expect_no_error(rolling_slope(y, width = 3, align = "center"))
 
-    # Invalid alignment should error
-    expect_error(
-        rolling_slope(y, width = 3, align = "invalid"),
-        "'arg' should be one of")
+    ## invalid align
+    expect_error(rolling_slope(y, width = 3, align = "invalid"),
+                 "'arg' should be one of")
 })
 
-test_that("rolling_slope zero denominator handling", {
-    # All x values identical
-    y <- c(1, 2, 3, 4, 5)
-    x <- rep(1, 5)
-    result <- rolling_slope(y, x, width = 3)
-
-    expect_true(all(result == 0, na.rm = TRUE))
-})
 
 
 
@@ -289,60 +330,104 @@ test_that("peak_slope returns correct structure", {
     result <- peak_slope(y, width = 3)
 
     expect_type(result, "list")
-    expect_named(result, c("x", "slope", "x_fitted", "y_fitted"))
-    expect_type(result$slope, "double")
+    expect_named(result, c("x", "y", "slope", "x_fitted", "y_fitted"))
     expect_type(result$x, "double")
+    expect_type(result$y, "double")
+    expect_type(result$slope, "double")
     expect_type(result$y_fitted, "double")
     expect_type(result$x_fitted, "double")
     expect_true(is.vector(result$y_fitted))
     expect_true(is.vector(result$x_fitted))
+    expect_equal(length(result$x_fitted), length(result$y_fitted))
 })
 
-test_that("peak_slope works with upward trend", {
+test_that("peak_slope calculates slopes correctly", {
     y <- c(1, 3, 5, 7, 9)
-    result <- peak_slope(y, width = 3)
+    result_null <- peak_slope(y, width = 3)
+    result_seq <- peak_slope(y, x = seq_along(y), width = 3)
+    expect_equal(result_null, result_seq)
 
-    expect_gt(result$slope, 0)
-    expect_gte(result$x, 1)
-    expect_lte(result$x, length(y))
+    ## horizontal
+    result <- peak_slope(1:5, 1:5, width = 3)
+    expect_true(all(result[c("x", "y", "slope")] == 1))
+    expect_true(all(result$x_fitted %in% 1:2))
+    expect_true(all(result$y_fitted %in% 1:2))
+
+    ## single value returns 0
+    ## TODO 2025-08-13 zero or NA?
+    expect_error(peak_slope(5, width = 3),
+                 "contains insufficient valid data")
+    ## all identical values
+    result <- peak_slope(rep(5, 10), width = 3)
+    expect_true(result$slope == 0)
+    expect_true(all(result[c("x", "y", "slope")] %in% c(1, 5, 0)))
+    expect_true(all(result$x_fitted %in% 1:2))
+    ## all NA
+    expect_error(peak_slope(rep(NA, 5), width = 3),
+                "contains insufficient valid data")
+    ## all x values identical
+    ## TODO 2025-08-13 This should probably error to NA?
+    expect_true(all(peak_slope(1:5, rep(1, 5), width = 3) == 0))
 })
 
+
+## TODO 2025-08-14 START HERE
 test_that("peak_slope works with downward trend", {
     y <- c(9, 7, 5, 3, 1)
     result <- peak_slope(y, width = 3)
 
     expect_lt(result$slope, 0)
     expect_gte(result$x, 1)
+    expect_gte(result$y, 1)
     expect_lte(result$x, length(y))
 })
 
 test_that("peak_slope handles NA values correctly", {
-    y <- c(1, 3, NA, 5, 8, 7, 9, 12, NA, 14)
+    y <- c(1, 3, NA, 5, 8, 7, 9, 12, NA, NA, NA, 17, 18)
+# devtools::load_all()
+    roll_result <- rolling_slope(y, width = 3)
+    results <- peak_slope(y, width = 3)
+    expect_true(is.na(results$slope) | is.numeric(results$slope))
+    expect_type(results$slope, "double")
+    expect_gte(results$x, 1)
+    expect_lte(results$x, length(y))
 
-    ## na.rm = FALSE returns NAs for `rolling_slope()`,
-    ## but returns numeric for `peak_slope()`
-    results_rm_false <- peak_slope(y, width = 3, na.rm = FALSE)
-    expect_true(is.na(results_rm_false$slope) | is.numeric(results_rm_false$slope))
-    expect_type(results_rm_false$slope, "double")
-    expect_gte(results_rm_false$x, 1)
-    expect_lte(results_rm_false$x, length(y))
+    ## visual check
+    # ggplot(tibble(x = seq_along(y), y = y)) +
+    #     aes(x, y) +
+    #     scale_x_continuous(breaks = scales::breaks_pretty(n=10)) +
+    #     scale_y_continuous(breaks = scales::breaks_pretty(n=10)) +
+    #     geom_line(linewidth = 2) +
+    #     geom_line(data = tibble(x = results$x_fitted,
+    #                             y = results$y_fitted),
+    #               aes(colour = "fitted"), linewidth = 1) +
+    #     geom_point(aes(y = roll_result, colour = "rolling"),
+    #                shape = 21, size = 3, stroke = 1) +
+    #     annotate("point", shape = 21, size = 3, stroke = 1,
+    #              x = results$x, y = results$y)
 
-    ## na.rm = TRUE should
-    results_rm_true <- peak_slope(y, width = 3, na.rm = TRUE)
-    expect_false(is.na(results_rm_true$slope))
-    expect_type(results_rm_true$slope, "double")
-    expect_gte(results_rm_true$x, 1)
-    expect_lte(results_rm_true$x, length(y))
-})
 
-test_that("peak_slope works with custom x values", {
-    y <- c(1, 4, 2, 8, 6, 10)
-    x <- c(0, 1, 2, 3, 4, 5)
-    result <- peak_slope(y, x, width = 3)
 
-    expect_type(result$slope, "double")
-    expect_gte(result$x, 1)
-    expect_lte(result$x, length(y))
+    roll_result <- rolling_slope(y, width = 4)
+    results <- peak_slope(y, width = 4)
+    expect_true(is.na(results$slope) | is.numeric(results$slope))
+    expect_type(results$slope, "double")
+    expect_gte(results$x, 1)
+    expect_lte(results$x, length(y))
+
+    ## visual check
+    # ggplot(tibble(x = seq_along(y), y = y)) +
+    #     aes(x, y) +
+    #     scale_x_continuous(breaks = scales::breaks_pretty(n=10)) +
+    #     scale_y_continuous(breaks = scales::breaks_pretty(n=10)) +
+    #     geom_line(linewidth = 2) +
+    #     geom_line(data = tibble(x = results$x_fitted,
+    #                             y = results$y_fitted),
+    #               aes(colour = "fitted"), linewidth = 1) +
+    #     geom_point(aes(y = roll_result, colour = "rolling"),
+    #                shape = 21, size = 3, stroke = 1) +
+    #     annotate("point", shape = 21, size = 3, stroke = 1,
+    #              x = results$x, y = results$y)
 })
 
 test_that("peak_slope handles width in units of x", {
@@ -397,13 +482,20 @@ test_that("peak_slope works with different alignments", {
     result_left <- peak_slope(y, x, width = 2, align = "left")
     result_right <- peak_slope(y, x, width = 2, align = "right")
 
+    expect_equal(result_center$x, mean(result_center$x_fitted))
+    expect_equal(result_center$y, mean(result_center$y_fitted))
+    expect_equal(result_left$x, result_left$x_fitted[1])
+    expect_equal(result_left$y, result_left$y_fitted[1])
+    expect_equal(result_right$x, tail(result_right$x_fitted, 1))
+    expect_equal(result_right$y, tail(result_right$y_fitted, 1))
+
     expect_equal(result_center$x, result_left$x + 1)
     expect_equal(result_center$x, result_right$x - 1)
     expect_equal(result_left$x + 1, result_right$x - 1)
 
-    expect_equal(result_center$y, result_left$y)
-    expect_equal(result_center$y, result_right$y)
-    expect_equal(result_left$y, result_right$y)
+    expect_equal(result_center$slope, result_left$slope)
+    expect_equal(result_center$slope, result_right$slope)
+    expect_equal(result_left$slope, result_right$slope)
 })
 
 test_that("peak_slope handles edge cases", {
@@ -418,7 +510,7 @@ test_that("peak_slope handles edge cases", {
     expect_lte(result$x, 2)
 
     ## all identical values
-    expect_warning(result <- peak_slope(y = rep(5, 10), width = 3))
+    result <- peak_slope(y = rep(5, 10), width = 3)
     expect_equal(result$slope, 0)
     expect_gte(result$x, 1)
 
@@ -428,3 +520,37 @@ test_that("peak_slope handles edge cases", {
         "should contain at least 2 or more non-NA values")
 })
 
+
+
+
+
+
+test_that("detect_direction works correctly", {
+    x <- 1:4
+    ## positive correlation
+    expect_true(detect_direction(1:4, x))
+
+    ## negative correlation
+    expect_false(detect_direction(4:1, x))
+
+    ## zero correlation (horizontal)
+    expect_true(detect_direction(rep(5, 4), x))
+
+    ## x = NULL
+    expect_true(detect_direction(y = 1:4, x = NULL))
+    expect_false(detect_direction(y = 4:1, x = NULL))
+
+    ## one value
+    expect_true(detect_direction(1, 1))
+
+    ## missing values
+    expect_true(detect_direction(c(1, NaN, 3, 4), x))
+    expect_false(detect_direction(c(4, NA, 2, 1), x))
+
+    ## all invalid
+    expect_error(detect_direction(list()), "non-numeric argument")
+    expect_error(detect_direction(NULL), "non-numeric argument")
+    expect_true(is.na(detect_direction(rep(NA, 4))))
+    expect_true(is.na(detect_direction(rep(NaN, 4))))
+    expect_true(is.na(detect_direction(rep(Inf, 4))))
+})

@@ -2,23 +2,32 @@
 % Please edit documentation in R/rolling_slope.R
 \name{slope}
 \alias{slope}
-\title{Determine the Slope of a Numeric Vector}
+\title{Calculate the Slope of a Numeric Vector}
 \usage{
-slope(y, x = NULL, na.rm = FALSE)
+slope(y, x = seq_along(y))
 }
 \arguments{
 \item{y}{A numeric vector of the response variable.}
 
-\item{x}{An \emph{optional} numeric vector of the predictor variable.
-If \code{x = NULL}, uses \code{x = seq_along(y)}.}
-
-\item{na.rm}{A logical indicating whether to exclude NA values from rolling
-slope calculations.}
+\item{x}{A numeric vector of the predictor variable, defaults to using the
+index of \code{x = seq_along(y)}.}
 }
 \value{
-A numeric slope value.
+A numeric slope value of \code{y/x}.
 }
 \description{
-Computes the rate of change for a numeric response variable \code{y}.
+Computes the linear regression slope for a numeric response variable \code{y}.
+}
+\details{
+Uses the least squares formula on complete case analysis. A single
+valid observation will return \code{NA}.
+}
+\examples{
+y <- c(1, 3, 2, 5, 8, 7, 9, 12, 11, 15, 14, 17, 18)
+slope(y)
+
+y <- c(1, 3, NA, 5, 8, 7, 9, 12, NA, NA, NA, 17, NA)
+slope(y)
+
 }
 \keyword{internal}
