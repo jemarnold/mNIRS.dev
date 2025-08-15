@@ -422,6 +422,7 @@ process_kinetics.peak_slope <- function(
     method <- match.arg(method)
     args <- list(...)
     width <- args$width %||% width ## fails with object 'width' not found
+    na.rm <- args$na.rm %||% FALSE ## hidden option rolling_slopes(na.rm = TRUE)
 
     align_choices <- c("center", "left", "right")
     align <- match.arg(args$align %||% "center", choices = align_choices)
@@ -437,12 +438,12 @@ process_kinetics.peak_slope <- function(
     extreme <- setNames(intake$extreme, c(x_name, y_name))
     fitted_name <- paste0(y_name, "_fitted")
 
-    rolling_slopes <- rolling_slope(y, x, width, align, na.rm = TRUE)
-    peak_slope <- peak_slope(y, x, width, align, na.rm = TRUE)
+    rolling_slopes <- rolling_slope(y, x, width, align, na.rm)
+    peak_slope <- peak_slope(y, x, width, align, na.rm)
 
     ## add fitted data to original data, NA beyond range of local slope
     data[[fitted_name]] <- NA_real_
-    data[[fitted_name]][x %in% peak_slope$x_fitted] <- peak_slope$y_fitted
+    data[[fitted_name]][which(x %in% peak_slope$x_fitted)] <- peak_slope$y_fitted
     ## residuals between y and y_fitted
     residuals <- c(na.omit(data[[y_name]] - data[[fitted_name]]))
     coefs <- c(peak_slope$x[1],
@@ -451,6 +452,16 @@ process_kinetics.peak_slope <- function(
                peak_slope$slope)
     names(coefs) <- c(x_name, y_name, fitted_name, "peak_slope")
     coefs <- as_tibble(as.list(coefs))
+
+    RSS <- c(crossprod(residuals))
+    n <- length(residuals)
+    resid_y <- df$y[which(x %in% peak_slope$x_fitted)]
+    total_var <- c(crossprod(resid_y - mean(resid_y, na.rm = TRUE)))
+    diagnostics <- tibble(
+        R2adj = 1 - ((RSS / (n - nrow(coefs))) / ((total_var / (n - 1)))),
+        RMSE = sqrt(RSS / n),
+        MAE = mean(abs(residuals)),
+        MAPE = mean(abs(residuals / resid_y), na.rm = TRUE) * 100)
 
     equation <- paste0("peak_slope ~ max(rolling_slope(y ~ x, width = ", width, "))")
 
@@ -467,6 +478,7 @@ process_kinetics.peak_slope <- function(
             width = width,
             align = align,
             coefs = coefs,
+            diagnostics = diagnostics,
             call = match.call()),
         class = "mNIRS.kinetics")
 

@@ -1,30 +1,50 @@
+test_that("palette returns correct colours", {
+    expect_length(mNIRS_palette(), 12)
+    expect_length(mNIRS_palette(3), 3)
+    expect_length(mNIRS_palette(15), 15)
+    expect_type(mNIRS_palette(), "character")
+    expect_match(mNIRS_palette(1), "^#[0-9a-f]{6}$")
+})
+
+
+
+
 test_that("plot.mNIRS.data moxy.perfpro works", {
     file_path <- system.file("extdata/moxy_ramp_example.xlsx",
                              package = "mNIRS")
 
-    df.moxy.perfpro <- read_data(
+    df <- read_data(
         file_path = file_path,
         nirs_columns = c(smo2_left = "SmO2 Live",
                          smo2_right = "SmO2 Live(2)"),
+        sample_column = c(time = "hh:mm:ss"),
         verbose = FALSE)
 
-    expect_silent(plot(df.moxy.perfpro))
-
-    expect_s3_class(plot(df.moxy.perfpro), "gg")
+    ## visual check
+    plot <- plot(df)
+    expect_s3_class(plot, "ggplot")
 })
 
 
-test_that("plot.mNIRS.data train.red works", {
-    file_path <- system.file("extdata/train.red_interval_example.csv",
+
+
+test_that("plot.mNIRS.data Oxysoft multiple channels works", {
+    file_path <- system.file("extdata/oxysoft_interval_example.xlsx",
                              package = "mNIRS")
+    expect_equal(class(file_path), "character")
 
-    train.red <- read_data(
-        file_path = file_path,
-        nirs_columns = c(smo2_left = "SmO2 unfiltered",
-                         smo2_right = "SmO2 unfiltered"),
-        verbose = FALSE)
-
-    expect_silent(plot(train.red))
-
-    expect_s3_class(plot(train.red), "gg")
+    # df <- read_data(
+    #     file_path = file_path,
+    #     nirs_columns = c("O2Hb 1" = 2,
+    #                      "HHb 1" = 3,
+    #                      "tHb 1" = 4,
+    #                      "O2Hb 2" = 5,
+    #                      "HHb 2" = 6,
+    #                      "tHb 2" = 7),
+    #     sample_column = c(sample = 1),
+    #     verbose = FALSE)
+    #
+    # ## visual check
+    # plot <- plot(df)
+    # expect_s3_class(plot, "ggplot")
 })

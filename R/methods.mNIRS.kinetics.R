@@ -170,8 +170,11 @@ plot.mNIRS.kinetics <- function(x,  ...) {
     } else {
         diagnostics <- diagnostics |>
             dplyr::mutate(
-                dplyr::across(tidyselect::where(is.numeric),
-                              \(.x) signif_trailing(.x, 3)))
+                dplyr::across(tidyselect::matches(c("AIC", "BIC")),
+                              \(.x) signif(.x, 4)),
+                dplyr::across(-tidyselect::matches(c("AIC", "BIC")),
+                              \(.x) signif_trailing(.x, 3))
+            )
         diag_text <- paste(names(diagnostics), diagnostics,
                            sep = " = ", collapse = "\n")
         coords <- c(max(data[[x_name]], na.rm = TRUE),
@@ -190,51 +193,33 @@ plot.mNIRS.kinetics <- function(x,  ...) {
         max_residuals <- max(residuals, na.rm = TRUE)
         mean_residuals <- mean(residuals, na.rm = TRUE)
         adjusted_hline <- coords[2] - max_residuals - mean_residuals
-        adjusted_residuals <- residuals + adjusted_hline
+        data$resid_adj <- NA_real_
+        data$resid_adj[which(!is.na(data[[fitted]]))] <- residuals + adjusted_hline
         residuals_plot <- list(
             geom_hline(yintercept = adjusted_hline,
                        colour = "grey30", linetype = "dotted"),
             annotate("text", x = coords[1], y = adjusted_hline,
                      label = "residuals", size = 4, colour = "grey30",
                      hjust = "left", vjust = -0.1),
-            geom_line(data = data[!is.na(data[[fitted]]),],
-                      aes(y = adjusted_residuals, colour = "residuals"))
+            geom_line(#data = data[!is.na(data[[fitted]]),],
+                      aes(y = resid_adj, colour = "residuals"), na.rm = TRUE)
         )
     }
 
-    # mNIRS_colours <- c(
-    #     "#0080ff",   "#ba2630", "#7dbf70",   "#ff80ff", "#ff7f00",
-    #     "#00468Bff", "#db5555",   "#42B540FF", "#9f79ee", "#8b4726")
-    #
-    # mNIRS_palette <- function(...) {
-    #     cols <- c(...)
-    #     colours <- c(
-    #         "VL"   = "#0080ff",
-    #         "FCR"  = "#ba2630",
-    #         "BB"   = "#7dbf70",
-    #         "VM"   = "#ff80ff",
-    #         "SCM"  = "#ff7f00",
-    #         "TA"   = "#00468Bff",
-    #         "ECR"  = "#db5555",
-    #         "DL"   = "#42B540FF",
-    #         "RF"   = "#9f79ee",
-    #         "PS"   = "#8b4726",
-    #         "O2Hb" = "#ff0000",
-    #         "HHb"  = "#0000ff",
-    #         "lancet blue"   = "#00468Bff",
-    #         "lancet red"    = "#ED0000FF",
-    #         "lancet green"  = "#42B540FF")
-    #     if (is.null(cols)) {return(colours)}
-    #     colours[[cols]]
-    # }
 
-    JAPackage::Palette_JA()
     ggplot(data, aes(x = .data[[x_name]])) +
         theme_mNIRS(legend.position = "top") +
         scale_x_continuous(
-            name = x_name,
-            breaks = if (rlang::is_installed("scales")) {
+            name = if (grepl("time", x_name, ignore.case = TRUE)) {
+                paste(x_name, "(h:mm:ss)")
+            } else {waiver()},
+            breaks = if (grepl("time", x_name, ignore.case = TRUE)) {
+                breaks_timespan(n = 8)
+            } else if (rlang::is_installed("scales")) {
                 scales::breaks_pretty(n = 8)
+            } else {waiver()},
+            labels = if (grepl("time", x_name, ignore.case = TRUE)) {
+                format_hmmss
             } else {waiver()},
             expand = expansion(mult = 0.01)) +
         scale_y_continuous(
@@ -246,9 +231,7 @@ plot.mNIRS.kinetics <- function(x,  ...) {
         scale_colour_manual(
             name = NULL,
             breaks = c(y_name, "fitted", "residuals"),
-            values = setNames(
-                c("#0080ff", "black", "grey"),
-                c(y_name, "fitted", "residuals")),
+            values = c(mNIRS_palette(1), "black", "grey"),
             limits = force) +
         guides(colour = guide_legend(override.aes = list(linewidth = 1))) +
         geom_vline(xintercept = x0, linetype = "dotted") +
@@ -313,8 +296,9 @@ plot.mNIRS.kinetics <- function(x,  ...) {
         )}} +
         {if (method == "peak_slope") {list(
             geom_line(
-                data = data[!is.na(data[[fitted]]),],
-                aes(y = .data[[fitted]], colour = "fitted"), linewidth = 1),
+                # data = data[!is.na(data[[fitted]]),],
+                aes(y = .data[[fitted]], colour = "fitted"),
+                linewidth = 1, na.rm = TRUE),
             geom_segment(
                 data = tibble(
                     x = coefs[[1]] + x0,

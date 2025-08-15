@@ -27,13 +27,20 @@ devtools::install_github("jemarnold/mNIRS")
 
 …
 
+## Online App
+
+A very basic implementation of this package is hosted at
+<https://jem-arnold.shinyapps.io/mNIRS-app/> and can be used for mNIRS
+data importing and cleaning.
+
 ## Usage
 
 ### Read data from file
 
 ``` r
-library(dplyr, warn.conflicts = FALSE)
-library(ggplot2)
+
+library(dplyr, warn.conflicts = FALSE)  ## load for data wrangling
+library(ggplot2) ## load for plotting
 library(mNIRS)
 
 ## {mNIRS} includes sample files from a few NIRS devices
@@ -251,7 +258,7 @@ plot(data_rescaled)
 
 ### Process kinetics
 
-> under development
+`<under development>`
 
 ## mNIRS Device Compatibility
 

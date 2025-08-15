@@ -27,12 +27,12 @@ plot.mNIRS.data <- function(x, ...) {
     nirs_columns <- attributes(x)$nirs_columns
     sample_column <- attributes(x)$sample_column
 
-    plot <- x |>
-        ## pivot all `nirs_columns` to `y` and plot by group
-        tidyr::pivot_longer(
-            cols = tidyselect::all_of(nirs_columns),
-            names_to = "nirs_columns",
-            values_to = "y") |>
+    ## pivot all `nirs_columns` to `y` and plot by group
+    plot <- tidyr::pivot_longer(data = x,
+                                cols = tidyselect::all_of(nirs_columns),
+                                names_to = "nirs_columns",
+                                values_to = "y"
+    ) |>
         ## remove empty rows for geom_line
         ( \(.df) if (na.omit) {tidyr::drop_na(.df, y)} else {.df})() |>
         ggplot() +
@@ -40,9 +40,16 @@ plot.mNIRS.data <- function(x, ...) {
             colour = nirs_columns) +
         theme_mNIRS() +
         scale_x_continuous(
-            # name = sample_column,
-            breaks = if (rlang::is_installed("scales")) {
-                scales::breaks_pretty(n = 6)
+            name = if (grepl("time", sample_column, ignore.case = TRUE)) {
+                paste(sample_column, "(h:mm:ss)")
+            } else {waiver()},
+            breaks = if (grepl("time", sample_column, ignore.case = TRUE)) {
+                breaks_timespan(n = 8)
+            } else if (rlang::is_installed("scales")) {
+                scales::breaks_pretty(n = 8)
+            } else {waiver()},
+            labels = if (grepl("time", sample_column, ignore.case = TRUE)) {
+                format_hmmss
             } else {waiver()},
             expand = expansion(mult = 0.01)) +
         scale_y_continuous(
@@ -51,7 +58,131 @@ plot.mNIRS.data <- function(x, ...) {
                 scales::breaks_pretty(n = 6)
             } else {waiver()},
             expand = expansion(mult = 0.01)) +
+        scale_colour_mNIRS(breaks = nirs_columns) +
+        guides(colour = guide_legend(override.aes = list(linewidth = 1))) +
         geom_line()
 
     return(plot)
+}
+
+
+
+
+#' Custom mNIRS colour palette
+#'
+#' @param n Number of colours to return, in order.
+#'
+#' @return Named character vector of hex colours.
+#'
+#' @examples
+#' \dontrun{
+#' scales::show_col(mNIRS_palette())
+#' }
+#'
+#' @export
+mNIRS_palette <- function(n = NULL) {
+    mNIRS_colours <- c(
+        "#0080ff",      ## "VL"
+        "#ba2630",      ## "FCR"
+        "#7dbf70",      ## "BB"
+        "#ff80ff",      ## "VM"
+        "#ff7f00",      ## "SCM"
+        "#00468Bff",    ## "TA"
+        "#db5555",      ## "ECR"
+        "#42B540FF",    ## "DL"
+        "#9f79ee",      ## "RF"
+        "#8b4726",      ## "PS"
+        "#ED0000FF",    ## "O2Hb"
+        "#0000ff")      ## "HHb"
+    if (is.null(n)) {return(mNIRS_colours)}
+    if (n <= length(mNIRS_colours)) return(mNIRS_colours[seq_len(n)])
+
+    ## interpolate if more colours needed, but this probably won't look good!
+    grDevices::colorRampPalette(mNIRS_colours)(n)
+}
+
+
+
+
+
+#' Scales for custom mNIRS palette
+#'
+#' @param ... Arguments passed to discrete_scale.
+#'
+#' @seealso [mNIRS_palette()]
+#' @rdname scale_colour_my_palette
+#' @export
+scale_colour_mNIRS <- function(...) {
+    ggplot2::discrete_scale(aesthetics = "colour",
+                            palette = mNIRS_palette,
+                            na.value = "grey10",
+                            ...)
+}
+
+
+
+
+#' @rdname scale_colour_my_palette
+#' @export
+scale_fill_mNIRS <- function(...) {
+    ggplot2::discrete_scale(aesthetics = "fill",
+                            palette = mNIRS_palette,
+                            na.value = "grey10",
+                            ...)
+}
+
+
+
+
+#' @keywords internal
+format_hmmss <- function(x) {
+    x <- as.numeric(x)
+    sign <- ifelse(x < 0, "-", "")
+    hrs <- abs(x) %/% 3600
+    mins <- (abs(x) %% 3600) %/% 60
+    secs <- abs(x) %% 60
+
+    if (any(hrs > 0, na.rm = TRUE)) {
+        sprintf("%s%d:%02d:%02d", sign, hrs, mins, secs)
+    } else {
+        sprintf("%s%02d:%02d", sign, mins, secs)
+    }
+}
+
+
+
+
+#' @keywords internal
+breaks_timespan <- function (
+        unit = c("secs", "mins", "hours", "days", "weeks"),
+        n = 5
+) {
+    unit <- rlang::arg_match(unit)
+    force(n)
+    function(x) {
+        x <- as.numeric(as.difftime(x, units = unit), units = "secs")
+        rng <- range(x, na.rm = TRUE)
+        diff <- rng[2] - rng[1]
+        if (diff <= 2 * 60) {
+            scale <- 1
+        } else if (diff <= 2 * 3600) {
+            scale <- 60
+        } else if (diff <= 2 * 86400) {
+            scale <- 3600
+        } else if (diff <= 2 * 604800) {
+            scale <- 86400
+        } else {
+            scale <- 604800
+        }
+        # Define nice steps for each unit
+        nice_steps <- switch(
+            unit,
+            "secs" = c(1, 2, 5, 10, 15, 20, 30, 60, 120),
+            "mins" = c(1, 2, 5, 10, 15, 20, 30, 60, 120) * 60,
+            "hours" = c(0.25, 0.5, 1, 2, 3, 4, 6, 8, 12, 24) * 3600)
+        rng <- rng/scale
+        breaks <- labeling::extended(
+            rng[1], rng[2], n, Q = nice_steps, only.loose = FALSE)
+        as.numeric(as.difftime(breaks * scale, units = "secs"))
+    }
 }

@@ -505,7 +505,7 @@ test_that("process_kinetics works for a local environment call", {
     ) |>
         dplyr::mutate(
             time = round(time - dplyr::first(time), 1),
-            smo2 = replace_invalid(smo2, c(100)))
+            smo2 = replace_invalid(smo2, c(100), width = 10, return = "median"))
 
     nirs_columns <- attributes(data_raw)$nirs_columns
     fitted_name <- paste0(nirs_columns, "_fitted")
@@ -526,8 +526,6 @@ test_that("process_kinetics works for a local environment call", {
                               data = kinetics_data,
                               method = "peak_slope",
                               width = 10)
-model$data |> print(n=Inf)
-    plot(model, plot_residuals = TRUE)
 
     ## check class
     expect_s3_class(model, "mNIRS.kinetics")
@@ -557,7 +555,9 @@ model$data |> print(n=Inf)
     expect_equal(length(model$data), 3)
     expect_gte(length(model$coefs), 1)
 
-    model_plot <- plot(model)
+    ## visual check
+    model_plot <- plot(model, plot_coefs = TRUE,
+                       plot_diagnostics = TRUE, plot_residuals = TRUE)
     expect_s3_class(model_plot, "ggplot")
 })
 
@@ -599,8 +599,10 @@ test_that("process_kinetics works inside a purrr::map() call", {
             process_kinetics(y = .nirs,
                              x = fit_sample_name,
                              data = .df,
-                             method = .method)
+                             method = .method,
+                             width = 10)
         )
+
 
     ## check length of model_list
     expect_equal(length(model_list), length(c(nirs_columns, event_samples)))
@@ -615,6 +617,7 @@ test_that("process_kinetics works inside a purrr::map() call", {
     expect_true(all(sapply(model_list, \(.x) class(.x)) == "mNIRS.kinetics"))
 
     model <- model_list[[1]]
+
     ## check list contents
     model_contents <- c("method", "model", "equation", "data",
                         "fitted", "residuals", "x0", "extreme",
@@ -641,7 +644,8 @@ test_that("process_kinetics works inside a purrr::map() call", {
     expect_gte(ncol(model$coefs), 1)
     expect_gte(ncol(model$diagnostics), 1)
 
-    model_plot <- plot(model)
+    ## visual check
+    model_plot <- plot(model, plot_coefs = TRUE,
+                       plot_diagnostics = TRUE, plot_residuals = TRUE)
     expect_s3_class(model_plot, "ggplot")
-
 })

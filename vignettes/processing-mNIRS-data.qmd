@@ -98,6 +98,8 @@ data_raw <- read_data(file_path,
                       keep_all = FALSE, ## to keep the returned dataframe clean
                       verbose = TRUE) ## show warnings & messages, but ignore them for now
 
+## ignore the Warning about repeated samples here
+
 data_raw
 ```
 
@@ -265,7 +267,7 @@ Choosing filter parameters is an important processing step to improve signal-to-
 
 It is perfectly valid to choose a digital filter by empirically testing iterative filter parameters until the signal or phenomena of interest is optimised for signal-to-noise ratio and minimal data artefacts. 
 
-The process of choosing a digital filter will be the topic of another vignette (`currently under development`).
+The process of choosing a digital filter will be the topic of another vignette `<currently under development>`.
 
 
 

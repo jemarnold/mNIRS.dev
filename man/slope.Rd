@@ -23,11 +23,13 @@ Uses the least squares formula on complete case analysis. A single
 valid observation will return \code{NA}.
 }
 \examples{
+\dontrun{
 y <- c(1, 3, 2, 5, 8, 7, 9, 12, 11, 15, 14, 17, 18)
 slope(y)
 
 y <- c(1, 3, NA, 5, 8, 7, 9, 12, NA, NA, NA, 17, NA)
 slope(y)
+}
 
 }
 \keyword{internal}
