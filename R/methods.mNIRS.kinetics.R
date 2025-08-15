@@ -146,6 +146,7 @@ plot.mNIRS.kinetics <- function(x,  ...) {
     fitted <- names(data)[3]
 
     args <- list(...)
+    display_time <- args$display_time %||% FALSE
 
     ## show additional information on plot
     if (!exists("coefs") || !"plot_coefs" %in% names(args) || !args$plot_coefs) {
@@ -210,15 +211,15 @@ plot.mNIRS.kinetics <- function(x,  ...) {
     ggplot(data, aes(x = .data[[x_name]])) +
         theme_mNIRS(legend.position = "top") +
         scale_x_continuous(
-            name = if (grepl("time", x_name, ignore.case = TRUE)) {
+            name = if (display_time) {
                 paste(x_name, "(h:mm:ss)")
             } else {waiver()},
-            breaks = if (grepl("time", x_name, ignore.case = TRUE)) {
+            breaks = if (display_time) {
                 breaks_timespan(n = 8)
             } else if (rlang::is_installed("scales")) {
                 scales::breaks_pretty(n = 8)
             } else {waiver()},
-            labels = if (grepl("time", x_name, ignore.case = TRUE)) {
+            labels = if (display_time) {
                 format_hmmss
             } else {waiver()},
             expand = expansion(mult = 0.01)) +

@@ -103,7 +103,7 @@ test_that("find_first_extreme for Moxy data", {
     result <- find_first_extreme(y = kinetics_data[[nirs_columns]],
                                  x = kinetics_data[[fit_sample_name]])
 
-    # plot(kinetics_data) +
+    # plot(kinetics_data, display_time = TRUE) +
     #     geom_vline(xintercept = result$extreme$x) +
     #     geom_hline(yintercept = result$extreme$y)
 
@@ -556,7 +556,7 @@ test_that("process_kinetics works for a local environment call", {
     expect_gte(length(model$coefs), 1)
 
     ## visual check
-    model_plot <- plot(model, plot_coefs = TRUE,
+    model_plot <- plot(model, display_time = TRUE, plot_coefs = TRUE,
                        plot_diagnostics = TRUE, plot_residuals = TRUE)
     expect_s3_class(model_plot, "ggplot")
 })
@@ -645,7 +645,7 @@ test_that("process_kinetics works inside a purrr::map() call", {
     expect_gte(ncol(model$diagnostics), 1)
 
     ## visual check
-    model_plot <- plot(model, plot_coefs = TRUE,
+    model_plot <- plot(model, display_time = TRUE, plot_coefs = TRUE,
                        plot_diagnostics = TRUE, plot_residuals = TRUE)
     expect_s3_class(model_plot, "ggplot")
 })

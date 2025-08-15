@@ -23,6 +23,7 @@ plot.mNIRS.data <- function(x, ...) {
 
     args <- list(...)
     na.omit <- args$na.omit %||% FALSE
+    display_time <- args$display_time %||% FALSE
 
     nirs_columns <- attributes(x)$nirs_columns
     sample_column <- attributes(x)$sample_column
@@ -40,15 +41,15 @@ plot.mNIRS.data <- function(x, ...) {
             colour = nirs_columns) +
         theme_mNIRS() +
         scale_x_continuous(
-            name = if (grepl("time", sample_column, ignore.case = TRUE)) {
+            name = if (display_time) {
                 paste(sample_column, "(h:mm:ss)")
             } else {waiver()},
-            breaks = if (grepl("time", sample_column, ignore.case = TRUE)) {
+            breaks = if (display_time) {
                 breaks_timespan(n = 8)
             } else if (rlang::is_installed("scales")) {
                 scales::breaks_pretty(n = 8)
             } else {waiver()},
-            labels = if (grepl("time", sample_column, ignore.case = TRUE)) {
+            labels = if (display_time) {
                 format_hmmss
             } else {waiver()},
             expand = expansion(mult = 0.01)) +
