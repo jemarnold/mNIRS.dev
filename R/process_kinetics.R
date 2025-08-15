@@ -441,7 +441,8 @@ process_kinetics.peak_slope <- function(
     peak_slope <- peak_slope(y, x, width, align, na.rm = TRUE)
 
     ## add fitted data to original data, NA beyond range of local slope
-    data[x %in% peak_slope$x_fitted, fitted_name] <- peak_slope$y_fitted
+    data[[fitted_name]] <- NA_real_
+    data[[fitted_name]][x %in% peak_slope$x_fitted] <- peak_slope$y_fitted
     ## residuals between y and y_fitted
     residuals <- c(na.omit(data[[y_name]] - data[[fitted_name]]))
     coefs <- c(peak_slope$x[1],
@@ -486,9 +487,9 @@ process_kinetics.peak_slope <- function(
 ## recognise `yy` as an environment object????
 pre_process_kinetics_names <- function(
         y,
-        x,
-        data,
-        x0,
+        x = NULL,
+        data = NULL,
+        x0 = 0,
         window = 30,
         verbose = TRUE
 ) {
@@ -581,14 +582,13 @@ pre_process_kinetics_names <- function(
 
 #' @keywords internal
 find_first_extreme <- function(y, x = NULL, window = 30) {
-    ## where `x` is not defined
-    if (is.null(x)) {x <- seq_along(y)}
+    if (is.null(x)) {x <- seq_along(y)} ## where `x` is not defined
 
     if (length(x) != length(y)) {
         cli::cli_abort("{.arg x} and {.arg} must be the same length.")
     }
 
-    x <- round(x, 8); y <- round(y, 8) ## avoid floating point precision issues
+    x <- round(x, 10); y <- round(y, 10) ## avoid floating point precision issues
 
     ## filter for positive x values
     positive_x <- x[x > 0]
@@ -604,10 +604,10 @@ find_first_extreme <- function(y, x = NULL, window = 30) {
 
     is_extreme <- if (trend) {
         ## positive is TRUE, looking for maxima
-        positive_y > y_lag & positive_y > y_lead
+        positive_y > y_lag & positive_y >= y_lead
     } else {
         ## negative is FALSE, looking for minima
-        positive_y < y_lag & positive_y < y_lead
+        positive_y < y_lag & positive_y <= y_lead
     }
 
     is_extreme[1] <- FALSE ## remove boundary effect at start
@@ -626,7 +626,7 @@ find_first_extreme <- function(y, x = NULL, window = 30) {
 
         # Find y values within window
         window_end <- extreme_x + window
-        window_y <- y[x > extreme_x & x <= window_end]
+        window_y <- y[x >= extreme_x & x <= window_end]
 
         ## check if this extreme is the greatest in the window
         is_dominant <- if (trend) {

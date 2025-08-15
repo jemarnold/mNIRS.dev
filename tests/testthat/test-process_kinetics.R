@@ -1,4 +1,201 @@
+test_that("pre_process_kinetics_names", {
+    # devtools::load_all()
+    set.seed(13)
+    x1 <- seq(-10, 60, by = 2)
+    A <- 10; B <- 100; TD <- 5; tau <- 12
+    y1 <- monoexponential(x1, A, B, TD, tau) + rnorm(length(x1), 0, 3)
+    mydata <- tibble(xx = x1, yy = y1)
+
+    ## env object
+    result <- pre_process_kinetics_names(y1)
+    expect_type(result, "list")
+    ## check length of list
+    expect_equal(length(result), 3)
+    ## check class
+    expect_true(all(sapply(result, \(.x) is.data.frame(.x))))
+    ## check num of columns
+    expect_true(all(sapply(result, \(.x) length(names(.x)) == 2)))
+    ## check colnames
+    expect_contains(names(result$data), c("index", "y1"))
+    ## check data length
+    expect_equal(nrow(result$data), length(x1))
+    ## expect extremes within original data
+    expect_true(result$extreme$x %in% x1)
+    expect_true(result$extreme$y %in% round(y1, 10))
+
+    ## y & x env objects
+    result <- pre_process_kinetics_names(y1, x1)
+    ## data & df should be equivalent to original data
+    expect_equal(result$data, result$df, ignore_attr = TRUE)
+    expect_equal(result$data, tibble(x1, y1), ignore_attr = TRUE)
+    expect_equal(result$df, tibble(x1, y1), ignore_attr = TRUE)
+    ## check colnames
+    expect_contains(names(result$data), c("x1", "y1"))
+
+    ## env object in quotes error
+    expect_error(pre_process_kinetics_names("y1"),
+                 "must be a.*numeric.*vector")
+
+    ## y & x env object in quotes error
+    expect_error(pre_process_kinetics_names("y1", "x1"),
+                 "must be a.*numeric.*vector")
+
+    ## env dataframe index
+    result <- pre_process_kinetics_names(mydata$yy)
+    ## TODO 2025-08-14 would prefer the name to be "yy"
+    expect_contains(names(result$data), c("index", "mydata$yy"))
+
+    ## env object doesn't exist error
+    expect_error(pre_process_kinetics_names(q1),
+                 "object 'q1' not found")
+
+    ## env object not numeric error
+    expect_error(pre_process_kinetics_names(mydata),
+                 "must be a.*numeric.*vector")
+
+    ## data & y quoted
+    result <- pre_process_kinetics_names("yy", data = mydata, verbose = F)
+    expect_contains(names(result$data), c("index", "yy"))
+
+    ## data & y & x quoted
+    result <- pre_process_kinetics_names("yy", "xx", data = mydata)
+    expect_contains(names(result$data), c("xx", "yy"))
+
+    ## data & y quoted doesn't exist
+    expect_error(pre_process_kinetics_names("qq", data = mydata),
+                 "not found in `data`")
+
+    ## data & x quoted doesn't exist
+    expect_error(pre_process_kinetics_names("yy", "qq", data = mydata),
+                 "not found in `data`")
+})
+
+
+
+
+test_that("find_first_extreme for Moxy data", {
+    # devtools::load_all()
+    file_path <- system.file("extdata/moxy_ramp_example.xlsx",
+                             package = "mNIRS")
+
+    data_raw <- read_data(
+        file_path = file_path,
+        nirs_columns = c(smo2 = "SmO2 Live"),
+        sample_column = c(time = "hh:mm:ss"),
+        verbose = FALSE
+    ) |>
+        dplyr::mutate(time = round(time - dplyr::first(time), 1))
+
+    nirs_columns <- attributes(data_raw)$nirs_columns
+    fitted_name <- paste0(nirs_columns, "_fitted")
+    sample_column <- attributes(data_raw)$sample_column
+    fit_sample_name <- paste0("fit_", sample_column)
+    event_samples <- c(876)
+
+    kinetics_data <- prepare_kinetics_data(
+        data_raw,
+        event_sample = event_samples,
+        fit_window = c(30, 120)
+    )[[1]]
+
+    attributes(kinetics_data)$sample_column <- fit_sample_name
+
+    result <- find_first_extreme(y = kinetics_data[[nirs_columns]],
+                                 x = kinetics_data[[fit_sample_name]])
+
+    # plot(kinetics_data) +
+    #     geom_vline(xintercept = result$extreme$x) +
+    #     geom_hline(yintercept = result$extreme$y)
+
+    expect_equal(length(result$x), length(result$y))
+    expect_equal(result$extreme$y, max(kinetics_data[[nirs_columns]]))
+    expect_equal(result$extreme$x,
+                 kinetics_data$fit_time[which(
+                     kinetics_data[[nirs_columns]] == max(kinetics_data[[nirs_columns]]))[1]])
+})
+
+
+
+
+test_that("find_first_extreme for Train.Red data", {
+    # devtools::load_all()
+    file_path <- system.file("extdata/train.red_interval_example.csv",
+                             package = "mNIRS")
+
+    data_raw <- read_data(
+        file_path = file_path,
+        nirs_columns = c(smo2_left = "SmO2", smo2_right = "SmO2"),
+        sample_column = c(time = "Timestamp (seconds passed)"),
+        verbose = FALSE
+    ) |>
+        dplyr::mutate(time = round(time - dplyr::first(time), 1))
+
+    nirs_columns <- attributes(data_raw)$nirs_columns
+    fitted_name <- paste0(nirs_columns, "_fitted")
+    sample_column <- attributes(data_raw)$sample_column
+    fit_sample_name <- paste0("fit_", sample_column)
+    event_samples <- c(370, 1085)
+
+    kinetics_data <- prepare_kinetics_data(
+        data_raw,
+        event_sample = event_samples,
+        fit_window = c(30, 120),
+        group_events = "distinct"
+    )[[1]]
+
+    attributes(kinetics_data)$sample_column <- fit_sample_name
+
+    result <- find_first_extreme(y = kinetics_data[[nirs_columns[1]]],
+                                 x = kinetics_data[[fit_sample_name]])
+
+    # plot(kinetics_data) +
+    #     geom_vline(xintercept = result$extreme$x) +
+    #     geom_hline(yintercept = result$extreme$y) +
+    #     # ggplot2::coord_cartesian(xlim = c(50, 80),
+    #     #                          ylim = c(69, 70))
+    # NULL
+
+    ## same length
+    expect_equal(length(result$x), length(result$y))
+    ## extreme$y should be global y max in this case
+    expect_equal(result$extreme$y, max(kinetics_data[[nirs_columns[1]]]))
+    ## extreme$x should be the first x at global y max
+    expect_equal(result$extreme$x,
+                 kinetics_data$fit_time[which(
+                     kinetics_data[[nirs_columns[1]]] ==
+                         max(kinetics_data[[nirs_columns[1]]]))[1]])
+
+
+    result <- find_first_extreme(y = kinetics_data[[nirs_columns[2]]],
+                                 x = kinetics_data[[fit_sample_name]])
+
+    # plot(kinetics_data) +
+    #     geom_vline(xintercept = result$extreme$x) +
+    #     geom_hline(yintercept = result$extreme$y) +
+    #     # ggplot2::coord_cartesian(xlim = c(110, NA),
+    #     #                          ylim = c(69, 72))
+    # NULL
+
+    ## same length
+    expect_equal(length(result$x), length(result$y))
+    ## extreme$y should be global y max in this case
+    expect_equal(result$extreme$y, max(kinetics_data[[nirs_columns[2]]]))
+    ## extreme$y should be last y in this case
+    expect_equal(result$extreme$y, tail(kinetics_data[[nirs_columns[2]]], 1))
+    ## extreme$x should be last x in this case
+    expect_equal(result$extreme$x, tail(kinetics_data[[fit_sample_name]], 1))
+    ## extreme$x should be the first x at global y max
+    expect_equal(result$extreme$x,
+                 kinetics_data$fit_time[which(
+                     kinetics_data[[nirs_columns[2]]] ==
+                         max(kinetics_data[[nirs_columns[2]]]))[1]])
+})
+
+
+
+
 test_that("monoexponential x, y names passthrough works", {
+    # devtools::load_all()
     set.seed(13)
     x1 <- seq(-10, 60, by = 2)
     A <- 10; B <- 100; TD <- 5; tau <- 12
@@ -294,6 +491,7 @@ test_that("peak_slope x, y names passthrough works", {
 
 
 
+## TODO 2025-08-14 START DEBUGGING HERE
 test_that("process_kinetics works for a local environment call", {
     # devtools::load_all()
     file_path <- system.file("extdata/moxy_ramp_example.xlsx",
@@ -305,7 +503,9 @@ test_that("process_kinetics works for a local environment call", {
         sample_column = c(time = "hh:mm:ss"),
         verbose = FALSE
     ) |>
-        dplyr::mutate(time = round(time - dplyr::first(time), 1))
+        dplyr::mutate(
+            time = round(time - dplyr::first(time), 1),
+            smo2 = replace_invalid(smo2, c(100)))
 
     nirs_columns <- attributes(data_raw)$nirs_columns
     fitted_name <- paste0(nirs_columns, "_fitted")
@@ -313,24 +513,28 @@ test_that("process_kinetics works for a local environment call", {
     fit_sample_name <- paste0("fit_", sample_column)
     event_samples <- c(876)
 
-    data_list <- prepare_kinetics_data(
+    kinetics_data <- prepare_kinetics_data(
         data_raw,
         event_sample = event_samples,
-        fit_window = c(30, 120)
-    )
+        fit_window = c(30, 180)
+    )[[1]]
+
+    attributes(kinetics_data)$sample_column <- fit_sample_name
 
     model <- process_kinetics(y = nirs_columns,
                               x = fit_sample_name,
-                              data = data_list[[1]],
+                              data = kinetics_data,
                               method = "peak_slope",
                               width = 10)
+model$data |> print(n=Inf)
+    plot(model, plot_residuals = TRUE)
 
     ## check class
-    expect_equal(class(model), "mNIRS.kinetics")
+    expect_s3_class(model, "mNIRS.kinetics")
 
     ## check list contents
     model_contents <- c("method", "equation", "data", "fitted",
-                        "residuals", "rolling_slopes", "x0",
+                        "residuals", "rolling_slopes", "x0", "extreme",
                         "width", "align", "coefs", "call")
     expect_equal(sum(names(model) %in% model_contents),
                  length(model_contents))
@@ -348,8 +552,8 @@ test_that("process_kinetics works for a local environment call", {
     expect_gt(length(model$fitted), 1)
 
     ## expect a dataframe with multiple values
-    expect_s3_class(model$data, "data.frame")
-    expect_s3_class(model$coefs, "data.frame")
+    expect_true(all(sapply(model[c("data", "coefs")],
+                           \(.x) is.data.frame(.x))))
     expect_equal(length(model$data), 3)
     expect_gte(length(model$coefs), 1)
 
@@ -379,14 +583,15 @@ test_that("process_kinetics works inside a purrr::map() call", {
     fit_sample_name <- paste0("fit_", sample_column)
     event_samples <- c(370, 1085)
 
-    data_list <- prepare_kinetics_data(
+    kinetics_data <- prepare_kinetics_data(
         data_raw,
         event_sample = event_samples,
-        fit_window = c(30, 120)
+        fit_window = c(30, 120),
+        group_events = "distinct"
     )
 
     model_list <- tidyr::expand_grid(
-        .df = data_list,
+        .df = kinetics_data,
         .nirs = nirs_columns,
         .method = "monoexp") |>
         purrr::pmap(
@@ -394,7 +599,7 @@ test_that("process_kinetics works inside a purrr::map() call", {
             process_kinetics(y = .nirs,
                              x = fit_sample_name,
                              data = .df,
-                             method = .method, width = 10)
+                             method = .method)
         )
 
     ## check length of model_list
@@ -407,34 +612,36 @@ test_that("process_kinetics works inside a purrr::map() call", {
                  length(model_list))
 
     ## check class
-    expect_equal(class(model_list[[1]]), "mNIRS.kinetics")
+    expect_true(all(sapply(model_list, \(.x) class(.x)) == "mNIRS.kinetics"))
 
+    model <- model_list[[1]]
     ## check list contents
     model_contents <- c("method", "model", "equation", "data",
-                        "fitted", "residuals", "x0", "coefs",
-                        "diagnostics", "call")
-    expect_equal(sum(names(model_list[[1]]) %in% model_contents),
+                        "fitted", "residuals", "x0", "extreme",
+                        "coefs", "diagnostics", "call")
+    expect_equal(sum(names(model) %in% model_contents),
                  length(model_contents))
 
     ## check data colnames
     data_colnames <- c(fit_sample_name, nirs_columns[1], fitted_name[1])
-    expect_equal(sum(names(model_list[[1]]$data) %in% data_colnames),
+    expect_equal(sum(names(model$data) %in% data_colnames),
                 length(data_colnames))
 
     ## length data, residuals, fitted should match
-    expect_equal(length(model_list[[1]]$residuals), length(model_list[[1]]$fitted))
-    expect_equal(length(model_list[[1]]$residuals), nrow(model_list[[1]]$data))
-    expect_equal(length(model_list[[1]]$fitted), nrow(model_list[[1]]$data))
+    expect_equal(length(model$residuals), length(model$fitted))
+    expect_lte(length(model$residuals), nrow(model$data))
+    expect_gt(length(model$residuals), 1)
+    expect_lte(length(model$fitted), nrow(model$data))
+    expect_gt(length(model$fitted), 1)
 
     ## expect a dataframe with multiple values
-    expect_s3_class(model_list[[1]]$data, "data.frame")
-    expect_s3_class(model_list[[1]]$coefs, "data.frame")
-    expect_s3_class(model_list[[1]]$diagnostics, "data.frame")
-    expect_equal(length(model_list[[1]]$data), 3)
-    expect_gte(length(model_list[[1]]$coefs), 1)
-    expect_gte(length(model_list[[1]]$diagnostics), 1)
+    expect_true(all(sapply(model[c("data", "coefs", "diagnostics")],
+                           \(.x) is.data.frame(.x))))
+    expect_equal(ncol(model$data), 3)
+    expect_gte(ncol(model$coefs), 1)
+    expect_gte(ncol(model$diagnostics), 1)
 
-    model_plot <- plot(model_list[[1]])
+    model_plot <- plot(model)
     expect_s3_class(model_plot, "ggplot")
 
 })
