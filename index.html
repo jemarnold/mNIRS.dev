@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">mNIRS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9002</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9010</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -72,14 +72,20 @@
 <p>…</p>
 </div>
 <div class="section level2">
+<h2 id="online-app">Online App<a class="anchor" aria-label="anchor" href="#online-app"></a>
+</h2>
+<p>A very basic implementation of this package is hosted at <a href="https://jem-arnold.shinyapps.io/mNIRS-app/" class="external-link uri">https://jem-arnold.shinyapps.io/mNIRS-app/</a> and can be used for mNIRS data importing and cleaning.</p>
+</div>
+<div class="section level2">
 <h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
 </h2>
 <div class="section level3">
 <h3 id="read-data-from-file">Read data from file<a class="anchor" aria-label="anchor" href="#read-data-from-file"></a>
 </h3>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span>, warn.conflicts <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span>, warn.conflicts <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co">## load for data wrangling</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span> <span class="co">## load for plotting</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/jemarnold/mNIRS" class="external-link">mNIRS</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co">## {mNIRS} includes sample files from a few NIRS devices</span></span>
@@ -289,9 +295,7 @@
 <div class="section level3">
 <h3 id="process-kinetics">Process kinetics<a class="anchor" aria-label="anchor" href="#process-kinetics"></a>
 </h3>
-<blockquote>
-<p>under development</p>
-</blockquote>
+<p><code>&lt;under development&gt;</code></p>
 </div>
 </div>
 <div class="section level2">

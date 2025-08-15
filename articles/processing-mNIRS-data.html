@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mNIRS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9002</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9010</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -126,6 +126,8 @@
 <span>                      verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="co">## show warnings &amp; messages, but ignore them for now</span></span>
 <span><span class="co">#&gt; Warning: "sample_column = time" has non-sequential or repeating values. Consider</span></span>
 <span><span class="co">#&gt; investigating at "time = 1952, 1952, 1952, 2924.01, and 2924.01".</span></span>
+<span></span>
+<span><span class="co">## ignore the Warning about repeated samples here</span></span>
 <span></span>
 <span><span class="va">data_raw</span></span>
 <span><span class="co">#&gt; # A tibble: 2,203 × 4</span></span>
@@ -301,7 +303,7 @@
 <p>There are a few digital filtering methods available. Which option is best will depend in large part on the sample rate of the data and the frequency of the phenomena being observed.</p>
 <p>Choosing filter parameters is an important processing step to improve signal-to-noise ratio and enhance our subsequent interpretations. Over-filtering the data can introduce data artefacts which can influence the signal analysis just as much as the original noisy signal.</p>
 <p>It is perfectly valid to choose a digital filter by empirically testing iterative filter parameters until the signal or phenomena of interest is optimised for signal-to-noise ratio and minimal data artefacts.</p>
-<p>The process of choosing a digital filter will be the topic of another vignette (<code>currently under development</code>).</p>
+<p>The process of choosing a digital filter will be the topic of another vignette <code>&lt;currently under development&gt;</code>.</p>
 </section><section class="level3"><h3 id="filter_data-methods">
 <code>filter_data()</code> methods<a class="anchor" aria-label="anchor" href="#filter_data-methods"></a>
 </h3>
