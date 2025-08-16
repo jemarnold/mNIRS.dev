@@ -57,6 +57,7 @@ distinct or ensembled kinetics events for further analysis.</p>
 <span>  nirs_columns <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  sample_column <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  event_column <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  sample_rate <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -115,9 +116,9 @@ specified (see <em>Details</em>).</p></dd>
 
 
 <dt id="arg-nirs-columns">nirs_columns<a class="anchor" aria-label="anchor" href="#arg-nirs-columns"></a></dt>
-<dd><p>An <em>optional</em> character vector indicating the mNIRS data
-columns to be processed from your dataframe. Must match exactly. Defining
-column names explicitly will overwrite metadata.</p></dd>
+<dd><p>A character vector indicating the mNIRS data columns to
+be processed from your dataframe. Must match <code>data</code> column names exactly.
+Will be taken from metadata if not defined explicitly.</p></dd>
 
 
 <dt id="arg-sample-column">sample_column<a class="anchor" aria-label="anchor" href="#arg-sample-column"></a></dt>
@@ -130,6 +131,11 @@ column names explicitly will overwrite metadata.</p></dd>
 <dd><p>An <em>optional</em> character scalar indicating the name of
 an event or lap data column. Must match exactly. Defining
 column names explicitly will overwrite metadata.</p></dd>
+
+
+<dt id="arg-sample-rate">sample_rate<a class="anchor" aria-label="anchor" href="#arg-sample-rate"></a></dt>
+<dd><p>A numeric scalar for the sample rate in Hz. Will be taken
+from metadata if not defined explicitly.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
