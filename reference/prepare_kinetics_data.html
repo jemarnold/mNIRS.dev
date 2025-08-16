@@ -52,7 +52,6 @@ distinct or ensembled kinetics events for further analysis.</p>
 <span>  event_index <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  fit_window <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">30</span>, <span class="fl">180</span><span class="op">)</span>,</span>
 <span>  display_window <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  peak_window <span class="op">=</span> <span class="fl">30</span>,</span>
 <span>  group_events <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"distinct"</span>, <span class="st">"ensemble"</span><span class="op">)</span>,</span>
 <span>  nirs_columns <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  sample_column <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -101,14 +100,6 @@ An <em>optional</em> two-element numeric vector in the form
 the kinetics events to include for display, but not for model fitting.</p></dd>
 
 
-<dt id="arg-peak-window">peak_window<a class="anchor" aria-label="anchor" href="#arg-peak-window"></a></dt>
-<dd><p>A numeric scalar indicating the local window in units of
-<code>sample_column</code> after the kinetics peak (trough) value to look for subsequent
-higher (lower) values. The kinetics model will be fit to the data up to the
-first local peak (trough) value with no subsequent higher (lower) values
-within the lesser of either the <code>peak_window</code> or the limits of <code>fit_window</code>.</p></dd>
-
-
 <dt id="arg-group-events">group_events<a class="anchor" aria-label="anchor" href="#arg-group-events"></a></dt>
 <dd><p>Indicates how kinetics events should be analysed. Typically
 either <em>"distinct"</em> (<em>the default</em>) or <em>"ensemble"</em>, but can be manually
@@ -118,19 +109,19 @@ specified (see <em>Details</em>).</p></dd>
 <dt id="arg-nirs-columns">nirs_columns<a class="anchor" aria-label="anchor" href="#arg-nirs-columns"></a></dt>
 <dd><p>A character vector indicating the mNIRS data columns to
 be processed from your dataframe. Must match <code>data</code> column names exactly.
-Will be taken from metadata if not defined explicitly.</p></dd>
+Can be taken from metadata if not defined explicitly.</p></dd>
 
 
 <dt id="arg-sample-column">sample_column<a class="anchor" aria-label="anchor" href="#arg-sample-column"></a></dt>
-<dd><p>An <em>optional</em> character scalar indicating the name of
-a time or sample data column. Must match exactly. Defining
-column names explicitly will overwrite metadata.</p></dd>
+<dd><p>A character scalar indicating the time or sample data
+column. Must match <code>data</code> column names exactly. Can be taken from metadata
+if not defined explicitly.</p></dd>
 
 
 <dt id="arg-event-column">event_column<a class="anchor" aria-label="anchor" href="#arg-event-column"></a></dt>
-<dd><p>An <em>optional</em> character scalar indicating the name of
-an event or lap data column. Must match exactly. Defining
-column names explicitly will overwrite metadata.</p></dd>
+<dd><p>An <em>optional</em> character scalar indicating an event or
+lap data column. Must match <code>data</code> column names exactly. Can be taken from
+metadata if not defined explicitly.</p></dd>
 
 
 <dt id="arg-sample-rate">sample_rate<a class="anchor" aria-label="anchor" href="#arg-sample-rate"></a></dt>
@@ -150,15 +141,11 @@ with metadata available with <code><a href="https://rdrr.io/r/base/attributes.ht
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p><code>display_window</code> defines the widest range of data before and after the kinetics
-event which will be passed on in the dataframe, but not necessarily included
-in the modelling process. <code>fit_window</code> defines the widest extent of data
-before and after the kinetics event which will be included in the modelling
-process. <code>peak_window</code> limits the extent of data included to be modelled after
-the kinetics event to the first local peak (trough) value of the response
-variable (i.e. <code>y</code>), with no higher (lower) values within that window.</p>
+event which will be passed on in the dataframe, but not included in the
+modelling process. <code>fit_window</code> defines the widest extent of data before and
+after the kinetics event which may be included in the modelling process.</p>
 <p><code>group_events</code> indicates how kinetics events should be analysed, either
-separately, or grouped and ensemble averaged similar to oxygen uptake kinetics.</p>
-<dl><dt><code>group_events = "distinct"</code></dt>
+separately, or grouped and ensemble averaged similar to oxygen uptake kinetics.</p><dl><dt><code>group_events = "distinct"</code></dt>
 <dd><p>Will prepare a list of unique dataframes
 for each kinetics event (<em>default</em>).</p></dd>
 
