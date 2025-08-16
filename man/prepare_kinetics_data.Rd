@@ -11,7 +11,6 @@ prepare_kinetics_data(
   event_index = NULL,
   fit_window = c(30, 180),
   display_window = NULL,
-  peak_window = 30,
   group_events = list("distinct", "ensemble"),
   nirs_columns = NULL,
   sample_column = NULL,
@@ -44,27 +43,21 @@ An \emph{optional} two-element numeric vector in the form
 \code{c(before, after)} in units of \code{sample_column}, defining the window around
 the kinetics events to include for display, but not for model fitting.}
 
-\item{peak_window}{A numeric scalar indicating the local window in units of
-\code{sample_column} after the kinetics peak (trough) value to look for subsequent
-higher (lower) values. The kinetics model will be fit to the data up to the
-first local peak (trough) value with no subsequent higher (lower) values
-within the lesser of either the \code{peak_window} or the limits of \code{fit_window}.}
-
 \item{group_events}{Indicates how kinetics events should be analysed. Typically
 either \emph{"distinct"} (\emph{the default}) or \emph{"ensemble"}, but can be manually
 specified (see \emph{Details}).}
 
 \item{nirs_columns}{A character vector indicating the mNIRS data columns to
 be processed from your dataframe. Must match \code{data} column names exactly.
-Will be taken from metadata if not defined explicitly.}
+Can be taken from metadata if not defined explicitly.}
 
-\item{sample_column}{An \emph{optional} character scalar indicating the name of
-a time or sample data column. Must match exactly. Defining
-column names explicitly will overwrite metadata.}
+\item{sample_column}{A character scalar indicating the time or sample data
+column. Must match \code{data} column names exactly. Can be taken from metadata
+if not defined explicitly.}
 
-\item{event_column}{An \emph{optional} character scalar indicating the name of
-an event or lap data column. Must match exactly. Defining
-column names explicitly will overwrite metadata.}
+\item{event_column}{An \emph{optional} character scalar indicating an event or
+lap data column. Must match \code{data} column names exactly. Can be taken from
+metadata if not defined explicitly.}
 
 \item{sample_rate}{A numeric scalar for the sample rate in Hz. Will be taken
 from metadata if not defined explicitly.}
@@ -81,16 +74,12 @@ distinct or ensembled kinetics events for further analysis.
 }
 \details{
 \code{display_window} defines the widest range of data before and after the kinetics
-event which will be passed on in the dataframe, but not necessarily included
-in the modelling process. \code{fit_window} defines the widest extent of data
-before and after the kinetics event which will be included in the modelling
-process. \code{peak_window} limits the extent of data included to be modelled after
-the kinetics event to the first local peak (trough) value of the response
-variable (i.e. \code{y}), with no higher (lower) values within that window.
+event which will be passed on in the dataframe, but not included in the
+modelling process. \code{fit_window} defines the widest extent of data before and
+after the kinetics event which may be included in the modelling process.
 
 \code{group_events} indicates how kinetics events should be analysed, either
 separately, or grouped and ensemble averaged similar to oxygen uptake kinetics.
-
 \describe{
 \item{\code{group_events = "distinct"}}{Will prepare a list of unique dataframes
 for each kinetics event (\emph{default}).}

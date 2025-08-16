@@ -63,14 +63,14 @@ of the variable within a dataframe. \emph{Defaults} to using the index of
 \item{data}{An \emph{optional} dataframe containing the predictor and response
 variables named in \code{x} and \code{y}. Names for \code{x} and \code{y} must be in quotations.}
 
-\item{x0}{(\emph{Default = 0}) A numeric scalar indicating the value of the predictor variable \code{x}
-representing the start of the kinetics event.}
+\item{x0}{(\emph{Default = 0}) A numeric scalar indicating the value of the predictor
+variable \code{x} representing the start of the kinetics event.}
 
-\item{window}{(\emph{Default = 30}) A numeric scalar indicating the local window in units of
-the predictor variable \code{x} after the kinetics extreme (peak or trough) value
-to look for subsequent greater extremes. The kinetics model will be fit to the
-data up to the first local extreme with no subsequent greater extremes within
-the lesser of either the \code{window} or the limits of the data.}
+\item{window}{(\emph{Default = 30}) A numeric scalar indicating the local window in
+units of the predictor variable \code{x} after the kinetics extreme (peak or trough)
+value to look for subsequent greater extremes. The kinetics model will be fit
+to the data up to the first local extreme with no subsequent greater extremes
+within the lesser of either the \code{window} or the limits of the data.}
 
 \item{method}{Indicates which model to evaluate the kinetics event
 (see \emph{Details} for method parametrisation).

@@ -45,12 +45,12 @@ devtools::build_readme()
 usethis::use_package("rlang")
 usethis::use_package("purrr", type = "suggest")
 
-usethis::use_import_from("stats", "residuals")
+usethis::use_import_from("stats", "aggregate")
 
 usethis::use_vignette("processing-mNIRS-data.qmd")
 devtools::build_rmd("vignettes/processing-mNIRS-data.qmd")
 
-usethis::use_test("plot.mNIRS.data.R")
+usethis::use_test("prepare_kinetics_data.R")
 devtools::load_all()
 devtools::test()
 devtools::check()

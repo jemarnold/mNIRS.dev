@@ -20,39 +20,30 @@
 #'  An *optional* two-element numeric vector in the form
 #'  `c(before, after)` in units of `sample_column`, defining the window around
 #'  the kinetics events to include for display, but not for model fitting.
-#' @param peak_window A numeric scalar indicating the local window in units of
-#'  `sample_column` after the kinetics peak (trough) value to look for subsequent
-#'  higher (lower) values. The kinetics model will be fit to the data up to the
-#'  first local peak (trough) value with no subsequent higher (lower) values
-#'  within the lesser of either the `peak_window` or the limits of `fit_window`.
 #' @param group_events Indicates how kinetics events should be analysed. Typically
 #'  either *"distinct"* (*the default*) or *"ensemble"*, but can be manually
 #'  specified (see *Details*).
 #' @param nirs_columns A character vector indicating the mNIRS data columns to
 #'  be processed from your dataframe. Must match `data` column names exactly.
-#'  Will be taken from metadata if not defined explicitly.
-#' @param sample_column An *optional* character scalar indicating the name of
-#'  a time or sample data column. Must match exactly. Defining
-#'  column names explicitly will overwrite metadata.
-#' @param event_column An *optional* character scalar indicating the name of
-#'  an event or lap data column. Must match exactly. Defining
-#'  column names explicitly will overwrite metadata.
+#'  Can be taken from metadata if not defined explicitly.
+#' @param sample_column A character scalar indicating the time or sample data
+#'  column. Must match `data` column names exactly. Can be taken from metadata
+#'  if not defined explicitly.
+#' @param event_column An *optional* character scalar indicating an event or
+#'  lap data column. Must match `data` column names exactly. Can be taken from
+#'  metadata if not defined explicitly.
 #' @param sample_rate A numeric scalar for the sample rate in Hz. Will be taken
 #'  from metadata if not defined explicitly.
 #' @param ... Additional arguments.
 #'
 #' @details
 #' `display_window` defines the widest range of data before and after the kinetics
-#'  event which will be passed on in the dataframe, but not necessarily included
-#'  in the modelling process. `fit_window` defines the widest extent of data
-#'  before and after the kinetics event which will be included in the modelling
-#'  process. `peak_window` limits the extent of data included to be modelled after
-#'  the kinetics event to the first local peak (trough) value of the response
-#'  variable (i.e. `y`), with no higher (lower) values within that window.
+#'  event which will be passed on in the dataframe, but not included in the
+#'  modelling process. `fit_window` defines the widest extent of data before and
+#'  after the kinetics event which may be included in the modelling process.
 #'
 #' `group_events` indicates how kinetics events should be analysed, either
 #'  separately, or grouped and ensemble averaged similar to oxygen uptake kinetics.
-#'
 #'  \describe{
 #'      \item{`group_events = "distinct"`}{Will prepare a list of unique dataframes
 #'      for each kinetics event (*default*).}
@@ -75,7 +66,6 @@ prepare_kinetics_data <- function(
         event_index = NULL,
         fit_window = c(30, 180),
         display_window = NULL,
-        peak_window = 30,
         group_events = list("distinct", "ensemble"),
         nirs_columns = NULL,
         sample_column = NULL,
@@ -219,70 +209,49 @@ prepare_kinetics_data <- function(
         })
 
     ensemble_data <- function(data_list) {
-        # data_list |>
-        #     dplyr::bind_rows() |>
-        #     dplyr::arrange(.data[[fit_column]]) |>
-        #     dplyr::select(-tidyselect::any_of(c(sample_column, event_column))) |>
-        #     dplyr::mutate(
-        #         dplyr::across(
-        #             tidyselect::any_of(fit_column),
-        #             \(.x) round(.x * sample_rate) / sample_rate
-        #         )
-        #     ) |>
-        #     dplyr::summarise(
-        #         .by = tidyselect::any_of(fit_column),
-        #         dplyr::across(
-        #             tidyselect::where(is.numeric),
-        #             \(.x) mean(.x, na.rm = TRUE)),
-        #         dplyr::across(
-        #             !tidyselect::where(is.numeric),
-        #             \(.x) dplyr::first(na.omit(.x))),
-        #     ) |>
-        #     dplyr::mutate(
-        #         dplyr::across(
-        #             tidyselect::where(is.numeric),
-        #             \(.x) ifelse(is.infinite(.x) | is.nan(.x), NA_real_, .x)),
-        #     )
+        ## zoo::na.loct.default https://stackoverflow.com/a/19839474
+        na_locf <- function(x) {
+            L <- !is.na(x)
+            c(x[L][1], x[L])[cumsum(L)+1]
+        }
 
-        ## TODO 2025-08-15 TRY FULL JOIN and FILL
-        df <- do.call(rbind, data_list)
-        df <- df[order(df[[fit_column]]),]
-        df[c(sample_column, event_column)] <- NULL
+        x_all <- sort(unique(unlist(lapply(data_list, `[[`, fit_column))))
 
-        ## create common sample grid
-        x_grid <- seq(min(df[[fit_column]]), max(df[[fit_column]]),
-                      by = 1 / sample_rate)
+        filled_data_list <- lapply(data_list, \(.df) {
+            ## df with all x values
+            df_x_all <- tibble(!!fit_column := x_all)
+            ## remove redundant columns
+            .df[c(sample_column, event_column)] <- NULL
+            ## redundant step keep only numeric
+            .df <- .df[sapply(.df, is.numeric)]
+            ## merge each data_list with df_x_all
+            merged <- merge(df_x_all, .df, by = fit_column, all.x = TRUE)
+            ## average duplicate x values
+            merged <- aggregate(
+                merged[, -1, drop = FALSE],
+                by = setNames(list(merged[[fit_column]]), fit_column),
+                FUN = mean, na.rm = TRUE)
+            ## sort
+            merged <- merged[order(merged[[fit_column]]),]
+            ## apply locf to missing data
+            merged[names(merged)[-1]] <- lapply(merged[names(merged)[-1]], na_locf)
 
-        ## interpolate each NIRS column
-        result <- purrr::map_dfc(nirs_columns, \(.x) {
-            approx(df[[fit_column]], df[[.x]], time_grid)$y
-        }) |>
-            suppressMessages() |> ## for rename columns messages
-            suppressWarnings() |> ## for missing values to NA warning
-            purrr::set_names(nirs_columns) |>
-            dplyr::mutate(!!fit_column := time_grid, .before = 1) |>
-            dplyr::mutate(
-                dplyr::across(
-                    tidyselect::where(is.numeric),
-                    \(.x) ifelse(is.infinite(.x) | is.nan(.x), NA_real_, .x)),
-            )
+            return(tibble(merged))
+        })
+
+        result <- filled_data_list[[1]][, fit_column, drop = FALSE]
+
+        ## extract all nirs_columns
+        all_nirs_cols <- do.call(
+            cbind, lapply(filled_data_list, \(.df) .df[nirs_columns]))
+
+        ## calculate rowwise means for all nirs_columns
+        result[nirs_columns] <- lapply(seq_along(nirs_columns), \(.col) {
+            col_indices <- seq(.col, ncol(all_nirs_cols), by = length(nirs_columns))
+            rowMeans(all_nirs_cols[, col_indices, drop = FALSE], na.rm = TRUE)
+        })
 
         return(result)
-
-        # df <- do.call(rbind, data_list)
-        # df <- df[order(df[[fit_column]]),]
-        # df[[fit_column]] <- round(df[[fit_column]] * sample_rate) / sample_rate
-        # df[c(sample_column, event_column)] <- NULL
-        #
-        # aggregate_fast <- function(x) {
-        #     if (is.numeric(x)) {
-        #         ifelse(is.infinite(x) | is.nan(x), NA_real_, mean(x, na.rm = TRUE))
-        #     } else {x[!is.na(x)][1]}
-        # }
-        #
-        # result <- aggregate(. ~ get(fit_column), df, aggregate_fast)
-        #
-        # return(result)
     }
 
     if (length(data_list) == 1 || head(unlist(group_events), 1) == "distinct") {

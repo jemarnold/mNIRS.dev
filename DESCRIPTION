@@ -32,6 +32,7 @@ Imports:
     zoo
 Suggests: 
     knitr,
+    purrr,
     quarto,
     scales,
     signal,

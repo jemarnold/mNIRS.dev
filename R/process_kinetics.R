@@ -10,13 +10,13 @@
 #'  `x = seq_along(y)`.
 #' @param data An *optional* dataframe containing the predictor and response
 #'  variables named in `x` and `y`. Names for `x` and `y` must be in quotations.
-#' @param x0 (*Default = 0*) A numeric scalar indicating the value of the predictor variable `x`
-#'  representing the start of the kinetics event.
-#' @param window (*Default = 30*) A numeric scalar indicating the local window in units of
-#'  the predictor variable `x` after the kinetics extreme (peak or trough) value
-#'  to look for subsequent greater extremes. The kinetics model will be fit to the
-#'  data up to the first local extreme with no subsequent greater extremes within
-#'  the lesser of either the `window` or the limits of the data.
+#' @param x0 (*Default = 0*) A numeric scalar indicating the value of the predictor
+#'  variable `x` representing the start of the kinetics event.
+#' @param window (*Default = 30*) A numeric scalar indicating the local window in
+#'  units of the predictor variable `x` after the kinetics extreme (peak or trough)
+#'  value to look for subsequent greater extremes. The kinetics model will be fit
+#'  to the data up to the first local extreme with no subsequent greater extremes
+#'  within the lesser of either the `window` or the limits of the data.
 #' @param method Indicates which model to evaluate the kinetics event
 #'  (see *Details* for method parametrisation).
 #'  \describe{

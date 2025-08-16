@@ -15,6 +15,7 @@
 #' @importFrom rlang has_name
 #' @importFrom rlang inject
 #' @importFrom rlang quo_is_null
+#' @importFrom stats aggregate
 #' @importFrom stats AIC
 #' @importFrom stats as.formula
 #' @importFrom stats BIC

@@ -277,7 +277,7 @@ plot.mNIRS.kinetics <- function(x,  ...) {
             geom_point(
                 data = tibble(
                     x = c(x0,
-                          data[[x_name]][data[[y_name]] == coefs$B][1],
+                          data[[x_name]][(data[[y_name]] == coefs$B)[1]],
                           coefs[[3]] + x0),
                     y = c(coefs$A, coefs$B, coefs$half_value)),
                 aes(x = x, y = y, colour = "fitted"),

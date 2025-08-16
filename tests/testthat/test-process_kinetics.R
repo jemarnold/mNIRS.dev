@@ -140,7 +140,7 @@ test_that("find_first_extreme for Train.Red data", {
         data_raw,
         event_sample = event_samples,
         fit_window = c(30, 120),
-        group_events = "distinct"
+        group_events = "ensemble"
     )[[1]]
 
     attributes(kinetics_data)$sample_column <- fit_sample_name
@@ -566,6 +566,9 @@ test_that("process_kinetics works for a local environment call", {
 
 test_that("process_kinetics works inside a purrr::map() call", {
     # devtools::load_all()
+
+    rlang::check_installed("purrr", reason = "to test purrr::pmap (probably temp)")
+
     file_path <- system.file("extdata/train.red_interval_example.csv",
                              package = "mNIRS")
 
