@@ -336,6 +336,7 @@ test_that("sigmoidal x, y names passthrough works", {
 
 
 test_that("half_time x, y names passthrough works", {
+    # devtools::load_all()
     set.seed(13)
     x1 <- seq(-10, 60, by = 2)
     A <- 10; B <- 100; TD <- 5; tau <- 12
@@ -352,8 +353,8 @@ test_that("half_time x, y names passthrough works", {
 
     ## x parameters should be unequal
     comparison <- round(index_result$coef, 3) == round(x1_result$coef, 3)
-    expect_true(all(comparison[c(2, 4, 6, 7)]))
-    expect_false(all(comparison[c(1, 3, 5)]))
+    expect_true(all(comparison[c(1, 2, 4)]))
+    expect_false(all(comparison[c(3)]))
 
     ## different x_names
     expect_false(names(index_result$data)[1] == names(x1_result$data)[1])
@@ -491,7 +492,6 @@ test_that("peak_slope x, y names passthrough works", {
 
 
 
-## TODO 2025-08-14 START DEBUGGING HERE
 test_that("process_kinetics works for a local environment call", {
     # devtools::load_all()
     file_path <- system.file("extdata/moxy_ramp_example.xlsx",

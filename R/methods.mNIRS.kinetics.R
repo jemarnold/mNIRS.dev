@@ -269,29 +269,17 @@ plot.mNIRS.kinetics <- function(x,  ...) {
                 size = 4, shape = 21, stroke = 1.2)
         )}} +
         {if (method == "half_time") {list(
-            # annotate( ## horizontal
-            #     geom = "segment",
-            #     x = coefs[[1]] + x0, xend = coefs[[3]] + x0,
-            #     y = coefs[[2]], yend = coefs[[2]],
-            #     linewidth = 1, linetype = "dashed"),
-            # annotate( ## vertical
-            #     geom = "segment",
-            #     x = coefs[[3]] + x0, xend = coefs[[3]] + x0,
-            #     y = coefs[[2]], yend = coefs[[4]],
-            #     linewidth = 1, linetype = "dashed"),
-            # annotate( ## half-horizontal
-            #     geom = "segment",
-            #     x = coefs[[5]] + x0, xend = coefs[[3]] + x0,
-            #     y = coefs$half_value, yend = coefs$half_value,
-            #     linewidth = 1, linetype = "dashed"),
             geom_segment(
-                data = tibble(x = coefs[[5]] + x0, y = coefs[[7]]),
+                data = tibble(x = coefs[[3]] + x0,
+                              y = coefs$half_value),
                 aes(x = x, xend = x, y = y, yend = -Inf),
                 arrow = arrow(), linewidth = 1),
             geom_point(
                 data = tibble(
-                    x = c(coefs[[1]], coefs[[3]], coefs[[5]]) + x0,
-                    y = c(coefs[[2]], coefs[[4]], coefs[[7]])),
+                    x = c(x0,
+                          data[[x_name]][data[[y_name]] == coefs$B][1],
+                          coefs[[3]] + x0),
+                    y = c(coefs$A, coefs$B, coefs$half_value)),
                 aes(x = x, y = y, colour = "fitted"),
                 size = 3, shape = 21, stroke = 1)
         )}} +

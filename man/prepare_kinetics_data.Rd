@@ -16,6 +16,7 @@ prepare_kinetics_data(
   nirs_columns = NULL,
   sample_column = NULL,
   event_column = NULL,
+  sample_rate = NULL,
   ...
 )
 }
@@ -53,9 +54,9 @@ within the lesser of either the \code{peak_window} or the limits of \code{fit_wi
 either \emph{"distinct"} (\emph{the default}) or \emph{"ensemble"}, but can be manually
 specified (see \emph{Details}).}
 
-\item{nirs_columns}{An \emph{optional} character vector indicating the mNIRS data
-columns to be processed from your dataframe. Must match exactly. Defining
-column names explicitly will overwrite metadata.}
+\item{nirs_columns}{A character vector indicating the mNIRS data columns to
+be processed from your dataframe. Must match \code{data} column names exactly.
+Will be taken from metadata if not defined explicitly.}
 
 \item{sample_column}{An \emph{optional} character scalar indicating the name of
 a time or sample data column. Must match exactly. Defining
@@ -64,6 +65,9 @@ column names explicitly will overwrite metadata.}
 \item{event_column}{An \emph{optional} character scalar indicating the name of
 an event or lap data column. Must match exactly. Defining
 column names explicitly will overwrite metadata.}
+
+\item{sample_rate}{A numeric scalar for the sample rate in Hz. Will be taken
+from metadata if not defined explicitly.}
 
 \item{...}{Additional arguments.}
 }

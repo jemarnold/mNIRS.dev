@@ -227,7 +227,7 @@ process_kinetics.monoexponential <- function(
     ## calculate MRT
     coefs$MRT <- coefs$TD + coefs$tau
     ## predict value for y at MRT x value
-    coefs[[paste0("MRT_", y_name)]] <- predict(model, tibble(x = coefs$MRT))
+    coefs[["MRT_fitted"]] <- predict(model, tibble(x = coefs$MRT))
 
     equation <- paste("y ~ A + (B - A) * (1 - exp((TD - x) / tau))")
     diagnostics <- as_tibble(as.list(model_output$diagnostics))
@@ -303,7 +303,8 @@ process_kinetics.sigmoidal <- function(
         (\(.x) as_tibble(as.list(.x)))()
 
     ## predict value for y at xmid
-    coefs[[paste0("xmid_", y_name)]] <- predict(model, tibble(x = coefs$xmid))
+    coefs[["xmid_fitted"]] <- predict(model, tibble(x = coefs$xmid))
+    coefs <- coefs[c("A", "B", "scal", "xmid", "xmid_fitted")]
 
     equation <- paste("y ~ A + (B - A) / (1 + exp((xmid - x) / scal))")
     diagnostics <- as_tibble(as.list(model_output$diagnostics))
@@ -363,24 +364,21 @@ process_kinetics.half_time <- function(
     trend <- slope(y, x) >= 0
 
     ## set A_x = 0 (adjusted for x0)
-    A_x <- ifelse(all(x > 0), x[1], 0)
+    # A_x <- ifelse(all(x > 0), x[1], 0)
     ## find mean baseline x < 0
     A <- mean(y[ifelse(all(x > 0), x[1], which(x <= 0))], na.rm = TRUE)
     ## set B to the previously found extreme value
-    B_x <- extreme[[x_name]]
+    # B_x <- extreme[[x_name]]
     B <- extreme[[y_name]]
-    half_y <- A + (B - A)/2
-    ## take the first x where y >= half_y
-    half_x <- ifelse(trend, x[y >= half_y], x[y <= half_y])[1]
-    ## take the first y that actually exists where y >= half_y
-    half_nirs_value <- y[y >= half_y][1]
+    half_value <- A + (B - A)/2
+    ## take the first x where y >= half_value
+    half_x <- ifelse(trend, x[y >= half_value], x[y <= half_value])[1]
+    ## take the first y that actually exists where y >= half_value
+    # half_y <- y[y >= half_value][1]
 
-    coefs <- c(A_x, A, B_x, B, half_x, half_y, half_nirs_value)
-    names(coefs) <- c(paste0("A_", x_name), "A",
-                      paste0("B_", x_name), "B",
-                      paste0("half_", x_name),
-                      "half_value",
-                      paste0("half_", y_name, "_value"))
+    coefs <- setNames(c(A, B, half_x, half_value),
+                      c("A", "B", paste0("half_", x_name), "half_value"))
+    ## paste0("half_", y_name)
     coefs <- as_tibble(as.list(coefs))
 
     equation <- paste0("half_", x_name, " ~ interp_x(y = A + (B - A) / 2)")
@@ -446,11 +444,10 @@ process_kinetics.peak_slope <- function(
     data[[fitted_name]][which(x %in% peak_slope$x_fitted)] <- peak_slope$y_fitted
     ## residuals between y and y_fitted
     residuals <- c(na.omit(data[[y_name]] - data[[fitted_name]]))
-    coefs <- c(peak_slope$x[1],
-               y[x %in% peak_slope$x][1],
-               peak_slope$y[1],
-               peak_slope$slope)
-    names(coefs) <- c(x_name, y_name, fitted_name, "peak_slope")
+    ## paste0("peak_slope_", y_name) <- y[x %in% peak_slope$x][1],
+    coefs <- setNames(c(peak_slope$x[1], peak_slope$y[1], peak_slope$slope),
+                      c(paste0("peak_slope_", x_name), "peak_slope_fitted",
+                        "peak_slope"))
     coefs <- as_tibble(as.list(coefs))
 
     RSS <- c(crossprod(residuals))
@@ -674,7 +671,7 @@ process_model <- function(model) {
         residuals <- NA_real_
         coefs <- c(A = NA_real_, B = NA_real_, TD = NA_real_,
                    tau = NA_real_, MRT = NA_real_,
-                   xmid = NA_real_, scal = NA_real_)
+                   scal = NA_real_, xmid = NA_real_)
         diagnostics <- c(
             AIC = NA_real_, BIC = NA_real_,
             R2adj = NA_real_, RMSE = NA_real_,

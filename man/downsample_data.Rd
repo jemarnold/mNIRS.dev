@@ -16,18 +16,18 @@ downsample_data(
 \arguments{
 \item{data}{A dataframe.}
 
-\item{sample_column}{\emph{(Optional)}. A character scalar indicating the name of
+\item{sample_column}{An \emph{optional} character scalar indicating the name of
 the time or sample data column. Must match exactly.}
 
-\item{sample_rate}{\emph{(Optional)}. A numeric scalar for the sample rate in Hz.}
+\item{sample_rate}{An \emph{optional} numeric scalar for the sample rate in Hz.}
 
-\item{downsample_rate}{\emph{(Optional)}. A numeric scalar indicating the desired
+\item{downsample_rate}{An \emph{optional} numeric scalar indicating the desired
 output sample rate (in Hz) to convert the dataframe.}
 
-\item{downsample_time}{\emph{(Optional)}. A numeric scalar indicating the desired
+\item{downsample_time}{An \emph{optional} numeric scalar indicating the desired
 sample time (in seconds) to convert the dataframe.}
 
-\item{verbose}{A logical. \code{TRUE} (\emph{default}) will return warnings and
+\item{verbose}{A logical. \code{TRUE} (the \emph{default}) will return warnings and
 messages which can be used for data error checking. \code{FALSE} will silence these
 messages. Errors will always be returned.}
 }

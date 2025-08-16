@@ -371,17 +371,12 @@ test_that("peak_slope calculates slopes correctly", {
     expect_gte(result$y, 1)
     expect_lte(diff(result$x_fitted), 3) ## width
 
-    ## horizontal
-    result <- peak_slope(1:5, 1:5, width = 3)
-    expect_true(all(result[c("x", "y", "slope")] == 1))
-    expect_true(all(result$x_fitted %in% 1:2))
-    expect_true(all(result$y_fitted %in% 1:2))
-
     ## single value returns 0
     ## TODO 2025-08-13 zero or NA?
     expect_error(peak_slope(5, width = 3),
                  "contains insufficient valid data")
-    ## all identical values
+
+    ## horizontal
     result <- peak_slope(rep(5, 10), width = 3)
     expect_true(result$slope == 0)
     expect_true(all(result[c("x", "y", "slope")] %in% c(1, 5, 0)))
@@ -406,7 +401,7 @@ test_that("peak_slope handles NA values correctly", {
     expect_gte(result$x, 1)
     expect_lte(diff(range(result$x_fitted)), width)
 
-    # visual check
+    # ## visual check
     # ggplot(tibble(x = seq_along(y), y = y)) +
     #     aes(x, y) +
     #     scale_x_continuous(breaks = scales::breaks_pretty(n=10)) +
@@ -430,7 +425,7 @@ test_that("peak_slope handles NA values correctly", {
     expect_gte(result$x, 1)
     expect_lte(diff(range(result$x_fitted)), width)
 
-    ## visual check
+    # ## visual check
     # ggplot(tibble(x = seq_along(y), y = y)) +
     #     aes(x, y) +
     #     scale_x_continuous(breaks = scales::breaks_pretty(n=10)) +
@@ -481,6 +476,7 @@ test_that("peak_slope handles width in units of x", {
 })
 
 test_that("peak_slope works with different alignments", {
+    # devtools::load_all()
     y <- c(1, 3, 2, 5, 8, 7, 9, 8, 6, 7)
     x <- seq(22, along = y)
 

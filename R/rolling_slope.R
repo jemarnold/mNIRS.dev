@@ -287,10 +287,11 @@ peak_slope <- function(
         x_mean <- mean(x_window, na.rm = TRUE)
         y_mean <- ifelse(!is.na(mean(y_window)), mean(y_window), current_y)
         fitted <- y_mean + peak_slope * (x_window - x_mean)
+        fitted_y <- y_window[which(x_window %in% current_x)]
     } else {fitted <- NA_real_}
 
     return(list(x = current_x,
-                y = current_y,
+                y = fitted_y,
                 slope = peak_slope,
                 x_fitted = x_window,
                 y_fitted = fitted))
