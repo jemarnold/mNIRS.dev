@@ -147,7 +147,8 @@ filter_data <- function(
             } else {
                 cli::cli_abort(paste(
                     "{.arg critical_frequency} and {.arg sample_rate}",
-                    "must both be {.val numeric} values for a Butterworth filter."))
+                    "must both be {cli::col_blue('numeric')} values for a",
+                    "Butterworth filter."))
             }
 
         } else if (!is.null(W)) {
@@ -155,7 +156,7 @@ filter_data <- function(
                 y <- filtfilt_edges(x = x, n = n, W = W, type = type)
             } else {
                 cli::cli_abort(paste(
-                    "{.arg W} must be a {.val numeric} value for a",
+                    "{.arg W} must be a {cli::col_blue('numeric')} value for a",
                     "Butterworth filter."))
             }
 
@@ -174,7 +175,7 @@ filter_data <- function(
                 align = "center", partial = TRUE, na.rm = TRUE)
         } else {
             cli::cli_abort(paste(
-                "{.arg width} must be a {.val numeric} value for the",
+                "{.arg width} must be a {cli::col_blue('numeric')} value for the",
                 "moving-average filter."))
         }
     }

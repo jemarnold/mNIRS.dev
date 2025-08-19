@@ -45,11 +45,13 @@ ui <- fluidPage(
                     textInput("nirs_columns",
                               label = "mNIRS Channel Names\n(accepts multiple)",
                               # value = "smo2_left = SmO2, smo2_right = SmO2",
+                              value = "smo2_left = SmO2 Live, smo2_right = SmO2 Live(2)",
                               placeholder = "new_name = file_column_name",
                               updateOn = "blur"),
                     textInput("sample_column",
                               label = "Time/Sample Column Name",
                               # value = "time = Timestamp (seconds passed)",
+                              value = "time = hh:mm:ss",
                               placeholder = "new_name = file_column_name",
                               updateOn = "blur"),
                     textInput("event_column",
@@ -444,9 +446,9 @@ ui <- fluidPage(
 ## server ===========================================
 server <- function(input, output, session) {
     ## set delay in case tab-out before full string completion
-    nirs_columns_debounced <- debounce(reactive(input$nirs_columns), 2000)
-    sample_column_debounced <- debounce(reactive(input$sample_column), 2000)
-    event_column_debounced <- debounce(reactive(input$event_column), 2000)
+    nirs_columns_debounced <- debounce(reactive(input$nirs_columns), 1000)
+    sample_column_debounced <- debounce(reactive(input$sample_column), 1000)
+    event_column_debounced <- debounce(reactive(input$event_column), 1000)
 
 
     # Data upload and processing
@@ -461,7 +463,7 @@ server <- function(input, output, session) {
                 nirs_columns = string_to_named_vector(nirs_columns_debounced()),
                 sample_column = string_to_named_vector(sample_column_debounced()),
                 event_column = string_to_named_vector(event_column_debounced()),
-                sample_rate = input$sample_rate,
+                sample_rate = input$sample_rate %||% 0,
                 numeric_time = TRUE,
                 keep_all = input$keep_all,
                 verbose = FALSE),
@@ -511,7 +513,7 @@ server <- function(input, output, session) {
                     max = sample_rate/2,
                     step = 0.05)
             )
-        } else if (input$filter_method == "moving-average") {
+        } else if (input$filter_method == "Moving-Average") {
             tagList(
                 numericInput(
                     "width",
@@ -523,6 +525,17 @@ server <- function(input, output, session) {
         } else {
             NULL
         }
+    })
+
+    butter_type <- reactive({
+        req(raw_data(), input$filter_method)
+
+        switch(
+            input$butter_type,
+            "Low-Pass" = "low",
+            "High-Pass" = "high",
+            "Stop-Band" = "stop",
+            "Pass-Band" = "pass")
     })
 
     ## Create dynamic UI for shift option
@@ -598,6 +611,14 @@ server <- function(input, output, session) {
         manual_events <- strsplit(input$manual_events, split = "\\s*,\\s*")[[1]] |>
             as.numeric()
 
+        validate(need(input$downsample_rate,
+                      "Downsample Rate must be provided. Default is `0`"))
+        validate(need(input$slice_head,
+                      "Remove Head Samples must be provided. Default is `0`"))
+        validate(need(input$slice_tail,
+                      "Remove Tail Samples must be provided. Default is `0`"))
+
+
         nirs_data <- raw_data |>
             mNIRS::downsample_data(
                 sample_column = sample_column,
@@ -640,32 +661,39 @@ server <- function(input, output, session) {
                         \(.x) mNIRS::replace_missing(
                             .x, method = "linear", na.rm = TRUE))
                 },
-                if (input$filter_method == "Smooth-Spline") {
+            if (input$filter_method == "Smooth-Spline") {
+                # tryCatch(
+                #     ,
+                #     error = \(e) {
+                #         e$message
+                #         ## remove CLI formatting from error message
+                #         # gsub('\033\\[34m\\"|\\"\033\\[39m', '', e$message)
+                #     })
                     across(
                         any_of(nirs_columns),
                         \(.x) mNIRS::filter_data(
-                            .x, method = input$filter_method))
-                } else if (input$filter_method == "Butterworth") {
-                    req(input$n, input$critical_frequency)
+                            .x, method = tolower(input$filter_method)))
+            } else if (input$filter_method == "Butterworth") {
+                req(input$n, input$critical_frequency)
 
-                    across(
-                        any_of(nirs_columns),
-                        \(.x) mNIRS::filter_data(
-                            .x, method = "butterworth",
-                            type = input$butter_type,
-                            n = input$n,
-                            critical_frequency = input$critical_frequency,
-                            sample_rate = sample_rate)
-                    )
-                } else if (input$filter_method == "Moving-Average") {
-                    req(input$width)
+                across(
+                    any_of(nirs_columns),
+                    \(.x) mNIRS::filter_data(
+                        .x, method = tolower(input$filter_method),
+                        type = butter_type(),
+                        n = input$n,
+                        critical_frequency = input$critical_frequency,
+                        sample_rate = sample_rate)
+                )
+            } else if (input$filter_method == "Moving-Average") {
+                req(input$width)
 
-                    across(
-                        any_of(nirs_columns),
-                        \(.x) mNIRS::filter_data(
-                            .x, method = input$filter_method,
-                            width = input$width))
-                },
+                across(
+                    any_of(nirs_columns),
+                    \(.x) mNIRS::filter_data(
+                        .x, method = tolower(input$filter_method),
+                        width = input$width))
+            },
             ) |>
             (\(.df) if (input$shift_logical) {
                 req(input$shift_value, input$shift_position,
@@ -681,7 +709,7 @@ server <- function(input, output, session) {
                     data = .df,
                     nirs_columns = shift_nirs_columns,
                     shift_to = input$shift_value,
-                    position = input$shift_position,
+                    position = tolower(input$shift_position),
                     mean_samples = input$shift_samples,
                 )
             } else {.df})() |>

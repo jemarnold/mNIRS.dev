@@ -84,7 +84,7 @@ test_that("find_first_extreme for Moxy data", {
         sample_column = c(time = "hh:mm:ss"),
         verbose = FALSE
     ) |>
-        dplyr::mutate(time = round(time - dplyr::first(time), 1))
+        dplyr::mutate(time = round(time - dplyr::first(time), 2))
 
     nirs_columns <- attributes(data_raw)$nirs_columns
     fitted_name <- paste0(nirs_columns, "_fitted")
@@ -128,7 +128,7 @@ test_that("find_first_extreme for Train.Red data", {
         sample_column = c(time = "Timestamp (seconds passed)"),
         verbose = FALSE
     ) |>
-        dplyr::mutate(time = round(time - dplyr::first(time), 1))
+        dplyr::mutate(time = round(time - dplyr::first(time), 2))
 
     nirs_columns <- attributes(data_raw)$nirs_columns
     fitted_name <- paste0(nirs_columns, "_fitted")
@@ -504,7 +504,7 @@ test_that("process_kinetics works for a local environment call", {
         verbose = FALSE
     ) |>
         dplyr::mutate(
-            time = round(time - dplyr::first(time), 1),
+            time = round(time - dplyr::first(time), 2),
             smo2 = replace_invalid(smo2, c(100), width = 10, return = "median"))
 
     nirs_columns <- attributes(data_raw)$nirs_columns
@@ -578,7 +578,7 @@ test_that("process_kinetics works inside a purrr::map() call", {
         sample_column = c(time = "Timestamp (seconds passed)"),
         verbose = FALSE
     ) |>
-        dplyr::mutate(time = round(time - dplyr::first(time), 1))
+        dplyr::mutate(time = round(time - dplyr::first(time), 2))
 
     nirs_columns <- attributes(data_raw)$nirs_columns
     fitted_name <- paste0(nirs_columns, "_fitted")

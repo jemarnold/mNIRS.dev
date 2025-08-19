@@ -21,38 +21,40 @@ devtools::load_all()
 # camcorder::gg_stop_recording()
 #
 ## Data Wrangling ================================
-# upload_file <- r"(C:\R-Projects\mNIRS.dev\inst\extdata\train.red_interval_example.csv)"
-upload_file <- r"(C:\R-Projects\mNIRS.dev\inst\extdata\oxysoft_interval_example.xlsx)"
+upload_file <- r"(C:\R-Projects\mNIRS.dev\inst\extdata\train.red_interval_example.csv)"
+# upload_file <- r"(C:\R-Projects\mNIRS.dev\inst\extdata\oxysoft_interval_example.xlsx)"
 # upload_file <- r"(C:\R-Projects\mNIRS.dev\inst\extdata\moxy_ramp_example.xlsx)"
 
 data_raw <- read_data(
     file_path = upload_file,
-    # nirs_columns = c(SmO2 = "SmO2 Live"),
+    # nirs_columns = c(smo2_left = "SmO2 Live", smo2_right = "SmO2 Live(2)"),
     # sample_column = c(time = "hh:mm:ss"),
-    # nirs_columns = c(smo2="SmO2", smo2_2="SmO2"),
-    # sample_column = c(time = "Timestamp (seconds passed)"),
-    nirs_columns = c(O2Hb = 5, HHb = 6),
-    sample_column = c(sample = 1),
-    event_column = c(event = 8)
+    nirs_columns = c(smo2_left = "SmO2", smo2_right = "SmO2"),
+    sample_column = c(time = "Timestamp (seconds passed)"),
+    # nirs_columns = c(O2Hb = 5, HHb = 6),
+    # sample_column = c(sample = 1),
+    # event_column = c(event = 8)
 ) |>
     dplyr::mutate(
-        # time = round(time - dplyr::first(time), 1),
+        time = round(time - dplyr::first(time), 1),
         # time = sample/50,
     ) |>
     # slice_head(by = time, n = 1) |>
     downsample_data(
         # sample_column = "time",
-        downsample_rate = 10
+        downsample_rate = NULL
     ) |>
     print()
+
+plot(data_raw)
 
 dplyr::filter(data_raw, !is.na(event))
 # plot(data_raw)
 (sample_column <- attributes(data_raw)$sample_column)
 (fit_sample_name <- paste0("fit_", sample_column))
 
-# event_sample <- c(370, 1085)
-event_sample <- c(24675, 66670)
+event_sample <- c(370, 1085)
+# event_sample <- c(24675, 66670)
 # event_sample <- 876
 
 
@@ -78,8 +80,8 @@ event_sample <- c(24675, 66670)
 data_list <- prepare_kinetics_data(
     data_raw,
     event_sample = event_sample,
-    event_label = c("E7"),
-    fit_window = c(30*50, 120*50),
+    # event_label = c("E7"),
+    fit_window = c(30, 120),
     # group_events = list(2)
 ) |>
     print()
@@ -95,13 +97,13 @@ model_list <- tidyr::expand_grid(
                          x = fit_sample_name,
                          data = .df,
                          method = .method,
-                         width = 10*50)
+                         width = 10)
     ) |>
     print()
 
-peaks <- find_first_extreme(y = data_list[[1]]$HHb,
-                            x = data_list[[1]]$fit_sample,
-                            window = 15*50)
+peaks <- find_first_extreme(y = data_list[[1]][[nirs_columns[1]]],
+                            x = data_list[[1]][[fit_sample_name]],
+                            window = 15)
 peaks$extreme
 
 ## coef table =====================================
@@ -181,7 +183,7 @@ ggplot(display_data) +
             \(.x) {
                 coef_channel <- display_coefs[display_coefs$channel == .x,]
                 nirs_fitted <- paste0(.x, "_fitted")
-                MRT_nirs_value <- paste0("MRT_", .x)
+                # MRT_nirs_value <- paste0("MRT_", .x)
 
                 list(
                     geom_line(aes(y = .data[[nirs_fitted]], colour = "fitted"),
@@ -189,13 +191,13 @@ ggplot(display_data) +
                     geom_segment(
                         data = tibble::tibble(
                             x = coef_channel$MRT,
-                            y = coef_channel[[MRT_nirs_value]]),
+                            y = coef_channel$MRT_fitted),
                         aes(x = x, xend = x, y = y, yend = -Inf),
                         arrow = arrow(), linewidth = 0.8),
                     geom_point(
                         data = tibble::tibble(
                             x = coef_channel$MRT,
-                            y = coef_channel[[MRT_nirs_value]]),
+                            y = coef_channel$MRT_fitted),
                         aes(x = x, y = y, colour = "fitted"),
                         size = 4, shape = 21, stroke = 1)
                 )

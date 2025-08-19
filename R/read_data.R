@@ -168,9 +168,6 @@ read_data <- function(
     event_column <- if (length(event_column[event_column != ""]) > 0) {
         event_column[event_column != ""]
     } else {NULL}
-    sample_rate <- if (length(sample_rate[sample_rate != ""]) > 0) {
-        sample_rate[sample_rate != ""]
-    } else {NULL}
 
     ## validation: check file types
     is_excel <- grepl("\\.xls(x)?$", file_path, ignore.case = TRUE)
@@ -293,11 +290,12 @@ read_data <- function(
         sample_column_was_null <- TRUE
         sample_column <- make_names_unique("index")
         data_table[["index"]] <- 1:nrow(data_table)
-        if (verbose)
+        if (verbose) {
             cli::cli_alert_info(paste(
                 "No {.arg sample_column} provided. Adding an {.arg index}",
-                      "column by row number. Provide {.arg sample_column}",
-                      "to overwrite this."))
+                "column by row number. Provide {.arg sample_column}",
+                "to overwrite this."))
+        }
     } else if (!is.null(sample_column) && !sample_column %in% names(data_table)) {
         cli::cli_abort(paste(
             "{.arg sample_column} = {.val {sample_column}} not detected.",
@@ -351,18 +349,19 @@ read_data <- function(
             if (numeric_time) dplyr::across(
                 dplyr::any_of(names(sample_column)) &
                     dplyr::where(\(.x) inherits(.x, "POSIXct")),
-                \(.x) as.numeric(format(.x, "%H")) * 3600 +
-                    as.numeric(format(.x, "%M")) * 60 +
-                    as.numeric(format(.x, "%OS8"))),
-
-            ## restart converted numeric time from zero when converting from POSIXct
-            if (numeric_time) dplyr::across(
-                dplyr::any_of(names(sample_column)),
-                \(.x) .x - dplyr::first(.x)),
+                \(.x) {
+                    num_time <- as.numeric(format(.x, "%H")) * 3600 +
+                        as.numeric(format(.x, "%M")) * 60 +
+                        as.numeric(format(.x, "%OS8"))
+                    ## restart converted numeric time from zero
+                    num_time - dplyr::first(num_time)
+                }),
 
             ## round to avoid floating point error
             dplyr::across(dplyr::where(is.numeric), \(.x) round(.x, 8)),
-            dplyr::across(dplyr::any_of(names(sample_column)), \(.x) round(.x, 3)),
+            dplyr::across(
+                dplyr::any_of(names(sample_column)) & dplyr::where(is.numeric),
+                \(.x) round(.x, 3)),
 
             ## convert blank values to NA
             dplyr::across(
@@ -405,13 +404,14 @@ read_data <- function(
     }
 
     ## check for non-NULL, not applicable `sample_rate`
-    if (verbose && !is.null(sample_rate) &&
-        (!is.numeric(sample_rate) || sample_rate <= 0)) {
+    if (!is.null(sample_rate) & (!is.numeric(sample_rate) || sample_rate <= 0)) {
         sample_rate <- NULL
 
-        cli::cli_alert_info(paste(
-            "{.arg sample_rate} = {cli::col_blue('X')} should be defined explicitly",
-            "as a numeric value > 0 Hz."))
+        if (verbose) {
+            cli::cli_alert_info(paste(
+                "{.arg sample_rate} = {cli::col_blue('X')} should be defined",
+                "explicitly as a numeric value > 0 Hz."))
+        }
     }
 
     ## detect exported sample_rate from Oxysoft (english) file
@@ -442,7 +442,7 @@ read_data <- function(
         ## sample_rate will be incorrect if `sample_column` is integer
         ## estimate samples per second to nearest 0.5 Hz
         sample_rate <- head(diff(sample_vector), 100) |>
-            median(na.rm = TRUE) |>
+            mean(na.rm = TRUE) |>
             (\(.x) round((1/.x)/0.5)*0.5)()
 
         if (verbose) {
