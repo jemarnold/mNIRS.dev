@@ -161,6 +161,17 @@ read_data <- function(
             "{.val file_path = {file_path}} not found. Check that file exists.")
     }
 
+    ## empty to NULL
+    sample_column <- if (length(sample_column[sample_column != ""]) > 0) {
+        sample_column[sample_column != ""]
+    } else {NULL}
+    event_column <- if (length(event_column[event_column != ""]) > 0) {
+        event_column[event_column != ""]
+    } else {NULL}
+    sample_rate <- if (length(sample_rate[sample_rate != ""]) > 0) {
+        sample_rate[sample_rate != ""]
+    } else {NULL}
+
     ## validation: check file types
     is_excel <- grepl("\\.xls(x)?$", file_path, ignore.case = TRUE)
     is_csv <- grepl("\\.csv$", file_path, ignore.case = TRUE)
@@ -351,6 +362,7 @@ read_data <- function(
 
             ## round to avoid floating point error
             dplyr::across(dplyr::where(is.numeric), \(.x) round(.x, 8)),
+            dplyr::across(dplyr::any_of(names(sample_column)), \(.x) round(.x, 3)),
 
             ## convert blank values to NA
             dplyr::across(
@@ -365,7 +377,7 @@ read_data <- function(
     ## validation: soft check whether sample_column has
     ## non-sequential or repeating values
     if (verbose && any(repeated_samples)) {
-        repeated_samples <- repeated_samples
+        repeated_samples <- sample_vector[repeated_samples]
 
         cli::cli_warn(c(paste(
             "{.arg sample_column = {names(sample_column)}} has",
@@ -428,9 +440,9 @@ read_data <- function(
         }
     } else {
         ## sample_rate will be incorrect if `sample_column` is integer
-        ## estimate samples per second
+        ## estimate samples per second to nearest 0.5 Hz
         sample_rate <- head(diff(sample_vector), 100) |>
-            mean(na.rm = TRUE) |>
+            median(na.rm = TRUE) |>
             (\(.x) round((1/.x)/0.5)*0.5)()
 
         if (verbose) {

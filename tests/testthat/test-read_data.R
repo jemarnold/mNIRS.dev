@@ -44,6 +44,28 @@ test_that("read_data moxy.perfpro works", {
     expect_gt(sum(diff(head(df$time, 100)) < 1 & diff(head(df$time, 100)) > 0), 0)
     expect_lt(sum(diff(head(df$time, 100)) %in% c(0, 1)), 99)
 
+    ## column name blank space should error
+    expect_error(
+        read_data(
+            file_path = file_path,
+            nirs_columns = c(smo2_left = "SmO2 Live",
+                             smo2_right = "SmO2 Live(2)"),
+            sample_column = c(time = "hh:mm:ss"),
+            event_column = " ",
+            verbose = FALSE),
+        "not detected")
+
+    ## column name empty space should not error convert to NULL
+    expect_no_error(
+        read_data(
+            file_path = file_path,
+            nirs_columns = c(smo2_left = "SmO2 Live",
+                             smo2_right = "SmO2 Live(2)"),
+            sample_column = c(time = "hh:mm:ss"),
+            event_column = "",
+            verbose = FALSE)
+        )
+
     expect_error(
         read_data(
             file_path = file_path,
