@@ -56,7 +56,7 @@
       <h1>Processing Data with {mNIRS}</h1>
 
       <p class="author">Jem Arnold</p>
-      <p class="date">2025-08-16</p>
+      <p class="date">2025-08-19</p>
 
       <small class="dont-index">Source: <a href="https://github.com/jemarnold/mNIRS/blob/main/vignettes/processing-mNIRS-data.qmd" class="external-link"><code>vignettes/processing-mNIRS-data.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -124,8 +124,9 @@
 <span>                      numeric_time <span class="op">=</span> <span class="cn">TRUE</span>, <span class="co">## to convert the date-time string to numeric</span></span>
 <span>                      keep_all <span class="op">=</span> <span class="cn">FALSE</span>, <span class="co">## to keep the returned dataframe clean</span></span>
 <span>                      verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="co">## show warnings &amp; messages, but ignore them for now</span></span>
-<span><span class="co">#&gt; Warning: "sample_column = time" has non-sequential or repeating values. Consider</span></span>
-<span><span class="co">#&gt; investigating at "time = 1952, 1952, 1952, 2924.01, and 2924.01".</span></span>
+<span><span class="co">#&gt; Warning: `sample_column = time` has non-sequential or repeating values.</span></span>
+<span><span class="co">#&gt; ℹ Consider investigating at `time = FALSE, FALSE, FALSE`, and 2200 more</span></span>
+<span><span class="co">#&gt;   samples.</span></span>
 <span></span>
 <span><span class="co">## ignore the Warning about repeated samples here</span></span>
 <span></span>
@@ -133,16 +134,16 @@
 <span><span class="co">#&gt; # A tibble: 2,203 × 4</span></span>
 <span><span class="co">#&gt;     time   lap smo2_left smo2_right</span></span>
 <span><span class="co">#&gt;    &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;</span></span>
-<span><span class="co">#&gt;  1 1740.     1        54         68</span></span>
-<span><span class="co">#&gt;  2 1740.     1        54         68</span></span>
-<span><span class="co">#&gt;  3 1741.     1        54         68</span></span>
-<span><span class="co">#&gt;  4 1742.     1        54         66</span></span>
-<span><span class="co">#&gt;  5 1742.     1        54         66</span></span>
-<span><span class="co">#&gt;  6 1743.     1        54         66</span></span>
-<span><span class="co">#&gt;  7 1743.     1        54         66</span></span>
-<span><span class="co">#&gt;  8 1744.     1        57         67</span></span>
-<span><span class="co">#&gt;  9 1744.     1        57         67</span></span>
-<span><span class="co">#&gt; 10 1745.     1        57         67</span></span>
+<span><span class="co">#&gt;  1 0         1        54         68</span></span>
+<span><span class="co">#&gt;  2 0.400     1        54         68</span></span>
+<span><span class="co">#&gt;  3 0.960     1        54         68</span></span>
+<span><span class="co">#&gt;  4 1.51      1        54         66</span></span>
+<span><span class="co">#&gt;  5 2.06      1        54         66</span></span>
+<span><span class="co">#&gt;  6 2.61      1        54         66</span></span>
+<span><span class="co">#&gt;  7 3.16      1        54         66</span></span>
+<span><span class="co">#&gt;  8 3.71      1        57         67</span></span>
+<span><span class="co">#&gt;  9 4.26      1        57         67</span></span>
+<span><span class="co">#&gt; 10 4.81      1        57         67</span></span>
 <span><span class="co">#&gt; # ℹ 2,193 more rows</span></span></code></pre></div>
 </div>
 </section></section><section class="level2"><h2 id="data-wrangling">Data wrangling<a class="anchor" aria-label="anchor" href="#data-wrangling"></a>
