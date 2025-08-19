@@ -1,7 +1,7 @@
 Type: Package
 Package: mNIRS
 Title: Muscle Near-Infrared Spectroscopy Processing & Analysis
-Version: 0.0.0.9010
+Version: 0.0.0.9012
 Authors@R: 
     person("Jem", "Arnold", , "jem.arnold@ubc.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-3908-9447"))
