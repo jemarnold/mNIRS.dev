@@ -1,9 +1,10 @@
 test_that("read_data moxy.perfpro works", {
+    # devtools::load_all()
     file_path <- system.file("extdata/moxy_ramp_example.xlsx",
                              package = "mNIRS")
 
     expect_warning(
-        df.moxy.perfpro <- read_data(
+        df <- read_data(
             file_path = file_path,
             nirs_columns = c(smo2_left = "SmO2 Live",
                              smo2_right = "SmO2 Live(2)"),
@@ -14,30 +15,34 @@ test_that("read_data moxy.perfpro works", {
         "non-sequential or repeating") |>
         expect_message("Estimated sample rate")
 
-    expect_s3_class(df.moxy.perfpro, "mNIRS.data")
-
-    expect_s3_class(df.moxy.perfpro, "data.frame")
-
-    expect_s3_class(df.moxy.perfpro$time, "POSIXct")
-
-    expect_type(df.moxy.perfpro$time, "double")
+    expect_s3_class(df, "mNIRS.data")
+    expect_s3_class(df, "data.frame")
+    expect_s3_class(df$time, "POSIXct")
+    expect_false(all(class(df$time) %in% "numeric"))
+    expect_type(df$time, "double")
 
     expect_true(
         all(c("nirs_columns", "sample_column", "sample_rate") %in%
-                names(attributes(df.moxy.perfpro))))
+                names(attributes(df))))
 
-    expect_equal(attr(df.moxy.perfpro, "sample_rate"), 2)
+    expect_equal(attr(df, "sample_rate"), 2)
 
-    expect_s3_class(
-        read_data(
+    expect_warning(
+        df <- read_data(
             file_path = file_path,
             nirs_columns = c(smo2_left = "SmO2 Live",
                              smo2_right = "SmO2 Live(2)"),
             sample_column = c(time = "hh:mm:ss"),
-            numeric_time = FALSE,
+            numeric_time = TRUE,
             keep_all = FALSE,
-            verbose = FALSE)$time,
-        "POSIXct")
+            verbose = TRUE),
+        "non-sequential or repeating") |>
+        expect_message("Estimated sample rate")
+    expect_true(all(class(df$time) %in% "numeric"))
+    expect_false(all(class(df$time) %in% "POSIXct"))
+    ## check that time diffs should be 0 < Δ < 1 with proper POSIXct import
+    expect_gt(sum(diff(head(df$time, 100)) < 1 & diff(head(df$time, 100)) > 0), 0)
+    expect_lt(sum(diff(head(df$time, 100)) %in% c(0, 1)), 99)
 
     expect_error(
         read_data(
@@ -52,8 +57,9 @@ test_that("read_data moxy.perfpro works", {
             nirs_columns = c(smo2 = "SmO2 Live",
                              smo2 = "SmO2 Live(2)"),
             verbose = TRUE),
-        "Duplicate input column") |>
-        expect_message("Sample rate set to 1 Hz")
+        "Duplicated input column names detected") |>
+        expect_message("Adding an `index` column by row number") |>
+        expect_message("No `sample_column` provided")
 
     expect_message(
         read_data(
@@ -62,24 +68,28 @@ test_that("read_data moxy.perfpro works", {
                              smo2_right = "SmO2 Live(2)"),
             sample_column = NULL,
             verbose = TRUE),
-        "No `sample_column` provided")
+        "Adding an `index` column by row number") |>
+        expect_message("No `sample_column` provided")
 })
 
 
 
+
 test_that("read_data train.red works", {
+    # devtools::load_all()
     file_path <- system.file("extdata/train.red_interval_example.csv",
                              package = "mNIRS")
 
     expect_warning(
-        tr_data <- read_data(
+        df <- read_data(
             file_path = file_path,
             nirs_columns = c(smo2_left = "SmO2 unfiltered",
                              smo2_right = "SmO2 unfiltered"),
             sample_column = c(time = "Timestamp (seconds passed)"),
+            event_column = NULL,
             keep_all = FALSE,
             verbose = TRUE),
-        "non-sequential or repeating") |>
+        "non-sequential or repeating values") |>
         expect_message("Estimated sample rate")
 
     expect_silent(
@@ -92,17 +102,15 @@ test_that("read_data train.red works", {
             verbose = FALSE)
     )
 
-    expect_s3_class(tr_data, "mNIRS.data")
-
-    expect_s3_class(tr_data, "data.frame")
-
-    expect_type(tr_data$time, "double")
+    expect_s3_class(df, "mNIRS.data")
+    expect_s3_class(df, "data.frame")
+    expect_type(df$time, "double")
 
     expect_true(
         all(c("nirs_columns", "sample_column", "sample_rate") %in%
-                names(attributes(tr_data))))
+                names(attributes(df))))
 
-    expect_equal(attr(tr_data, "sample_rate"), 10)
+    expect_equal(attr(df, "sample_rate"), 10)
 
     expect_error(
         read_data(
@@ -117,27 +125,20 @@ test_that("read_data train.red works", {
             nirs_columns = c(smo2 = "SmO2 unfiltered",
                              smo2 = "SmO2 unfiltered"),
             verbose = TRUE),
-        "Duplicate input column") |>
-        expect_message("Sample rate set to 1 Hz")
-
-    expect_message(
-        read_data(
-            file_path = file_path,
-            nirs_columns = c(smo2_left = "SmO2 unfiltered",
-                             smo2_right = "SmO2 unfiltered"),
-            sample_column = NULL,
-            verbose = TRUE),
-        "No `sample_column` provided")
+        "Duplicated input column names detected") |>
+        expect_message("Adding an `index` column by row number") |>
+        expect_message("Sample rate set to")
 })
 
 
 
 test_that("read_data oxysoft works", {
+    # devtools::load_all()
     file_path <- system.file("extdata/oxysoft_interval_example.xlsx",
                              package = "mNIRS")
 
     expect_length(
-        oxy_data <- read_data(
+        df <- read_data(
             file_path = file_path,
             nirs_columns = c(HHb_VL = 5,
                              O2Hb_VL = 6),
@@ -145,17 +146,15 @@ test_that("read_data oxysoft works", {
             verbose = FALSE),
         3)
 
-    expect_type(oxy_data$sample, "double")
-
-    expect_s3_class(oxy_data, "mNIRS.data")
-
-    expect_s3_class(oxy_data, "data.frame")
+    expect_type(df$sample, "double")
+    expect_s3_class(df, "mNIRS.data")
+    expect_s3_class(df, "data.frame")
 
     expect_true(
         all(c("nirs_columns", "sample_column", "sample_rate") %in%
-                names(attributes(oxy_data))))
+                names(attributes(df))))
 
-    expect_equal(attr(oxy_data, "sample_rate"), 50)
+    expect_equal(attr(df, "sample_rate"), 50)
 
     expect_error(
         read_data(
@@ -171,7 +170,7 @@ test_that("read_data oxysoft works", {
                              smo2 = 6),
             sample_column = c(sample = 1),
             verbose = TRUE),
-        "Duplicate input column") |>
+        "Duplicated input column names detected") |>
         expect_message("Oxysoft detected sample rate")
 
     expect_message(
@@ -189,11 +188,12 @@ test_that("read_data oxysoft works", {
 
 
 test_that("read_data VMPro app works", {
+    # devtools::load_all()
     file_path <- system.file("extdata/vo2master_moxyunit_example.xlsx",
                              package = "mNIRS")
 
     expect_length(
-        vmpro_data <- read_data(
+        df <- read_data(
             file_path = file_path,
             nirs_columns = c(smo2_left = "SmO2[%]",
                              smo2_right = "SmO2 -  2[%]"),
@@ -203,17 +203,28 @@ test_that("read_data VMPro app works", {
             verbose = FALSE),
         5)
 
-    expect_s3_class(vmpro_data, "mNIRS.data")
+    expect_s3_class(df, "mNIRS.data")
+    expect_s3_class(df, "data.frame")
+    expect_s3_class(df$time, "POSIXct")
+    expect_false(all(class(df$time) %in% "numeric"))
 
-    expect_s3_class(vmpro_data, "data.frame")
+    df <- read_data(
+        file_path = file_path,
+        nirs_columns = c(smo2_left = "SmO2[%]",
+                         smo2_right = "SmO2 -  2[%]"),
+        sample_column = c(time = "Time[utc]"),
+        numeric_time = TRUE,
+        keep_all = TRUE,
+        verbose = FALSE)
 
-    expect_s3_class(vmpro_data$time, "POSIXct")
+    expect_true(all(class(df$time) %in% "numeric"))
+    expect_false(all(class(df$time) %in% "POSIXct"))
 
     expect_true(
         all(c("nirs_columns", "sample_column", "sample_rate") %in%
-                names(attributes(vmpro_data))))
+                names(attributes(df))))
 
-    expect_equal(attr(vmpro_data, "sample_rate"), 1)
+    expect_equal(attr(df, "sample_rate"), 1)
 
     expect_error(
         read_data(
@@ -229,8 +240,8 @@ test_that("read_data VMPro app works", {
                              smo2 = "SmO2 -  2[%]"),
             sample_column = c(time = "Time[utc]"),
             verbose = TRUE),
-        "Duplicate input column") |>
-        expect_message("Estimated sample rate")
+        "Duplicated input column names detected") |>
+        expect_message("Estimated sample rate = ")
 
     expect_message(
         read_data(
@@ -239,7 +250,8 @@ test_that("read_data VMPro app works", {
                              smo2_right = "SmO2 -  2[%]"),
             sample_column = NULL,
             verbose = TRUE),
-        "No `sample_column` provided")
+        "Adding an `index` column by row number") |>
+        expect_message("Sample rate set to")
 })
 
 

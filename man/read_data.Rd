@@ -20,31 +20,33 @@ read_data(
 \emph{".xls"}, or \emph{".csv"}) to import.}
 
 \item{nirs_columns}{A character vector indicating the mNIRS data columns
-to import from the target file. Must match exactly. A named character vector
-can be used to rename columns (see \emph{Details}).}
+to import from the file. Must match column names in the data file exactly.
+A named character vector can be used to rename columns in the form:
+\code{c(new_name = "old_name")} (see \emph{Details}).}
 
-\item{sample_column}{An \emph{optional} character scalar indicating the name of
-a time or sample data column. Must match exactly. A named character vector
-can be used to rename columns.}
+\item{sample_column}{An \emph{optional} character scalar indicating the time or
+sample data column to import from the file. Must match column names in the
+data file exactly. A named character vector can be used to rename columns in
+the form: \code{c(new_name = "old_name")} (see \emph{Details}).}
 
-\item{event_column}{An \emph{optional} character scalar indicating the name of
-an event or lap data column. Must match exactly. A named character vector
-can be used to rename columns.}
+\item{event_column}{An \emph{optional} character scalar indicating the event or lap
+data column to import from the file. Must match column names in the data file
+exactly. A named character vector can be used to rename columns in the form:
+\code{c(new_name = "original_name")} (see \emph{Details}).}
 
 \item{sample_rate}{An \emph{optional} numeric scalar for the sample rate in Hz.
-If not defined explicitly, will be estimated from the file data
-(see \emph{Details}).}
+If not defined explicitly, will be estimated from the data (see \emph{Details}).}
 
-\item{numeric_time}{A logical. \code{TRUE} (\emph{default}) will convert
-date-time formatted columns to numeric values in seconds. \code{FALSE} will retain
-these columns formatted as date-time in the format of the original file.}
+\item{numeric_time}{A logical. \code{TRUE} (the \emph{default}) will convert
+a date-time formatted \code{sample_column} to numeric values in seconds.
+\code{FALSE} will return \code{sample_column} in the format of the original file.}
 
-\item{keep_all}{A logical. \code{FALSE} (\emph{default}) will only include the
-explicitly indicated data columns. \code{TRUE} will include all columns detected
+\item{keep_all}{A logical. \code{FALSE} (the \emph{default}) will only include the
+explicitly specified data columns. \code{TRUE} will include all columns detected
 from the file.}
 
-\item{verbose}{A logical. \code{TRUE} (\emph{default}) will return warnings and
-messages which can be used for data error checking. \code{FALSE} will silence these
+\item{verbose}{A logical. \code{TRUE} (the \emph{default}) will return warnings and
+messages which can be used for troubleshooting. \code{FALSE} will silence these
 messages. Errors will always be returned.}
 }
 \value{
@@ -52,25 +54,39 @@ A \link[tibble:tibble-package]{tibble} of class \code{"mNIRS.data"} with
 metadata available with \code{attributes()}.
 }
 \description{
-Create a dataframe of class \code{"mNIRS.data"}, imported from file.
+Will read files exported from most commercially available mNIRS devices and
+return a dataframe of class \code{"mNIRS.data"} with recorded data and metadata.
 }
 \details{
 Column names are matched to a single row, anywhere in the data file, not
-necessarily the top row of the file. Column names must match exactly to data
-file text. If there are duplicate column names, the columns will be matched in
-order of appearance and appended with \code{...X}, where \code{X} is the column number.
-You may want to double check the correct columns have been assigned as intended.
+necessarily the top row of the file.
 
-Columns can be renamed in the format \code{c("new_name" = "original_name")}, where
-\code{"original_name"} should match the file text exactly.
+Columns can be renamed in the format \code{c(new_name = "original_name")}, where
+\code{"original_name"} should match the column names found in the file exactly.
 
-\code{sample_rate} is required for certain \code{{mNIRS}} functions. If it is not
-defined explicitly, \code{sample_rate} will be estimated based
-on the mean difference between values in the \code{sample_column}. If
-\code{sample_column} is not defined, then \code{sample_rate} will be set to 1 Hz.
-If \code{sample_column} in the data file contains integer row numbers, then
-\code{sample_rate} will be incorrectly estimated to be 1 Hz, and should be
-defined explicitly.
+If there are duplicate column names in the file, the columns will be matched
+in the order in which they appear. You may want to confirm that the correct
+columns have been assigned as intended.
 
-Columns and rows which are entirely missing (\code{NA}) are omitted.
+If \code{sample_column} is not specified, then an \code{index} column will be added
+from the row numbers. If the specified \code{sample_column} contains unequal
+sampling (i.e., repeated values or unordered samples) a warning will be given
+suggesting the user confirm the file data manually.
+
+When the \code{sample_column} is provided in date-time format (e.g. \code{hh:mm:ss}),
+this can be converted back to numeric values by \code{numeric_time = TRUE}. In this
+case, values will be recalculated as starting from \code{0} at the first sample.
+
+\code{sample_column} will typically represent time values in seconds. However, some
+NIRS devices export the sample index. This can be converted to time values
+if the \code{sample_rate} is known.
+
+\code{sample_rate} is required for certain \code{{mNIRS}} functions to work properly.
+If it is not defined explicitly, it will be estimated based on the mean
+difference between values in the \code{sample_column}. If \code{sample_column} is not
+defined, then \code{sample_rate} will be set to 1 Hz. If \code{sample_column} in the
+data file contains integer row numbers, then \code{sample_rate} will be
+incorrectly estimated to be 1 Hz, and should be defined explicitly.
+
+Columns and rows which contain entirely missing data (\code{NA}) are omitted.
 }

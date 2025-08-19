@@ -31,13 +31,13 @@ print.mNIRS.kinetics <- function(x, ...) {
 
     coefs <- coefs |>
         dplyr::mutate(
-            dplyr::across(tidyselect::where(is.numeric),
+            dplyr::across(dplyr::where(is.numeric),
                           \(.x) signif_trailing(.x, 3)))
 
     if (exists("diagnostics")) {
         diagnostics <- diagnostics |>
             dplyr::mutate(
-                dplyr::across(tidyselect::where(is.numeric),
+                dplyr::across(dplyr::where(is.numeric),
                               \(.x) signif_trailing(.x, 3)))
     }
 
@@ -154,7 +154,7 @@ plot.mNIRS.kinetics <- function(x,  ...) {
     } else {
         coefs_text <- coefs |>
             dplyr::mutate(
-                dplyr::across(tidyselect::where(is.numeric),
+                dplyr::across(dplyr::where(is.numeric),
                               \(.x) signif_trailing(.x, 1)))
         coefs_text <- paste(names(coefs_text), coefs_text,
                             sep = " = ", collapse = "\n")
@@ -171,9 +171,9 @@ plot.mNIRS.kinetics <- function(x,  ...) {
     } else {
         diagnostics <- diagnostics |>
             dplyr::mutate(
-                dplyr::across(tidyselect::matches(c("AIC", "BIC")),
+                dplyr::across(dplyr::matches(c("AIC", "BIC")),
                               \(.x) signif(.x, 4)),
-                dplyr::across(-tidyselect::matches(c("AIC", "BIC")),
+                dplyr::across(-dplyr::matches(c("AIC", "BIC")),
                               \(.x) signif_trailing(.x, 3))
             )
         diag_text <- paste(names(diagnostics), diagnostics,

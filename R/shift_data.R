@@ -128,10 +128,10 @@ shift_data <- function(
         } else {list(nirs_columns)},
         \(.col) {
             data |>
-                dplyr::select(tidyselect::any_of(.col)) |>
+                dplyr::select(dplyr::any_of(.col)) |>
                 dplyr::mutate(
                     dplyr::across(
-                        tidyselect::any_of(.col),
+                        dplyr::any_of(.col),
                         \(.x) if (!is.null(shift_by) & is.null(shift_to)) {
                             .x + shift_by
                         } else if (position == "minimum") {
@@ -146,7 +146,7 @@ shift_data <- function(
                 )
         }) |>
         dplyr::bind_cols(
-            dplyr::select(data, -tidyselect::any_of(unlist(nirs_columns)))
+            dplyr::select(data, -dplyr::any_of(unlist(nirs_columns)))
         ) |>
         dplyr::relocate(names(data))
 

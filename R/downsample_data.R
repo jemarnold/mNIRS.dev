@@ -138,12 +138,12 @@ downsample_data <- function(
         dplyr::mutate(
             ## calculate time difference for weighting
             dplyr::across(
-                tidyselect::any_of(sample_column),
+                dplyr::any_of(sample_column),
                 \(.x) c(diff(.x), tail(diff(.x), 1)),
                 .names = "delta_sample"),
             ## Round to nearest downsample rate
             dplyr::across(
-                tidyselect::any_of(sample_column),
+                dplyr::any_of(sample_column),
                 \(.x) if (estimated_sample_rate == sample_rate) {
                     ## if `sample_column` is time values and `sample_rate` is
                     ## estimated correctly, should output correct time values
@@ -156,16 +156,16 @@ downsample_data <- function(
                 }),
         ) |>
         dplyr::summarise(
-            .by = tidyselect::any_of(sample_column),
+            .by = dplyr::any_of(sample_column),
             ## weighted mean value for numeric columns
             dplyr::across(
-                tidyselect::where(is.numeric),
+                dplyr::where(is.numeric),
                 \(.x) stats::weighted.mean(.x, delta_sample, na.rm = TRUE)),
             ## take the first non-na value from other columns
             ## TODO 2025-06-23 is this robust enough if multiple event strings
             ## are present within one downsample bin?
             dplyr::across(
-                !tidyselect::where(is.numeric),
+                !dplyr::where(is.numeric),
                 \(.x) dplyr::first(na.omit(.x))),
         ) |>
         dplyr::select(-delta_sample)

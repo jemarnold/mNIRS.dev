@@ -30,7 +30,7 @@ plot.mNIRS.data <- function(x, ...) {
 
     ## pivot all `nirs_columns` to `y` and plot by group
     plot <- tidyr::pivot_longer(data = x,
-                                cols = tidyselect::all_of(nirs_columns),
+                                cols = dplyr::all_of(nirs_columns),
                                 names_to = "nirs_columns",
                                 values_to = "y"
     ) |>

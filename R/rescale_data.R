@@ -68,19 +68,19 @@ rescale_data <- function(
         } else {list(nirs_columns)},
         \(.col) {
             data |>
-                dplyr::select(tidyselect::any_of(.col)) |>
+                dplyr::select(dplyr::any_of(.col)) |>
                 dplyr::mutate(
                     dplyr::across(
-                        tidyselect::any_of(.col),
-                        \(.x) (.x - min(dplyr::pick(tidyselect::any_of(.col)),
+                        dplyr::any_of(.col),
+                        \(.x) (.x - min(dplyr::pick(dplyr::any_of(.col)),
                                         na.rm = TRUE)) /
-                            diff(range(dplyr::pick(tidyselect::any_of(.col)),
+                            diff(range(dplyr::pick(dplyr::any_of(.col)),
                                        na.rm = TRUE)) *
                             diff(rescale_range) + min(rescale_range)),
                 )
         }) |>
         dplyr::bind_cols(
-            dplyr::select(data, -tidyselect::any_of(unlist(nirs_columns)))
+            dplyr::select(data, -dplyr::any_of(unlist(nirs_columns)))
         ) |>
         dplyr::relocate(names(data))
 

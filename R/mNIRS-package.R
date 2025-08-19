@@ -5,6 +5,7 @@
 #' @importFrom cli cli_abort
 #' @importFrom cli cli_alert_info
 #' @importFrom labeling extended
+#' @importFrom readxl read_excel
 #' @importFrom rlang !!
 #' @importFrom rlang %||%
 #' @importFrom rlang .data
