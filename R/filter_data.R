@@ -31,6 +31,9 @@
 #'  `method = "butterworth"`.
 #' @param width A numeric scalar defining the window length of samples for
 #'  `method = "moving-average"`.
+#' @param verbose A logical. `TRUE` (the *default*) will return warnings and
+#'  messages which can be used for troubleshooting. `FALSE` will silence these
+#'  messages. Errors will always be returned.
 #'
 #' @details
 #' \describe{
@@ -109,9 +112,9 @@ filter_data <- function(
         W,
         critical_frequency,
         sample_rate,
-        width
+        width,
+        verbose = TRUE
 ) {
-
     method <- match.arg(method)
     type = match.arg(type)
 
@@ -131,7 +134,13 @@ filter_data <- function(
     if (method == "smooth-spline") {
 
         if (is.null(spar)) {
-            y <- stats::smooth.spline(x = x)$y
+            spline_model <- stats::smooth.spline(x = x)
+            y <- spline_model$y
+
+            if (verbose) {
+                cli::cli_alert_info(
+                    "{.fn smooth.spline} {.arg spar} set to {.val {spline_model$spar}}")
+            }
         } else if (is.numeric(spar)) {
             y <- stats::smooth.spline(x = x, spar = spar)$y
         }

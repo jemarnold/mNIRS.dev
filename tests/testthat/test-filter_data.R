@@ -8,8 +8,11 @@ test_that("filter_data smooth-spline works", {
         nirs_columns = c(smo2 = "SmO2 Live"),
         sample_column = c(time = "hh:mm:ss"),
         verbose = FALSE
-    ) |>
+    )
+
+    ## TODO NEED TO ADD na.rm
+    data_raw |>
         dplyr::mutate(
             smo2 = filter_data(smo2, method = "smooth-spline")
-        ) |>
+        )
 })

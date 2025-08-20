@@ -13,7 +13,8 @@ filter_data(
   W,
   critical_frequency,
   sample_rate,
-  width
+  width,
+  verbose
 )
 }
 \arguments{
@@ -53,6 +54,10 @@ the critical frequency(ies) of a Butterworth filter for \code{method = "butterwo
 
 \item{width}{A numeric scalar defining the window length of samples for
 \code{method = "moving-average"}.}
+
+\item{verbose}{A logical. \code{TRUE} (the \emph{default}) will return warnings and
+messages which can be used for troubleshooting. \code{FALSE} will silence these
+messages. Errors will always be returned.}
 }
 \value{
 A numeric vector of filtered data.
