@@ -54,7 +54,8 @@
 <span>  <span class="va">W</span>,</span>
 <span>  <span class="va">critical_frequency</span>,</span>
 <span>  <span class="va">sample_rate</span>,</span>
-<span>  <span class="va">width</span></span>
+<span>  <span class="va">width</span>,</span>
+<span>  <span class="va">verbose</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -128,6 +129,12 @@ the critical frequency(ies) of a Butterworth filter for <code>method = "butterwo
 <dd><p>A numeric scalar defining the window length of samples for
 <code>method = "moving-average"</code>.</p></dd>
 
+
+<dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
+<dd><p>A logical. <code>TRUE</code> (the <em>default</em>) will return warnings and
+messages which can be used for troubleshooting. <code>FALSE</code> will silence these
+messages. Errors will always be returned.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -193,6 +200,7 @@ average will be calculated at the edges of the existing data.</p></dd>
 <span class="r-in"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="va">y_clean</span> <span class="op">+</span> <span class="va">noise</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">y.spline</span> <span class="op">&lt;-</span> <span class="fu">filter_data</span><span class="op">(</span><span class="va">y</span>, method <span class="op">=</span> <span class="st">"smooth-spline"</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> `smooth.spline()` `spar` set to <span style="color: #0000BB;">0.861829231501579</span></span>
 <span class="r-in"><span><span class="va">y.LP</span> <span class="op">&lt;-</span> <span class="fu">filter_data</span><span class="op">(</span><span class="va">y</span>, method <span class="op">=</span> <span class="st">"butterworth"</span>, n <span class="op">=</span> <span class="fl">2</span>, W <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">y.MA</span> <span class="op">&lt;-</span> <span class="fu">filter_data</span><span class="op">(</span><span class="va">y</span>, method <span class="op">=</span> <span class="st">"moving-average"</span>, width <span class="op">=</span> <span class="fl">30</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
