@@ -45,12 +45,7 @@ zoo package."></head><body>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">replace_missing</span><span class="op">(</span></span>
-<span>  <span class="va">x</span>,</span>
-<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"linear"</span>, <span class="st">"locf"</span>, <span class="st">"spline"</span>, <span class="st">"omit"</span><span class="op">)</span>,</span>
-<span>  na.rm <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  maxgap <span class="op">=</span> <span class="cn">Inf</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">replace_missing</span><span class="op">(</span><span class="va">x</span>, method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"linear"</span>, <span class="st">"locf"</span><span class="op">)</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span>, maxgap <span class="op">=</span> <span class="cn">Inf</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -62,81 +57,66 @@ zoo package."></head><body>
 
 
 <dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>
-<dd><p>Indicates how to replace missing data.</p><dl><dt><code>"locf"</code></dt>
+<dd><p>Indicates how to replace missing data.</p><dl><dt><code>"linear"</code></dt>
+<dd><p>Replaces each <code>NA</code> with linear interpolation via
+<code><a href="https://rdrr.io/pkg/zoo/man/na.approx.html" class="external-link">zoo::na.approx()</a></code> (the <em>default</em>).</p></dd>
+
+<dt><code>"locf"</code></dt>
 <dd><p>Stands for 'last observation carried forward'. Replaces each
-<code>NA</code> with the most recent non-<code>NA</code> value prior to it via <code><a href="https://rdrr.io/pkg/zoo/man/na.locf.html" class="external-link">zoo::na.locf()</a></code>.</p></dd>
-
-<dt><code>"linear"</code></dt>
-<dd><p>Replaces each <code>NA</code> via linear interpolation via
-<code><a href="https://rdrr.io/pkg/zoo/man/na.approx.html" class="external-link">zoo::na.approx()</a></code>.</p></dd>
-
-<dt><code>"spline"</code></dt>
-<dd><p>Replaces each <code>NA</code> with cubic spline interpolation via
-<code><a href="https://rdrr.io/pkg/zoo/man/na.approx.html" class="external-link">zoo::na.spline()</a></code>.</p></dd>
+<code>NA</code> with the most recent non-<code>NA</code> value prior to it, or following it for
+leading <code>NA</code>s.</p></dd>
 
 <dt><code>"omit"</code></dt>
-<dd><p>Removes <code>NA</code> via <code><a href="https://rdrr.io/r/stats/na.fail.html" class="external-link">stats::na.omit()</a></code>.</p></dd>
+<dd><p><code>&lt;under development&gt;</code></p></dd>
 
 
 </dl></dd>
 
 
 <dt id="arg-na-rm">na.rm<a class="anchor" aria-label="anchor" href="#arg-na-rm"></a></dt>
-<dd><p>A logical. If the result of the interpolation still results in
-leading and/or trailing <code>NA</code>s, should these be removed (using na.trim)?</p></dd>
+<dd><p>A logical indicating whether leading and/or trailing <code>NA</code>s should
+be extrapolated/filled (<code>TRUE</code>, the <em>default</em>) or ignored (<code>FALSE</code>).</p></dd>
 
 
 <dt id="arg-maxgap">maxgap<a class="anchor" aria-label="anchor" href="#arg-maxgap"></a></dt>
 <dd><p>A numeric scalar for the maximum number of consecutive <code>NA</code>s
-to fill. Any longer gaps will be left unchanged.</p></dd>
+to fill. Any longer gaps will be left unchanged. <em>Default</em> is <code>Inf</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A numeric vector of filtered data or a named numeric vector
-with names from indices of the original input vector.</p>
+    <p>A numeric vector of filtered data.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>This function will also replace <code>NaN</code> and <code>Inf</code> to <code>NA</code>.</p><dl><dt><code>method = "locf"</code></dt>
-<dd><p>if there are no earlier non-<code>NA</code>s, then the <code>NA</code> is
-either omitted (if <code>na.rm = TRUE</code>) or it is not replaced (if
-<code>na.rm = FALSE</code>).</p></dd>
-
-<dt><code>method = "linear"</code></dt>
+    <p>This function will also replace <code>c(NaN, Inf, -Inf)</code>.</p>
+<dl><dt><code>method = "linear"</code></dt>
 <dd><p><code>na.rm = TRUE</code> will extrapolate over leading and
 trailing <code>NA</code>s by applying <code>rule = 2</code> (see <code><a href="https://rdrr.io/r/stats/approxfun.html" class="external-link">stats::approx()</a></code>).
 <code>na.rm = FALSE</code> will return leading/trailing <code>NA</code>s by applying <code>rule = 1</code>.</p></dd>
 
-<dt><code>method = "spline"</code></dt>
-<dd><p><em>TODO</em></p></dd>
-
-<dt><code>method = "omit"</code></dt>
-<dd><p>the returned vector <code>y</code> will be a named vector with
-the original indices of each value as names. This allows for preserving and
-re-inserting the omitted <code>NA</code>s back into the final dataset, if needed.</p></dd>
+<dt><code>method = "locf"</code></dt>
+<dd><p><code>na.rm = TRUE</code> will fill NOCB 'next observation
+carried backward over leading <code>NA</code>s. <code>na.rm = FALSE</code> will return leading
+<code>NA</code>s.</p></dd>
 
 
 </dl></div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="https://rdrr.io/pkg/zoo/man/na.locf.html" class="external-link">zoo::na.locf()</a></code>, <code><a href="https://rdrr.io/pkg/zoo/man/na.approx.html" class="external-link">zoo::na.approx()</a></code>, <code><a href="https://rdrr.io/pkg/zoo/man/na.approx.html" class="external-link">zoo::na.spline()</a></code>,
-<code><a href="https://rdrr.io/r/stats/na.fail.html" class="external-link">stats::na.omit()</a></code></p></div>
+    <div class="dont-index"><p><code><a href="https://rdrr.io/pkg/zoo/man/na.locf.html" class="external-link">zoo::na.locf()</a></code>, <code><a href="https://rdrr.io/pkg/zoo/man/na.approx.html" class="external-link">zoo::na.approx()</a></code></p></div>
     </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="op">(</span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="cn">NA</span>, <span class="cn">Inf</span>, <span class="fl">5</span>, <span class="fl">6</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1]   1   2  NA Inf   5   6  NA</span>
-<span class="r-in"><span><span class="fu">replace_missing</span><span class="op">(</span><span class="va">x</span>, method <span class="op">=</span> <span class="st">"omit"</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 2 5 6 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 2 5 6 </span>
-<span class="r-in"><span><span class="fu">replace_missing</span><span class="op">(</span><span class="va">x</span>, method <span class="op">=</span> <span class="st">"locf"</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1 2 2 2 5 6 6</span>
 <span class="r-in"><span><span class="fu">replace_missing</span><span class="op">(</span><span class="va">x</span>, method <span class="op">=</span> <span class="st">"linear"</span>, na.rm <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1]  1  2  3  4  5  6 NA</span>
 <span class="r-in"><span><span class="fu">replace_missing</span><span class="op">(</span><span class="va">x</span>, method <span class="op">=</span> <span class="st">"linear"</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1 2 3 4 5 6 6</span>
+<span class="r-in"><span><span class="fu">replace_missing</span><span class="op">(</span><span class="va">x</span>, method <span class="op">=</span> <span class="st">"locf"</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1 2 2 2 5 6 6</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
