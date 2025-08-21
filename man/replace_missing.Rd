@@ -4,65 +4,53 @@
 \alias{replace_missing}
 \title{Replace Missing Values}
 \usage{
-replace_missing(
-  x,
-  method = c("linear", "locf", "spline", "omit"),
-  na.rm = FALSE,
-  maxgap = Inf
-)
+replace_missing(x, method = c("linear", "locf"), na.rm = TRUE, maxgap = Inf)
 }
 \arguments{
 \item{x}{A numeric vector.}
 
 \item{method}{Indicates how to replace missing data.
 \describe{
+\item{\code{"linear"}}{Replaces each \code{NA} with linear interpolation via
+\code{\link[zoo:na.approx]{zoo::na.approx()}} (the \emph{default}).}
 \item{\code{"locf"}}{Stands for 'last observation carried forward'. Replaces each
-\code{NA} with the most recent non-\code{NA} value prior to it via \code{\link[zoo:na.locf]{zoo::na.locf()}}.}
-\item{\code{"linear"}}{Replaces each \code{NA} via linear interpolation via
-\code{\link[zoo:na.approx]{zoo::na.approx()}}.}
-\item{\code{"spline"}}{Replaces each \code{NA} with cubic spline interpolation via
-\code{\link[zoo:na.approx]{zoo::na.spline()}}.}
-\item{\code{"omit"}}{Removes \code{NA} via \code{\link[stats:na.fail]{stats::na.omit()}}.}
+\code{NA} with the most recent non-\code{NA} value prior to it, or following it for
+leading \code{NA}s.}
+\item{\code{"omit"}}{\verb{<under development>}}
 }}
 
-\item{na.rm}{A logical. If the result of the interpolation still results in
-leading and/or trailing \code{NA}s, should these be removed (using na.trim)?}
+\item{na.rm}{A logical indicating whether leading and/or trailing \code{NA}s should
+be extrapolated/filled (\code{TRUE}, the \emph{default}) or ignored (\code{FALSE}).}
 
 \item{maxgap}{A numeric scalar for the maximum number of consecutive \code{NA}s
-to fill. Any longer gaps will be left unchanged.}
+to fill. Any longer gaps will be left unchanged. \emph{Default} is \code{Inf}.}
 }
 \value{
-A numeric vector of filtered data or a named numeric vector
-with names from indices of the original input vector.
+A numeric vector of filtered data.
 }
 \description{
 Detect missing values in vector data and replace via methods from the
 \link[zoo:na.approx]{zoo} package.
 }
 \details{
-This function will also replace \code{NaN} and \code{Inf} to \code{NA}.
+This function will also replace \code{c(NaN, Inf, -Inf)}.
+
 \describe{
-\item{\code{method = "locf"}}{if there are no earlier non-\code{NA}s, then the \code{NA} is
-either omitted (if \code{na.rm = TRUE}) or it is not replaced (if
-\code{na.rm = FALSE}).}
 \item{\code{method = "linear"}}{\code{na.rm = TRUE} will extrapolate over leading and
 trailing \code{NA}s by applying \code{rule = 2} (see \code{\link[stats:approxfun]{stats::approx()}}).
 \code{na.rm = FALSE} will return leading/trailing \code{NA}s by applying \code{rule = 1}.}
-\item{\code{method = "spline"}}{\emph{TODO}}
-\item{\code{method = "omit"}}{the returned vector \code{y} will be a named vector with
-the original indices of each value as names. This allows for preserving and
-re-inserting the omitted \code{NA}s back into the final dataset, if needed.}
+\item{\code{method = "locf"}}{\code{na.rm = TRUE} will fill NOCB 'next observation
+carried backward over leading \code{NA}s. \code{na.rm = FALSE} will return leading
+\code{NA}s.}
 }
 }
 \examples{
 (x <- c(1, 2, NA, Inf, 5, 6, NA))
-replace_missing(x, method = "omit")
-replace_missing(x, method = "locf")
 replace_missing(x, method = "linear", na.rm = FALSE)
 replace_missing(x, method = "linear", na.rm = TRUE)
+replace_missing(x, method = "locf")
 
 }
 \seealso{
-\code{\link[zoo:na.locf]{zoo::na.locf()}}, \code{\link[zoo:na.approx]{zoo::na.approx()}}, \code{\link[zoo:na.approx]{zoo::na.spline()}},
-\code{\link[stats:na.fail]{stats::na.omit()}}
+\code{\link[zoo:na.locf]{zoo::na.locf()}}, \code{\link[zoo:na.approx]{zoo::na.approx()}}
 }

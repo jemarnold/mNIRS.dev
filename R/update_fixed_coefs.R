@@ -30,6 +30,7 @@
 #' @return A model object.
 #'
 #' @keywords internal
+#' @export
 update_fixed_coefs <- function(model, ...) {
     ## get the arguments to be fixed
     fixed_params <- list(...)

@@ -82,25 +82,99 @@ replace_outliers <- function(
         cli::cli_abort("{.arg t0} must be a {cli::col_blue('numeric')} scalar.")
     }
 
-    na_idx <- is.na(x)
-    x_clean <- if (na.rm) {x[!na_idx]} else {x} ## na.omitted vector
-    y_clean <- x_clean ## eventual na.omitted vector with outliers corrected
-    n <- length(x_clean)
-    L <- 1.4826
-    for (i in seq_len(n)) {
-        # Calculate the window bounds, ensuring they stay within vector limits
-        start_idx <- max(1, i - width)
-        end_idx <- min(n, i + width)
-        x0 <- median(x_clean[start_idx:end_idx])
-        S0 <- L * median(abs(x_clean[start_idx:end_idx] - x0))
-        if (abs(x_clean[i] - x0) > t0 * S0) {
-            y_clean[i] <- if (return == "median") {x0} else {NA_real_}
-        }
+    ## logical whether to handle NAs
+    handle_na <- na.rm & any(is.na(x))
+    if (handle_na) {
+        na_info <- preserve_na(x)
+        x <- na_info$x_clean
     }
 
-    ## return y_clean to the original x with NAs
-    x[!na_idx] <- y_clean
-    return(x)
+    n <- length(x)
+    y <- x
+    L <- 1.4826
+
+    ## vectorised window bounds
+    start_idx <- pmax(1, seq_len(n) - width)
+    end_idx <- pmin(n, seq_len(n) + width)
+
+    ## vectorised median & MAD
+    x0 <- vapply(seq_len(n), \(i) {
+        median(x[start_idx[i]:end_idx[i]])}, numeric(1))
+    S0 <- L * vapply(seq_len(n), \(i) {
+        median(abs(x[start_idx[i]:end_idx[i]] - x0[i]))}, numeric(1))
+
+    ## logical outlier positions
+    is_outlier <- abs(x - x0) > t0 * S0
+    ## fill outliers with median or NA
+    y[is_outlier] <- if (return == "median") {x0[is_outlier]} else {NA_real_}
+    ## return y to original x length with NAs if handled
+    result <- if (handle_na) {restore_na(y, na_info)} else {y}
+
+    return(result)
 }
 
 
+
+
+
+
+#' Preserve NA Information Within Processing Functions
+#'
+#' Stores `NA` vector positions and extracts non-`NA` values for later restoration.
+#'
+#' @param x A numeric vector which contains missing `NA` values.
+#'
+#' @return A list with components:
+#' \describe{
+#'   \item{na_idx}{A logical vector indicating `NA` positions.}
+#'   \item{x_clean}{A numeric vector with `NA` values removed.}
+#'   \item{n_orig}{A numeric scalar of the original input vector length.}
+#' }
+#'
+#' @examples
+#' x <- c(1, NA, 3, NA, 5)
+#' na_info <- preserve_na(x)
+#' # Process na_info$x_clean, then use restore_na()
+#'
+#' @seealso \code{\link{restore_na}}
+#'
+#' @keywords internal
+#' @export
+preserve_na <- function(x) {
+    na_info <- list(na_idx = is.na(x),
+                    x_clean = x[!is.na(x)],
+                    n_orig = length(x))
+    return(na_info)
+}
+
+#' Restore NA Information Within Processed Results
+#'
+#' Restores `NA` values to their original vector positions after processing
+#' non-`NA` values.
+#'
+#' @param y A numeric vector of non-`NA` output values within a function.
+#' @param na_info A list returned by \code{\link{preserve_na}}.
+#'
+#' @return A numeric vector of the original input vector length with `NA` values
+#'  restored to their original positions.
+#'
+#' @examples
+#' x <- c(1, NA, 3, NA, 5)
+#' na_info <- preserve_na(x)
+#' processed <- na_info$x_clean * 2  # Process clean values
+#' result <- restore_na(processed, na_info)
+#' # Returns: c(2, NA, 6, NA, 10)
+#'
+#' @seealso \code{\link{preserve_na}}
+#'
+#' @keywords internal
+#' @export
+restore_na <- function(y, na_info) {
+    if (all(!na_info$na_idx)) return(y)
+    ## fill original length of NAs
+    result <- rep(NA_real_, na_info$n_orig)
+    if (all(na_info$na_idx)) return(result)
+    ## replace non-NA with processed output values
+    result[!na_info$na_idx] <- y
+    return(result)
+}

@@ -14,7 +14,7 @@ filter_data(
   critical_frequency,
   sample_rate,
   width,
-  verbose
+  verbose = TRUE
 )
 }
 \arguments{

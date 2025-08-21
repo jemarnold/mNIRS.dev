@@ -20,7 +20,8 @@
 #' slope(y)
 #' }
 #'
-#' @keywords internal
+## TODO 2025-08-20 do I want this internal? #' @keywords internal
+#' @export
 slope <- function(y, x = seq_along(y)) {
     complete_cases <- !is.na(y) & !is.na(x)
     if (sum(complete_cases) < 2) return(NA_real_)

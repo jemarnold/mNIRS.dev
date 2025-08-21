@@ -42,6 +42,7 @@
 #' )
 #' attributes(nirs_data)
 #'
+#' @keywords internal
 #' @export
 create_mNIRS_data <- function(
         data,

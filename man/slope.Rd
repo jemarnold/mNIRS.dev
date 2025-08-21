@@ -32,4 +32,3 @@ slope(y)
 }
 
 }
-\keyword{internal}

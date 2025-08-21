@@ -486,14 +486,13 @@ process_kinetics.peak_slope <- function(
 
 
 
-
-#' @keywords internal
 ## TODO 2025-08-11 new version not entirely working for unquotted data colnames
 ## TODO 2025-08-11 obj `y` is being substituted and enquosed as `y` instead of
 ## whatever `y = y1` was assigned to in the outer function. Therefore,
 ## `y_name = "y"` is not being found in the supplied dataframe ¯\_(ツ)_/¯
 ## but rlang::as_name(y) properly recognises `y = yy`, it just doesn't
 ## recognise `yy` as an environment object????
+#' @keywords internal
 pre_process_kinetics_names <- function(
         y,
         x = NULL,
@@ -590,6 +589,7 @@ pre_process_kinetics_names <- function(
 
 
 #' @keywords internal
+#' @export
 find_first_extreme <- function(y, x = NULL, window = 30) {
     if (is.null(x)) {x <- seq_along(y)} ## where `x` is not defined
 

@@ -9,23 +9,24 @@ replace_invalid(x, values, width, return = c("NA", "median"))
 \arguments{
 \item{x}{A numeric vector}
 
-\item{values}{A numeric vector of values to be replaced, e.g.
-\code{values = c(0, 100)}.}
+\item{values}{A numeric vector of invalid values to be replaced, e.g.
+\code{values = c(0, 100, 102.3)}.}
 
 \item{width}{A numeric scalar for the window length of \verb{(2 · width + 1)} samples.}
 
-\item{return}{Indicates whether outliers should be replaced with \code{NA}
-(\emph{default}) or the local \code{"median"} value.}
+\item{return}{Indicates whether invalid values should be replaced with \code{NA}
+(the \emph{default}) or the local \emph{"median"} value.}
 }
 \value{
 A numeric vector of filtered data.
 }
 \description{
-Detect specific values such as \code{c(0, 100)} in vector data and replaces
+Detect specific values such as \code{c(0, 100, 102.3)} in vector data and replaces
 with \code{NA} or the local median value.
 }
 \details{
-Useful to overwrite known invalid/nonsense values, such as \code{0}, \code{100}, or \code{102.3}.
+Useful to overwrite known invalid/nonsense values, such as \code{0},
+\code{100}, or \code{102.3}.
 
 \emph{TODO: allow for overwriting all values greater or less than known values.}
 }

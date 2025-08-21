@@ -136,6 +136,7 @@ scale_fill_mNIRS <- function(...) {
 
 
 #' @keywords internal
+#' @export
 format_hmmss <- function(x) {
     x <- as.numeric(x)
     sign <- ifelse(x < 0, "-", "")
@@ -154,6 +155,7 @@ format_hmmss <- function(x) {
 
 
 #' @keywords internal
+#' @export
 breaks_timespan <- function (
         unit = c("secs", "mins", "hours", "days", "weeks"),
         n = 5

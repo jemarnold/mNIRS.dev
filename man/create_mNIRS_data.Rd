@@ -55,3 +55,4 @@ nirs_data <- create_mNIRS_data(
 attributes(nirs_data)
 
 }
+\keyword{internal}
