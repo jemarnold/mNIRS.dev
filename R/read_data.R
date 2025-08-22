@@ -182,7 +182,7 @@ read_data <- function(
                 path = file_path,
                 col_names = FALSE,
                 col_types = "text",
-                n_max = 10000,
+                guess_max = 10000,
                 .name_repair = "minimal")
         }, error = \(.e) {
             if (grepl("cannot be opened", .e$message)) {
