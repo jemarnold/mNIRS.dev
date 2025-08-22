@@ -15,7 +15,8 @@ replace_outliers(x, width, t0 = 3, na.rm = FALSE, return = c("median", "NA"))
 (Pearson's rule).}
 
 \item{na.rm}{A logical indicating whether missing values should be ignored
-before the filter is applied (see \emph{Details}).}
+(\code{TRUE}) before the filter is applied. Otherwise (\code{FALSE}, the \emph{default}) will
+throw an error (see \emph{Details}).}
 
 \item{return}{Indicates whether outliers should be replaced with the
 local \emph{"median"} value (the \emph{default}), or returned as \code{NA}.}
@@ -36,9 +37,9 @@ A high threshold makes the filter more forgiving, a low one will declare
 more points to be outliers. \code{t0 = 3} (the \emph{default}) corresponds to Pearson's
 3 sigma edit rule, \code{t0 = 0} to Tukey's median filter.
 
-\code{NA} values in the numeric vector will cause an error unless \code{na.rm = TRUE}.
-Then \code{NA} values are skipped for outlier detection, and preserved in the
-returned vector.
+Missing values (\code{NA}) in the numeric vector will cause an error unless
+\code{na.rm = TRUE}. Then \code{NA} values are removed for processing, and restored in
+the returned vector.
 
 The default \code{return = "median"} will replace outliers with the local
 median value, as in \code{\link[pracma:hampel]{pracma::hampel()}}. Otherwise, outliers will be

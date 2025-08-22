@@ -11,10 +11,12 @@ filter_data(
   spar = NULL,
   n = 1,
   W,
-  critical_frequency,
+  fc,
   sample_rate,
   width,
-  verbose = TRUE
+  na.rm = FALSE,
+  verbose = TRUE,
+  ...
 )
 }
 \arguments{
@@ -46,14 +48,18 @@ be defined (see \emph{Details}).}
 \item{W}{A numeric scalar or two-element vector defining the fractional
 critical frequency(ies) of a Butterworth filter for \code{method = "butterworth"}.}
 
-\item{critical_frequency}{A numeric scalar or two-element vector defining
-the critical frequency(ies) of a Butterworth filter for \code{method = "butterworth"}.}
+\item{fc}{A numeric scalar or two-element vector defining the critical
+frequency(ies) of a Butterworth filter for \code{method = "butterworth"}.}
 
 \item{sample_rate}{A numeric scalar for the sample rate in Hz for
 \code{method = "butterworth"}.}
 
 \item{width}{A numeric scalar defining the window length of samples for
 \code{method = "moving-average"}.}
+
+\item{na.rm}{A logical indicating whether missing values should be ignored
+(\code{TRUE}) before the filter is applied. Otherwise (\code{FALSE}, the \emph{default}) will
+throw an error (see \emph{Details}).}
 
 \item{verbose}{A logical. \code{TRUE} (the \emph{default}) will return warnings and
 messages which can be used for troubleshooting. \code{FALSE} will silence these
@@ -98,12 +104,12 @@ defining the lower and upper bands for \emph{stop-band} and \emph{pass-band} fil
 \verb{W = [0, 1]}, where \code{1} is the Nyquist frequency, i.e., half the sample
 rate of the data in Hz.
 
-Alternatively, the critical frequency can be defined by \code{critical_frequency}
-and \code{sample_rate} together. \code{critical_frequency} represents the desired
+Alternatively, the critical frequency can be defined by \code{fc}
+and \code{sample_rate} together. \code{fc} represents the desired
 critical frequency in Hz, and \code{sample_rate} is the sample rate of the
-recorded data in Hz. \code{W = critical_frequency / (sample_rate/2)}.
+recorded data in Hz. \code{W = fc / (sample_rate/2)}.
 
-Defining both \code{critical_frequency} and \code{sample_rate} explicitly will
+Defining both \code{fc} and \code{sample_rate} explicitly will
 overwrite \code{W}.}
 \item{\code{method = "moving-average"}}{applies a centred (two-way symmetrical)
 moving average filter from \code{\link[zoo:rollapply]{zoo::rollapply()}}. The moving-average is
@@ -111,6 +117,10 @@ calculated over a window of width \code{width} defining the number of samples
 between \verb{[i - floor(width/2), i + floor(width/2)]}. A partial moving-
 average will be calculated at the edges of the existing data.}
 }
+
+Missing values (\code{NA}) in the numeric vector will cause an error unless
+\code{na.rm = TRUE}. Then \code{NA} values are removed for processing, and restored in
+the returned vector.
 }
 \examples{
 set.seed(13)

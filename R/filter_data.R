@@ -25,12 +25,15 @@
 #'  `method = "butterworth"`.
 #' @param W A numeric scalar or two-element vector defining the fractional
 #'  critical frequency(ies) of a Butterworth filter for `method = "butterworth"`.
-#' @param critical_frequency A numeric scalar or two-element vector defining
-#'  the critical frequency(ies) of a Butterworth filter for `method = "butterworth"`.
+#' @param fc A numeric scalar or two-element vector defining the critical
+#'  frequency(ies) of a Butterworth filter for `method = "butterworth"`.
 #' @param sample_rate A numeric scalar for the sample rate in Hz for
 #'  `method = "butterworth"`.
 #' @param width A numeric scalar defining the window length of samples for
 #'  `method = "moving-average"`.
+#' @param na.rm A logical indicating whether missing values should be ignored
+#'  (`TRUE`) before the filter is applied. Otherwise (`FALSE`, the *default*) will
+#'  throw an error (see *Details*).
 #' @param verbose A logical. `TRUE` (the *default*) will return warnings and
 #'  messages which can be used for troubleshooting. `FALSE` will silence these
 #'  messages. Errors will always be returned.
@@ -67,12 +70,12 @@
 #'  `W = [0, 1]`, where `1` is the Nyquist frequency, i.e., half the sample
 #'  rate of the data in Hz.
 #'
-#'  Alternatively, the critical frequency can be defined by `critical_frequency`
-#'  and `sample_rate` together. `critical_frequency` represents the desired
+#'  Alternatively, the critical frequency can be defined by `fc`
+#'  and `sample_rate` together. `fc` represents the desired
 #'  critical frequency in Hz, and `sample_rate` is the sample rate of the
-#'  recorded data in Hz. `W = critical_frequency / (sample_rate/2)`.
+#'  recorded data in Hz. `W = fc / (sample_rate/2)`.
 #'
-#'  Defining both `critical_frequency` and `sample_rate` explicitly will
+#'  Defining both `fc` and `sample_rate` explicitly will
 #'  overwrite `W`.}
 #'  \item{`method = "moving-average"`}{applies a centred (two-way symmetrical)
 #'  moving average filter from [zoo::rollapply()]. The moving-average is
@@ -80,6 +83,10 @@
 #'  between `[i - floor(width/2), i + floor(width/2)]`. A partial moving-
 #'  average will be calculated at the edges of the existing data.}
 #'  }
+#'
+#' Missing values (`NA`) in the numeric vector will cause an error unless
+#' `na.rm = TRUE`. Then `NA` values are removed for processing, and restored in
+#' the returned vector.
 #'
 #' @examples
 #' set.seed(13)
@@ -110,84 +117,84 @@ filter_data <- function(
         spar = NULL,
         n = 1,
         W,
-        critical_frequency,
+        fc,
         sample_rate,
         width,
-        verbose = TRUE
+        na.rm = FALSE,
+        verbose = TRUE,
+        ...
 ) {
     method <- match.arg(method)
     type = match.arg(type)
+    args <- list(...)
+    edges <- args$edges %||% "rev" ## default filtfilt_edges(edges)
 
     ## validation: `x` must be a numeric vector
     if (!is.numeric(x)) {
-        cli::cli_abort("{.arg x} must be a {.cls numeric} vector.")
+        cli::cli_abort("{.arg x} must be a {cli::col_blue('numeric')} vector.")
+    }
+
+    validate_numeric <- function(arg) {
+        name <- deparse(substitute(arg))
+        if (!is.numeric(arg)) {
+            cli::cli_abort("{.arg {name}} must be {cli::col_blue('numeric')}.")
+        }
     }
 
     ## filter parameters should be manually defined, therefore left blank in
     ## function definition, but `NULL` makes conditional detection easier
-    if (missing(spar) || spar <= 0) {spar <- NULL}
-    if (missing(W)) {W <- NULL}
-    if (missing(critical_frequency) || critical_frequency <= 0) {critical_frequency <- NULL}
-    if (missing(sample_rate) || sample_rate <= 0) {sample_rate <- NULL}
-    if (missing(width) || width <= 0) {width <- NULL}
+    if (missing(spar) || spar == 0) {spar <- NULL}
+    if (missing(W) || W == 0) {W <- NULL}
+    if (missing(fc) || fc == 0) {fc <- NULL}
+    if (missing(sample_rate) || sample_rate == 0) {sample_rate <- NULL}
+    if (missing(width) || width == 0) {width <- NULL}
+
+    ## logical whether to handle NAs
+    handle_na <- na.rm & any(is.na(x))
+    if (handle_na) {
+        na_info <- preserve_na(x)
+        x <- na_info$x_clean
+    }
 
     if (method == "smooth-spline") {
 
         if (is.null(spar)) {
             spline_model <- stats::smooth.spline(x = x)
             y <- spline_model$y
+            spar <- round(spline_model$spar, 3)
 
             if (verbose) {
                 cli::cli_alert_info(
-                    "{.fn smooth.spline} {.arg spar} set to {.val {spline_model$spar}}")
+                    "{.fn smooth.spline} {.arg spar} set to {.val {spar}}")
             }
-        } else if (is.numeric(spar)) {
+        } else {
+            validate_numeric(spar)
             y <- stats::smooth.spline(x = x, spar = spar)$y
         }
 
     } else if (method == "butterworth") {
 
-        if (!is.null(critical_frequency) & !is.null(sample_rate)) {
-            if (is.numeric(critical_frequency) & is.numeric(sample_rate)) {
-                y <- filtfilt_edges(x = x,
-                                    n = n,
-                                    W = critical_frequency / (sample_rate/2),
-                                    type = type)
-            } else {
-                cli::cli_abort(paste(
-                    "{.arg critical_frequency} and {.arg sample_rate}",
-                    "must both be {cli::col_blue('numeric')} values for a",
-                    "Butterworth filter."))
-            }
-
-        } else if (!is.null(W)) {
-            if (is.numeric(W)) {
-                y <- filtfilt_edges(x = x, n = n, W = W, type = type)
-            } else {
-                cli::cli_abort(paste(
-                    "{.arg W} must be a {cli::col_blue('numeric')} value for a",
-                    "Butterworth filter."))
-            }
-
+        if (is.null(W) & !is.null(fc) & !is.null(sample_rate)) {
+            validate_numeric(fc)
+            validate_numeric(sample_rate)
+            y <- filtfilt_edges(x = x, n = n, W = fc / (sample_rate/2),
+                                type = type, edges = edges)
+        } else if (!is.null(W) && (is.null(fc) & is.null(sample_rate))) {
+            y <- filtfilt_edges(x = x, n = n, W = W, type = type)
         } else {
             cli::cli_abort(paste(
-                "Either {.arg W} alone, or {.arg critical_frequency} and",
-                "{.arg sample_rate} together must be defined for a",
-                "Butterworth filter."))
+                "Either {.arg W} alone, or {.arg fc} and {.arg sample_rate}",
+                "together must be {cli::col_blue('numeric')}",
+                "for a Butterworth filter."))
         }
 
     } else if (method == "moving-average") {
-
-        if (is.numeric(width)) {
-            y <- zoo::rollapply(
-                x, width = width, FUN = mean,
-                align = "center", partial = TRUE, na.rm = TRUE)
-        } else {
-            cli::cli_abort(paste(
-                "{.arg width} must be a {cli::col_blue('numeric')} value for the",
-                "moving-average filter."))
-        }
+        validate_numeric(width)
+        y <- zoo::rollapply(x, width = width, FUN = mean, partial = TRUE, na.rm = TRUE)
     }
 
-    return(y)
+    ## return y to original x length with NAs if handled
+    result <- if (handle_na) {restore_na(y, na_info)} else {y}
+
+    return(result)
 }

@@ -64,51 +64,42 @@ filtfilt_edges <- function (
         type = c("low", "high", "stop", "pass"),
         edges = c("rev", "rep1", "none")
 ) {
-    # if (!requireNamespace("signal", quietly = TRUE)) {
-    #     cli::cli_abort(paste(
-    #         "Package {.pkg signal} is required for low-pass filtering.",
-    #         "Please install it."))
-    # }
     rlang::check_installed("signal", reason = "to use Butterworth digital filter")
 
     type = match.arg(type)
     edges = match.arg(edges)
 
-    ## argument validation
+    ## validation: `x` must be a numeric vector
     if (!is.numeric(x)) {
-        cli::cli_abort("{.arg x} must be a numeric vector.")
+        cli::cli_abort("{.arg x} must be a {cli::col_blue('numeric')} vector.")
     }
-    if (!rlang::is_integerish(n) | n == 0) {
-        cli::cli_abort("{.arg n} must be an integer scalar of 1 or greater.")
-    }
-    if (!is.numeric(W) | W == 0 | W == 1) {
+    if (!rlang::is_integerish(n) || n == 0) {
         cli::cli_abort(paste(
-            "{.arg W} must be a numeric scalar or two-element vector",
-            "`c(low, high)` between 0 and 1."))
+            "{.arg n} must be an {cli::col_blue('integer')} scalar",
+            "of 1 or greater."))
+    }
+    if (!is.numeric(W) || W == 0 || W == 1) {
+        cli::cli_abort(paste(
+            "{.arg W} must be a {cli::col_blue('numeric')} scalar or",
+            "two-element vector `c(low, high)` between 0 and 1."))
     }
 
-    switch(edges,
-           ## pads x with the first and last 10% of the vector length
-           "rev" = pad_edges <- c(
-               rev(head(x, length(x)/10)),
-               x,
-               rev(tail(x, length(x)/10))),
-           ## pads x with repeating first / last value
-           "rep1" = pad_edges <- c(
-               rep(head(x, 1), length(x)/10),
-               x,
-               rep(tail(x, 1), length(x)/10)),
-           "none" = pad_edges <- x
+    pad_length <- length(x) %/% 20
+    pad_edges <- switch(
+        edges,
+        "rev" = c(rev(head(x, pad_length)), x, rev(tail(x, pad_length))),
+        "rep1" = c(rep(x[1], pad_length), x, rep(x[length(x)], pad_length)),
+        "none" = x
     )
 
     ## butterworth filter order (n) and relative cutoff frequency (W)
-    x_filt <- signal::filtfilt(
-        filt = signal::butter(n = n, W = W, type = type),
-        x = pad_edges)
+    x_filt <- signal::filtfilt(filt = signal::butter(n = n, W = W, type = type),
+                               x = pad_edges)
 
     ## returns the original vector length of x with padding omitted
-    switch(edges,
-           "rev" = x_filt[(length(x)/10 + 1):(length(x)/10 + length(x))],
-           "rep1" = x_filt[(length(x)/10 + 1):(length(x)/10 + length(x))],
-           "none" = x_filt)
+    if (edges == "none") {
+        return(x_filt)
+    } else {
+        return(x_filt[(pad_length + 1):(pad_length + length(x))])
+    }
 }

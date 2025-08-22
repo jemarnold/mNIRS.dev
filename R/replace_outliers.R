@@ -10,7 +10,8 @@
 #' @param t0 A numeric scalar for the outlier threshold, default is 3
 #'  (Pearson's rule).
 #' @param na.rm A logical indicating whether missing values should be ignored
-#'  before the filter is applied (see *Details*).
+#'  (`TRUE`) before the filter is applied. Otherwise (`FALSE`, the *default*) will
+#'  throw an error (see *Details*).
 #' @param return Indicates whether outliers should be replaced with the
 #'  local *"median"* value (the *default*), or returned as `NA`.
 #'
@@ -23,9 +24,9 @@
 #' more points to be outliers. `t0 = 3` (the *default*) corresponds to Pearson's
 #' 3 sigma edit rule, `t0 = 0` to Tukey's median filter.
 #'
-#' `NA` values in the numeric vector will cause an error unless `na.rm = TRUE`.
-#' Then `NA` values are skipped for outlier detection, and preserved in the
-#' returned vector.
+#' Missing values (`NA`) in the numeric vector will cause an error unless
+#' `na.rm = TRUE`. Then `NA` values are removed for processing, and restored in
+#' the returned vector.
 #'
 #' The default `return = "median"` will replace outliers with the local
 #' median value, as in [pracma::hampel()]. Otherwise, outliers will be

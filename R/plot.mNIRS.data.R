@@ -59,7 +59,7 @@ plot.mNIRS.data <- function(x, ...) {
                 scales::breaks_pretty(n = 6)
             } else {waiver()},
             expand = expansion(mult = 0.01)) +
-        scale_colour_mNIRS(breaks = nirs_columns) +
+        scale_colour_mNIRS() +
         guides(colour = guide_legend(override.aes = list(linewidth = 1))) +
         geom_line()
 
@@ -85,7 +85,7 @@ mNIRS_palette <- function(n = NULL) {
     mNIRS_colours <- c(
         "#0080ff",      ## "VL"
         "#ba2630",      ## "FCR"
-        "#7dbf70",      ## "BB"
+        "#5b8c52",      ## "BB" "#7dbf70"
         "#ff80ff",      ## "VM"
         "#ff7f00",      ## "SCM"
         "#00468Bff",    ## "TA"
