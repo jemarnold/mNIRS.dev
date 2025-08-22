@@ -135,6 +135,30 @@ scale_fill_mNIRS <- function(...) {
 
 
 
+#' Format Timespan Data as h:mm:ss
+#'
+#' Convert numeric timespan data to `h:mm:ss` format for pretty plotting. Inspired
+#' by [ggplot2::scale_x_time()].
+#'
+#' @param x A numeric vector.
+#'
+#' @details
+#' If all values are less than 3600 (1 hour), then format is returned as `mm:ss`.
+#' If any value is greater than 3600, format is returned as `h:mm:ss` with leading
+#' zeroes.
+#'
+#' @return A character vector the same length as `x`.
+#'
+#' @examples
+#' \dontrun{
+#' x = 0:120
+#' y = sin(2 * pi * x / 15) + rnorm(length(x), 0, 0.2)
+#' ggplot(data.frame(x, y), aes(x = x, y = y)) +
+#'     scale_x_continuous(breaks = breaks_timespan(),
+#'                        labels = format_hmmss) +
+#'     geom_line()
+#' }
+#'
 #' @keywords internal
 #' @export
 format_hmmss <- function(x) {
@@ -153,14 +177,37 @@ format_hmmss <- function(x) {
 
 
 
-
+#' Breaks for Timespan Data
+#'
+#' Pretty timespan breaks for plotting in units of 5, 15, 30, 60 sec, etc.
+#' Modified from [scales::breaks_timespan()].
+#'
+#' @param unit The time unit used to interpret numeric data input (*default* to
+#'  *"secs"*).
+#' @param n Desired number of breaks. You may get slightly more or fewer breaks
+#'  than requested.
+#'
+#' @details
+#' ...
+#'
+#' @return Returns a function for generating breaks
+#'
+#' @examples
+#' \dontrun{
+#' x = 0:120
+#' y = sin(2 * pi * x / 15) + rnorm(length(x), 0, 0.2)
+#' ggplot(data.frame(x, y), aes(x = x, y = y)) +
+#'     scale_x_continuous(breaks = breaks_timespan()) +
+#'     geom_line()
+#' }
+#'
 #' @keywords internal
 #' @export
-breaks_timespan <- function (
+breaks_timespan <- function(
         unit = c("secs", "mins", "hours", "days", "weeks"),
         n = 5
 ) {
-    unit <- rlang::arg_match(unit)
+    unit <- match.arg(unit)
     force(n)
     function(x) {
         x <- as.numeric(as.difftime(x, units = unit), units = "secs")

@@ -64,6 +64,8 @@ throw an error (see \emph{Details}).}
 \item{verbose}{A logical. \code{TRUE} (the \emph{default}) will return warnings and
 messages which can be used for troubleshooting. \code{FALSE} will silence these
 messages. Errors will always be returned.}
+
+\item{...}{Additional arguments.}
 }
 \value{
 A numeric vector of filtered data.

@@ -565,7 +565,7 @@ test_that("process_kinetics works for a local environment call", {
 
 
 test_that("process_kinetics works inside a purrr::map() call", {
-    devtools::load_all()
+    # devtools::load_all()
 
     rlang::check_installed("purrr", reason = "to test purrr::pmap (probably temp)")
 

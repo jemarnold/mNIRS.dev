@@ -37,6 +37,7 @@
 #' @param verbose A logical. `TRUE` (the *default*) will return warnings and
 #'  messages which can be used for troubleshooting. `FALSE` will silence these
 #'  messages. Errors will always be returned.
+#' @param ... Additional arguments.
 #'
 #' @details
 #' \describe{

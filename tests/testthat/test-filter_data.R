@@ -1,5 +1,5 @@
 test_that("filter_data smooth-spline works", {
-    devtools::load_all()
+    # devtools::load_all()
     file_path <- system.file("extdata/moxy_ramp_example.xlsx",
                              package = "mNIRS")
 
