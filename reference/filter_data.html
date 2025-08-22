@@ -52,10 +52,12 @@
 <span>  spar <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  n <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  <span class="va">W</span>,</span>
-<span>  <span class="va">critical_frequency</span>,</span>
+<span>  <span class="va">fc</span>,</span>
 <span>  <span class="va">sample_rate</span>,</span>
 <span>  <span class="va">width</span>,</span>
-<span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  na.rm <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -115,9 +117,9 @@ be defined (see <em>Details</em>).</p></dd>
 critical frequency(ies) of a Butterworth filter for <code>method = "butterworth"</code>.</p></dd>
 
 
-<dt id="arg-critical-frequency">critical_frequency<a class="anchor" aria-label="anchor" href="#arg-critical-frequency"></a></dt>
-<dd><p>A numeric scalar or two-element vector defining
-the critical frequency(ies) of a Butterworth filter for <code>method = "butterworth"</code>.</p></dd>
+<dt id="arg-fc">fc<a class="anchor" aria-label="anchor" href="#arg-fc"></a></dt>
+<dd><p>A numeric scalar or two-element vector defining the critical
+frequency(ies) of a Butterworth filter for <code>method = "butterworth"</code>.</p></dd>
 
 
 <dt id="arg-sample-rate">sample_rate<a class="anchor" aria-label="anchor" href="#arg-sample-rate"></a></dt>
@@ -128,6 +130,12 @@ the critical frequency(ies) of a Butterworth filter for <code>method = "butterwo
 <dt id="arg-width">width<a class="anchor" aria-label="anchor" href="#arg-width"></a></dt>
 <dd><p>A numeric scalar defining the window length of samples for
 <code>method = "moving-average"</code>.</p></dd>
+
+
+<dt id="arg-na-rm">na.rm<a class="anchor" aria-label="anchor" href="#arg-na-rm"></a></dt>
+<dd><p>A logical indicating whether missing values should be ignored
+(<code>TRUE</code>) before the filter is applied. Otherwise (<code>FALSE</code>, the <em>default</em>) will
+throw an error (see <em>Details</em>).</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
@@ -173,11 +181,11 @@ defining the lower and upper bands for <em>stop-band</em> and <em>pass-band</em>
 <code>W</code> represents the desired fractional critical frequency in the range
 <code>W = [0, 1]</code>, where <code>1</code> is the Nyquist frequency, i.e., half the sample
 rate of the data in Hz.</p>
-<p>Alternatively, the critical frequency can be defined by <code>critical_frequency</code>
-and <code>sample_rate</code> together. <code>critical_frequency</code> represents the desired
+<p>Alternatively, the critical frequency can be defined by <code>fc</code>
+and <code>sample_rate</code> together. <code>fc</code> represents the desired
 critical frequency in Hz, and <code>sample_rate</code> is the sample rate of the
-recorded data in Hz. <code>W = critical_frequency / (sample_rate/2)</code>.</p>
-<p>Defining both <code>critical_frequency</code> and <code>sample_rate</code> explicitly will
+recorded data in Hz. <code>W = fc / (sample_rate/2)</code>.</p>
+<p>Defining both <code>fc</code> and <code>sample_rate</code> explicitly will
 overwrite <code>W</code>.</p></dd>
 
 <dt><code>method = "moving-average"</code></dt>
@@ -188,7 +196,10 @@ between <code>[i - floor(width/2), i + floor(width/2)]</code>. A partial moving-
 average will be calculated at the edges of the existing data.</p></dd>
 
 
-</dl></div>
+</dl><p>Missing values (<code>NA</code>) in the numeric vector will cause an error unless
+<code>na.rm = TRUE</code>. Then <code>NA</code> values are removed for processing, and restored in
+the returned vector.</p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
@@ -200,7 +211,7 @@ average will be calculated at the edges of the existing data.</p></dd>
 <span class="r-in"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="va">y_clean</span> <span class="op">+</span> <span class="va">noise</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">y.spline</span> <span class="op">&lt;-</span> <span class="fu">filter_data</span><span class="op">(</span><span class="va">y</span>, method <span class="op">=</span> <span class="st">"smooth-spline"</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> `smooth.spline()` `spar` set to <span style="color: #0000BB;">0.861829231501579</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> `smooth.spline()` `spar` set to <span style="color: #0000BB;">0.862</span></span>
 <span class="r-in"><span><span class="va">y.LP</span> <span class="op">&lt;-</span> <span class="fu">filter_data</span><span class="op">(</span><span class="va">y</span>, method <span class="op">=</span> <span class="st">"butterworth"</span>, n <span class="op">=</span> <span class="fl">2</span>, W <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">y.MA</span> <span class="op">&lt;-</span> <span class="fu">filter_data</span><span class="op">(</span><span class="va">y</span>, method <span class="op">=</span> <span class="st">"moving-average"</span>, width <span class="op">=</span> <span class="fl">30</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>

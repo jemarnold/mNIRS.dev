@@ -67,7 +67,8 @@ absolute deviation (MAD), and replaces with the local median value or <code>NA</
 
 <dt id="arg-na-rm">na.rm<a class="anchor" aria-label="anchor" href="#arg-na-rm"></a></dt>
 <dd><p>A logical indicating whether missing values should be ignored
-before the filter is applied (see <em>Details</em>).</p></dd>
+(<code>TRUE</code>) before the filter is applied. Otherwise (<code>FALSE</code>, the <em>default</em>) will
+throw an error (see <em>Details</em>).</p></dd>
 
 
 <dt id="arg-return">return<a class="anchor" aria-label="anchor" href="#arg-return"></a></dt>
@@ -87,9 +88,9 @@ interval. At the lower and upper end the time series values are preserved.</p>
 <p>A high threshold makes the filter more forgiving, a low one will declare
 more points to be outliers. <code>t0 = 3</code> (the <em>default</em>) corresponds to Pearson's
 3 sigma edit rule, <code>t0 = 0</code> to Tukey's median filter.</p>
-<p><code>NA</code> values in the numeric vector will cause an error unless <code>na.rm = TRUE</code>.
-Then <code>NA</code> values are skipped for outlier detection, and preserved in the
-returned vector.</p>
+<p>Missing values (<code>NA</code>) in the numeric vector will cause an error unless
+<code>na.rm = TRUE</code>. Then <code>NA</code> values are removed for processing, and restored in
+the returned vector.</p>
 <p>The default <code>return = "median"</code> will replace outliers with the local
 median value, as in <code>pracma::hampel()</code>. Otherwise, outliers will be
 returned as <code>NA</code> (both returns are equally computationally expensive).</p>
