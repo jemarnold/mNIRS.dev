@@ -192,7 +192,8 @@ process_kinetics.monoexponential <- function(
     args <- list(...)
 
     intake <- pre_process_kinetics_names(y = y, x = x, data = data,
-                                         x0 = x0, verbose = verbose)
+                                         x0 = x0, window = window,
+                                         verbose = verbose)
     df <- intake$df
     data <- intake$data
     x_name <- names(data)[1]
@@ -270,7 +271,8 @@ process_kinetics.sigmoidal <- function(
     args <- list(...)
 
     intake <- pre_process_kinetics_names(y = y, x = x, data = data,
-                                         x0 = x0, verbose = verbose)
+                                         x0 = x0, window = window,
+                                         verbose = verbose)
     df <- intake$df
     data <- intake$data
     x_name <- names(data)[1]
@@ -347,7 +349,8 @@ process_kinetics.half_time <- function(
     args <- list(...)
 
     intake <- pre_process_kinetics_names(y = y, x = x, data = data,
-                                         x0 = x0, verbose = verbose)
+                                         x0 = x0, window = window,
+                                         verbose = verbose)
     df <- intake$df
     x <- intake$df$x
     y <- intake$df$y
@@ -426,7 +429,8 @@ process_kinetics.peak_slope <- function(
     align <- match.arg(args$align %||% "center", choices = align_choices)
 
     intake <- pre_process_kinetics_names(y = y, x = x, data = data,
-                                         x0 = x0, verbose = verbose)
+                                         x0 = x0, window = window,
+                                         verbose = verbose)
     df <- intake$df
     x <- intake$df$x
     y <- intake$df$y

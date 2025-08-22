@@ -565,7 +565,7 @@ test_that("process_kinetics works for a local environment call", {
 
 
 test_that("process_kinetics works inside a purrr::map() call", {
-    # devtools::load_all()
+    devtools::load_all()
 
     rlang::check_installed("purrr", reason = "to test purrr::pmap (probably temp)")
 
@@ -649,6 +649,104 @@ test_that("process_kinetics works inside a purrr::map() call", {
 
     ## visual check
     model_plot <- plot(model, display_time = TRUE, plot_coefs = TRUE,
+                       plot_diagnostics = TRUE, plot_residuals = TRUE)
+    expect_s3_class(model_plot, "ggplot")
+})
+
+
+
+
+test_that("process_kinetics works with large oxysoft file", {
+    # devtools::load_all()
+    file_path <- system.file("extdata/oxysoft_interval_example.xlsx",
+                             package = "mNIRS")
+
+    data_raw <- read_data(
+        file_path = file_path,
+        nirs_columns = c(O2Hb = 5, HHb = 6),
+        sample_column = c(sample = 1),
+        event_column = c(event = 8)
+    ) |>
+        dplyr::mutate(
+            # time = round(time - dplyr::first(time), 1),
+            time = sample/50,
+            across(c(O2Hb, HHb), \(.x) filter_data(.x, "butterworth", n = 2, W = 0.05))
+        )
+
+    nirs_columns <- attributes(data_raw)$nirs_columns
+    fitted_name <- paste0(nirs_columns, "_fitted")
+    sample_column <- attributes(data_raw)$sample_column
+    fit_sample_name <- paste0("fit_", attributes(data_raw)$sample_column)
+
+    event_samples <- c(24675, 66670)
+
+    data_list <- prepare_kinetics_data(
+        data_raw,
+        event_sample = event_samples,
+        event_label = c("E7"),
+        fit_window = c(30*50, 120*50),
+    )
+
+    # plot(data_list[[1]])
+
+    model_list <- tidyr::expand_grid(
+        .df = data_list,
+        .nirs = attributes(data_raw)$nirs_columns,
+        .method = "sigmoidal") |>
+        purrr::pmap(
+            \(.df, .nirs, .method)
+            process_kinetics(y = .nirs,
+                             x = fit_sample_name,
+                             data = .df,
+                             method = .method,
+                             window = 25*50,
+                             width = 5*50)
+        )
+
+    # plot(model_list[[1]])
+
+    ## check length of model_list
+    expect_equal(length(model_list), length(c(nirs_columns, event_samples)))
+
+    ## check model_list names match sample_column and event_samples
+    expect_equal(sum(grepl(sample_column, names(model_list))),
+                 length(model_list))
+    expect_equal(sum(grepl(paste(event_samples, collapse = "|"), names(model_list))),
+                 length(model_list))
+
+    ## check class
+    expect_true(all(sapply(model_list, \(.x) class(.x)) == "mNIRS.kinetics"))
+
+    model <- model_list[[2]]
+
+    ## check list contents
+    model_contents <- c("method", "model", "equation", "data",
+                        "fitted", "residuals", "x0", "extreme",
+                        "coefs", "diagnostics", "call")
+    expect_equal(sum(names(model) %in% model_contents),
+                 length(model_contents))
+
+    ## check data colnames
+    data_colnames <- c(fit_sample_name, nirs_columns[2], fitted_name[2])
+    expect_equal(sum(names(model$data) %in% data_colnames),
+                 length(data_colnames))
+
+    ## length data, residuals, fitted should match
+    expect_equal(length(model$residuals), length(model$fitted))
+    expect_lte(length(model$residuals), nrow(model$data))
+    expect_gt(length(model$residuals), 1)
+    expect_lte(length(model$fitted), nrow(model$data))
+    expect_gt(length(model$fitted), 1)
+
+    ## expect a dataframe with multiple values
+    expect_true(all(sapply(model[c("data", "coefs", "diagnostics")],
+                           \(.x) is.data.frame(.x))))
+    expect_equal(ncol(model$data), 3)
+    expect_gte(ncol(model$coefs), 1)
+    expect_gte(ncol(model$diagnostics), 1)
+
+    ## visual check
+    model_plot <- plot(model, display_time = FALSE, plot_coefs = TRUE,
                        plot_diagnostics = TRUE, plot_residuals = TRUE)
     expect_s3_class(model_plot, "ggplot")
 })

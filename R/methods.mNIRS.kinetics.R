@@ -29,18 +29,6 @@ print.mNIRS.kinetics <- function(x, ...) {
     x_name <- names(data)[1]
     y_name <- names(data)[2]
 
-    coefs <- coefs |>
-        dplyr::mutate(
-            dplyr::across(dplyr::where(is.numeric),
-                          \(.x) signif_trailing(.x, 3)))
-
-    if (exists("diagnostics")) {
-        diagnostics <- diagnostics |>
-            dplyr::mutate(
-                dplyr::across(dplyr::where(is.numeric),
-                              \(.x) signif_trailing(.x, 3)))
-    }
-
     if (method == "monoexponential") {
 
         cat("\n")
@@ -56,11 +44,11 @@ print.mNIRS.kinetics <- function(x, ...) {
         cat("\n\n")
         cat("  Model Coefficients:")
         cat("\n")
-        print(as.data.frame(coefs))
+        print(as.data.frame(coefs), digits = 4, row.names = FALSE)
         cat("\n")
         cat("  Model Diagnostics:")
         cat("\n")
-        print(as.data.frame(diagnostics))
+        print(as.data.frame(diagnostics), digits = 4, row.names = FALSE)
         cat("\n")
 
     } else if (method == "sigmoidal") {
@@ -78,11 +66,11 @@ print.mNIRS.kinetics <- function(x, ...) {
         cat("\n\n")
         cat("  Model Coefficients:")
         cat("\n")
-        print(as.data.frame(coefs))
+        print(as.data.frame(coefs), digits = 4, row.names = FALSE)
         cat("\n")
         cat("  Model Diagnostics:")
         cat("\n")
-        print(as.data.frame(diagnostics))
+        print(as.data.frame(diagnostics), digits = 4, row.names = FALSE)
         cat("\n")
 
     } else if (method == "half_time") {
@@ -97,7 +85,7 @@ print.mNIRS.kinetics <- function(x, ...) {
         cat("\n\n")
         cat("  Model Coefficients:")
         cat("\n")
-        print(as.data.frame(coefs))
+        print(as.data.frame(coefs), digits = 4, row.names = FALSE)
         cat("\n")
 
     } else if (method == "peak_slope") {
@@ -112,7 +100,7 @@ print.mNIRS.kinetics <- function(x, ...) {
         cat("\n\n")
         cat("  Model Coefficients:")
         cat("\n")
-        print(as.data.frame(coefs))
+        print(as.data.frame(coefs), digits = 4, row.names = FALSE)
         cat("\n")
 
     } else {
