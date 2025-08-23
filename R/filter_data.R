@@ -132,13 +132,13 @@ filter_data <- function(
 
     ## validation: `x` must be a numeric vector
     if (!is.numeric(x)) {
-        cli::cli_abort("{.arg x} must be a {cli::col_blue('numeric')} vector.")
+        cli_abort("{.arg x} must be a {col_blue('numeric')} vector.")
     }
 
     validate_numeric <- function(arg) {
         name <- deparse(substitute(arg))
         if (!is.numeric(arg)) {
-            cli::cli_abort("{.arg {name}} must be {cli::col_blue('numeric')}.")
+            cli_abort("{.arg {name}} must be {col_blue('numeric')}.")
         }
     }
 
@@ -165,7 +165,7 @@ filter_data <- function(
             spar <- round(spline_model$spar, 3)
 
             if (verbose) {
-                cli::cli_alert_info(
+                cli_alert_info(
                     "{.fn smooth.spline} {.arg spar} set to {.val {spar}}")
             }
         } else {
@@ -183,9 +183,9 @@ filter_data <- function(
         } else if (!is.null(W) && (is.null(fc) & is.null(sample_rate))) {
             y <- filtfilt_edges(x = x, n = n, W = W, type = type)
         } else {
-            cli::cli_abort(paste(
+            cli_abort(paste(
                 "Either {.arg W} alone, or {.arg fc} and {.arg sample_rate}",
-                "together must be {cli::col_blue('numeric')}",
+                "together must be {col_blue('numeric')}",
                 "for a Butterworth filter."))
         }
 

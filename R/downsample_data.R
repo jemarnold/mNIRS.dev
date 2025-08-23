@@ -60,7 +60,7 @@ downsample_data <- function(
 
     ## validation: `sample_column` must match expected dataframe names
     if (!all(unlist(sample_column) %in% names(data))) {
-        cli::cli_abort(paste(
+        cli_abort(paste(
             "{.arg sample_column} not found. Make sure column names",
             "match exactly."))
     }
@@ -70,7 +70,7 @@ downsample_data <- function(
         sample_rate <- NULL
 
         if (verbose) {
-            cli::cli_alert_info(paste(
+            cli_alert_info(paste(
                 "{.arg sample_rate} should be defined explicitly",
                 "as a numeric value > 0 Hz."))
         }
@@ -112,7 +112,7 @@ downsample_data <- function(
     } else if (!is.null(downsample_time) & is.null(downsample_rate)) {
         1 / downsample_time
     } else {
-        cli::cli_abort(paste(
+        cli_abort(paste(
             "Either {.arg sample_rate} or {.arg sample_time}",
             "should be defined, not both."))
     }
@@ -120,7 +120,7 @@ downsample_data <- function(
     ## validation: downsample_rate must be less than sample_rate
     if (downsample_rate > sample_rate) {
         if (verbose) {
-            cli::cli_alert_info(paste(
+            cli_alert_info(paste(
                 "{.arg downsample_rate} should be less than {.arg sample_rate}.",
                 "Returning original dataframe"))
         }
@@ -128,7 +128,7 @@ downsample_data <- function(
     }
 
     if (verbose) {
-        cli::cli_alert_info(paste(
+        cli_alert_info(paste(
             "i" = sample_info,
             "i" = "Output is downsampled at {.val {downsample_rate}} Hz."
         ))

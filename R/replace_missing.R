@@ -54,7 +54,7 @@ replace_missing <- function(
 
     ## validation: `x` must be a numeric vector
     if (!is.numeric(x)) {
-        cli::cli_abort("{.arg x} must be a {cli::col_blue('numeric')} vector.")
+        cli_abort("{.arg x} must be a {col_blue('numeric')} vector.")
     }
 
     ## replace NaN & Inf to NA

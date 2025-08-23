@@ -235,7 +235,7 @@ peak_slope <- function(
 ) {
     ## check for sufficient non-NA observations
     if (sum(!is.na(y)) < 2) {
-        cli::cli_abort("{.arg y} contains insufficient valid data.")
+        cli_abort("{.arg y} contains insufficient valid data.")
     }
 
     align <- match.arg(align)

@@ -79,26 +79,26 @@ prepare_kinetics_data <- function(
 
     ## define `nirs_columns` manually overrides metadata
     if (is.null(nirs_columns) & is.null(metadata$nirs_columns)) {
-        cli::cli_abort(paste(
+        cli_abort(paste(
             "{.arg nirs_columns} not found in metadata. Please check your data",
             "attributes or define {.arg nirs_columns} explicitly."))
     } else if (is.null(nirs_columns) & !is.null(metadata$nirs_columns)) {
         nirs_columns <- metadata$nirs_columns
     } else if (!is.character(nirs_columns) || !all(nirs_columns %in% names(data))) {
-        cli::cli_abort(paste(
+        cli_abort(paste(
             "{.arg nirs_columns} must be a vector of column names within",
             "{.arg data}. Make sure column names match exactly."))
     }
 
     ## define `sample_column` manually overrides metadata
     if (is.null(sample_column) & is.null(metadata$sample_column)) {
-        cli::cli_abort(paste(
+        cli_abort(paste(
             "{.arg sample_column} not found in metadata. Please check your data",
             "attributes or define {.arg sample_column} explicitly."))
     } else if (is.null(sample_column) & !is.null(metadata$sample_column)) {
         sample_column <- metadata$sample_column
     } else if (!is.character(sample_column) || !sample_column %in% names(data)) {
-        cli::cli_abort(paste(
+        cli_abort(paste(
             "{.arg sample_column} must be a column name within your {.arg data}.",
             "Make sure column names match exactly."))
     }
@@ -107,21 +107,21 @@ prepare_kinetics_data <- function(
     if (is.null(event_label)) {
         ## this is probably a bad way to write this
     } else if (is.null(event_column) & is.null(metadata$event_column)) {
-        cli::cli_abort(paste(
+        cli_abort(paste(
             "You have defined {.arg event_label} but {.arg event_column}",
             "not found in metadata. Please check your data attributes or define",
             "{.arg event_column} explicitly."))
     } else if (is.null(event_column) & !is.null(metadata$event_column)) {
         event_column <- metadata$event_column
     } else if (!is.character(event_column) || !event_column %in% names(data)) {
-        cli::cli_abort(paste(
+        cli_abort(paste(
             "{.arg event_column} must be a column name within your {.arg data}.",
             "Make sure column names match exactly."))
     }
 
     ## define `sample_rate` manually overrides metadata
     if (is.null(sample_rate) & is.null(metadata$sample_rate)) {
-        cli::cli_abort(paste(
+        cli_abort(paste(
             "{.arg sample_rate} not found in metadata. Please check your data",
             "attributes or define {.arg sample_rate} explicitly."))
     } else if (is.null(sample_rate) & !is.null(metadata$sample_rate)) {
@@ -130,7 +130,7 @@ prepare_kinetics_data <- function(
 
     ## validation: `fit_windows` must be numeric scalar
     if (!is.numeric(fit_window) || !length(fit_window) == 2) {
-        cli::cli_abort(paste(
+        cli_abort(paste(
             "{.arg fit_window} must be a two-element {.cls numeric} vector",
             "{.val c(before, after)}."))
     }
@@ -140,7 +140,7 @@ prepare_kinetics_data <- function(
     # if (is.null(display_window)) {
     display_window <- fit_window
     # } else if (!is.numeric(display_window) || !length(display_window) == 2) {
-    #     cli::cli_abort(paste(
+    #     cli_abort(paste(
     #         "{.arg display_window} must be a two-element {.cls numeric} vector",
     #         "{.val c(before, after)}."))
     # }

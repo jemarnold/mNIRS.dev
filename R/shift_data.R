@@ -70,7 +70,7 @@ shift_data <- function(
 
     ## validation: `nirs_columns` must match expected dataframe names
     if (!all(unlist(nirs_columns) %in% names(data))) {
-        cli::cli_abort(paste(
+        cli_abort(paste(
             "{.arg nirs_columns} must be a list of names.",
             "Make sure column names match exactly."))
     }
@@ -80,14 +80,14 @@ shift_data <- function(
         !(is.numeric(shift_to) | is.numeric(shift_by)) |
         !(length(shift_to) == 1 | length(shift_by) == 1)
     ) {
-        cli::cli_abort(paste(
+        cli_abort(paste(
             "Either {.arg shift_to} or {.arg shift_by} must be a single",
             "{.cls numeric} scalar."))
     }
 
     ## validation: `mean_samples` must be numeric scalar
     if (!is.numeric(mean_samples) | !length(mean_samples) == 1) {
-        cli::cli_abort(paste(
+        cli_abort(paste(
             "{.arg mean_samples} must be a single {.cls numeric} scalar."))
     }
 

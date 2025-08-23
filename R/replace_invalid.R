@@ -36,19 +36,19 @@ replace_invalid <- function(
 
     ## validation: `x` must be a numeric vector
     if (!is.numeric(x)) {
-        cli::cli_abort("{.arg x} must be a {cli::col_blue('numeric')} vector.")
+        cli_abort("{.arg x} must be a {col_blue('numeric')} vector.")
     }
     ## validation: `values` must be a numeric vector
     if (!is.numeric(values)) {
-        cli::cli_abort("{.arg values} must be a {cli::col_blue('numeric')} vector.")
+        cli_abort("{.arg values} must be a {col_blue('numeric')} vector.")
     }
     ## validation: `width` must be a numeric scalar
     if (return && (!is.numeric(width) || length(width) > 1)) {
-        cli::cli_abort("{.arg width} must be a {cli::col_blue('numeric')} scalar.")
+        cli_abort("{.arg width} must be a {col_blue('numeric')} scalar.")
     }
     ## validation: `width` must be shorter than x
     if (return && width >= ceiling(length(x)/2)) {
-        cli::cli_abort("{.arg width} must be half the length of {.arg x}.")
+        cli_abort("{.arg width} must be half the length of {.arg x}.")
     }
 
     n <- length(x)

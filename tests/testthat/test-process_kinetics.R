@@ -665,7 +665,8 @@ test_that("process_kinetics works with large oxysoft file", {
         file_path = file_path,
         nirs_columns = c(O2Hb = 5, HHb = 6),
         sample_column = c(sample = 1),
-        event_column = c(event = 8)
+        event_column = c(event = 8),
+        verbose = FALSE,
     ) |>
         dplyr::mutate(
             # time = round(time - dplyr::first(time), 1),

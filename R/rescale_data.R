@@ -48,14 +48,14 @@ rescale_data <- function(
 
     ## validation: `nirs_columns` must match expected dataframe names
     if (!all(unlist(nirs_columns) %in% names(data))) {
-        cli::cli_abort(paste(
+        cli_abort(paste(
             "{.arg nirs_columns} must be a list of names.",
             "Make sure column names match exactly."))
     }
 
     ## validation: `rescale_range` must be numeric vector
     if (!is.numeric(rescale_range) | !length(rescale_range) == 2) {
-        cli::cli_abort(paste(
+        cli_abort(paste(
             "{.arg rescale_range} must be a {.cls numeric} vector with",
             "{.val c(min, max)} values."))
     }

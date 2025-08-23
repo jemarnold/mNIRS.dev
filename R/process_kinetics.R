@@ -513,20 +513,20 @@ pre_process_kinetics_names <- function(
         x_name <- if (!is.null(x)) {deparse(x_exp)} else {"index"}
 
         if (!is.numeric(y)) {
-            cli::cli_abort("{.arg y = {y_name}} must be a {.cls numeric} vector.")
+            cli_abort("{.arg y = {y_name}} must be a {.cls numeric} vector.")
         } else if (is.null(x)) {
             x <- seq_along(y)
         } else if (!is.numeric(x)) {
-            cli::cli_abort("{.arg x = {x_name}} must be a {.cls numeric} vector.")
+            cli_abort("{.arg x = {x_name}} must be a {.cls numeric} vector.")
         } else if (length(x) != length(y)) {
-            cli::cli_abort(paste(
+            cli_abort(paste(
                 "{.arg x = {x_name}} and {.arg y = {y_name}}",
                 "must be the same length."))
         }
 
         data <- setNames(tibble(x, y), c(x_name, y_name))
     } else if (!is.data.frame(data)) {
-        cli::cli_abort("{.arg data} must be a dataframe.")
+        cli_abort("{.arg data} must be a dataframe.")
     } else if (is.data.frame(data)) {
         y_exp <- substitute(y) ## symbol from unquoted object name of y
         ## TODO 2025-08-11 UNQUOTED WITH DATA IS FAILING HERE
@@ -543,7 +543,7 @@ pre_process_kinetics_names <- function(
         if (y_name %in% names(data)) {
             y <- data[[y_name]]
         } else {
-            cli::cli_abort("{.arg y = {y_name}} not found in {.arg data}.")
+            cli_abort("{.arg y = {y_name}} not found in {.arg data}.")
         }
 
         if (is.null(x)) {
@@ -552,7 +552,7 @@ pre_process_kinetics_names <- function(
             x <- seq_along(y)
             data[[x_name]] <- x
             if (verbose) {
-                cli::cli_alert_info("{.arg x = {x_name}} added to {.arg data}.")
+                cli_alert_info("{.arg x = {x_name}} added to {.arg data}.")
             }
         } else {
             x_exp <- substitute(x) ## symbol from unquoted object name of x
@@ -569,7 +569,7 @@ pre_process_kinetics_names <- function(
             if (x_name %in% names(data)) {
                 x <- data[[x_name]]
             } else {
-                cli::cli_abort("{.arg x = {x_name}} not found in {.arg data}.")
+                cli_abort("{.arg x = {x_name}} not found in {.arg data}.")
             }
         }
 
@@ -598,7 +598,7 @@ find_first_extreme <- function(y, x = NULL, window = 30) {
     if (is.null(x)) {x <- seq_along(y)} ## where `x` is not defined
 
     if (length(x) != length(y)) {
-        cli::cli_abort("{.arg x} and {.arg} must be the same length.")
+        cli_abort("{.arg x} and {.arg} must be the same length.")
     }
 
     x <- round(x, 10); y <- round(y, 10) ## avoid floating point precision issues
@@ -629,7 +629,7 @@ find_first_extreme <- function(y, x = NULL, window = 30) {
 
     if (length(extreme_indices) == 0) {
         ## this shouldn't happen because I've added end boundary effect
-        cli::cli_abort("{.fn find_first_extreme} failed. No extrema found.")
+        cli_abort("{.fn find_first_extreme} failed. No extrema found.")
     }
 
     ## check for greater extrema within each local window

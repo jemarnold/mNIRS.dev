@@ -50,7 +50,7 @@ create_mNIRS_data <- function(
 ) {
     ## from https://github.com/fmmattioni/whippr/blob/master/R/tbl.R
     if (!is.data.frame(data))
-        cli::cli_abort("You can only pass a data frame to this function.")
+        cli_abort("You can only pass a data frame to this function.")
 
     nirs_data <- tibble::new_tibble(
         data,
@@ -158,7 +158,7 @@ read_data <- function(
 
     ## validation: check file exists
     if (!file.exists(file_path)) {
-        cli::cli_abort(
+        cli_abort(
             "{.val file_path = {file_path}} not found. Check that file exists.")
     }
 
@@ -186,7 +186,7 @@ read_data <- function(
                 .name_repair = "minimal")
         }, error = \(.e) {
             if (grepl("cannot be opened", .e$message)) {
-                cli::cli_abort(c(
+                cli_abort(c(
                     "{e}",
                     "!" = paste("{.val file_path = {file_path}} cannot be opened,",
                                 "likely because the file is in use.")))
@@ -209,7 +209,7 @@ read_data <- function(
         data_full <- as_tibble(do.call(rbind, row_vectors), .name_repair = "minimal")
     } else if (!(is_excel | is_csv)) {
         ## validation: check file types
-        cli::cli_abort(c(
+        cli_abort(c(
             "{.val file_path = {file_path}}.",
             "!" = paste("Unrecognised file type. Only {.arg .xls(x)} or",
                         "{.arg .csv} currently recognised.")))
@@ -223,14 +223,14 @@ read_data <- function(
 
     ## validation: nirs_columns must be detected to extract the proper dataframe
     if (rlang::is_empty(header_row)) {
-        cli::cli_abort(paste(
+        cli_abort(paste(
             "{.val data column names} not detected.",
             "Column names are case sensitive and should match exactly."))
     }
 
     ## return error if nirs_columns string is detected at multiple rows
     if (length(header_row) > 1) {
-        cli::cli_abort(paste(
+        cli_abort(paste(
             "{.val data column names} detected at multiple rows.",
             "Please ensure that column names in the data file are unique."))
     }
@@ -255,7 +255,7 @@ read_data <- function(
                 dup_names <- x_names[duplicated(x_names)]
                 renamed <- unique_names[unique_names != x_names]
 
-                cli::cli_warn(c(
+                cli_warn(c(
                     "Duplicated input column names detected and renamed:",
                     "i" = "{.val {paste(dup_names, renamed, sep = ' = ')}}",
                     "i" = "Consider revising to unique names"
@@ -292,20 +292,20 @@ read_data <- function(
         sample_column <- make_names_unique("index")
         data_table[["index"]] <- 1:nrow(data_table)
         if (verbose) {
-            cli::cli_alert_info(paste(
+            cli_alert_info(paste(
                 "No {.arg sample_column} provided. Adding an {.arg index}",
                 "column by row number. Provide {.arg sample_column}",
                 "to overwrite this."))
         }
     } else if (!is.null(sample_column) && !sample_column %in% names(data_table)) {
-        cli::cli_abort(paste(
+        cli_abort(paste(
             "{.arg sample_column} = {.val {sample_column}} not detected.",
             "Column names are case sensitive and should match exactly."))
     }
 
     ## validation: check that event_column exists
     if (!is.null(event_column) && !event_column %in% names(data_table)) {
-        cli::cli_abort(paste(
+        cli_abort(paste(
             "{.arg event_column} = {.val {event_column}} not detected.",
             "Column names are case sensitive and should match exactly."))
     }
@@ -379,7 +379,7 @@ read_data <- function(
     if (verbose && any(repeated_samples)) {
         repeated_samples <- sample_vector[repeated_samples]
 
-        cli::cli_warn(c(paste(
+        cli_warn(c(paste(
             "{.arg sample_column = {names(sample_column)}} has",
             "non-sequential or repeating values."),
             "i" = paste("Consider investigating at",
@@ -398,7 +398,7 @@ read_data <- function(
     if (verbose && any(diff(sample_vector) > 3600)) {
         big_gap <- sample_vector[c(diff(sample_vector) > 3600, FALSE)]
 
-        cli::cli_warn(paste(
+        cli_warn(paste(
             "{.val sample_column = {names(sample_column)}} has a gap",
             "greater than 60 minutes. Consider investigating at",
             "{.val {names(sample_column)} = {big_gap}}."))
@@ -409,8 +409,8 @@ read_data <- function(
         sample_rate <- NULL
 
         if (verbose) {
-            cli::cli_alert_info(paste(
-                "{.arg sample_rate} = {cli::col_blue('X')} should be defined",
+            cli_alert_info(paste(
+                "{.arg sample_rate} = {col_blue('X')} should be defined",
                 "explicitly as a numeric value > 0 Hz."))
         }
     }
@@ -427,17 +427,17 @@ read_data <- function(
         sample_rate <- as.numeric(data_full[which(oxysoft_sample_row), 2])
 
         if (verbose) {
-            cli::cli_alert_info(paste(
+            cli_alert_info(paste(
                 "Oxysoft detected sample rate = {.val {sample_rate}} Hz.",
-                "Overwrite this with {.arg sample_rate} = {cli::col_blue('X')}."))
+                "Overwrite this with {.arg sample_rate} = {col_blue('X')}."))
         }
     } else if (exists("sample_column_was_null")) {
         sample_rate <- 1
 
         if (verbose) {
-            cli::cli_alert_info(paste(
+            cli_alert_info(paste(
                 "No {.arg sample_column} provided. Sample rate set to {.val {1}} Hz.",
-                "Overwrite this with {.arg sample_rate} = {cli::col_blue('X')}."))
+                "Overwrite this with {.arg sample_rate} = {col_blue('X')}."))
         }
     } else {
         ## sample_rate will be incorrect if `sample_column` is integer
@@ -447,9 +447,9 @@ read_data <- function(
             (\(.x) round((1/.x)/0.5)*0.5)()
 
         if (verbose) {
-            cli::cli_alert_info(paste(
+            cli_alert_info(paste(
                 "Estimated sample rate = {.val {sample_rate}} Hz.",
-                "Overwrite this with {.arg sample_rate} = {cli::col_blue('X')}."))
+                "Overwrite this with {.arg sample_rate} = {col_blue('X')}."))
         }
     }
 
