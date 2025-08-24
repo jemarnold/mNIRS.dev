@@ -25,24 +25,24 @@ plot.mNIRS.data <- function(x, ...) {
     na.omit <- args$na.omit %||% FALSE
     display_time <- args$display_time %||% FALSE
 
-    nirs_columns <- attributes(x)$nirs_columns
-    sample_column <- attributes(x)$sample_column
+    nirs_channels <- attributes(x)$nirs_channels
+    sample_channel <- attributes(x)$sample_channel
 
-    ## pivot all `nirs_columns` to `y` and plot by group
+    ## pivot all `nirs_channels` to `y` and plot by group
     plot <- tidyr::pivot_longer(data = x,
-                                cols = dplyr::all_of(nirs_columns),
-                                names_to = "nirs_columns",
+                                cols = dplyr::all_of(nirs_channels),
+                                names_to = "nirs_channels",
                                 values_to = "y"
     ) |>
         ## remove empty rows for geom_line
         ( \(.df) if (na.omit) {tidyr::drop_na(.df, y)} else {.df})() |>
         ggplot() +
-        aes(x = .data[[sample_column]], y = y,
-            colour = nirs_columns) +
+        aes(x = .data[[sample_channel]], y = y,
+            colour = nirs_channels) +
         theme_mNIRS() +
         scale_x_continuous(
             name = if (display_time) {
-                paste(sample_column, "(h:mm:ss)")
+                paste(sample_channel, "(h:mm:ss)")
             } else {waiver()},
             breaks = if (display_time) {
                 breaks_timespan(n = 8)

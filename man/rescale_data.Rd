@@ -4,12 +4,12 @@
 \alias{rescale_data}
 \title{Rescale Data Range}
 \usage{
-rescale_data(data, nirs_columns = list(), rescale_range = c(0, 100))
+rescale_data(data, nirs_channels = list(), rescale_range = c(0, 100))
 }
 \arguments{
 \item{data}{A dataframe.}
 
-\item{nirs_columns}{A \code{list()} of character vectors indicating the column
+\item{nirs_channels}{A \code{list()} of character vectors indicating the column
 names for data channels to be rescaled (see \emph{Details}).}
 
 \item{rescale_range}{A numeric vector in the form \code{c(min, max)},
@@ -25,18 +25,18 @@ while preserving the relative scaling across channels. e.g. rescale the range
 of data to \code{c(0,100)}.
 }
 \details{
-\code{nirs_columns = list()} can be used to group data columns to preserve
+\code{nirs_channels = list()} can be used to group data channels to preserve
 relative scaling. channels grouped together in a vector will preserve
-relative scaling across channels. Should match column names in the dataframe
-exactly.
+relative scaling across those channels. Should match column names in the
+dataframe exactly.
 
 \describe{
-\item{\code{nirs_columns = list("A", "B", "C")}}{will rescale each column
+\item{\code{nirs_channels = list("A", "B", "C")}}{will rescale each channel
 separately. Relative scaling will be lost between data channels.}
-\item{\code{nirs_columns = list(c("A", "B", "C"))}}{will rescale all columns
+\item{\code{nirs_channels = list(c("A", "B", "C"))}}{will rescale all channels
 together. Relative scaling is preserved across the group of data channels.}
-\item{\code{nirs_columns = list(c("A", "B"), c("C", "D"))}}{will rescale columns
-\code{A} and \code{B} together, and columns \code{C} and \code{D} together. Relative scaling
+\item{\code{nirs_channels = list(c("A", "B"), c("C", "D"))}}{will rescale channels
+\code{A} and \code{B} together, and channels \code{C} and \code{D} together. Relative scaling
 is preserved within each group, but not across groups of data channels.}
 }
 }

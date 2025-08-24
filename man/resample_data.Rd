@@ -6,7 +6,7 @@
 \usage{
 resample_data(
   data,
-  sample_column = "time",
+  sample_channel = "time",
   sample_rate = NULL,
   resample_rate = NULL,
   resample_time = NULL,
@@ -16,7 +16,7 @@ resample_data(
 \arguments{
 \item{data}{A dataframe.}
 
-\item{sample_column}{A character scalar indicating the time or sample data
+\item{sample_channel}{A character scalar indicating the time or sample data
 column. Must match \code{data} column names exactly. Will be taken from metadata
 if not defined explicitly.}
 
@@ -42,11 +42,11 @@ Increase or decrease the number of observations in a dataframe using linear
 interpolation for up- and down-sampling.
 }
 \details{
-\code{sample_column} and \code{sample_rate} will be taken from metadata for a dataframe
+\code{sample_channel} and \code{sample_rate} will be taken from metadata for a dataframe
 of class \verb{"mNIRS.data} which has been processed with \code{{mNIRS}}, if not specified
 explicitly.
 
-Otherwise, \code{sample_rate} will be estimated from the values in \code{sample_column}.
+Otherwise, \code{sample_rate} will be estimated from the values in \code{sample_channel}.
 However, this may return unexpected values, and it is safer to define
 \code{sample_rate} explicitly.
 }

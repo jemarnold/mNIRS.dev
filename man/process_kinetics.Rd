@@ -13,7 +13,7 @@
   x = NULL,
   data = NULL,
   x0 = 0,
-  end_kinetics_span = 30,
+  end_kinetics_span = 15,
   method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
   verbose = TRUE,
   ...
@@ -24,7 +24,7 @@
   x = NULL,
   data = NULL,
   x0 = 0,
-  end_kinetics_span = 30,
+  end_kinetics_span = 15,
   method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
   verbose = TRUE,
   ...
@@ -35,7 +35,7 @@
   x = NULL,
   data = NULL,
   x0 = 0,
-  end_kinetics_span = 30,
+  end_kinetics_span = 15,
   method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
   verbose = TRUE,
   ...
@@ -46,7 +46,7 @@
   x = NULL,
   data = NULL,
   x0 = 0,
-  end_kinetics_span = 30,
+  end_kinetics_span = 15,
   method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
   verbose = TRUE,
   ...
@@ -66,7 +66,7 @@ variables named in \code{x} and \code{y}. Names for \code{x} and \code{y} must b
 \item{x0}{(\emph{Default = 0}) A numeric scalar indicating the value of the predictor
 variable \code{x} representing the start of the kinetics event.}
 
-\item{end_kinetics_span}{(\emph{Default} \code{end_kinetics_span = 30}) A numeric scalar
+\item{end_kinetics_span}{(\emph{Default} \code{end_kinetics_span = 15}) A numeric scalar
 indicating the local window in units of the predictor variable \code{x} after the
 kinetics extreme (peak or trough) value to look for subsequent greater extremes.
 The kinetics model will be fit to the data up to the first local extreme with

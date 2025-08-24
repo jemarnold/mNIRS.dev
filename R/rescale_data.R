@@ -5,24 +5,24 @@
 #' of data to `c(0,100)`.
 #'
 #' @param data A dataframe.
-#' @param nirs_columns A `list()` of character vectors indicating the column
+#' @param nirs_channels A `list()` of character vectors indicating the column
 #'  names for data channels to be rescaled (see *Details*).
 #' @param rescale_range A numeric vector in the form `c(min, max)`,
 #'  indicating the range of output values to which data channels will be rescaled.
 #'
 #' @details
-#' `nirs_columns = list()` can be used to group data columns to preserve
+#' `nirs_channels = list()` can be used to group data channels to preserve
 #' relative scaling. channels grouped together in a vector will preserve
-#' relative scaling across channels. Should match column names in the dataframe
-#' exactly.
+#' relative scaling across those channels. Should match column names in the
+#' dataframe exactly.
 #'
 #'  \describe{
-#'      \item{`nirs_columns = list("A", "B", "C")`}{will rescale each column
+#'      \item{`nirs_channels = list("A", "B", "C")`}{will rescale each channel
 #'      separately. Relative scaling will be lost between data channels.}
-#'      \item{`nirs_columns = list(c("A", "B", "C"))`}{will rescale all columns
+#'      \item{`nirs_channels = list(c("A", "B", "C"))`}{will rescale all channels
 #'      together. Relative scaling is preserved across the group of data channels.}
-#'      \item{`nirs_columns = list(c("A", "B"), c("C", "D"))`}{will rescale columns
-#'      `A` and `B` together, and columns `C` and `D` together. Relative scaling
+#'      \item{`nirs_channels = list(c("A", "B"), c("C", "D"))`}{will rescale channels
+#'      `A` and `B` together, and channels `C` and `D` together. Relative scaling
 #'      is preserved within each group, but not across groups of data channels.}
 #'  }
 #'
@@ -32,25 +32,25 @@
 #' @export
 rescale_data <- function(
         data,
-        nirs_columns = list(),
+        nirs_channels = list(),
         rescale_range = c(0, 100)
 ) {
 
     metadata <- attributes(data)
 
     if (
-        length(nirs_columns) == 0 &
-        !is.null(metadata$nirs_columns)
+        length(nirs_channels) == 0 &
+        !is.null(metadata$nirs_channels)
     ) {
-        ## "global" condition from metadata$nirs_columns
-        nirs_columns <- metadata$nirs_columns
+        ## "global" condition from metadata$nirs_channels
+        nirs_channels <- metadata$nirs_channels
     }
 
-    ## validation: `nirs_columns` must match expected dataframe names
-    if (!all(unlist(nirs_columns) %in% names(data))) {
+    ## validation: `nirs_channels` must match expected dataframe names
+    if (!all(unlist(nirs_channels) %in% names(data))) {
         cli_abort(paste(
-            "{.arg nirs_columns} must be a list of names.",
-            "Make sure column names match exactly."))
+            "{.arg nirs_channels} must be a list of names.",
+            "Make sure channel names match exactly."))
     }
 
     ## validation: `rescale_range` must be numeric vector
@@ -63,9 +63,9 @@ rescale_data <- function(
     ## rescale range ================================
 
     y <- lapply(
-        if (is.list(nirs_columns)) {
-            nirs_columns
-        } else {list(nirs_columns)},
+        if (is.list(nirs_channels)) {
+            nirs_channels
+        } else {list(nirs_channels)},
         \(.col) {
             data |>
                 dplyr::select(dplyr::any_of(.col)) |>
@@ -80,13 +80,13 @@ rescale_data <- function(
                 )
         }) |>
         dplyr::bind_cols(
-            dplyr::select(data, -dplyr::any_of(unlist(nirs_columns)))
+            dplyr::select(data, -dplyr::any_of(unlist(nirs_channels)))
         ) |>
         dplyr::relocate(names(data))
 
     ## Metadata =================================
-    metadata$nirs_columns <- unique(
-        c(metadata$nirs_columns, unlist(nirs_columns)))
+    metadata$nirs_channels <- unique(
+        c(metadata$nirs_channels, unlist(nirs_channels)))
 
     y <- create_mNIRS_data(y, metadata)
 
@@ -99,14 +99,14 @@ rescale_data <- function(
 # #
 # (df <- read_data(
 #     file_path = r"(C:\OneDrive - UBC\Body Position Study\Raw Data\SRLB02-Oxysoft-2024-12-20.xlsx)",
-#     nirs_columns = c("ICG_VL" = "9", "ICG_SCM" = "10", "smo2" = "7"),
-#     sample_column = c("Sample" = "1"),
-#     # event_column = c("Event" = "11"),
+#     nirs_channels = c("ICG_VL" = "9", "ICG_SCM" = "10", "smo2" = "7"),
+#     sample_channel = c("Sample" = "1"),
+#     # event_channel = c("Event" = "11"),
 # ) |> dplyr::slice(-1))
 # #
 # y <- rescale_data(
 #     data = df,
-#     nirs_columns = list(c("ICG_VL", "ICG_SCM")),
+#     nirs_channels = list(c("ICG_VL", "ICG_SCM")),
 #     rescale_range = c(0, 100)
 # ) |> print()
 # attributes(y)

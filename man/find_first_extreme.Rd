@@ -4,7 +4,7 @@
 \alias{find_first_extreme}
 \title{Find the First Extreme Peak or Trough Value in a Numeric Vector}
 \usage{
-find_first_extreme(y, x = NULL, end_kinetics_span = 30)
+find_first_extreme(y, x = NULL, end_kinetics_span = 15)
 }
 \arguments{
 \item{y}{A numeric vector of the response variable, or the name of the
@@ -14,7 +14,7 @@ variable within a dataframe.}
 of the variable within a dataframe. \emph{Defaults} to using the index of
 \code{x = seq_along(y)}.}
 
-\item{end_kinetics_span}{(\emph{Default} \code{end_kinetics_span = 30}) A numeric scalar
+\item{end_kinetics_span}{(\emph{Default} \code{end_kinetics_span = 15}) A numeric scalar
 indicating the local window in units of the predictor variable \code{x} after the
 kinetics extreme (peak or trough) value to look for subsequent greater extremes.
 The kinetics model will be fit to the data up to the first local extreme with

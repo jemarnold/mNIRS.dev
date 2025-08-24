@@ -12,9 +12,9 @@ prepare_kinetics_data(
   fit_span = c(30, 180),
   display_span = NULL,
   group_events = list("distinct", "ensemble"),
-  nirs_columns = NULL,
-  sample_column = NULL,
-  event_column = NULL,
+  nirs_channels = NULL,
+  sample_channel = NULL,
+  event_channel = NULL,
   sample_rate = NULL,
   ...
 )
@@ -23,11 +23,11 @@ prepare_kinetics_data(
 \item{data}{A dataframe of class \code{"mNIRS.data"}.}
 
 \item{event_sample}{An \emph{optional} numeric vector corresponding to values of
-\code{sample_column} indicating the start of kinetic events. i.e., by time value
+\code{sample_channel} indicating the start of kinetic events. i.e., by time value
 or sample number.}
 
 \item{event_label}{An \emph{optional} character vector corresponding to values of
-\code{event_column} indicating the start of kinetics events. i.e., by an event
+\code{event_channel} indicating the start of kinetics events. i.e., by an event
 label such as \emph{"end work"}.}
 
 \item{event_index}{An \emph{optional} numeric vector indicating the starting row
@@ -35,7 +35,7 @@ indices of kinetics events. i.e., to identify the start of kinetic events by
 row number.}
 
 \item{fit_span}{A two-element numeric vector in the form \code{c(before, after)}
-in units of \code{sample_column}, defining the window around the kinetics events
+in units of \code{sample_channel}, defining the window around the kinetics events
 to include in the model fitting process (\emph{default} \code{fit_span = c(30, 180)}).}
 
 \item{display_span}{\emph{\verb{<under development>}}.}
@@ -44,16 +44,16 @@ to include in the model fitting process (\emph{default} \code{fit_span = c(30, 1
 either \emph{"distinct"} (the \emph{default}) or \emph{"ensemble"}, but can be manually
 specified (see \emph{Details}).}
 
-\item{nirs_columns}{A character vector indicating the mNIRS data columns to
+\item{nirs_channels}{A character vector indicating the mNIRS data channels to
 be processed from your dataframe. Must match \code{data} column names exactly.
 Will be taken from metadata if not defined explicitly.}
 
-\item{sample_column}{A character scalar indicating the time or sample data
-column. Must match \code{data} column names exactly. Will be taken from metadata
+\item{sample_channel}{A character scalar indicating the time or sample data
+channel. Must match \code{data} column names exactly. Will be taken from metadata
 if not defined explicitly.}
 
-\item{event_column}{An \emph{optional} character scalar indicating an event or
-lap data column. Must match \code{data} column names exactly. Will be taken from
+\item{event_channel}{An \emph{optional} character scalar indicating an event or
+lap data channel. Must match \code{data} column names exactly. Will be taken from
 metadata if not defined explicitly.}
 
 \item{sample_rate}{A numeric scalar for the sample rate in Hz. Will be taken

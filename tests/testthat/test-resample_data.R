@@ -9,11 +9,11 @@ test_that("resample_data passthrough works", {
 test_that("resample_data validates inputs", {
     data <- data.frame(time = 1:10, value = rnorm(10))
 
-    # Missing column
+    # Missing channel
     expect_error(resample_data(data, "missing_col", 1, 2),
-                 "`sample_column` not found.")
+                 "`sample_channel` not found.")
 
-    # Non-numeric time column
+    # Non-numeric time channel
     data$time <- letters[1:10]
     expect_error(resample_data(data, "time", 1, 2),
                  "must be a.*numeric.*vector")
@@ -131,8 +131,8 @@ test_that("resample_data works on Moxy", {
 
     df <- read_data(
         file_path = file_path,
-        nirs_columns = c(smo2 = "SmO2 Live(2)"),
-        sample_column = c(time = "hh:mm:ss"),
+        nirs_channels = c(smo2 = "SmO2 Live(2)"),
+        sample_channel = c(time = "hh:mm:ss"),
         verbose = FALSE
     )[1:15, ]
 

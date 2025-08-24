@@ -4,7 +4,7 @@
 #' interpolation for up- and down-sampling.
 #'
 #' @param data A dataframe.
-#' @param sample_column A character scalar indicating the time or sample data
+#' @param sample_channel A character scalar indicating the time or sample data
 #'  column. Must match `data` column names exactly. Will be taken from metadata
 #'  if not defined explicitly.
 #' @param sample_rate A numeric scalar for the sample rate in Hz. Will be taken
@@ -18,11 +18,11 @@
 #' messages. Errors will always be returned.
 #'
 #' @details
-#' `sample_column` and `sample_rate` will be taken from metadata for a dataframe
+#' `sample_channel` and `sample_rate` will be taken from metadata for a dataframe
 #' of class `"mNIRS.data` which has been processed with `{mNIRS}`, if not specified
 #' explicitly.
 #'
-#' Otherwise, `sample_rate` will be estimated from the values in `sample_column`.
+#' Otherwise, `sample_rate` will be estimated from the values in `sample_channel`.
 #' However, this may return unexpected values, and it is safer to define
 #' `sample_rate` explicitly.
 #'
@@ -32,7 +32,7 @@
 #' @export
 resample_data <- function(
         data,
-        sample_column = "time",
+        sample_channel = "time",
         sample_rate = NULL,
         resample_rate = NULL,
         resample_time = NULL,
@@ -50,14 +50,14 @@ resample_data <- function(
     ## metadata ================================
     metadata <- attributes(data)
 
-    ## define `sample_column`. priority is manually defined
-    if (is.null(sample_column) & !is.null(metadata$sample_column)) {
-        sample_column <- metadata$sample_column
-    } else if (is.null(sample_column) | !any(sample_column %in% names(data))) {
+    ## define `sample_channel`. priority is manually defined
+    if (is.null(sample_channel) & !is.null(metadata$sample_channel)) {
+        sample_channel <- metadata$sample_channel
+    } else if (is.null(sample_channel) | !any(sample_channel %in% names(data))) {
         cli_abort(
-            "{.arg sample_column} not found. Make sure column names match exactly.")
-    } else if (!is.numeric(data[[sample_column]])) {
-        cli_abort(paste("{.arg sample_column} = {.val {sample_column}} must be",
+            "{.arg sample_channel} not found. Make sure column names match exactly.")
+    } else if (!is.numeric(data[[sample_channel]])) {
+        cli_abort(paste("{.arg sample_channel} = {.val {sample_channel}} must be",
                         "a {col_blue('numeric')} vector."))
     }
 
@@ -73,7 +73,7 @@ resample_data <- function(
     }
 
     ## estimate sample_rate in samples per second
-    sample_vector <- as.numeric(data[[sample_column]])
+    sample_vector <- as.numeric(data[[sample_channel]])
     estimated_sample_rate <- diff(sample_vector)[1:100] |>
         mean(na.rm = TRUE) |>
         (\(.x) round((1/.x)/0.5)*0.5)()
@@ -95,8 +95,8 @@ resample_data <- function(
         sample_info <- paste("{.arg sample_rate} = {.val {sample_rate}} Hz.")
     }
 
-    if (nrow(data[!is.na(data[[sample_column]]), ]) < 2) {
-        cli_abort(paste("{.arg sample_column} = {.val {sample_column}} needs",
+    if (nrow(data[!is.na(data[[sample_channel]]), ]) < 2) {
+        cli_abort(paste("{.arg sample_channel} = {.val {sample_channel}} needs",
                         "at least two non-NA values to interpolate across."))
     }
 
@@ -118,12 +118,12 @@ resample_data <- function(
     new_times <- seq(from = sample_range[1],
                      to = sample_range[2],
                      by = resample_time)
-    result <- data.frame(setNames(list(new_times), sample_column))
+    result <- data.frame(setNames(list(new_times), sample_channel))
 
     ## interpolate numeric columns
     numeric_cols <- sapply(data, \(.x) is.numeric(.x))
-    numeric_cols[sample_column] <- FALSE
-    non_numeric_cols <- names(data)[!numeric_cols & names(data) != sample_column]
+    numeric_cols[sample_channel] <- FALSE
+    non_numeric_cols <- names(data)[!numeric_cols & names(data) != sample_channel]
 
     if (any(numeric_cols)) {
         numeric_data <- data[numeric_cols]
@@ -147,7 +147,7 @@ resample_data <- function(
     }
     #
     ## Metadata =================================
-    metadata$sample_column <- unlist(sample_column)
+    metadata$sample_channel <- unlist(sample_channel)
     metadata$sample_rate <- resample_rate
 
     result <- create_mNIRS_data(result, metadata)

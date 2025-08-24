@@ -6,9 +6,9 @@ test_that("read_data moxy.perfpro works", {
     expect_warning(
         df <- read_data(
             file_path = file_path,
-            nirs_columns = c(smo2_left = "SmO2 Live",
+            nirs_channels = c(smo2_left = "SmO2 Live",
                              smo2_right = "SmO2 Live(2)"),
-            sample_column = c(time = "hh:mm:ss"),
+            sample_channel = c(time = "hh:mm:ss"),
             time_to_numeric = FALSE,
             keep_all = FALSE,
             verbose = TRUE),
@@ -22,7 +22,7 @@ test_that("read_data moxy.perfpro works", {
     expect_type(df$time, "double")
 
     expect_true(
-        all(c("nirs_columns", "sample_column", "sample_rate") %in%
+        all(c("nirs_channels", "sample_channel", "sample_rate") %in%
                 names(attributes(df))))
 
     expect_equal(attr(df, "sample_rate"), 2)
@@ -30,9 +30,9 @@ test_that("read_data moxy.perfpro works", {
     expect_warning(
         df <- read_data(
             file_path = file_path,
-            nirs_columns = c(smo2_left = "SmO2 Live",
+            nirs_channels = c(smo2_left = "SmO2 Live",
                              smo2_right = "SmO2 Live(2)"),
-            sample_column = c(time = "hh:mm:ss"),
+            sample_channel = c(time = "hh:mm:ss"),
             time_to_numeric = TRUE,
             keep_all = FALSE,
             verbose = TRUE),
@@ -44,54 +44,54 @@ test_that("read_data moxy.perfpro works", {
     expect_gt(sum(diff(head(df$time, 100)) < 1 & diff(head(df$time, 100)) > 0), 0)
     expect_lt(sum(diff(head(df$time, 100)) %in% c(0, 1)), 99)
 
-    ## column name blank space should error
+    ## channel name blank space should error
     expect_error(
         read_data(
             file_path = file_path,
-            nirs_columns = c(smo2_left = "SmO2 Live",
+            nirs_channels = c(smo2_left = "SmO2 Live",
                              smo2_right = "SmO2 Live(2)"),
-            sample_column = c(time = "hh:mm:ss"),
-            event_column = " ",
+            sample_channel = c(time = "hh:mm:ss"),
+            event_channel = " ",
             verbose = FALSE),
         "not detected")
 
-    ## column name empty space should not error convert to NULL
+    ## channel name empty space should not error convert to NULL
     expect_no_error(
         read_data(
             file_path = file_path,
-            nirs_columns = c(smo2_left = "SmO2 Live",
+            nirs_channels = c(smo2_left = "SmO2 Live",
                              smo2_right = "SmO2 Live(2)"),
-            sample_column = c(time = "hh:mm:ss"),
-            event_column = "",
+            sample_channel = c(time = "hh:mm:ss"),
+            event_channel = "",
             verbose = FALSE)
         )
 
     expect_error(
         read_data(
             file_path = file_path,
-            nirs_columns = c(smo2_left = "smo2_doesnt_exist"),
+            nirs_channels = c(smo2_left = "smo2_doesnt_exist"),
             verbose = FALSE),
         "not detected")
 
     expect_warning(
         read_data(
             file_path = file_path,
-            nirs_columns = c(smo2 = "SmO2 Live",
+            nirs_channels = c(smo2 = "SmO2 Live",
                              smo2 = "SmO2 Live(2)"),
             verbose = TRUE),
-        "Duplicated input column names detected") |>
+        "Duplicated input channel names detected") |>
         expect_message("Adding an `index` column by row number") |>
-        expect_message("No `sample_column` provided")
+        expect_message("No `sample_channel` provided")
 
     expect_message(
         read_data(
             file_path = file_path,
-            nirs_columns = c(smo2_left = "SmO2 Live",
+            nirs_channels = c(smo2_left = "SmO2 Live",
                              smo2_right = "SmO2 Live(2)"),
-            sample_column = NULL,
+            sample_channel = NULL,
             verbose = TRUE),
         "Adding an `index` column by row number") |>
-        expect_message("No `sample_column` provided")
+        expect_message("No `sample_channel` provided")
 })
 
 
@@ -105,9 +105,9 @@ test_that("read_data train.red works", {
     expect_warning(
         df <- read_data(
             file_path = file_path,
-            nirs_columns = c(smo2_left = "SmO2 unfiltered",
+            nirs_channels = c(smo2_left = "SmO2 unfiltered",
                              smo2_right = "SmO2 unfiltered"),
-            sample_column = c(time = "Timestamp (seconds passed)"),
+            sample_channel = c(time = "Timestamp (seconds passed)"),
             verbose = TRUE),
         "non-sequential or repeating values") |>
         expect_message("Estimated sample rate")
@@ -115,9 +115,9 @@ test_that("read_data train.red works", {
     expect_silent(
         read_data(
             file_path = file_path,
-            nirs_columns = c(smo2_left = "SmO2 unfiltered",
+            nirs_channels = c(smo2_left = "SmO2 unfiltered",
                              smo2_right = "SmO2 unfiltered"),
-            sample_column = c(time = "Timestamp (seconds passed)"),
+            sample_channel = c(time = "Timestamp (seconds passed)"),
             verbose = FALSE)
     )
 
@@ -129,15 +129,15 @@ test_that("read_data train.red works", {
     expect_equal(
         read_data(
             file_path = file_path,
-            nirs_columns = c(smo2_left = "SmO2 unfiltered",
+            nirs_channels = c(smo2_left = "SmO2 unfiltered",
                              smo2_right = "SmO2 unfiltered"),
-            sample_column = c(time = "Timestamp (seconds passed)"),
+            sample_channel = c(time = "Timestamp (seconds passed)"),
             time_from_zero = TRUE,
             verbose = FALSE)$time[1],
     0)
 
     expect_true(
-        all(c("nirs_columns", "sample_column", "sample_rate") %in%
+        all(c("nirs_channels", "sample_channel", "sample_rate") %in%
                 names(attributes(df))))
 
     expect_equal(attr(df, "sample_rate"), 10)
@@ -145,17 +145,17 @@ test_that("read_data train.red works", {
     expect_error(
         read_data(
             file_path = file_path,
-            nirs_columns = c(smo2_left = "smo2_doesnt_exist"),
+            nirs_channels = c(smo2_left = "smo2_doesnt_exist"),
             verbose = FALSE),
         "not detected")
 
     expect_warning(
         read_data(
             file_path = file_path,
-            nirs_columns = c(smo2 = "SmO2 unfiltered",
+            nirs_channels = c(smo2 = "SmO2 unfiltered",
                              smo2 = "SmO2 unfiltered"),
             verbose = TRUE),
-        "Duplicated input column names detected") |>
+        "Duplicated input channel names detected") |>
         expect_message("Adding an `index` column by row number") |>
         expect_message("Sample rate set to")
 })
@@ -170,9 +170,9 @@ test_that("read_data oxysoft works", {
     expect_length(
         df <- read_data(
             file_path = file_path,
-            nirs_columns = c(HHb_VL = 5,
+            nirs_channels = c(HHb_VL = 5,
                              O2Hb_VL = 6),
-            sample_column = c(sample = 1),
+            sample_channel = c(sample = 1),
             verbose = FALSE),
         4)
 
@@ -183,7 +183,7 @@ test_that("read_data oxysoft works", {
     expect_s3_class(df, "data.frame")
 
     expect_true(
-        all(c("nirs_columns", "sample_column", "sample_rate") %in%
+        all(c("nirs_channels", "sample_channel", "sample_rate") %in%
                 names(attributes(df))))
 
     expect_equal(attr(df, "sample_rate"), 50)
@@ -191,29 +191,29 @@ test_that("read_data oxysoft works", {
     expect_error(
         read_data(
             file_path = file_path,
-            nirs_columns = c(smo2_left = "smo2_doesnt_exist"),
+            nirs_channels = c(smo2_left = "smo2_doesnt_exist"),
             verbose = FALSE),
         "not detected")
 
     expect_warning(
         read_data(
             file_path = file_path,
-            nirs_columns = c(smo2 = 5,
+            nirs_channels = c(smo2 = 5,
                              smo2 = 6),
-            sample_column = c(sample = 1),
+            sample_channel = c(sample = 1),
             verbose = TRUE),
-        "Duplicated input column names detected") |>
+        "Duplicated input channel names detected") |>
         expect_message("Oxysoft detected sample rate") |>
         expect_message("`time` column in seconds added")
 
     expect_message(
         read_data(
             file_path = file_path,
-            nirs_columns = c(HHb_VL = 5,
+            nirs_channels = c(HHb_VL = 5,
                              ICG_VL = 6),
-            sample_column = NULL,
+            sample_channel = NULL,
             verbose = TRUE),
-        "No `sample_column` provided") |>
+        "No `sample_channel` provided") |>
         expect_message("Oxysoft detected sample rate") |>
         expect_message("`time` column in seconds added")
 })
@@ -229,9 +229,9 @@ test_that("read_data VMPro app works", {
     expect_length(
         df <- read_data(
             file_path = file_path,
-            nirs_columns = c(smo2_left = "SmO2[%]",
+            nirs_channels = c(smo2_left = "SmO2[%]",
                              smo2_right = "SmO2 -  2[%]"),
-            sample_column = c(time = "Time[utc]"),
+            sample_channel = c(time = "Time[utc]"),
             time_to_numeric = FALSE,
             keep_all = TRUE,
             verbose = FALSE),
@@ -244,9 +244,9 @@ test_that("read_data VMPro app works", {
 
     df <- read_data(
         file_path = file_path,
-        nirs_columns = c(smo2_left = "SmO2[%]",
+        nirs_channels = c(smo2_left = "SmO2[%]",
                          smo2_right = "SmO2 -  2[%]"),
-        sample_column = c(time = "Time[utc]"),
+        sample_channel = c(time = "Time[utc]"),
         time_to_numeric = TRUE,
         keep_all = TRUE,
         verbose = FALSE)
@@ -255,7 +255,7 @@ test_that("read_data VMPro app works", {
     expect_false(all(class(df$time) %in% "POSIXct"))
 
     expect_true(
-        all(c("nirs_columns", "sample_column", "sample_rate") %in%
+        all(c("nirs_channels", "sample_channel", "sample_rate") %in%
                 names(attributes(df))))
 
     expect_equal(attr(df, "sample_rate"), 1)
@@ -263,26 +263,26 @@ test_that("read_data VMPro app works", {
     expect_error(
         read_data(
             file_path = file_path,
-            nirs_columns = c(smo2_left = "smo2_doesnt_exist"),
+            nirs_channels = c(smo2_left = "smo2_doesnt_exist"),
             verbose = FALSE),
         "not detected")
 
     expect_warning(
         read_data(
             file_path = file_path,
-            nirs_columns = c(smo2 = "SmO2[%]",
+            nirs_channels = c(smo2 = "SmO2[%]",
                              smo2 = "SmO2 -  2[%]"),
-            sample_column = c(time = "Time[utc]"),
+            sample_channel = c(time = "Time[utc]"),
             verbose = TRUE),
-        "Duplicated input column names detected") |>
+        "Duplicated input channel names detected") |>
         expect_message("Estimated sample rate = ")
 
     expect_message(
         read_data(
             file_path = file_path,
-            nirs_columns = c(smo2_left = "SmO2[%]",
+            nirs_channels = c(smo2_left = "SmO2[%]",
                              smo2_right = "SmO2 -  2[%]"),
-            sample_column = NULL,
+            sample_channel = NULL,
             verbose = TRUE),
         "Adding an `index` column by row number") |>
         expect_message("Sample rate set to")

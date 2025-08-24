@@ -5,8 +5,8 @@ test_that("filter_data smooth-spline works", {
 
     df <- read_data(
         file_path = file_path,
-        nirs_columns = c(smo2 = "SmO2 Live(2)"),
-        sample_column = c(time = "hh:mm:ss"),
+        nirs_channels = c(smo2 = "SmO2 Live(2)"),
+        sample_channel = c(time = "hh:mm:ss"),
         verbose = FALSE
     )
 
@@ -40,8 +40,8 @@ test_that("filter_data smooth-spline works", {
     ## handle NA
     df_na <- read_data(
         file_path = file_path,
-        nirs_columns = c(smo2 = "SmO2 Live"),
-        sample_column = c(time = "hh:mm:ss"),
+        nirs_channels = c(smo2 = "SmO2 Live"),
+        sample_channel = c(time = "hh:mm:ss"),
         verbose = FALSE
     )
 

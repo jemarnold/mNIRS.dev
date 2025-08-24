@@ -5,9 +5,9 @@
 #' @param data A dataframe.
 #' @param metadata Metadata passed along with the dataframe.
 #'  - nirs_device
-#'  - nirs_columns
-#'  - sample_column
-#'  - event_column
+#'  - nirs_channels
+#'  - sample_channel
+#'  - event_channel
 #'  - sample_rate
 #'  - event_sample_list
 #'  - fit_span
@@ -20,9 +20,9 @@
 #' @examples
 #' ## currently implemented metadata
 #' metadata <- list(nirs_device = NULL,
-#'                  nirs_columns = NULL,
-#'                  sample_column = NULL,
-#'                  event_column = NULL,
+#'                  nirs_channels = NULL,
+#'                  sample_channel = NULL,
+#'                  event_channel = NULL,
 #'                  sample_rate = NULL,
 #'                  event_sample_list = NULL,
 #'                  fit_span = NULL,
@@ -36,8 +36,8 @@
 #'
 #' nirs_data <- create_mNIRS_data(
 #'     df,
-#'     metadata = list(nirs_columns = c("B", "C"),
-#'                     sample_column = "A",
+#'     metadata = list(nirs_channels = c("B", "C"),
+#'                     sample_channel = "A",
 #'                     sample_rate = 1)
 #' )
 #' attributes(nirs_data)
@@ -56,9 +56,9 @@ create_mNIRS_data <- function(
         data,
         class = "mNIRS.data",
         nirs_device = metadata$nirs_device,
-        nirs_columns = metadata$nirs_columns,
-        sample_column = metadata$sample_column,
-        event_column = metadata$event_column,
+        nirs_channels = metadata$nirs_channels,
+        sample_channel = metadata$sample_channel,
+        event_channel = metadata$event_channel,
         sample_rate = metadata$sample_rate, ## samples per second
         event_sample_list = metadata$event_sample_list, ##
         fit_span = metadata$fit_span, ## c(-baseline, +kinetics)
@@ -83,26 +83,26 @@ create_mNIRS_data <- function(
 #'
 #' @param file_path The file path including extension (either *".xlsx"*,
 #'  *".xls"*, or *".csv"*) to import.
-#' @param nirs_columns A character vector indicating the mNIRS data columns
+#' @param nirs_channels A character vector indicating the mNIRS data columns
 #'  to import from the file. Must match column names in the data file exactly.
 #'  A named character vector can be used to rename columns in the form:
 #'  `c(new_name = "old_name")` (see *Details*).
-#' @param sample_column An *optional* character scalar indicating the time or
+#' @param sample_channel An *optional* character scalar indicating the time or
 #'  sample data column to import from the file. Must match column names in the
 #'  data file exactly. A named character vector can be used to rename columns in
 #'  the form: `c(new_name = "old_name")` (see *Details*).
-#' @param event_column An *optional* character scalar indicating the event or lap
+#' @param event_channel An *optional* character scalar indicating the event or lap
 #'  data column to import from the file. Must match column names in the data file
 #'  exactly. A named character vector can be used to rename columns in the form:
 #'  `c(new_name = "original_name")` (see *Details*).
 #' @param sample_rate An *optional* numeric scalar for the sample rate in Hz.
 #'  If not defined explicitly, will be estimated from the data (see *Details*).
 #' @param time_to_numeric A logical. `TRUE` (the *default*) will convert
-#'  a date-time formatted `sample_column` to numeric values in seconds.
-#'  `FALSE` will return `sample_column` in the format of the original file.
+#'  a date-time formatted `sample_channel` to numeric values in seconds.
+#'  `FALSE` will return `sample_channel` in the format of the original file.
 #' @param time_from_zero A logical. `FALSE` (the *default*) will return the
-#'  original numeric values of `sample_column`. `TRUE` will re-sample
-#'  `sample_column` to start from zero.
+#'  original numeric values of `sample_channel`. `TRUE` will re-sample
+#'  `sample_channel` to start from zero.
 #' @param keep_all A logical. `FALSE` (the *default*) will only include the
 #'  explicitly specified data columns. `TRUE` will include all columns detected
 #'  from the file.
@@ -111,33 +111,33 @@ create_mNIRS_data <- function(
 #'  messages. Errors will always be returned.
 #'
 #' @details
-#' Column names are matched to a single row, anywhere in the data file, not
-#' necessarily the top row of the file.
+#' Channel names are matched to a single row, representing the header row for
+#' data columns anywhere in the data file, not necessarily the top row of the file.
 #'
-#' Columns can be renamed in the format `c(new_name = "original_name")`, where
+#' Channels can be renamed in the format `c(new_name = "original_name")`, where
 #' `"original_name"` should match the column names found in the file exactly.
 #'
-#' If there are duplicate column names in the file, the columns will be matched
-#' in the order in which they appear. You may want to confirm that the correct
-#' columns have been assigned as intended.
+#' If there are duplicate column names in the file, the channel names will be
+#' matched in the order in which they appear. You may want to confirm that the
+#' correct columns have been assigned to each channel as intended.
 #'
-#' If `sample_column` is not specified, then an `index` column will be added
-#' from the row numbers. If the specified `sample_column` contains unequal
+#' If `sample_channel` is not specified, then an `index` column will be added
+#' from the row numbers. If the specified `sample_channel` contains unequal
 #' sampling (i.e., repeated values or unordered samples) a warning will be given
 #' suggesting the user confirm the file data manually.
 #'
-#' When the `sample_column` is provided in date-time format (e.g. `hh:mm:ss`),
+#' When the `sample_channel` is provided in date-time format (e.g. `hh:mm:ss`),
 #' this can be converted back to numeric values by `time_to_numeric = TRUE`. In
 #' this case, values will be recalculated as starting from `0` at the first sample.
 #'
-#' `sample_column` will typically represent time values in seconds. However, some
+#' `sample_channel` will typically represent time values in seconds. However, some
 #' NIRS devices export the sample index. This can be converted to time values
 #' if the `sample_rate` is known.
 #'
 #' `sample_rate` is required for certain `{mNIRS}` functions to work properly.
 #' If it is not defined explicitly, it will be estimated based on the mean
-#' difference between values in the `sample_column`. If `sample_column` is not
-#' defined, then `sample_rate` will be set to 1 Hz. If `sample_column` in the
+#' difference between values in the `sample_channel`. If `sample_channel` is not
+#' defined, then `sample_rate` will be set to 1 Hz. If `sample_channel` in the
 #' data file contains integer row numbers, then `sample_rate` will be
 #' incorrectly estimated to be 1 Hz, and should be defined explicitly.
 #'
@@ -149,9 +149,9 @@ create_mNIRS_data <- function(
 #' @export
 read_data <- function(
         file_path,
-        nirs_columns,
-        sample_column = NULL,
-        event_column = NULL,
+        nirs_channels,
+        sample_channel = NULL,
+        event_channel = NULL,
         sample_rate = NULL,
         time_to_numeric = TRUE,
         time_from_zero = FALSE,
@@ -167,11 +167,11 @@ read_data <- function(
     }
 
     ## empty to NULL
-    sample_column <- if (length(sample_column[sample_column != ""]) > 0) {
-        sample_column[sample_column != ""]
+    sample_channel <- if (length(sample_channel[sample_channel != ""]) > 0) {
+        sample_channel[sample_channel != ""]
     } else {NULL}
-    event_column <- if (length(event_column[event_column != ""]) > 0) {
-        event_column[event_column != ""]
+    event_channel <- if (length(event_channel[event_channel != ""]) > 0) {
+        event_channel[event_channel != ""]
     } else {NULL}
 
     ## validation: check file types
@@ -219,23 +219,23 @@ read_data <- function(
                         "{.arg .csv} currently recognised.")))
     }
 
-    ## detect header row where nirs_columns exists
+    ## detect header row where nirs_channels exists
     header_row <- which(apply(
         data_full[1:1000, ], 1,
-        \(.row) all(c(nirs_columns, sample_column) %in% .row)
+        \(.row) all(c(nirs_channels, sample_channel) %in% .row)
     ))
 
-    ## validation: nirs_columns must be detected to extract the proper dataframe
+    ## validation: nirs_channels must be detected to extract the proper dataframe
     if (rlang::is_empty(header_row)) {
         cli_abort(paste(
-            "{.val data column names} not detected.",
-            "Column names are case sensitive and should match exactly."))
+            "Channel names not detected. Names are case sensitive",
+            "and should match exactly."))
     }
 
-    ## return error if nirs_columns string is detected at multiple rows
+    ## return error if nirs_channels string is detected at multiple rows
     if (length(header_row) > 1) {
         cli_abort(paste(
-            "{.val data column names} detected at multiple rows.",
+            "Channel names detected at multiple rows.",
             "Please ensure that column names in the data file are unique."))
     }
 
@@ -260,7 +260,7 @@ read_data <- function(
                 renamed <- unique_names[unique_names != x_names]
 
                 cli_warn(c(
-                    "Duplicated input column names detected and renamed:",
+                    "Duplicated input channel names detected and renamed:",
                     "i" = "{.val {paste(dup_names, renamed, sep = ' = ')}}",
                     "i" = "Consider revising to unique names"
                 ))
@@ -277,40 +277,40 @@ read_data <- function(
 
     ## explicitly rename objects
     data_raw <- make_names_unique(data_raw)
-    nirs_columns <- make_names_unique(nirs_columns)
-    sample_column <- make_names_unique(sample_column)
-    event_column <- make_names_unique(event_column)
+    nirs_channels <- make_names_unique(nirs_channels)
+    sample_channel <- make_names_unique(sample_channel)
+    event_channel <- make_names_unique(event_channel)
 
-    ## desired column names supercede existing dataframe column names
-    ## EDGE CASE for when desired column matches existing column and keep_all == TRUE
+    ## desired channel names supercede existing dataframe column names
+    ## EDGE CASE for when desired channel matches existing column and keep_all == TRUE
     col_check <- names(data_raw) %in% c(
-        names(sample_column)[!sample_column %in% names(sample_column)],
-        names(nirs_columns)[!nirs_columns %in% names(nirs_columns)],
-        names(event_column)[!event_column %in% names(event_column)])
+        names(sample_channel)[!sample_channel %in% names(sample_channel)],
+        names(nirs_channels)[!nirs_channels %in% names(nirs_channels)],
+        names(event_channel)[!event_channel %in% names(event_channel)])
     names(data_raw)[col_check] <- paste0(names(data_raw)[col_check], "..1")
 
-    ## validation: check that sample_column exists
-    if (is.null(sample_column)) {
-        sample_column_was_null <- TRUE
-        sample_column <- make_names_unique("index")
+    ## validation: check that sample_channel exists
+    if (is.null(sample_channel)) {
+        sample_channel_was_null <- TRUE
+        sample_channel <- make_names_unique("index")
         data_raw[["index"]] <- 1:nrow(data_raw)
         if (verbose) {
             cli_alert_info(paste(
-                "No {.arg sample_column} provided. Adding an {.arg index}",
-                "column by row number. Provide {.arg sample_column}",
+                "No {.arg sample_channel} provided. Adding an {.arg index}",
+                "column by row number. Provide {.arg sample_channel}",
                 "to overwrite this."))
         }
-    } else if (!is.null(sample_column) && !sample_column %in% names(data_raw)) {
+    } else if (!is.null(sample_channel) && !sample_channel %in% names(data_raw)) {
         cli_abort(paste(
-            "{.arg sample_column} = {.val {sample_column}} not detected.",
-            "Column names are case sensitive and should match exactly."))
+            "{.arg sample_channel} = {.val {sample_channel}} not detected.",
+            "Channel names are case sensitive and should match exactly."))
     }
 
-    ## validation: check that event_column exists
-    if (!is.null(event_column) && !event_column %in% names(data_raw)) {
+    ## validation: check that event_channel exists
+    if (!is.null(event_channel) && !event_channel %in% names(data_raw)) {
         cli_abort(paste(
-            "{.arg event_column} = {.val {event_column}} not detected.",
-            "Column names are case sensitive and should match exactly."))
+            "{.arg event_channel} = {.val {event_channel}} not detected.",
+            "Channel names are case sensitive and should match exactly."))
     }
 
     ## detect mNIRS device ===================================================
@@ -336,9 +336,9 @@ read_data <- function(
 
     data_prepared <- data_raw |>
         ## select and rename defined columns
-        ## keep_all selects everything, else only explicitly defined columns
+        ## keep_all selects everything, else only explicitly defined channels
         dplyr::select(
-            {{ sample_column }}, {{ event_column }}, {{ nirs_columns }},
+            {{ sample_channel }}, {{ event_channel }}, {{ nirs_channels }},
             if (keep_all) dplyr::everything(),
         ) |>
         dplyr::mutate(
@@ -354,7 +354,7 @@ read_data <- function(
         dplyr::mutate(
             ## convert dttm or character to dttm "%Y-%m-%d %H:%M:%OS"
             dplyr::across(
-                dplyr::any_of(names(sample_column)) & dplyr::where(is.character),
+                dplyr::any_of(names(sample_channel)) & dplyr::where(is.character),
                 \(.x) as.POSIXct(.x, tryFormats = c(
                     "%Y-%m-%dT%H:%M:%OS", "%Y-%m-%dT%H:%M:%OS%z",
                     "%Y-%m-%d %H:%M:%OS", "%Y/%m/%d %H:%M:%OS",
@@ -362,9 +362,9 @@ read_data <- function(
                     "%H:%M:%OS"),
                     optional = TRUE)),
 
-            ## convert dttm format sample column to numeric values in seconds
+            ## convert dttm format sample channel to numeric values in seconds
             if (time_to_numeric) dplyr::across(
-                dplyr::any_of(names(sample_column)) &
+                dplyr::any_of(names(sample_channel)) &
                     dplyr::where(\(.x) inherits(.x, "POSIXct")),
                 \(.x) {
                     num_time <- as.numeric(format(.x, "%H")) * 3600 +
@@ -375,13 +375,13 @@ read_data <- function(
                 }),
             ## resample time to start from zero
             if (time_from_zero) dplyr::across(
-                dplyr::any_of(names(sample_column)),
+                dplyr::any_of(names(sample_channel)),
                 \(.x) .x - dplyr::first(.x)),
 
             ## round to avoid floating point error
             dplyr::across(dplyr::where(is.numeric), \(.x) round(.x, 8)),
             dplyr::across(
-                dplyr::any_of(names(sample_column)) & dplyr::where(is.numeric),
+                dplyr::any_of(names(sample_channel)) & dplyr::where(is.numeric),
                 \(.x) round(.x, 3)),
 
             ## convert blank values to NA
@@ -391,37 +391,37 @@ read_data <- function(
                                          .x %in% c("", "NA"), NA, .x))
         )
 
-    sample_vector <- as.numeric(data_prepared[[names(sample_column)]])
+    sample_vector <- as.numeric(data_prepared[[names(sample_channel)]])
     repeated_samples <- c(diff(sample_vector) <= 0, FALSE) | duplicated(sample_vector)
 
-    ## validation: soft check whether sample_column has
+    ## validation: soft check whether sample_channel has
     ## non-sequential or repeating values
     if (verbose && any(repeated_samples)) {
         repeated_samples <- sample_vector[repeated_samples]
 
         cli_warn(c(paste(
-            "{.arg sample_column = {names(sample_column)}} has",
+            "{.arg sample_channel = {names(sample_channel)}} has",
             "non-sequential or repeating values."),
             "i" = paste("Consider investigating at",
                         if (length(repeated_samples) > 5) {
                             paste(
-                                "{.arg {names(sample_column)} =",
+                                "{.arg {names(sample_channel)} =",
                                 "{paste(head(repeated_samples, 3), collapse = ', ')}},",
                                 "and {.val {length(tail(repeated_samples, -3))}} more",
                                 "samples.")
                         } else {
-                            "{.val {names(sample_column)} = {repeated_samples}}."
+                            "{.val {names(sample_channel)} = {repeated_samples}}."
                         })))
     }
 
-    ## validation: soft check gap in sample_column > 1 hr
+    ## validation: soft check gap in sample_channel > 1 hr
     if (verbose && any(diff(sample_vector) > 3600)) {
         big_gap <- sample_vector[c(diff(sample_vector) > 3600, FALSE)]
 
         cli_warn(paste(
-            "{.val sample_column = {names(sample_column)}} has a gap",
+            "{.val sample_channel = {names(sample_channel)}} has a gap",
             "greater than 60 minutes. Consider investigating at",
-            "{.val {names(sample_column)} = {big_gap}}."))
+            "{.val {names(sample_channel)} = {big_gap}}."))
     }
 
     ## check for non-NULL, not applicable `sample_rate`
@@ -445,12 +445,12 @@ read_data <- function(
         sample_rate <- sample_rate
     } else if (any(oxysoft_sample_row)) {
         sample_rate <- as.numeric(data_full[which(oxysoft_sample_row), 2])
-        # data_prepared$time <- data_prepared[[names(sample_column)]] / sample_rate
+        # data_prepared$time <- data_prepared[[names(sample_channel)]] / sample_rate
         data_prepared <- data_prepared |>
             dplyr::mutate(
-                time = .data[[names(sample_column)]] / sample_rate
+                time = .data[[names(sample_channel)]] / sample_rate
             ) |>
-            dplyr::relocate(time, .after = dplyr::any_of(sample_column))
+            dplyr::relocate(time, .after = dplyr::any_of(sample_channel))
 
         if (verbose) {
             cli_alert_info(paste(
@@ -458,19 +458,19 @@ read_data <- function(
                 "Overwrite this with {.arg sample_rate} = {col_blue('X')}."))
             cli_alert_info(paste(
                 "{.arg time} column in seconds added from",
-                "{.arg {names(sample_column)}} and {.arg sample_rate}"))
+                "{.arg {names(sample_channel)}} and {.arg sample_rate}"))
         }
-        names(sample_column) <- "time" ## to add to metadata
-    } else if (exists("sample_column_was_null")) {
+        names(sample_channel) <- "time" ## to add to metadata
+    } else if (exists("sample_channel_was_null")) {
         sample_rate <- 1
 
         if (verbose) {
             cli_alert_info(paste(
-                "No {.arg sample_column} provided. Sample rate set to {.val {1}} Hz.",
+                "No {.arg sample_channel} provided. Sample rate set to {.val {1}} Hz.",
                 "Overwrite this with {.arg sample_rate} = {col_blue('X')}."))
         }
     } else {
-        ## sample_rate will be incorrect if `sample_column` is integer
+        ## sample_rate will be incorrect if `sample_channel` is integer
         ## estimate samples per second to nearest 0.5 Hz
         sample_rate <- head(diff(sample_vector), 100) |>
             mean(na.rm = TRUE) |>
@@ -485,9 +485,9 @@ read_data <- function(
 
     metadata <- list(
         nirs_device = nirs_device,
-        nirs_columns = names(nirs_columns),
-        sample_column = names(sample_column),
-        event_column = names(event_column),
+        nirs_channels = names(nirs_channels),
+        sample_channel = names(sample_channel),
+        event_channel = names(event_channel),
         sample_rate = sample_rate)
 
     mNIRS_data <- create_mNIRS_data(data_prepared, metadata)
@@ -500,26 +500,26 @@ read_data <- function(
 ## Train.Red
 # read_data(
 #     file_path = r"(C:\OneDrive - UBC\Body Position Study\Raw Data\BP05-TrainRed-2025-05-06.csv)",
-#     nirs_columns = c(SmO2_VL = "SmO2 unfiltered",
+#     nirs_channels = c(SmO2_VL = "SmO2 unfiltered",
 #                      SmO2_PS = "SmO2 unfiltered"),
-#     sample_column = c(time = "Timestamp (seconds passed)"),
-#     event_column = NULL,
+#     sample_channel = c(time = "Timestamp (seconds passed)"),
+#     event_channel = NULL,
 #     keep_all = FALSE,
 #     verbose = TRUE)
 #
 # ## Moxy PerfPro
 # read_data(
 #     file_path = r"(C:\OneDrive - UBC\5-1 Assessments\Processed Data\03-2_2021-08-10-data.xlsx)",
-#     nirs_columns = c("smo2_right_VL", "smo2_left_VL"),
-#     sample_column = "Time",
-#     event_column = NULL)
+#     nirs_channels = c("smo2_right_VL", "smo2_left_VL"),
+#     sample_channel = "Time",
+#     event_channel = NULL)
 #
 # ## Moxy
 # read_data(
 #     file_path = r"(C:\OneDrive - UBC\JAData\1619.csv)",
-#     nirs_columns = c(smo2 = "SmO2 Live", thb = "THb"),
-#     sample_column = c(time = "hh:mm:ss"),
-#     event_column = NULL,
+#     nirs_channels = c(smo2 = "SmO2 Live", thb = "THb"),
+#     sample_channel = c(time = "hh:mm:ss"),
+#     event_channel = NULL,
 #     time_to_numeric = FALSE)
 # lubridate::seconds_to_period(50590)
 #
@@ -528,34 +528,34 @@ read_data <- function(
 # ## Artinis Oxysoft
 # read_data(
 #     file_path = r"(C:\OneDrive - UBC\Body Position Study\Raw Data\SRLB02-Oxysoft-2024-12-20.xlsx)",
-#     nirs_columns = c(HHb = "6", O2Hb = "7"),
-#     sample_column = c("sample" = "1"),
-#     event_column = c(event = "10"),
+#     nirs_channels = c(HHb = "6", O2Hb = "7"),
+#     sample_channel = c("sample" = "1"),
+#     event_channel = c(event = "10"),
 #     keep_all = FALSE, verbose = FALSE)
 #
 # read_data(
 #     file_path = r"(C:\OneDrive - UBC\Body Position Study\Raw Data\SRLB02-Oxysoft-2024-12-20.xlsx)",
-#     nirs_columns = c(HHb = "6", O2Hb = "7"),
-#     sample_column = c("sample" = "1"),
-#     event_column = c(event = "10"),
+#     nirs_channels = c(HHb = "6", O2Hb = "7"),
+#     sample_channel = c("sample" = "1"),
+#     event_channel = c(event = "10"),
 #     keep_all = FALSE)
 # #
 # # ## VMPro
 # read_data(
 #     file_path = r"(C:\OneDrive - UBC\JAData\DataAverage-VMPro-2023-05-17.xlsx)",
-#     nirs_columns = c(right_smo2 = "SmO2[%]",
+#     nirs_channels = c(right_smo2 = "SmO2[%]",
 #                      left_smo2 = "SmO2 -  2[%]",
 #                      thb = "THb[THb]"),
-#     sample_column = c(time = "Time[hh:mm:ss]"),
-#     event_column = NULL)
+#     sample_channel = c(time = "Time[hh:mm:ss]"),
+#     event_channel = NULL)
 # #
 # # ## VMPro
 # mNIRS::read_data(
 #     file_path = r"(C:\OneDrive - UBC\JAData\MoxyUnit-VMPro-2023-05-17.xlsx)",
-#     nirs_columns = c("right_smo2" = "SmO2[%]",
+#     nirs_channels = c("right_smo2" = "SmO2[%]",
 #                      "left_smo2" = "SmO2 -  2[%]",
 #                      "thb" = "THb[THb]"),
-#     sample_column = c("time" = "Time[hh:mm:ss]"),
+#     sample_channel = c("time" = "Time[hh:mm:ss]"),
 #     time_to_numeric = FALSE,
-#     event_column = NULL)
+#     event_channel = NULL)
 #

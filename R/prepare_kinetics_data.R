@@ -5,32 +5,32 @@
 #'
 #' @param data A dataframe of class `"mNIRS.data"`.
 #' @param event_sample An *optional* numeric vector corresponding to values of
-#'  `sample_column` indicating the start of kinetic events. i.e., by time value
+#'  `sample_channel` indicating the start of kinetic events. i.e., by time value
 #'  or sample number.
 #' @param event_label An *optional* character vector corresponding to values of
-#'  `event_column` indicating the start of kinetics events. i.e., by an event
+#'  `event_channel` indicating the start of kinetics events. i.e., by an event
 #'  label such as *"end work"*.
 #' @param event_index An *optional* numeric vector indicating the starting row
 #'  indices of kinetics events. i.e., to identify the start of kinetic events by
 #'  row number.
 #' @param fit_span A two-element numeric vector in the form `c(before, after)`
-#'  in units of `sample_column`, defining the window around the kinetics events
+#'  in units of `sample_channel`, defining the window around the kinetics events
 #'  to include in the model fitting process (*default* `fit_span = c(30, 180)`).
 #' @param display_span *`<under development>`*.
 # #'  An *optional* two-element numeric vector in the form
-# #'  `c(before, after)` in units of `sample_column`, defining the window around
+# #'  `c(before, after)` in units of `sample_channel`, defining the window around
 # #'  the kinetics events to include for display, but not for model fitting.
 #' @param group_events Indicates how kinetics events should be analysed. Typically
 #'  either *"distinct"* (the *default*) or *"ensemble"*, but can be manually
 #'  specified (see *Details*).
-#' @param nirs_columns A character vector indicating the mNIRS data columns to
+#' @param nirs_channels A character vector indicating the mNIRS data channels to
 #'  be processed from your dataframe. Must match `data` column names exactly.
 #'  Will be taken from metadata if not defined explicitly.
-#' @param sample_column A character scalar indicating the time or sample data
-#'  column. Must match `data` column names exactly. Will be taken from metadata
+#' @param sample_channel A character scalar indicating the time or sample data
+#'  channel. Must match `data` column names exactly. Will be taken from metadata
 #'  if not defined explicitly.
-#' @param event_column An *optional* character scalar indicating an event or
-#'  lap data column. Must match `data` column names exactly. Will be taken from
+#' @param event_channel An *optional* character scalar indicating an event or
+#'  lap data channel. Must match `data` column names exactly. Will be taken from
 #'  metadata if not defined explicitly.
 #' @param sample_rate A numeric scalar for the sample rate in Hz. Will be taken
 #'  from metadata if not defined explicitly.
@@ -67,9 +67,9 @@ prepare_kinetics_data <- function(
         fit_span = c(30, 180),
         display_span = NULL,
         group_events = list("distinct", "ensemble"),
-        nirs_columns = NULL,
-        sample_column = NULL,
-        event_column = NULL,
+        nirs_channels = NULL,
+        sample_channel = NULL,
+        event_channel = NULL,
         sample_rate = NULL,
         ...
 ) {
@@ -77,45 +77,45 @@ prepare_kinetics_data <- function(
     metadata <- attributes(data)
     args <- list(...)
 
-    ## define `nirs_columns` manually overrides metadata
-    if (is.null(nirs_columns) & is.null(metadata$nirs_columns)) {
+    ## define `nirs_channels` manually overrides metadata
+    if (is.null(nirs_channels) & is.null(metadata$nirs_channels)) {
         cli_abort(paste(
-            "{.arg nirs_columns} not found in metadata. Please check your data",
-            "attributes or define {.arg nirs_columns} explicitly."))
-    } else if (is.null(nirs_columns) & !is.null(metadata$nirs_columns)) {
-        nirs_columns <- metadata$nirs_columns
-    } else if (!is.character(nirs_columns) || !all(nirs_columns %in% names(data))) {
+            "{.arg nirs_channels} not found in metadata. Please check your data",
+            "attributes or define {.arg nirs_channels} explicitly."))
+    } else if (is.null(nirs_channels) & !is.null(metadata$nirs_channels)) {
+        nirs_channels <- metadata$nirs_channels
+    } else if (!is.character(nirs_channels) || !all(nirs_channels %in% names(data))) {
         cli_abort(paste(
-            "{.arg nirs_columns} must be a vector of column names within",
+            "{.arg nirs_channels} must be a vector of column names within",
             "{.arg data}. Make sure column names match exactly."))
     }
 
-    ## define `sample_column` manually overrides metadata
-    if (is.null(sample_column) & is.null(metadata$sample_column)) {
+    ## define `sample_channel` manually overrides metadata
+    if (is.null(sample_channel) & is.null(metadata$sample_channel)) {
         cli_abort(paste(
-            "{.arg sample_column} not found in metadata. Please check your data",
-            "attributes or define {.arg sample_column} explicitly."))
-    } else if (is.null(sample_column) & !is.null(metadata$sample_column)) {
-        sample_column <- metadata$sample_column
-    } else if (!is.character(sample_column) || !sample_column %in% names(data)) {
+            "{.arg sample_channel} not found in metadata. Please check your data",
+            "attributes or define {.arg sample_channel} explicitly."))
+    } else if (is.null(sample_channel) & !is.null(metadata$sample_channel)) {
+        sample_channel <- metadata$sample_channel
+    } else if (!is.character(sample_channel) || !sample_channel %in% names(data)) {
         cli_abort(paste(
-            "{.arg sample_column} must be a column name within your {.arg data}.",
+            "{.arg sample_channel} must be a column name within your {.arg data}.",
             "Make sure column names match exactly."))
     }
 
-    ## define `event_column` manually overrides metadata
+    ## define `event_channel` manually overrides metadata
     if (is.null(event_label)) {
         ## this is probably a bad way to write this
-    } else if (is.null(event_column) & is.null(metadata$event_column)) {
+    } else if (is.null(event_channel) & is.null(metadata$event_channel)) {
         cli_abort(paste(
-            "You have defined {.arg event_label} but {.arg event_column}",
+            "You have defined {.arg event_label} but {.arg event_channel}",
             "not found in metadata. Please check your data attributes or define",
-            "{.arg event_column} explicitly."))
-    } else if (is.null(event_column) & !is.null(metadata$event_column)) {
-        event_column <- metadata$event_column
-    } else if (!is.character(event_column) || !event_column %in% names(data)) {
+            "{.arg event_channel} explicitly."))
+    } else if (is.null(event_channel) & !is.null(metadata$event_channel)) {
+        event_channel <- metadata$event_channel
+    } else if (!is.character(event_channel) || !event_channel %in% names(data)) {
         cli_abort(paste(
-            "{.arg event_column} must be a column name within your {.arg data}.",
+            "{.arg event_channel} must be a column name within your {.arg data}.",
             "Make sure column names match exactly."))
     }
 
@@ -149,15 +149,15 @@ prepare_kinetics_data <- function(
 
     if (!is.null(event_index)) {
 
-        event_index_sample <- data[[sample_column]][event_index]
+        event_index_sample <- data[[sample_channel]][event_index]
 
     } else {event_index_sample <- NULL}
 
     if (!is.null(event_label)) {
 
         pattern <- paste(event_label, collapse = "|")
-        matches <- grepl(pattern, data[[event_column]], ignore.case = TRUE)
-        event_label_sample <- data[[sample_column]][matches]
+        matches <- grepl(pattern, data[[event_channel]], ignore.case = TRUE)
+        event_label_sample <- data[[sample_channel]][matches]
 
     } else {event_label_sample <- NULL}
 
@@ -169,14 +169,14 @@ prepare_kinetics_data <- function(
     display_start <- min(c(fit_span[1], display_span[1]))
     display_end <- max(c(fit_span[2], display_span[2]))
 
-    # display_column <- paste0("display_", sample_column)
-    fit_column <- paste0("fit_", sample_column)
+    # display_channel <- paste0("display_", sample_channel)
+    fit_channel <- paste0("fit_", sample_channel)
 
     ## Metadata =================================
-    metadata$nirs_columns <- unique(
-        c(metadata$nirs_columns, nirs_columns))
-    metadata$sample_column <- sample_column
-    metadata$event_column <- event_column
+    metadata$nirs_channels <- unique(
+        c(metadata$nirs_channels, nirs_channels))
+    metadata$sample_channel <- sample_channel
+    metadata$event_channel <- event_channel
     metadata$event_sample_list <- event_sample_list
     metadata$fit_span <- fit_span
     ## TODO 2025-08-12 NOT CURRENTLY IMPLEMENTED
@@ -191,22 +191,22 @@ prepare_kinetics_data <- function(
             ## TODO 2025-08-23 do I need sample_rate at all? Can I round to signif?
             ## outgoing data_list. Only being used to define fit_sample
             ## round to avoid floating point error
-            display_sample <- round((data[[sample_column]] - .x) * sample_rate) / sample_rate
+            display_sample <- round((data[[sample_channel]] - .x) * sample_rate) / sample_rate
             keep_idx <- display_sample >= display_start & display_sample <= display_end
 
             ## filter data & display_sample vector within the kinetics event window
             event_data <- data[keep_idx, ]
             display_sample <- display_sample[keep_idx]
 
-            ## create new fit_sample column named from `fit_column`
+            ## create new fit_sample column named from `fit_channel`
             ## as a sample vector zeroed to the kinetics event
             ## filtered within the `fit_span`
-            event_data[[fit_column]] <- ifelse(
+            event_data[[fit_channel]] <- ifelse(
                 display_sample >= fit_span[1] & display_sample <= fit_span[2],
                 display_sample, NA_real_)
 
-            ## relocates `fit_column` as the first col, includes remaining cols
-            event_data[c(fit_column, setdiff(names(event_data), fit_column))]
+            ## relocates `fit_channel` as the first col, includes remaining cols
+            event_data[c(fit_channel, setdiff(names(event_data), fit_channel))]
         })
 
     ensemble_data <- function(data_list) {
@@ -216,39 +216,39 @@ prepare_kinetics_data <- function(
             c(x[L][1], x[L])[cumsum(L)+1]
         }
 
-        x_all <- sort(unique(unlist(lapply(data_list, `[[`, fit_column))))
+        x_all <- sort(unique(unlist(lapply(data_list, `[[`, fit_channel))))
 
         filled_data_list <- lapply(data_list, \(.df) {
             ## df with all x values
-            df_x_all <- tibble(!!fit_column := x_all)
+            df_x_all <- tibble(!!fit_channel := x_all)
             ## remove redundant columns
-            .df[c(sample_column, event_column)] <- NULL
+            .df[c(sample_channel, event_channel)] <- NULL
             ## redundant step keep only numeric
             .df <- .df[sapply(.df, is.numeric)]
             ## merge each data_list with df_x_all
-            merged <- merge(df_x_all, .df, by = fit_column, all.x = TRUE)
+            merged <- merge(df_x_all, .df, by = fit_channel, all.x = TRUE)
             ## average duplicate x values
             merged <- aggregate(
                 merged[, -1, drop = FALSE],
-                by = setNames(list(merged[[fit_column]]), fit_column),
+                by = setNames(list(merged[[fit_channel]]), fit_channel),
                 FUN = mean, na.rm = TRUE)
             ## sort
-            merged <- merged[order(merged[[fit_column]]),]
+            merged <- merged[order(merged[[fit_channel]]),]
             ## apply locf to missing data
             merged[names(merged)[-1]] <- lapply(merged[names(merged)[-1]], na_locf)
 
             return(tibble(merged))
         })
 
-        result <- filled_data_list[[1]][, fit_column, drop = FALSE]
+        result <- filled_data_list[[1]][, fit_channel, drop = FALSE]
 
-        ## extract all nirs_columns
+        ## extract all nirs_channels
         all_nirs_cols <- do.call(
-            cbind, lapply(filled_data_list, \(.df) .df[nirs_columns]))
+            cbind, lapply(filled_data_list, \(.df) .df[nirs_channels]))
 
-        ## calculate rowwise means for all nirs_columns
-        result[nirs_columns] <- lapply(seq_along(nirs_columns), \(.col) {
-            col_indices <- seq(.col, ncol(all_nirs_cols), by = length(nirs_columns))
+        ## calculate rowwise means for all nirs_channels
+        result[nirs_channels] <- lapply(seq_along(nirs_channels), \(.col) {
+            col_indices <- seq(.col, ncol(all_nirs_cols), by = length(nirs_channels))
             rowMeans(all_nirs_cols[, col_indices, drop = FALSE], na.rm = TRUE)
         })
 
@@ -260,12 +260,12 @@ prepare_kinetics_data <- function(
         kinetics_data_list <- lapply(
             data_list,
             \(.df) {
-                cols <- c(fit_column, sample_column, event_column, nirs_columns)
+                cols <- c(fit_channel, sample_channel, event_channel, nirs_channels)
                 kinetics_data <- .df[c(cols, setdiff(names(.df), cols))]
 
                 return(create_mNIRS_data(kinetics_data, metadata))
             }) |>
-            setNames(paste0(sample_column, "_", event_sample_list))
+            setNames(paste0(sample_channel, "_", event_sample_list))
         ## TODO 2025-07-19 set names based on events or sample or index number
 
     } else if (head(unlist(group_events), 1) == "ensemble") {

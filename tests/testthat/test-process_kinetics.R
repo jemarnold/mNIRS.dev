@@ -80,16 +80,16 @@ test_that("find_first_extreme for Moxy data", {
 
     data_raw <- read_data(
         file_path = file_path,
-        nirs_columns = c(smo2 = "SmO2 Live"),
-        sample_column = c(time = "hh:mm:ss"),
+        nirs_channels = c(smo2 = "SmO2 Live"),
+        sample_channel = c(time = "hh:mm:ss"),
         verbose = FALSE
     ) |>
         dplyr::mutate(time = round(time - dplyr::first(time), 2))
 
-    nirs_columns <- attributes(data_raw)$nirs_columns
-    fitted_name <- paste0(nirs_columns, "_fitted")
-    sample_column <- attributes(data_raw)$sample_column
-    fit_sample_name <- paste0("fit_", sample_column)
+    nirs_channels <- attributes(data_raw)$nirs_channels
+    fitted_name <- paste0(nirs_channels, "_fitted")
+    sample_channel <- attributes(data_raw)$sample_channel
+    fit_sample_name <- paste0("fit_", sample_channel)
     event_samples <- c(876)
 
     kinetics_data <- prepare_kinetics_data(
@@ -98,9 +98,9 @@ test_that("find_first_extreme for Moxy data", {
         fit_span = c(30, 120)
     )[[1]]
 
-    attributes(kinetics_data)$sample_column <- fit_sample_name
+    attributes(kinetics_data)$sample_channel <- fit_sample_name
 
-    result <- find_first_extreme(y = kinetics_data[[nirs_columns]],
+    result <- find_first_extreme(y = kinetics_data[[nirs_channels]],
                                  x = kinetics_data[[fit_sample_name]])
 
     # plot(kinetics_data, display_time = TRUE) +
@@ -108,10 +108,10 @@ test_that("find_first_extreme for Moxy data", {
     #     geom_hline(yintercept = result$extreme$y)
 
     expect_equal(length(result$x), length(result$y))
-    expect_equal(result$extreme$y, max(kinetics_data[[nirs_columns]]))
+    expect_equal(result$extreme$y, max(kinetics_data[[nirs_channels]]))
     expect_equal(result$extreme$x,
                  kinetics_data$fit_time[which(
-                     kinetics_data[[nirs_columns]] == max(kinetics_data[[nirs_columns]]))[1]])
+                     kinetics_data[[nirs_channels]] == max(kinetics_data[[nirs_channels]]))[1]])
 })
 
 
@@ -124,16 +124,16 @@ test_that("find_first_extreme for Train.Red data", {
 
     data_raw <- read_data(
         file_path = file_path,
-        nirs_columns = c(smo2_left = "SmO2", smo2_right = "SmO2"),
-        sample_column = c(time = "Timestamp (seconds passed)"),
+        nirs_channels = c(smo2_left = "SmO2", smo2_right = "SmO2"),
+        sample_channel = c(time = "Timestamp (seconds passed)"),
         verbose = FALSE
     ) |>
         dplyr::mutate(time = round(time - dplyr::first(time), 2))
 
-    nirs_columns <- attributes(data_raw)$nirs_columns
-    fitted_name <- paste0(nirs_columns, "_fitted")
-    sample_column <- attributes(data_raw)$sample_column
-    fit_sample_name <- paste0("fit_", sample_column)
+    nirs_channels <- attributes(data_raw)$nirs_channels
+    fitted_name <- paste0(nirs_channels, "_fitted")
+    sample_channel <- attributes(data_raw)$sample_channel
+    fit_sample_name <- paste0("fit_", sample_channel)
     event_samples <- c(370, 1085)
 
     kinetics_data <- prepare_kinetics_data(
@@ -143,9 +143,9 @@ test_that("find_first_extreme for Train.Red data", {
         group_events = "ensemble"
     )[[1]]
 
-    attributes(kinetics_data)$sample_column <- fit_sample_name
+    attributes(kinetics_data)$sample_channel <- fit_sample_name
 
-    result <- find_first_extreme(y = kinetics_data[[nirs_columns[1]]],
+    result <- find_first_extreme(y = kinetics_data[[nirs_channels[1]]],
                                  x = kinetics_data[[fit_sample_name]])
 
     # plot(kinetics_data) +
@@ -158,15 +158,15 @@ test_that("find_first_extreme for Train.Red data", {
     ## same length
     expect_equal(length(result$x), length(result$y))
     ## extreme$y should be global y max in this case
-    expect_equal(result$extreme$y, max(kinetics_data[[nirs_columns[1]]]))
+    expect_equal(result$extreme$y, max(kinetics_data[[nirs_channels[1]]]))
     ## extreme$x should be the first x at global y max
     expect_equal(result$extreme$x,
                  kinetics_data$fit_time[which(
-                     kinetics_data[[nirs_columns[1]]] ==
-                         max(kinetics_data[[nirs_columns[1]]]))[1]])
+                     kinetics_data[[nirs_channels[1]]] ==
+                         max(kinetics_data[[nirs_channels[1]]]))[1]])
 
 
-    result <- find_first_extreme(y = kinetics_data[[nirs_columns[2]]],
+    result <- find_first_extreme(y = kinetics_data[[nirs_channels[2]]],
                                  x = kinetics_data[[fit_sample_name]])
 
     # plot(kinetics_data) +
@@ -179,16 +179,16 @@ test_that("find_first_extreme for Train.Red data", {
     ## same length
     expect_equal(length(result$x), length(result$y))
     ## extreme$y should be global y max in this case
-    expect_equal(result$extreme$y, max(kinetics_data[[nirs_columns[2]]]))
+    expect_equal(result$extreme$y, max(kinetics_data[[nirs_channels[2]]]))
     ## extreme$y should be last y in this case
-    expect_equal(result$extreme$y, tail(kinetics_data[[nirs_columns[2]]], 1))
+    expect_equal(result$extreme$y, tail(kinetics_data[[nirs_channels[2]]], 1))
     ## extreme$x should be last x in this case
     expect_equal(result$extreme$x, tail(kinetics_data[[fit_sample_name]], 1))
     ## extreme$x should be the first x at global y max
     expect_equal(result$extreme$x,
                  kinetics_data$fit_time[which(
-                     kinetics_data[[nirs_columns[2]]] ==
-                         max(kinetics_data[[nirs_columns[2]]]))[1]])
+                     kinetics_data[[nirs_channels[2]]] ==
+                         max(kinetics_data[[nirs_channels[2]]]))[1]])
 })
 
 
@@ -499,18 +499,18 @@ test_that("process_kinetics works for a local environment call", {
 
     data_raw <- read_data(
         file_path = file_path,
-        nirs_columns = c(smo2 = "SmO2 Live"),
-        sample_column = c(time = "hh:mm:ss"),
+        nirs_channels = c(smo2 = "SmO2 Live"),
+        sample_channel = c(time = "hh:mm:ss"),
         verbose = FALSE
     ) |>
         dplyr::mutate(
             time = round(time - dplyr::first(time), 2),
             smo2 = replace_invalid(smo2, c(100), width = 10, return = "median"))
 
-    nirs_columns <- attributes(data_raw)$nirs_columns
-    fitted_name <- paste0(nirs_columns, "_fitted")
-    sample_column <- attributes(data_raw)$sample_column
-    fit_sample_name <- paste0("fit_", sample_column)
+    nirs_channels <- attributes(data_raw)$nirs_channels
+    fitted_name <- paste0(nirs_channels, "_fitted")
+    sample_channel <- attributes(data_raw)$sample_channel
+    fit_sample_name <- paste0("fit_", sample_channel)
     event_samples <- c(876)
 
     kinetics_data <- prepare_kinetics_data(
@@ -519,9 +519,9 @@ test_that("process_kinetics works for a local environment call", {
         fit_span = c(30, 180)
     )[[1]]
 
-    attributes(kinetics_data)$sample_column <- fit_sample_name
+    attributes(kinetics_data)$sample_channel <- fit_sample_name
 
-    model <- process_kinetics(y = nirs_columns,
+    model <- process_kinetics(y = nirs_channels,
                               x = fit_sample_name,
                               data = kinetics_data,
                               method = "peak_slope",
@@ -538,7 +538,7 @@ test_that("process_kinetics works for a local environment call", {
                  length(model_contents))
 
     ## check data colnames
-    data_colnames <- c(fit_sample_name, nirs_columns, fitted_name)
+    data_colnames <- c(fit_sample_name, nirs_channels, fitted_name)
     expect_equal(sum(names(model$data) %in% data_colnames),
                  length(data_colnames))
 
@@ -574,16 +574,16 @@ test_that("process_kinetics works inside a purrr::map() call", {
 
     data_raw <- read_data(
         file_path = file_path,
-        nirs_columns = c(smo2_left = "SmO2", smo2_right = "SmO2"),
-        sample_column = c(time = "Timestamp (seconds passed)"),
+        nirs_channels = c(smo2_left = "SmO2", smo2_right = "SmO2"),
+        sample_channel = c(time = "Timestamp (seconds passed)"),
         verbose = FALSE
     ) |>
         dplyr::mutate(time = round(time - dplyr::first(time), 2))
 
-    nirs_columns <- attributes(data_raw)$nirs_columns
-    fitted_name <- paste0(nirs_columns, "_fitted")
-    sample_column <- attributes(data_raw)$sample_column
-    fit_sample_name <- paste0("fit_", sample_column)
+    nirs_channels <- attributes(data_raw)$nirs_channels
+    fitted_name <- paste0(nirs_channels, "_fitted")
+    sample_channel <- attributes(data_raw)$sample_channel
+    fit_sample_name <- paste0("fit_", sample_channel)
     event_samples <- c(370, 1085)
 
     kinetics_data <- prepare_kinetics_data(
@@ -595,7 +595,7 @@ test_that("process_kinetics works inside a purrr::map() call", {
 
     model_list <- tidyr::expand_grid(
         .df = kinetics_data,
-        .nirs = nirs_columns,
+        .nirs = nirs_channels,
         .method = "monoexp") |>
         purrr::pmap(
             \(.df, .nirs, .method)
@@ -608,10 +608,10 @@ test_that("process_kinetics works inside a purrr::map() call", {
 
 
     ## check length of model_list
-    expect_equal(length(model_list), length(c(nirs_columns, event_samples)))
+    expect_equal(length(model_list), length(c(nirs_channels, event_samples)))
 
-    ## check model_list names match sample_column and event_samples
-    expect_equal(sum(grepl(sample_column, names(model_list))),
+    ## check model_list names match sample_channel and event_samples
+    expect_equal(sum(grepl(sample_channel, names(model_list))),
                  length(model_list))
     expect_equal(sum(grepl(paste(event_samples, collapse = "|"), names(model_list))),
                  length(model_list))
@@ -629,7 +629,7 @@ test_that("process_kinetics works inside a purrr::map() call", {
                  length(model_contents))
 
     ## check data colnames
-    data_colnames <- c(fit_sample_name, nirs_columns[1], fitted_name[1])
+    data_colnames <- c(fit_sample_name, nirs_channels[1], fitted_name[1])
     expect_equal(sum(names(model$data) %in% data_colnames),
                 length(data_colnames))
 
@@ -663,19 +663,19 @@ test_that("process_kinetics works with large oxysoft file", {
 
     data_raw <- read_data(
         file_path = file_path,
-        nirs_columns = c(O2Hb = 5, HHb = 6),
-        sample_column = c(sample = 1),
-        event_column = c(event = 8),
+        nirs_channels = c(O2Hb = 5, HHb = 6),
+        sample_channel = c(sample = 1),
+        event_channel = c(event = 8),
         verbose = FALSE,
     ) |>
         dplyr::mutate(
             across(c(O2Hb, HHb), \(.x) filter_data(.x, "butterworth", n = 2, W = 0.05))
         )
 
-    nirs_columns <- attributes(data_raw)$nirs_columns
-    fitted_name <- paste0(nirs_columns, "_fitted")
-    sample_column <- attributes(data_raw)$sample_column
-    fit_sample_name <- paste0("fit_", attributes(data_raw)$sample_column)
+    nirs_channels <- attributes(data_raw)$nirs_channels
+    fitted_name <- paste0(nirs_channels, "_fitted")
+    sample_channel <- attributes(data_raw)$sample_channel
+    fit_sample_name <- paste0("fit_", attributes(data_raw)$sample_channel)
 
     event_samples <- c(24675, 66670)
 
@@ -690,7 +690,7 @@ test_that("process_kinetics works with large oxysoft file", {
 
     model_list <- tidyr::expand_grid(
         .df = data_list,
-        .nirs = attributes(data_raw)$nirs_columns,
+        .nirs = attributes(data_raw)$nirs_channels,
         .method = "monoexp") |>
         purrr::pmap(
             \(.df, .nirs, .method)
@@ -705,10 +705,10 @@ test_that("process_kinetics works with large oxysoft file", {
     # plot(model    _list[[1]])
 
     ## check length of model_list
-    expect_equal(length(model_list), length(c(nirs_columns, event_samples)))
+    expect_equal(length(model_list), length(c(nirs_channels, event_samples)))
 
-    ## check model_list names match sample_column and event_samples
-    expect_equal(sum(grepl(sample_column, names(model_list))),
+    ## check model_list names match sample_channel and event_samples
+    expect_equal(sum(grepl(sample_channel, names(model_list))),
                  length(model_list))
     expect_equal(sum(grepl(paste(event_samples/50, collapse = "|"), names(model_list))),
                  length(model_list))
@@ -726,7 +726,7 @@ test_that("process_kinetics works with large oxysoft file", {
                  length(model_contents))
 
     ## check data colnames
-    data_colnames <- c(fit_sample_name, nirs_columns[2], fitted_name[2])
+    data_colnames <- c(fit_sample_name, nirs_channels[2], fitted_name[2])
     expect_equal(sum(names(model$data) %in% data_colnames),
                  length(data_colnames))
 

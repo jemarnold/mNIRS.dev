@@ -6,7 +6,7 @@
 \usage{
 shift_data(
   data,
-  nirs_columns = list(),
+  nirs_channels = list(),
   shift_to = 0,
   position = c("minimum", "maximum", "first"),
   mean_samples = 1,
@@ -16,7 +16,7 @@ shift_data(
 \arguments{
 \item{data}{A dataframe.}
 
-\item{nirs_columns}{A \code{list()} of character vectors indicating the column
+\item{nirs_channels}{A \code{list()} of character vectors indicating the column
 names for data channels to be shifted (see \emph{Details}).}
 
 \item{shift_to}{A numeric scalar to which the specified data channels
@@ -48,20 +48,20 @@ the absolute dynamic range and/or relative scaling across channels. e.g. shift
 data range to positive values, or shift the first value of a recording to zero.
 }
 \details{
-\code{nirs_columns = list()} can be used to group data columns to preserve
-absolute or relative scaling. channels grouped together in a vector
-will preserve relative scaling across channels. Should match column names
+\code{nirs_channels = list()} can be used to group data channels to preserve
+absolute or relative scaling. Channels grouped together in a vector
+will preserve relative scaling across those channels. Should match column names
 in the dataframe exactly.
 
 \describe{
-\item{\code{nirs_columns = list("A", "B", "C")}}{will shift each column
+\item{\code{nirs_channels = list("A", "B", "C")}}{will shift each channel
 separately. Absolute dynamic range for each data channel is preserved, but
 relative scaling will be lost between data channels.}
-\item{\code{nirs_columns = list(c("A", "B", "C"))}}{will shift all columns
+\item{\code{nirs_channels = list(c("A", "B", "C"))}}{will shift all channels
 together. Absolute dynamic range and relative scaling are both preserved
 across the group of data channels.}
-\item{\code{nirs_columns = list(c("A", "B"), c("C", "D"))}}{will shift columns
-\code{A} and \code{B} together, and columns \code{C} and \code{D} together. Absolute dynamic
+\item{\code{nirs_channels = list(c("A", "B"), c("C", "D"))}}{will shift channels
+\code{A} and \code{B} together, and channels \code{C} and \code{D} together. Absolute dynamic
 range and relative scaling are preserved within each group, but not across
 groups of data channels.}
 }

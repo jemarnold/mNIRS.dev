@@ -5,7 +5,7 @@
 #' data range to positive values, or shift the first value of a recording to zero.
 #'
 #' @param data A dataframe.
-#' @param nirs_columns A `list()` of character vectors indicating the column
+#' @param nirs_channels A `list()` of character vectors indicating the column
 #'  names for data channels to be shifted (see *Details*).
 #' @param shift_to A numeric scalar to which the specified data channels
 #'  will be shifted to.
@@ -24,20 +24,20 @@
 #'  be shifted by a set amount.
 #'
 #' @details
-#' `nirs_columns = list()` can be used to group data columns to preserve
-#' absolute or relative scaling. channels grouped together in a vector
-#' will preserve relative scaling across channels. Should match column names
+#' `nirs_channels = list()` can be used to group data channels to preserve
+#' absolute or relative scaling. Channels grouped together in a vector
+#' will preserve relative scaling across those channels. Should match column names
 #' in the dataframe exactly.
 #'
 #'  \describe{
-#'      \item{`nirs_columns = list("A", "B", "C")`}{will shift each column
+#'      \item{`nirs_channels = list("A", "B", "C")`}{will shift each channel
 #'      separately. Absolute dynamic range for each data channel is preserved, but
 #'      relative scaling will be lost between data channels.}
-#'      \item{`nirs_columns = list(c("A", "B", "C"))`}{will shift all columns
+#'      \item{`nirs_channels = list(c("A", "B", "C"))`}{will shift all channels
 #'      together. Absolute dynamic range and relative scaling are both preserved
 #'      across the group of data channels.}
-#'      \item{`nirs_columns = list(c("A", "B"), c("C", "D"))`}{will shift columns
-#'      `A` and `B` together, and columns `C` and `D` together. Absolute dynamic
+#'      \item{`nirs_channels = list(c("A", "B"), c("C", "D"))`}{will shift channels
+#'      `A` and `B` together, and channels `C` and `D` together. Absolute dynamic
 #'      range and relative scaling are preserved within each group, but not across
 #'      groups of data channels.}
 #'  }
@@ -48,7 +48,7 @@
 #' @export
 shift_data <- function(
         data,
-        nirs_columns = list(),
+        nirs_channels = list(),
         shift_to = 0,
         position = c("minimum", "maximum", "first"),
         mean_samples = 1,
@@ -58,21 +58,21 @@ shift_data <- function(
     metadata <- attributes(data)
 
     ## TODO shift by sample range, not only first samples
-    ## TODO convert sym(nirs_columns) to strings?
+    ## TODO convert sym(nirs_channels) to strings?
 
     if (
-        length(nirs_columns) == 0 &
-        !is.null(metadata$nirs_columns)
+        length(nirs_channels) == 0 &
+        !is.null(metadata$nirs_channels)
     ) {
-        ## "global" condition from metadata$nirs_columns
-        nirs_columns <- metadata$nirs_columns
+        ## "global" condition from metadata$nirs_channels
+        nirs_channels <- metadata$nirs_channels
     }
 
-    ## validation: `nirs_columns` must match expected dataframe names
-    if (!all(unlist(nirs_columns) %in% names(data))) {
+    ## validation: `nirs_channels` must match expected dataframe names
+    if (!all(unlist(nirs_channels) %in% names(data))) {
         cli_abort(paste(
-            "{.arg nirs_columns} must be a list of names.",
-            "Make sure column names match exactly."))
+            "{.arg nirs_channels} must be a list of names.",
+            "Make sure channel names match exactly."))
     }
 
     ## validation: `shift_to` or `shift_by` must be numeric scalar
@@ -97,14 +97,14 @@ shift_data <- function(
         shift_mean_value <- data |>
             dplyr::mutate(
                 dplyr::across(
-                    dplyr::any_of(unlist(nirs_columns)),
+                    dplyr::any_of(unlist(nirs_channels)),
                     \(.x) zoo::rollapply(
                         .x, width = mean_samples, FUN = mean,
                         align = "center", partial = TRUE, na.rm = TRUE)),
             ) |>
             dplyr::summarise(
                 dplyr::across(
-                    dplyr::any_of(unlist(nirs_columns)),
+                    dplyr::any_of(unlist(nirs_channels)),
                     \(.x) if (position == "minimum") {
                         min(.x, na.rm = TRUE)
                     } else if (position == "maximum") {
@@ -117,15 +117,15 @@ shift_data <- function(
         shift_mean_value <- head(data, mean_samples) |>
             dplyr::summarise(
                 dplyr::across(
-                    dplyr::any_of(unlist(nirs_columns)),
+                    dplyr::any_of(unlist(nirs_channels)),
                     \(.x) mean(.x, na.rm = TRUE))
             )
     }
 
     y <- lapply(
-        if (is.list(nirs_columns)) {
-            nirs_columns
-        } else {list(nirs_columns)},
+        if (is.list(nirs_channels)) {
+            nirs_channels
+        } else {list(nirs_channels)},
         \(.col) {
             data |>
                 dplyr::select(dplyr::any_of(.col)) |>
@@ -146,13 +146,13 @@ shift_data <- function(
                 )
         }) |>
         dplyr::bind_cols(
-            dplyr::select(data, -dplyr::any_of(unlist(nirs_columns)))
+            dplyr::select(data, -dplyr::any_of(unlist(nirs_channels)))
         ) |>
         dplyr::relocate(names(data))
 
     ## Metadata =================================
-    metadata$nirs_columns <- unique(
-        c(metadata$nirs_columns, unlist(nirs_columns)))
+    metadata$nirs_channels <- unique(
+        c(metadata$nirs_channels, unlist(nirs_channels)))
 
     y <- create_mNIRS_data(y, metadata)
 
@@ -162,15 +162,15 @@ shift_data <- function(
 ## troubleshooting ===================================
 # (data <- read_data(
 #     file_path = r"(C:\OneDrive - UBC\Body Position Study\Raw Data\SRLB02-Oxysoft-2024-12-20.xlsx)",
-#     nirs_columns = c(ICG_VL = "9", ICG_SCM = "10", smo2 = "7"),
+#     nirs_channels = c(ICG_VL = "9", ICG_SCM = "10", smo2 = "7"),
 #     sample_column = c(Sample = "1"),
-#     # event_column = c(Event = "11"),
+#     # event_channel = c(Event = "11"),
 # ) |> dplyr::slice(-1))
 # #
 # y <- shift_data(
 #     # data = tibble(ICG_VL = 1:10, ICG_SCM = -10:-1),
 #     data = data,
-#     nirs_columns = list("ICG_VL", "ICG_SCM", "smo2"),
+#     nirs_channels = list("ICG_VL", "ICG_SCM", "smo2"),
 #     shift_to = 0,
 #     position = "maximum",
 #     mean_samples = 1,

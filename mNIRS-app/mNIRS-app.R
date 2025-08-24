@@ -42,20 +42,20 @@ ui <- fluidPage(
                               accept = c('.xlsx', '.xls', '.csv', '.CSV')),
 
                     ## Tell it which columns are which
-                    textInput("nirs_columns",
+                    textInput("nirs_channels",
                               label = "mNIRS Channel Names\n(accepts multiple)",
                               # value = "smo2_left = SmO2, smo2_right = SmO2",
                               # value = "smo2_left = SmO2 Live, smo2_right = SmO2 Live(2)",
                               placeholder = "new_name = file_column_name",
                               updateOn = "blur"),
-                    textInput("sample_column",
-                              label = "Time/Sample Column Name",
+                    textInput("sample_channel",
+                              label = "Time/Sample Channel Name",
                               # value = "time = Timestamp (seconds passed)",
                               # value = "time = hh:mm:ss",
                               placeholder = "new_name = file_column_name",
                               updateOn = "blur"),
-                    textInput("event_column",
-                              label = "Lap/Event Column Name\n(optional)",
+                    textInput("event_channel",
+                              label = "Lap/Event Channel Name\n(optional)",
                               placeholder = "new_name = file_column_name",
                               updateOn = "blur"),
 
@@ -162,7 +162,7 @@ ui <- fluidPage(
                     uiOutput("kinetics_checkbox_ui"),
 
                     h4("Detect Kinetics Start"),
-                    ## numeric sample_column values
+                    ## numeric sample_channel values
                     textInput(
                         "event_sample",
                         label = "Sample Values",
@@ -244,9 +244,9 @@ ui <- fluidPage(
 
                 h4("Channel Names:"),
                 p("Enter the column names for the mNIRS data channels (e.g.",
-                  em("SmO2"), ",", em("HHb"), ",", em("TSI"), "), Sample column
-                (e.g.", em("Time"), "), and Lap/Event column.
-                  At least a single mNIRS data channel is required. Other columns
+                  em("SmO2"), ",", em("HHb"), ",", em("TSI"), "), Sample channel
+                (e.g.", em("Time"), "), and Lap/Event channel.
+                  At least a single mNIRS data channel is required. Other channels
                   can be left blank if not required / if they do not exist."),
                 p("Data channels can be renamed with the format",
                   code("new_name = file_column_name"), ". Original column names must
@@ -255,8 +255,8 @@ ui <- fluidPage(
                   code("new_name1 = file_name1, new_name2 = file_name2"), "."),
                 p("For example, from a", em("Moxy"), ".csv file:",
                   em("NIRS Channel Names:"), code("smo2_left = SmO2 Live"),
-                  ";", em("Sample Column Name:"), code("time = hh:mm:ss"),
-                  "; [", em("Lap/Event column"), "left blank]."),
+                  ";", em("Sample Channel Name:"), code("time = hh:mm:ss"),
+                  "; [", em("Lap/Event Channel Name"), "left blank]."),
 
                 h4("Sample Rate:"),
                 p("Will be estimated automatically from the data, or can be
@@ -289,7 +289,7 @@ ui <- fluidPage(
                 p("Will interpolate across missing (", code("NA"), ") samples."),
 
                 h4("Zero Start Time:"),
-                p("Reset the sample/time column to start from zero, for when
+                p("Reset the sample/time channel to start from zero, for when
                   selecting a subset of the data."),
 
                 h4("Digital Filter Method:"),
@@ -365,8 +365,8 @@ ui <- fluidPage(
 
                 h4("Detect Kinetics Start:"),
                 p("Values can be entered manually to indicate the start of",
-                  "kinetics events, by either value of the sample column (in units",
-                  "of the x-axis), or by text label in the events column."),
+                  "kinetics events, by either value of the sample channel (in units",
+                  "of the x-axis), or by text label in the events channel."),
                 p("The range of the kinetics window (defined below) will be",
                   "re-centred on this value as zero (i.e.", em("time = 0"),
                   ")."),
@@ -447,23 +447,23 @@ ui <- fluidPage(
 ## server ===========================================
 server <- function(input, output, session) {
     ## set delay in case tab-out before full string completion
-    nirs_columns_debounced <- debounce(reactive(input$nirs_columns), 500)
-    sample_column_debounced <- debounce(reactive(input$sample_column), 500)
-    event_column_debounced <- debounce(reactive(input$event_column), 500)
+    nirs_channels_debounced <- debounce(reactive(input$nirs_channels), 500)
+    sample_channel_debounced <- debounce(reactive(input$sample_channel), 500)
+    event_channel_debounced <- debounce(reactive(input$event_channel), 500)
 
 
     # Data upload and processing
     raw_data <- reactive({
-        req(input$upload_file, nirs_columns_debounced(), sample_column_debounced())
+        req(input$upload_file, nirs_channels_debounced(), sample_channel_debounced())
 
         upload_file <- input$upload_file$datapath
 
         data <- tryCatch(
             mNIRS::read_data(
                 file_path = upload_file,
-                nirs_columns = string_to_named_vector(nirs_columns_debounced()),
-                sample_column = string_to_named_vector(sample_column_debounced()),
-                event_column = string_to_named_vector(event_column_debounced()),
+                nirs_channels = string_to_named_vector(nirs_channels_debounced()),
+                sample_channel = string_to_named_vector(sample_channel_debounced()),
+                event_channel = string_to_named_vector(event_channel_debounced()),
                 sample_rate = input$sample_rate %||% 0,
                 time_to_numeric = TRUE,
                 time_from_zero = FALSE,
@@ -604,9 +604,9 @@ server <- function(input, output, session) {
         req(raw_data())
 
         raw_data <- raw_data()
-        nirs_columns <- attributes(raw_data)$nirs_columns
-        sample_column <- attributes(raw_data)$sample_column
-        event_column <- attributes(raw_data)$event_column
+        nirs_channels <- attributes(raw_data)$nirs_channels
+        sample_channel <- attributes(raw_data)$sample_channel
+        event_channel <- attributes(raw_data)$event_channel
         sample_rate <- attributes(raw_data)$sample_rate
         invalid_values <- strsplit(input$invalid_values, split = "\\s*,\\s*")[[1]] |>
             as.numeric()
@@ -623,7 +623,7 @@ server <- function(input, output, session) {
 
         nirs_data <- raw_data |>
             mNIRS::resample_data(
-                sample_column = sample_column,
+                sample_channel = sample_channel,
                 sample_rate = sample_rate,
                 resample_rate = input$resample_rate,
                 verbose = FALSE
@@ -631,17 +631,17 @@ server <- function(input, output, session) {
             ## remove the head rows
             (\(.df) if (input$slice_head > 0) {
                 slice_tail(.df, n = -input$slice_head)
-                # filter(.df, .data[[sample_column]] > input$slice_head)
+                # filter(.df, .data[[sample_channel]] > input$slice_head)
             } else {.df})() |>
             ## remove the tail rows
             (\(.df) if (input$slice_tail > 0) {
                 slice_head(.df, n = -input$slice_tail)
-                # filter(.df, .data[[sample_column]] < input$slice_tail)
+                # filter(.df, .data[[sample_channel]] < input$slice_tail)
             } else {.df})() |>
             mutate(
                 if (input$replace_outliers) {
                     across(
-                        any_of(nirs_columns),
+                        any_of(nirs_channels),
                         \(.x) mNIRS::replace_outliers(
                             .x,
                             width = 15 * sample_rate,  ## 5-sec window
@@ -650,7 +650,7 @@ server <- function(input, output, session) {
                 },
                 if (!is.null(invalid_values)) {
                     across(
-                        any_of(nirs_columns),
+                        any_of(nirs_channels),
                         \(.x) mNIRS::replace_invalid(
                             .x,
                             values = invalid_values,
@@ -659,7 +659,7 @@ server <- function(input, output, session) {
                 },
                 if (input$replace_missing) {
                     across(
-                        any_of(nirs_columns),
+                        any_of(nirs_channels),
                         \(.x) mNIRS::replace_missing(.x, method = "linear"))
                 },
                 if (input$filter_method == "Smooth-Spline") {
@@ -671,7 +671,7 @@ server <- function(input, output, session) {
                     #         # gsub('\033\\[34m\\"|\\"\033\\[39m', '', e$message)
                     #     })
                     across(
-                        any_of(nirs_columns),
+                        any_of(nirs_channels),
                         \(.x) mNIRS::filter_data(
                             .x, method = tolower(input$filter_method),
                             verbose = FALSE, na.rm = TRUE))
@@ -679,7 +679,7 @@ server <- function(input, output, session) {
                     req(input$n, input$fc)
 
                     across(
-                        any_of(nirs_columns),
+                        any_of(nirs_channels),
                         \(.x) mNIRS::filter_data(
                             .x, method = tolower(input$filter_method),
                             type = butter_type(),
@@ -693,7 +693,7 @@ server <- function(input, output, session) {
                     req(input$width)
 
                     across(
-                        any_of(nirs_columns),
+                        any_of(nirs_channels),
                         \(.x) mNIRS::filter_data(
                             .x, method = tolower(input$filter_method),
                             width = input$width,
@@ -706,14 +706,14 @@ server <- function(input, output, session) {
                     input$shift_which_cols, input$shift_samples)
 
                 if (input$shift_which_cols == "Ensemble") {
-                    shift_nirs_columns <- nirs_columns
+                    shift_nirs_channels <- nirs_channels
                 } else if (input$shift_which_cols == "Distinct") {
-                    shift_nirs_columns <- as.list(nirs_columns)
+                    shift_nirs_channels <- as.list(nirs_channels)
                 }
 
                 mNIRS::shift_data(
                     data = .df,
-                    nirs_columns = shift_nirs_columns,
+                    nirs_channels = shift_nirs_channels,
                     shift_to = input$shift_value,
                     position = tolower(input$shift_position),
                     mean_samples = input$shift_samples,
@@ -724,53 +724,53 @@ server <- function(input, output, session) {
                     input$rescale_which_cols)
 
                 if (input$rescale_which_cols == "Ensemble") {
-                    rescale_nirs_columns <- nirs_columns
+                    rescale_nirs_channels <- nirs_channels
                 } else if (input$rescale_which_cols == "Distinct") {
-                    rescale_nirs_columns <- as.list(nirs_columns)
+                    rescale_nirs_channels <- as.list(nirs_channels)
                 }
 
                 mNIRS::rescale_data(
                     data = .df,
-                    nirs_columns = rescale_nirs_columns,
+                    nirs_channels = rescale_nirs_channels,
                     rescale_range = c(input$rescale_min, input$rescale_max)
                 )
             } else {.df})() |>
             mutate(
                 ## reset sample/time values to zero
                 if (input$time_from_zero) {
-                    across(any_of(sample_column), \(.x) .x - first(.x))
+                    across(any_of(sample_channel), \(.x) .x - first(.x))
                 },
                 ## avoid floating point precision issues
                 across(where(is.numeric), \(.x) round(.x, 8)),
-                across(any_of(sample_column), \(.x) round(.x * sample_rate) / sample_rate),
+                across(any_of(sample_channel), \(.x) round(.x * sample_rate) / sample_rate),
             ) |>
-            (\(.df) if (isTruthy(manual_events) & !isTruthy(event_column)) {
+            (\(.df) if (isTruthy(manual_events) & !isTruthy(event_channel)) {
                 mutate(
                     .df,
                     event = case_when(
-                        .data[[sample_column]] %in% manual_events ~
-                            paste0("event_", as.character(.data[[sample_column]])),
+                        .data[[sample_channel]] %in% manual_events ~
+                            paste0("event_", as.character(.data[[sample_channel]])),
                         TRUE ~ NA_character_)
                 )
-            } else if (isTruthy(manual_events) & isTruthy(event_column)) {
+            } else if (isTruthy(manual_events) & isTruthy(event_channel)) {
                 mutate(
                     .df,
                     across(
-                        any_of(event_column),
+                        any_of(event_channel),
                         \(.x) case_when(
-                            .data[[sample_column]] %in% manual_events ~
+                            .data[[sample_channel]] %in% manual_events ~
                                 if(is.numeric(.x)) {
-                                    .data[[sample_column]]
+                                    .data[[sample_channel]]
                                 } else {
-                                    paste0("event_", as.character(.data[[sample_column]]))
+                                    paste0("event_", as.character(.data[[sample_channel]]))
                                 },
                             TRUE ~ .x)
                     )
                 )
             } else .df)() |>
             mutate(
-                across(any_of(nirs_columns), \(.x) round(.x, 2)),
-                across(any_of(sample_column), \(.x) round(.x * sample_rate) / sample_rate),
+                across(any_of(nirs_channels), \(.x) round(.x, 2)),
+                across(any_of(sample_channel), \(.x) round(.x * sample_rate) / sample_rate),
             )
 
         return(nirs_data)
@@ -853,13 +853,13 @@ server <- function(input, output, session) {
         req(raw_data())
 
         raw_data <- raw_data()
-        nirs_columns <- attributes(raw_data)$nirs_columns
-        # nirs_columns_list <- setNames(c(1:length(nirs_columns)), nirs_columns)
+        nirs_channels <- attributes(raw_data)$nirs_channels
+        # nirs_channels_list <- setNames(c(1:length(nirs_channels)), nirs_channels)
 
         checkboxGroupInput("kinetics_y",
                            "Select all mNIRS channels to be processed",
-                           choices = nirs_columns,
-                           selected = nirs_columns)
+                           choices = nirs_channels,
+                           selected = nirs_channels)
     })
 
 
@@ -888,9 +888,9 @@ server <- function(input, output, session) {
             kinetics_method())
 
         nirs_data <- nirs_data()
-        nirs_columns <- attributes(nirs_data)$nirs_columns
-        sample_column <- attributes(nirs_data)$sample_column
-        event_column <- attributes(nirs_data)$event_column
+        nirs_channels <- attributes(nirs_data)$nirs_channels
+        sample_channel <- attributes(nirs_data)$sample_channel
+        event_channel <- attributes(nirs_data)$event_channel
         sample_rate <- attributes(nirs_data)$sample_rate
         event_sample <- strsplit(input$event_sample, split = "\\s*,\\s*")[[1]] |>
             as.numeric()
@@ -899,14 +899,14 @@ server <- function(input, output, session) {
         data_list <- prepare_kinetics_data(
             nirs_data,
             event_sample = event_sample,
-            # event_label = ifelse(is.null(event_column), NULL, input$event_label),
+            # event_label = ifelse(is.null(event_channel), NULL, input$event_label),
             fit_window = c(input$fit_baseline_window, input$fit_kinetics_window),
             group_events = tolower(input$group_events))
 
         kinetics_model_list <- pmap(
-            expand_grid(.df = data_list, .nirs = nirs_columns),
+            expand_grid(.df = data_list, .nirs = nirs_channels),
             \(.df, .nirs)
-            process_kinetics(x = paste0("fit_", sample_column),
+            process_kinetics(x = paste0("fit_", sample_channel),
                              y = .nirs,
                              data = .df,
                              method = kinetics_method(),
@@ -923,16 +923,16 @@ server <- function(input, output, session) {
 
         nirs_data <- nirs_data()
         kinetics_model_list <- kinetics_model_list()
-        sample_column <- attributes(nirs_data)$sample_column
-        # nirs_columns <- attributes(nirs_data)$nirs_columns
-        # nirs_columns <- intersect(input$kinetics_y,
-        #                           attributes(nirs_data)$nirs_columns)
-        nirs_columns <- input$kinetics_y
-        # nirs_fitted <- paste0(nirs_columns, "_fitted")
-        fit_sample <- paste0("fit_", sample_column)
+        sample_channel <- attributes(nirs_data)$sample_channel
+        # nirs_channels <- attributes(nirs_data)$nirs_channels
+        # nirs_channels <- intersect(input$kinetics_y,
+        #                           attributes(nirs_data)$nirs_channels)
+        nirs_channels <- input$kinetics_y
+        # nirs_fitted <- paste0(nirs_channels, "_fitted")
+        fit_sample <- paste0("fit_", sample_channel)
 
         map(kinetics_model_list, \(.x)
-            select(.x$data, matches(c(fit_sample, nirs_columns)))
+            select(.x$data, matches(c(fit_sample, nirs_channels)))
         ) |>
             (\(.l) split(.l, names(.l)))() |>
             map(\(.l) reduce(.l, full_join, by = fit_sample))
@@ -974,11 +974,11 @@ server <- function(input, output, session) {
 
         nirs_data <- nirs_data()
         kinetics_model_list <- kinetics_model_list()
-        sample_column <- attributes(nirs_data)$sample_column
+        sample_channel <- attributes(nirs_data)$sample_channel
         sample_rate <- attributes(nirs_data)$sample_rate
-        nirs_columns <- input$kinetics_y
-        nirs_fitted <- paste0(nirs_columns, "_fitted")
-        fit_sample <- paste0("fit_", sample_column)
+        nirs_channels <- input$kinetics_y
+        nirs_fitted <- paste0(nirs_channels, "_fitted")
+        fit_sample <- paste0("fit_", sample_channel)
 
         data <- kinetics_display_list()
         coefs <- kinetics_coef_data()
@@ -1013,15 +1013,15 @@ server <- function(input, output, session) {
             scale_colour_manual(
                 name = NULL,
                 aesthetics = c("fill", "colour"),
-                breaks = c(nirs_columns, "fitted"),
-                values = c(mNIRS_palette(length(nirs_columns)), "black"),
+                breaks = c(nirs_channels, "fitted"),
+                values = c(mNIRS_palette(length(nirs_channels)), "black"),
                 limits = force) +
             geom_vline(xintercept = 0, linetype = "dotted") +
-            map(nirs_columns, \(.x)
+            map(nirs_channels, \(.x)
                 geom_line(aes(y = .data[[.x]], colour = .x), linewidth = 1)
             ) +
             {if (kinetics_method() %in% c("monoexponential")) {
-                map(nirs_columns, \(.x) {
+                map(nirs_channels, \(.x) {
                     coef_channel <- coefs[coefs$channel == .x,]
                     nirs_fitted <- paste0(.x, "_fitted")
 
@@ -1044,7 +1044,7 @@ server <- function(input, output, session) {
                 })
             }} +
             {if (kinetics_method() == "sigmoidal") {
-                map(nirs_columns, \(.x) {
+                map(nirs_channels, \(.x) {
                     coef_channel <- coefs[coefs$channel == .x,]
                     nirs_fitted <- paste0(.x, "_fitted")
 
@@ -1067,7 +1067,7 @@ server <- function(input, output, session) {
                 })
             }} +
             {if (kinetics_method() == "half_time") {
-                map(nirs_columns, \(.x) {
+                map(nirs_channels, \(.x) {
                     coef_channel <- coefs[coefs$channel == .x,]
                     B_x <- data[[fit_sample]][which(round(data[[.x]], 2) >= coef_channel$B)[1]]
                     half_x <- paste0("half_", fit_sample)
@@ -1089,7 +1089,7 @@ server <- function(input, output, session) {
                 })
             }} +
             {if (kinetics_method() == "peak_slope") {
-                map(nirs_columns, \(.x) {
+                map(nirs_channels, \(.x) {
                     coef_channel <- coefs[coefs$channel == .x,]
                     nirs_fitted <- paste0(.x, "_fitted")
                     peak_slope_x <- paste0("peak_slope_", fit_sample)

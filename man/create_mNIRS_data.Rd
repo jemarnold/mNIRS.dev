@@ -12,9 +12,9 @@ create_mNIRS_data(data, metadata)
 \item{metadata}{Metadata passed along with the dataframe.
 \itemize{
 \item nirs_device
-\item nirs_columns
-\item sample_column
-\item event_column
+\item nirs_channels
+\item sample_channel
+\item event_channel
 \item sample_rate
 \item event_sample_list
 \item fit_span
@@ -32,9 +32,9 @@ Manually add class \code{"mNIRS.data"} and metadata to an existing dataframe.
 \examples{
 ## currently implemented metadata
 metadata <- list(nirs_device = NULL,
-                 nirs_columns = NULL,
-                 sample_column = NULL,
-                 event_column = NULL,
+                 nirs_channels = NULL,
+                 sample_channel = NULL,
+                 event_channel = NULL,
                  sample_rate = NULL,
                  event_sample_list = NULL,
                  fit_span = NULL,
@@ -48,8 +48,8 @@ attributes(df)
 
 nirs_data <- create_mNIRS_data(
     df,
-    metadata = list(nirs_columns = c("B", "C"),
-                    sample_column = "A",
+    metadata = list(nirs_channels = c("B", "C"),
+                    sample_channel = "A",
                     sample_rate = 1)
 )
 attributes(nirs_data)
