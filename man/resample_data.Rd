@@ -6,7 +6,7 @@
 \usage{
 resample_data(
   data,
-  sample_channel = "time",
+  sample_channel = NULL,
   sample_rate = NULL,
   resample_rate = NULL,
   resample_time = NULL,

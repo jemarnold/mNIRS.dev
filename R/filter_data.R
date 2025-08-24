@@ -133,13 +133,13 @@ filter_data <- function(
 
     ## validation: `x` must be a numeric vector
     if (!is.numeric(x)) {
-        cli_abort("{.arg x} must be a {col_blue('numeric')} vector.")
+        cli_abort("{.arg x} must be a {.cls numeric} vector.")
     }
 
     validate_numeric <- function(arg) {
         name <- deparse(substitute(arg))
         if (!is.numeric(arg)) {
-            cli_abort("{.arg {name}} must be {col_blue('numeric')}.")
+            cli_abort("{.arg {name}} must be {.cls numeric}.")
         }
     }
 
@@ -186,7 +186,7 @@ filter_data <- function(
         } else {
             cli_abort(paste(
                 "Either {.arg W} alone, or {.arg fc} and {.arg sample_rate}",
-                "together must be {col_blue('numeric')}",
+                "together must be {.cls numeric}",
                 "for a Butterworth filter."))
         }
 

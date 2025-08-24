@@ -32,7 +32,7 @@
 #' @export
 resample_data <- function(
         data,
-        sample_channel = "time",
+        sample_channel = NULL,
         sample_rate = NULL,
         resample_rate = NULL,
         resample_time = NULL,
@@ -58,7 +58,7 @@ resample_data <- function(
             "{.arg sample_channel} not found. Make sure column names match exactly.")
     } else if (!is.numeric(data[[sample_channel]])) {
         cli_abort(paste("{.arg sample_channel} = {.val {sample_channel}} must be",
-                        "a {col_blue('numeric')} vector."))
+                        "a {.cls numeric} vector."))
     }
 
     ## check for non-NULL, not applicable `sample_rate`
@@ -89,7 +89,7 @@ resample_data <- function(
         sample_rate <- estimated_sample_rate
         sample_info <- paste(
             "Estimated {.arg sample_rate} = {.val {sample_rate}} Hz.",
-            "Overwrite this with {.arg sample_rate} = {col_blue('X')}.")
+            "Overwrite this with {.arg sample_rate} = {.cls X}.")
 
     } else {
         sample_info <- paste("{.arg sample_rate} = {.val {sample_rate}} Hz.")

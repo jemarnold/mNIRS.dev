@@ -7,9 +7,10 @@
 shift_data(
   data,
   nirs_channels = list(),
+  sample_channel = NULL,
   shift_to = 0,
   position = c("minimum", "maximum", "first"),
-  mean_samples = 1,
+  span = 0,
   shift_by = NULL
 )
 }
@@ -17,26 +18,39 @@ shift_data(
 \item{data}{A dataframe.}
 
 \item{nirs_channels}{A \code{list()} of character vectors indicating the column
-names for data channels to be shifted (see \emph{Details}).}
+names for data channels to be shifted (see \emph{Details}).
+\describe{
+\item{\code{nirs_channels = list("A", "B", "C")}}{will shift each channel
+separately, losing relative scaling.}
+\item{\code{nirs_channels = list(c("A", "B", "C"))}}{will shift all channels
+together, preserving relative scaling.}
+\item{\code{nirs_channels = list(c("A", "B"), c("C", "D"))}}{will shift channels
+\code{A} and \code{B} together, and channels \code{C} and \code{D} together, preserving
+relative scaling within, but not across each group.}
+}}
+
+\item{sample_channel}{A character scalar indicating the time or sample data
+channel. Must match \code{data} column names exactly. Will be taken from metadata
+if not defined explicitly.}
 
 \item{shift_to}{A numeric scalar to which the specified data channels
-will be shifted to.}
+will be shifted.}
 
 \item{position}{Indicates how to shift values.
 \describe{
 \item{\code{"minimum"}}{will shift selected channels' minimum values
-to the specified \code{shift_to} value (\emph{default}).}
+to the specified \code{shift_to} value (the \emph{default}).}
 \item{\code{"maximum"}}{will shift selected channels by their maximum values.}
 \item{\code{"first"}}{will shift selected channels by their first values.}
 }}
 
-\item{mean_samples}{An integer scalar representing the number of samples
-over which the \code{position} is determined. e.g., \code{mean_samples = 1} looks for
-the single minimum, maximum, or first value. \code{mean_samples = 30} would
-use the mean of the lowest, highest, or first \code{30} samples.}
+\item{span}{A numeric scalar in units of \code{sample_channel}, defining the range
+over which the \code{position} is determined. \code{span = 0} takes the single
+minimum, maximum, or first value. \code{span = 30} would use the mean of the samples
+within the lowest, highest, or first \code{30} units of the \code{sample_channel}.}
 
 \item{shift_by}{An \emph{optional} numeric scalar by which the data signals can
-be shifted by a set amount.}
+be shifted by a set amount, in units of the \code{nirs_channels}.}
 }
 \value{
 A \link[tibble:tibble-package]{tibble} of class \code{mNIRS.data} with
@@ -45,7 +59,8 @@ metadata available with \code{attributes()}.
 \description{
 Move the range of data channels in a dataframe up or down, while preserving
 the absolute dynamic range and/or relative scaling across channels. e.g. shift
-data range to positive values, or shift the first value of a recording to zero.
+data range to positive values, or shift the mean of the first X number of
+samples in a recording to zero.
 }
 \details{
 \code{nirs_channels = list()} can be used to group data channels to preserve

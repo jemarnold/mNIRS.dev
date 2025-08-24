@@ -430,8 +430,8 @@ read_data <- function(
 
         if (verbose) {
             cli_alert_info(paste(
-                "{.arg sample_rate} = {col_blue('X')} should be defined",
-                "explicitly as a numeric value > 0 Hz."))
+                "{.arg sample_rate} = {.cls X} should be defined",
+                "explicitly as a numeric value >{.val {0}} Hz."))
         }
     }
 
@@ -455,7 +455,7 @@ read_data <- function(
         if (verbose) {
             cli_alert_info(paste(
                 "Oxysoft detected sample rate = {.val {sample_rate}} Hz.",
-                "Overwrite this with {.arg sample_rate} = {col_blue('X')}."))
+                "Overwrite this with {.arg sample_rate} = {.cls X}."))
             cli_alert_info(paste(
                 "{.arg time} column in seconds added from",
                 "{.arg {names(sample_channel)}} and {.arg sample_rate}"))
@@ -467,7 +467,7 @@ read_data <- function(
         if (verbose) {
             cli_alert_info(paste(
                 "No {.arg sample_channel} provided. Sample rate set to {.val {1}} Hz.",
-                "Overwrite this with {.arg sample_rate} = {col_blue('X')}."))
+                "Overwrite this with {.arg sample_rate} = {.cls X}."))
         }
     } else {
         ## sample_rate will be incorrect if `sample_channel` is integer
@@ -479,7 +479,7 @@ read_data <- function(
         if (verbose) {
             cli_alert_info(paste(
                 "Estimated sample rate = {.val {sample_rate}} Hz.",
-                "Overwrite this with {.arg sample_rate} = {col_blue('X')}."))
+                "Overwrite this with {.arg sample_rate} = {.cls X}."))
         }
     }
 
