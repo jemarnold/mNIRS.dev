@@ -81,7 +81,9 @@ nirs_columns = c(new_name1 = "file_column_name1",
 
 * `sample_rate`: The sample rate of the NIRS recording can be specified if known, as number of samples per second, in Hz. If left blank, the function will estimate the sample rate from `sample_column`, assuming it contains time values.
 
-* `numeric_time`: If `sample_column` is in a date-time format (e.g. `hh:mm:ss`), we can convert this to numeric with `numeric_time = TRUE`. This may read the date-time format as starting from a non-zero value. This can be manually corrected later with some basic data wrangling.
+* `time_to_numeric`: If `sample_column` is in a date-time format (e.g. `hh:mm:ss`), we can convert this to numeric with `numeric_time = TRUE`. The numeric time values will be re-sampled to start from zero.
+
+* `time_from_zero`: If the `sample_column` begins at a non-zero numeric value, it can be re-sampled to start from zero by using `time_from_zero = TRUE`.
 
 * `keep_all`: Once the data table in the file is identified, the default is to return only the columns names explicitly specified above. If we want to return all columns in the data table, we can set `keep_all = TRUE`.
 
@@ -94,31 +96,17 @@ data_raw <- read_data(file_path,
                       sample_column = c(time = "hh:mm:ss"),
                       event_column = c(lap = "Lap"),
                       sample_rate = 2, ## we know this file is recorded at 2 samples per second
-                      numeric_time = TRUE, ## to convert the date-time string to numeric
+                      time_to_numeric = TRUE, ## to convert the date-time string to numeric
                       keep_all = FALSE, ## to keep the returned dataframe clean
                       verbose = TRUE) ## show warnings & messages, but ignore them for now
 
 ## ignore the Warning about repeated samples here
 
 data_raw
-```
-
-
-
-## Data wrangling 
-
-Note our `time` column does not start at zero, because we converted from `hh:mm:ss`. Let's quickly fix that, then we'll plot the data. 
-
-We can do any other data wrangling steps here, as we would for any data file. I prefer to use `{tidyverse}` for dataframe wrangling.
-
-```{r}
-data_time_fixed <- data_raw |> 
-    mutate(time = time - first(time))
 
 ## {mNIRS} data can be plotted with a built in call to `plot()`
-plot(data_time_fixed)
+plot(data_raw)
 ```
-
 
 
 ### Metadata stored in *mNIRS.data* dataframes
@@ -188,18 +176,18 @@ Finally, We can use `replace_missing()` to interpolate across missing data. Othe
 Subsequent processing & analysis steps may return errors when missing values are present. Therefore, it is a good habit to identify and deal with them early during data processing. 
 
 ```{r}
-data_cleaned <- data_time_fixed |> 
+data_cleaned <- data_raw |> 
     mutate(
         across(any_of(nirs_columns), ## apply function across all of our `nirs_columns`
                \(.x) replace_outliers(x = .x,
-                                      width = 20 * sample_rate, ## 20 sec window
+                                      width = 15, ## 15 sample window to each side of `x`
                                       na.rm = TRUE, ## ignore `NA`
                                       return = "median")
         ),
         across(any_of(nirs_columns), 
                \(.x) replace_invalid(x = .x,
                                      values = c(0, 100), ## known invalid values
-                                     width = 20 * sample_rate,
+                                     width = 15,
                                      return = "NA")
         ),
         
@@ -218,13 +206,15 @@ That got rid of all the obvious data issues.
 
 
 
-## Downsample Data
+## Resample Data
 
 Say we are interested in phenomena occurring on a time scale of 5-minutes, and we have NIRS data recorded at 50 Hz, but something like power data recorded at only 1 Hz. It may be easier to synchronise our data and faster to work with fewer samples if we down-sample the NIRS data also to 1 Hz.
 
+Alternatively, if we have something like high-frequency EMG data and we want to up-sample our NIRS data, we can do that. Although, we should be cautious with up-sampling as this can artificially inflate our confidence with certain modelling or processing methods.
 
 
-### `downsample_data()` options
+
+### `resample_data()` options
 
 * `data`: This function works on a dataframe; it will take in a dataframe (`data`), apply the processing step to all data channels, and return the processed dataframe.
 
@@ -232,17 +222,17 @@ Say we are interested in phenomena occurring on a time scale of 5-minutes, and w
 
 * `sample_rate`: If the dataframe already has *mNIRS.data* metadata, the *sample_rate* will be detected automatically. Otherwise, we can define or overwrite it explicitly.
 
-* `downsample_rate`: Specify the output sample rate we want to covert to, as a number of samples per second (Hz). This value should be lower than the input `sample_rate`, or else it won't do anything.
+* `resample_rate`: Specify the output sample rate we want to covert to, as a number of samples per second (Hz).
 
-* `downsample_time`: Alternatively, we can specify the output as a number of seconds per sample to produce the same result.
+* `resample_time`: Alternatively, we can specify the output as a number of seconds per sample to produce the same result.
 
 This example dataset is already at relatively low sample rate, but let's just see what it looks like if for some reason we wanted to down-sample further to 0.1 Hz (1 sample every 10 sec).
 
 ```{r}
 data_downsampled <- data_cleaned |> 
-    downsample_data(sample_column = NULL, ## will be automatically read from metadata
+    resample_data(sample_column = NULL, ## will be automatically read from metadata
                     sample_rate = NULL, ## will be automatically read from metadata
-                    downsample_time = 10) ## equal to `downsample_rate = 0.1`
+                    resample_time = 10) ## equal to `resample_rate = 0.1`
 
 data_downsampled
 

@@ -10,7 +10,8 @@ read_data(
   sample_column = NULL,
   event_column = NULL,
   sample_rate = NULL,
-  numeric_time = TRUE,
+  time_to_numeric = TRUE,
+  time_from_zero = FALSE,
   keep_all = FALSE,
   verbose = TRUE
 )
@@ -37,9 +38,13 @@ exactly. A named character vector can be used to rename columns in the form:
 \item{sample_rate}{An \emph{optional} numeric scalar for the sample rate in Hz.
 If not defined explicitly, will be estimated from the data (see \emph{Details}).}
 
-\item{numeric_time}{A logical. \code{TRUE} (the \emph{default}) will convert
+\item{time_to_numeric}{A logical. \code{TRUE} (the \emph{default}) will convert
 a date-time formatted \code{sample_column} to numeric values in seconds.
 \code{FALSE} will return \code{sample_column} in the format of the original file.}
+
+\item{time_from_zero}{A logical. \code{FALSE} (the \emph{default}) will return the
+original numeric values of \code{sample_column}. \code{TRUE} will re-sample
+\code{sample_column} to start from zero.}
 
 \item{keep_all}{A logical. \code{FALSE} (the \emph{default}) will only include the
 explicitly specified data columns. \code{TRUE} will include all columns detected
@@ -74,8 +79,8 @@ sampling (i.e., repeated values or unordered samples) a warning will be given
 suggesting the user confirm the file data manually.
 
 When the \code{sample_column} is provided in date-time format (e.g. \code{hh:mm:ss}),
-this can be converted back to numeric values by \code{numeric_time = TRUE}. In this
-case, values will be recalculated as starting from \code{0} at the first sample.
+this can be converted back to numeric values by \code{time_to_numeric = TRUE}. In
+this case, values will be recalculated as starting from \code{0} at the first sample.
 
 \code{sample_column} will typically represent time values in seconds. However, some
 NIRS devices export the sample index. This can be converted to time values

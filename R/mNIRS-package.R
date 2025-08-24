@@ -20,6 +20,7 @@
 #' @importFrom rlang quo_is_null
 #' @importFrom stats aggregate
 #' @importFrom stats AIC
+#' @importFrom stats approx
 #' @importFrom stats as.formula
 #' @importFrom stats BIC
 #' @importFrom stats coef

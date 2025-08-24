@@ -64,8 +64,8 @@ ui <- fluidPage(
                                  value = 0,
                                  min = 0),
 
-                    numericInput("downsample_rate",
-                                 label = "Downsample Rate",
+                    numericInput("resample_rate",
+                                 label = "Re-sample Rate",
                                  value = 0,
                                  min = 0),
 
@@ -95,7 +95,7 @@ ui <- fluidPage(
                     checkboxInput("replace_missing", "Replace Missing Values"),
 
                     ## reset start time to zero
-                    checkboxInput("zero_start_time", "Zero Start Time"),
+                    checkboxInput("time_from_zero", "Zero Start Time"),
 
                     ## display x as h:mm:ss
                     checkboxInput("display_hmmss", "Display Time as (h:mm:ss)"),
@@ -197,7 +197,7 @@ ui <- fluidPage(
                         label = "Analysis Method",
                         choices = c("Peak Slope", "Half-Recovery Time",
                                     "Monoexponential", "Sigmoidal")),
-                    uiOutput("peak_slope_width_ui"),
+                    uiOutput("peak_slope_span_ui"),
 
                     ## display x as h:mm:ss
                     checkboxInput("display_kinetics_hmmss",
@@ -261,12 +261,13 @@ ui <- fluidPage(
                 h4("Sample Rate:"),
                 p("Will be estimated automatically from the data, or can be
                   overwritten explcitly. This is required for certain functions,
-                  including downsampling and proper digital filtering. Check the
+                  including re-sampling and proper digital filtering. Check the
                   exported file sample times to confirm."),
 
-                h4("Downsample Rate:"),
-                p("Can be defined to downsample the data and reduce the number of
-                  output samples to improve signal to noise ratio."),
+                h4("Re-sample Rate:"),
+                p("Re-sample the data to match the sample rate of a different",
+                  "data source, or make large, high-frequency data tables faster",
+                  "to work with."),
 
                 h4("Remove Head/Tail Samples:"),
                 p("Will remove samples from the start and end of the data,
@@ -411,8 +412,8 @@ ui <- fluidPage(
                   "which can be used to select the better fitting model."),
                 p(code("Peak Slope:"), "will return the peak positive or negative",
                   "linear regression slope (depending on the response direction)",
-                  "over a window defined by", code("width"), "(default",
-                  em("width"), "=", code("10"), "seconds), as a non-parametric",
+                  "over a window defined by", code("span"), "(default",
+                  em("span"), "=", code("10"), "seconds), as a non-parametric",
                   "estimate of the speed of the kinetics event."),
                 p(code("Half-Recovery Time:"), "will return the time (or",
                   em("x value"), ") required to recover half of the total mNIRS",
@@ -446,9 +447,9 @@ ui <- fluidPage(
 ## server ===========================================
 server <- function(input, output, session) {
     ## set delay in case tab-out before full string completion
-    nirs_columns_debounced <- debounce(reactive(input$nirs_columns), 1000)
-    sample_column_debounced <- debounce(reactive(input$sample_column), 1000)
-    event_column_debounced <- debounce(reactive(input$event_column), 1000)
+    nirs_columns_debounced <- debounce(reactive(input$nirs_columns), 500)
+    sample_column_debounced <- debounce(reactive(input$sample_column), 500)
+    event_column_debounced <- debounce(reactive(input$event_column), 500)
 
 
     # Data upload and processing
@@ -464,7 +465,8 @@ server <- function(input, output, session) {
                 sample_column = string_to_named_vector(sample_column_debounced()),
                 event_column = string_to_named_vector(event_column_debounced()),
                 sample_rate = input$sample_rate %||% 0,
-                numeric_time = TRUE,
+                time_to_numeric = TRUE,
+                time_from_zero = FALSE,
                 keep_all = input$keep_all,
                 verbose = FALSE),
             error = \(e) {
@@ -490,7 +492,7 @@ server <- function(input, output, session) {
                 selectInput(
                     "butter_type",
                     label = "Butterworth Filter Type",
-                    choices = c("Low-Pass", "High-Pass", "Stop-Band", "Pass-Band")),
+                    choices = c("Low-Pass")), ## , "High-Pass", "Stop-Band", "Pass-Band"
                 numericInput(
                     "n",
                     label = "Filter Order (n)",
@@ -506,7 +508,7 @@ server <- function(input, output, session) {
                 #   max = 1,
                 #   step = 0.01),
                 numericInput(
-                    "critical_frequency",
+                    "fc",
                     label = "Critical Frequency (Hz)",
                     value = 0.1,
                     min = 0,
@@ -611,8 +613,8 @@ server <- function(input, output, session) {
         manual_events <- strsplit(input$manual_events, split = "\\s*,\\s*")[[1]] |>
             as.numeric()
 
-        validate(need(input$downsample_rate,
-                      "Downsample Rate must be provided. Default is `0`"))
+        validate(need(input$resample_rate,
+                      "resample Rate must be provided. Default is `0`"))
         validate(need(input$slice_head,
                       "Remove Head Samples must be provided. Default is `0`"))
         validate(need(input$slice_tail,
@@ -620,10 +622,10 @@ server <- function(input, output, session) {
 
 
         nirs_data <- raw_data |>
-            mNIRS::downsample_data(
+            mNIRS::resample_data(
                 sample_column = sample_column,
                 sample_rate = sample_rate,
-                downsample_rate = input$downsample_rate,
+                resample_rate = input$resample_rate,
                 verbose = FALSE
             ) |>
             ## remove the head rows
@@ -642,7 +644,7 @@ server <- function(input, output, session) {
                         any_of(nirs_columns),
                         \(.x) mNIRS::replace_outliers(
                             .x,
-                            width = 5 * sample_rate,  ## 5-sec window
+                            width = 15 * sample_rate,  ## 5-sec window
                             na.rm = TRUE,
                             return = "median"))
                 },
@@ -652,48 +654,52 @@ server <- function(input, output, session) {
                         \(.x) mNIRS::replace_invalid(
                             .x,
                             values = invalid_values,
-                            width = 5 * sample_rate, ## 5-sec window
+                            width = 15 * sample_rate, ## 5-sec window
                             return = "median"))
                 },
                 if (input$replace_missing) {
                     across(
                         any_of(nirs_columns),
-                        \(.x) mNIRS::replace_missing(
-                            .x, method = "linear", na.rm = TRUE))
+                        \(.x) mNIRS::replace_missing(.x, method = "linear"))
                 },
-            if (input$filter_method == "Smooth-Spline") {
-                # tryCatch(
-                #     ,
-                #     error = \(e) {
-                #         e$message
-                #         ## remove CLI formatting from error message
-                #         # gsub('\033\\[34m\\"|\\"\033\\[39m', '', e$message)
-                #     })
+                if (input$filter_method == "Smooth-Spline") {
+                    # tryCatch(
+                    #     ,
+                    #     error = \(e) {
+                    #         e$message
+                    #         ## remove CLI formatting from error message
+                    #         # gsub('\033\\[34m\\"|\\"\033\\[39m', '', e$message)
+                    #     })
                     across(
                         any_of(nirs_columns),
                         \(.x) mNIRS::filter_data(
-                            .x, method = tolower(input$filter_method)))
-            } else if (input$filter_method == "Butterworth") {
-                req(input$n, input$critical_frequency)
+                            .x, method = tolower(input$filter_method),
+                            verbose = FALSE, na.rm = TRUE))
+                } else if (input$filter_method == "Butterworth") {
+                    req(input$n, input$fc)
 
-                across(
-                    any_of(nirs_columns),
-                    \(.x) mNIRS::filter_data(
-                        .x, method = tolower(input$filter_method),
-                        type = butter_type(),
-                        n = input$n,
-                        critical_frequency = input$critical_frequency,
-                        sample_rate = sample_rate)
-                )
-            } else if (input$filter_method == "Moving-Average") {
-                req(input$width)
+                    across(
+                        any_of(nirs_columns),
+                        \(.x) mNIRS::filter_data(
+                            .x, method = tolower(input$filter_method),
+                            type = butter_type(),
+                            n = input$n,
+                            fc = input$fc,
+                            sample_rate = sample_rate,
+                            verbose = FALSE,
+                            na.rm = TRUE)
+                    )
+                } else if (input$filter_method == "Moving-Average") {
+                    req(input$width)
 
-                across(
-                    any_of(nirs_columns),
-                    \(.x) mNIRS::filter_data(
-                        .x, method = tolower(input$filter_method),
-                        width = input$width))
-            },
+                    across(
+                        any_of(nirs_columns),
+                        \(.x) mNIRS::filter_data(
+                            .x, method = tolower(input$filter_method),
+                            width = input$width,
+                            verbose = FALSE,
+                            na.rm = TRUE))
+                },
             ) |>
             (\(.df) if (input$shift_logical) {
                 req(input$shift_value, input$shift_position,
@@ -731,7 +737,7 @@ server <- function(input, output, session) {
             } else {.df})() |>
             mutate(
                 ## reset sample/time values to zero
-                if (input$zero_start_time) {
+                if (input$time_from_zero) {
                     across(any_of(sample_column), \(.x) .x - first(.x))
                 },
                 ## avoid floating point precision issues
@@ -858,15 +864,15 @@ server <- function(input, output, session) {
 
 
 
-    ## dynamic UI for process_kinetics peak_slope width
-    output$peak_slope_width_ui <- renderUI({
+    ## dynamic UI for process_kinetics peak_slope span
+    output$peak_slope_span_ui <- renderUI({
         req(raw_data(), kinetics_method())
 
         if (input$kinetics_method == "Peak Slope") {
             tagList(
                 numericInput(
-                    "peak_slope_width",
-                    label = "Peak Slope Width (units of x-axis)",
+                    "peak_slope_span",
+                    label = "Peak Slope Span (units of x-axis)",
                     value = 10, min = 2),
             )
         }
@@ -904,7 +910,7 @@ server <- function(input, output, session) {
                              y = .nirs,
                              data = .df,
                              method = kinetics_method(),
-                             width = input$peak_slope_width %||% 10)
+                             span = input$peak_slope_span %||% 10)
         )
 
         return(kinetics_model_list)

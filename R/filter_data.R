@@ -20,17 +20,18 @@
 #'      \item{`"pass"`}{For a *pass-band* filter.}
 #'  }
 #' @param spar A numeric scalar defining the smoothing parameter for
-#'  `method = "smooth-spline"`.
+#'  `method = `*`"smooth-spline"`*.
 #' @param n An integer scalar defining the order of a Butterworth filter for
-#'  `method = "butterworth"`.
+#'  `method = `*`"butterworth"`*.
 #' @param W A numeric scalar or two-element vector defining the fractional
-#'  critical frequency(ies) of a Butterworth filter for `method = "butterworth"`.
+#'  critical frequency(ies) of a Butterworth filter for `method = `
+#'  *`"butterworth"`*.
 #' @param fc A numeric scalar or two-element vector defining the critical
-#'  frequency(ies) of a Butterworth filter for `method = "butterworth"`.
+#'  frequency(ies) of a Butterworth filter for `method = `*`"butterworth"`*.
 #' @param sample_rate A numeric scalar for the sample rate in Hz for
-#'  `method = "butterworth"`.
+#'  `method = `*`"butterworth"`*.
 #' @param width A numeric scalar defining the window length of samples for
-#'  `method = "moving-average"`.
+#'  `method = `*`"moving-average"`*.
 #' @param na.rm A logical indicating whether missing values should be ignored
 #'  (`TRUE`) before the filter is applied. Otherwise (`FALSE`, the *default*) will
 #'  throw an error (see *Details*).
@@ -41,14 +42,14 @@
 #'
 #' @details
 #' \describe{
-#'  \item{`method = "smooth-spline"`}{applies a non-parametric cubic
+#'  \item{`method = `*`"smooth-spline"`*}{applies a non-parametric cubic
 #'  smoothing spline from [stats::smooth.spline()]. Smoothing is defined
 #'  by the parameter `spar`, which can be left blank and automatically
 #'  determined via penalised log liklihood. This usually works well for
 #'  smoothing responses occurring on the order of minutes or longer. Or `spar`
 #'  can be defined explicitly, typically (but not necessarily) in the range
 #'  `spar = [0, 1]`.}
-#'  \item{`method = "butterworth"`}{applies a centred (two-pass symmetrical)
+#'  \item{`method = `*`"butterworth"`*}{applies a centred (two-pass symmetrical)
 #'  Butterworth digital filter from [signal::butter()] and [signal::filtfilt()].
 #'  The filter order is defined by `n`, typically in the range `n = [1, 10]`.
 #'  Higher filter orders tend to better capture rapid changes in amplitude,
@@ -78,7 +79,7 @@
 #'
 #'  Defining both `fc` and `sample_rate` explicitly will
 #'  overwrite `W`.}
-#'  \item{`method = "moving-average"`}{applies a centred (two-way symmetrical)
+#'  \item{`method = `*`"moving-average"`*}{applies a centred (two-way symmetrical)
 #'  moving average filter from [zoo::rollapply()]. The moving-average is
 #'  calculated over a window of width `width` defining the number of samples
 #'  between `[i - floor(width/2), i + floor(width/2)]`. A partial moving-

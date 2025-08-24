@@ -7,7 +7,7 @@
 rolling_slope(
   y,
   x = seq_along(y),
-  width,
+  span,
   align = c("center", "left", "right"),
   na.rm = FALSE
 )
@@ -18,12 +18,12 @@ rolling_slope(
 \item{x}{A numeric vector of the predictor variable, defaults to using the
 index of \code{x = seq_along(y)}.}
 
-\item{width}{A numeric scalar defining the window width in units of \code{x}
-for rolling calculations.}
+\item{span}{A numeric scalar defining the window in units of \code{x} for
+rolling local calculations.}
 
-\item{align}{Specifies the window alignment of \code{width} as \emph{"center"}
+\item{align}{Specifies the window alignment of \code{span} as \emph{"center"}
 (the \emph{default}), \emph{"left"}, or \emph{"right"}. Where \emph{"left"} is \emph{forward looking},
-and \emph{"right"} is \emph{backward looking} by the window \code{width} from the current
+and \emph{"right"} is \emph{backward looking} by the window \code{span} from the current
 sample.}
 
 \item{na.rm}{A logical indicating how missing data will be handled. \code{FALSE}
@@ -36,22 +36,22 @@ A numeric vector of rolling local slopes in units of \code{y/x} of the
 same length as \code{y}.
 }
 \description{
-Computes rolling first derivative (linear regression slope) for a numeric
+Computes rolling linear regression slope (first derivative) for a numeric
 response variable \code{y} within a moving window.
 }
 \details{
 Uses the least squares formula on complete case analysis to calculate
-local slopes within a rolling window along \code{x} specified by \code{width} in units
-of \code{x}. i.e. \code{x = 10} would include samples within a 10-second window for
+local slopes within a rolling window specified by \code{span} along \code{x}, in units
+of \code{x}. i.e. \code{span = 10} would include samples within a 10-second window for
 time series data.
 }
 \examples{
 y <- c(1, 3, 2, 5, 8, 7, 9, 12, 11, 15, 14, 17, 18)
-rolling_slope(y, width = 3)
-rolling_slope(y, width = 3, align = "left")
+rolling_slope(y, span = 3)
+rolling_slope(y, span = 3, align = "left")
 
 y_na <- c(1, 3, NA, 5, 8, 7, 9, 12, NA, NA, NA, 17, 18)
-rolling_slope(y_na, width = 3)
+rolling_slope(y_na, span = 3)
 
 }
 \seealso{

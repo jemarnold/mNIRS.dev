@@ -10,9 +10,9 @@
 #'  - event_column
 #'  - sample_rate
 #'  - event_sample_list
-#'  - fit_window
-#'  - display_window
-#'  - end_kinetics_window
+#'  - fit_span
+#'  - display_span
+#'  - end_kinetics_span
 #'
 #' @return A [tibble][tibble::tibble-package] of class `mNIRS.data` with
 #'  metadata available with `attributes()`.
@@ -25,9 +25,9 @@
 #'                  event_column = NULL,
 #'                  sample_rate = NULL,
 #'                  event_sample_list = NULL,
-#'                  fit_window = NULL,
-#'                  display_window = NULL,
-#'                  end_kinetics_window = NULL)
+#'                  fit_span = NULL,
+#'                  display_span = NULL,
+#'                  end_kinetics_span = NULL)
 #'
 #' df <- data.frame(A = 1:3,
 #'                  B = seq(10, 30, 10),
@@ -61,9 +61,9 @@ create_mNIRS_data <- function(
         event_column = metadata$event_column,
         sample_rate = metadata$sample_rate, ## samples per second
         event_sample_list = metadata$event_sample_list, ##
-        fit_window = metadata$fit_window, ## c(-baseline, +kinetics)
-        display_window = metadata$display_window, ## c(-baseline, +kinetics)
-        end_kinetics_window = metadata$end_kinetics_window, ## c(10, 15, 30) sec or 1/10 kinetics_window
+        fit_span = metadata$fit_span, ## c(-baseline, +kinetics)
+        display_span = metadata$display_span, ## c(-baseline, +kinetics)
+        end_kinetics_span = metadata$end_kinetics_span, ## c(10, 15, 30) sec or 1/10 kinetics_window
     )
 
     tibble::validate_tibble(nirs_data)
@@ -97,9 +97,12 @@ create_mNIRS_data <- function(
 #'  `c(new_name = "original_name")` (see *Details*).
 #' @param sample_rate An *optional* numeric scalar for the sample rate in Hz.
 #'  If not defined explicitly, will be estimated from the data (see *Details*).
-#' @param numeric_time A logical. `TRUE` (the *default*) will convert
+#' @param time_to_numeric A logical. `TRUE` (the *default*) will convert
 #'  a date-time formatted `sample_column` to numeric values in seconds.
 #'  `FALSE` will return `sample_column` in the format of the original file.
+#' @param time_from_zero A logical. `FALSE` (the *default*) will return the
+#'  original numeric values of `sample_column`. `TRUE` will re-sample
+#'  `sample_column` to start from zero.
 #' @param keep_all A logical. `FALSE` (the *default*) will only include the
 #'  explicitly specified data columns. `TRUE` will include all columns detected
 #'  from the file.
@@ -124,8 +127,8 @@ create_mNIRS_data <- function(
 #' suggesting the user confirm the file data manually.
 #'
 #' When the `sample_column` is provided in date-time format (e.g. `hh:mm:ss`),
-#' this can be converted back to numeric values by `numeric_time = TRUE`. In this
-#' case, values will be recalculated as starting from `0` at the first sample.
+#' this can be converted back to numeric values by `time_to_numeric = TRUE`. In
+#' this case, values will be recalculated as starting from `0` at the first sample.
 #'
 #' `sample_column` will typically represent time values in seconds. However, some
 #' NIRS devices export the sample index. This can be converted to time values
@@ -150,7 +153,8 @@ read_data <- function(
         sample_column = NULL,
         event_column = NULL,
         sample_rate = NULL,
-        numeric_time = TRUE,
+        time_to_numeric = TRUE,
+        time_from_zero = FALSE,
         keep_all = FALSE,
         verbose = TRUE
 ) {
@@ -174,7 +178,7 @@ read_data <- function(
     is_excel <- grepl("\\.xls(x)?$", file_path, ignore.case = TRUE)
     is_csv <- grepl("\\.csv$", file_path, ignore.case = TRUE)
 
-    ## import from either excel or csv
+    ## import data_full from either excel or csv ===============================
     if (is_excel) {
         ## report error when file is open and cannot be accessed by readxl
         data_full <- tryCatch({
@@ -235,8 +239,8 @@ read_data <- function(
             "Please ensure that column names in the data file are unique."))
     }
 
-    ## extract the data table, and name by header row
-    data_table <- data_full[(header_row + 1):nrow(data_full), ] |>
+    ## extract the data_raw, and name by header row ===========================
+    data_raw <- data_full[(header_row + 1):nrow(data_full), ] |>
         setNames(data_full[header_row, ])
 
     ## rename named or non-named vectors as unique
@@ -272,43 +276,55 @@ read_data <- function(
     }
 
     ## explicitly rename objects
-    data_table <- make_names_unique(data_table)
+    data_raw <- make_names_unique(data_raw)
     nirs_columns <- make_names_unique(nirs_columns)
     sample_column <- make_names_unique(sample_column)
     event_column <- make_names_unique(event_column)
 
     ## desired column names supercede existing dataframe column names
     ## EDGE CASE for when desired column matches existing column and keep_all == TRUE
-    col_check <- names(data_table) %in% c(
+    col_check <- names(data_raw) %in% c(
         names(sample_column)[!sample_column %in% names(sample_column)],
         names(nirs_columns)[!nirs_columns %in% names(nirs_columns)],
         names(event_column)[!event_column %in% names(event_column)])
-
-    names(data_table)[col_check] <- paste0(names(data_table)[col_check], "..1")
+    names(data_raw)[col_check] <- paste0(names(data_raw)[col_check], "..1")
 
     ## validation: check that sample_column exists
     if (is.null(sample_column)) {
         sample_column_was_null <- TRUE
         sample_column <- make_names_unique("index")
-        data_table[["index"]] <- 1:nrow(data_table)
+        data_raw[["index"]] <- 1:nrow(data_raw)
         if (verbose) {
             cli_alert_info(paste(
                 "No {.arg sample_column} provided. Adding an {.arg index}",
                 "column by row number. Provide {.arg sample_column}",
                 "to overwrite this."))
         }
-    } else if (!is.null(sample_column) && !sample_column %in% names(data_table)) {
+    } else if (!is.null(sample_column) && !sample_column %in% names(data_raw)) {
         cli_abort(paste(
             "{.arg sample_column} = {.val {sample_column}} not detected.",
             "Column names are case sensitive and should match exactly."))
     }
 
     ## validation: check that event_column exists
-    if (!is.null(event_column) && !event_column %in% names(data_table)) {
+    if (!is.null(event_column) && !event_column %in% names(data_raw)) {
         cli_abort(paste(
             "{.arg event_column} = {.val {event_column}} not detected.",
             "Column names are case sensitive and should match exactly."))
     }
+
+    ## detect mNIRS device ===================================================
+    ## returns NULL if not found
+    devices <- c("Artinis" = "OxySoft", "Train.Red" = "Train.Red", "Moxy" = "Moxy")
+    nirs_device <- names(devices)[match(TRUE, sapply(devices, \(.x) {
+        any(grepl(.x, data_full[1:100, ], ignore.case = TRUE))
+    }))]
+
+    # if (verbose && !is.null(nirs_device)) {
+    #     cli_alert_info(paste(
+    #         "{.arg nirs_device} recognised as {.val {nirs_device}}.",
+    #         "Overwrite this with {.arg nirs_device} = {.val X}."))
+    # }
 
     ## helper to test and appropriately return numeric data
     try_numeric <- function(x) {
@@ -318,7 +334,7 @@ read_data <- function(
         } else {return(x)}
     }
 
-    data_prepared <- data_table |>
+    data_prepared <- data_raw |>
         ## select and rename defined columns
         ## keep_all selects everything, else only explicitly defined columns
         dplyr::select(
@@ -347,16 +363,20 @@ read_data <- function(
                     optional = TRUE)),
 
             ## convert dttm format sample column to numeric values in seconds
-            if (numeric_time) dplyr::across(
+            if (time_to_numeric) dplyr::across(
                 dplyr::any_of(names(sample_column)) &
                     dplyr::where(\(.x) inherits(.x, "POSIXct")),
                 \(.x) {
                     num_time <- as.numeric(format(.x, "%H")) * 3600 +
                         as.numeric(format(.x, "%M")) * 60 +
                         as.numeric(format(.x, "%OS8"))
-                    ## restart converted numeric time from zero
+                    ## resample converted numeric time to start from zero
                     num_time - dplyr::first(num_time)
                 }),
+            ## resample time to start from zero
+            if (time_from_zero) dplyr::across(
+                dplyr::any_of(names(sample_column)),
+                \(.x) .x - dplyr::first(.x)),
 
             ## round to avoid floating point error
             dplyr::across(dplyr::where(is.numeric), \(.x) round(.x, 8)),
@@ -417,7 +437,7 @@ read_data <- function(
 
     ## detect exported sample_rate from Oxysoft (english) file
     oxysoft_sample_row <- apply(
-        data_full[1:1000, ], 1, \(.row) all("Export sample rate" %in% .row)
+        data_full[1:100, ], 1, \(.row) all("Export sample rate" %in% .row)
     )
 
     ## conditions to define/estimate `sample_rate`
@@ -425,12 +445,22 @@ read_data <- function(
         sample_rate <- sample_rate
     } else if (any(oxysoft_sample_row)) {
         sample_rate <- as.numeric(data_full[which(oxysoft_sample_row), 2])
+        # data_prepared$time <- data_prepared[[names(sample_column)]] / sample_rate
+        data_prepared <- data_prepared |>
+            dplyr::mutate(
+                time = .data[[names(sample_column)]] / sample_rate
+            ) |>
+            dplyr::relocate(time, .after = dplyr::any_of(sample_column))
 
         if (verbose) {
             cli_alert_info(paste(
                 "Oxysoft detected sample rate = {.val {sample_rate}} Hz.",
                 "Overwrite this with {.arg sample_rate} = {col_blue('X')}."))
+            cli_alert_info(paste(
+                "{.arg time} column in seconds added from",
+                "{.arg {names(sample_column)}} and {.arg sample_rate}"))
         }
+        names(sample_column) <- "time" ## to add to metadata
     } else if (exists("sample_column_was_null")) {
         sample_rate <- 1
 
@@ -454,7 +484,7 @@ read_data <- function(
     }
 
     metadata <- list(
-        # TODO detect NIRS device? nirs_device = nirs_device,
+        nirs_device = nirs_device,
         nirs_columns = names(nirs_columns),
         sample_column = names(sample_column),
         event_column = names(event_column),
@@ -490,7 +520,7 @@ read_data <- function(
 #     nirs_columns = c(smo2 = "SmO2 Live", thb = "THb"),
 #     sample_column = c(time = "hh:mm:ss"),
 #     event_column = NULL,
-#     numeric_time = FALSE)
+#     time_to_numeric = FALSE)
 # lubridate::seconds_to_period(50590)
 #
 #
@@ -526,6 +556,6 @@ read_data <- function(
 #                      "left_smo2" = "SmO2 -  2[%]",
 #                      "thb" = "THb[THb]"),
 #     sample_column = c("time" = "Time[hh:mm:ss]"),
-#     numeric_time = FALSE,
+#     time_to_numeric = FALSE,
 #     event_column = NULL)
 #

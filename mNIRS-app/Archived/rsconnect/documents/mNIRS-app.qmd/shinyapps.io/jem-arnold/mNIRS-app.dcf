@@ -1,0 +1,14 @@
+name: mNIRS-app
+title: mNIRS-app
+username: jem-arnold
+account: jem-arnold
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 15006176
+bundleId: 10634982
+url: https://jem-arnold.shinyapps.io/mNIRS-app/
+version: 1
+quarto_version: 1.6.42
+quarto_engines: knitr
+asMultiple: FALSE
+asStatic: FALSE

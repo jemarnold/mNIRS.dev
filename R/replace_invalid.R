@@ -13,7 +13,8 @@
 #' @details Useful to overwrite known invalid/nonsense values, such as `0`,
 #'  `100`, or `102.3`.
 #'
-#' *TODO: allow for overwriting all values greater or less than known values.*
+#' `<under development>` *allow for overwriting all values greater or less than
+#' known values.*
 #'
 #' @seealso [pracma::hampel()]
 #'
@@ -51,6 +52,8 @@ replace_invalid <- function(
         cli_abort("{.arg width} must be half the length of {.arg x}.")
     }
 
+    x <- round(x, 10) ## avoid floating point precision issues
+    values <- round(values, 10)
     n <- length(x)
     y <- x
 
@@ -58,13 +61,14 @@ replace_invalid <- function(
         ## vectorised window bounds
         start_idx <- pmax(1, seq_len(n) - width)
         end_idx <- pmin(n, seq_len(n) + width)
-        ## vectorised median & MAD
-        x0 <- vapply(seq_len(n), \(i) {
-            median(x[start_idx[i]:end_idx[i]], na.rm = TRUE)}, numeric(1))
-    }
+        ## vectorised median
+        x0 <- vapply(seq_len(n), \(.i) {
+            median(x[start_idx[.i]:end_idx[.i]], na.rm = TRUE)}, numeric(1))
 
-    ## fill invalid with median or NA
-    y[y %in% values] <- if (return) {x0[y %in% values]} else {NA_real_}
+        y[y %in% values] <- x0[y %in% values]
+    } else {
+        y[y %in% values] <- NA_real_
+    }
 
     return(y)
 }

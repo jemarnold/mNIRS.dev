@@ -9,7 +9,7 @@ test_that("read_data moxy.perfpro works", {
             nirs_columns = c(smo2_left = "SmO2 Live",
                              smo2_right = "SmO2 Live(2)"),
             sample_column = c(time = "hh:mm:ss"),
-            numeric_time = FALSE,
+            time_to_numeric = FALSE,
             keep_all = FALSE,
             verbose = TRUE),
         "non-sequential or repeating") |>
@@ -33,7 +33,7 @@ test_that("read_data moxy.perfpro works", {
             nirs_columns = c(smo2_left = "SmO2 Live",
                              smo2_right = "SmO2 Live(2)"),
             sample_column = c(time = "hh:mm:ss"),
-            numeric_time = TRUE,
+            time_to_numeric = TRUE,
             keep_all = FALSE,
             verbose = TRUE),
         "non-sequential or repeating") |>
@@ -108,8 +108,6 @@ test_that("read_data train.red works", {
             nirs_columns = c(smo2_left = "SmO2 unfiltered",
                              smo2_right = "SmO2 unfiltered"),
             sample_column = c(time = "Timestamp (seconds passed)"),
-            event_column = NULL,
-            keep_all = FALSE,
             verbose = TRUE),
         "non-sequential or repeating values") |>
         expect_message("Estimated sample rate")
@@ -120,13 +118,23 @@ test_that("read_data train.red works", {
             nirs_columns = c(smo2_left = "SmO2 unfiltered",
                              smo2_right = "SmO2 unfiltered"),
             sample_column = c(time = "Timestamp (seconds passed)"),
-            keep_all = FALSE,
             verbose = FALSE)
     )
 
     expect_s3_class(df, "mNIRS.data")
     expect_s3_class(df, "data.frame")
     expect_type(df$time, "double")
+    expect_gte(df$time[1], 0)
+
+    expect_equal(
+        read_data(
+            file_path = file_path,
+            nirs_columns = c(smo2_left = "SmO2 unfiltered",
+                             smo2_right = "SmO2 unfiltered"),
+            sample_column = c(time = "Timestamp (seconds passed)"),
+            time_from_zero = TRUE,
+            verbose = FALSE)$time[1],
+    0)
 
     expect_true(
         all(c("nirs_columns", "sample_column", "sample_rate") %in%
@@ -166,9 +174,11 @@ test_that("read_data oxysoft works", {
                              O2Hb_VL = 6),
             sample_column = c(sample = 1),
             verbose = FALSE),
-        3)
+        4)
 
     expect_type(df$sample, "double")
+    expect_type(df$time, "double")
+    expect_equal(df$sample[1:10]/50, df$time[1:10])
     expect_s3_class(df, "mNIRS.data")
     expect_s3_class(df, "data.frame")
 
@@ -193,7 +203,8 @@ test_that("read_data oxysoft works", {
             sample_column = c(sample = 1),
             verbose = TRUE),
         "Duplicated input column names detected") |>
-        expect_message("Oxysoft detected sample rate")
+        expect_message("Oxysoft detected sample rate") |>
+        expect_message("`time` column in seconds added")
 
     expect_message(
         read_data(
@@ -203,7 +214,8 @@ test_that("read_data oxysoft works", {
             sample_column = NULL,
             verbose = TRUE),
         "No `sample_column` provided") |>
-        expect_message("Oxysoft detected sample rate")
+        expect_message("Oxysoft detected sample rate") |>
+        expect_message("`time` column in seconds added")
 })
 
 
@@ -220,7 +232,7 @@ test_that("read_data VMPro app works", {
             nirs_columns = c(smo2_left = "SmO2[%]",
                              smo2_right = "SmO2 -  2[%]"),
             sample_column = c(time = "Time[utc]"),
-            numeric_time = FALSE,
+            time_to_numeric = FALSE,
             keep_all = TRUE,
             verbose = FALSE),
         5)
@@ -235,7 +247,7 @@ test_that("read_data VMPro app works", {
         nirs_columns = c(smo2_left = "SmO2[%]",
                          smo2_right = "SmO2 -  2[%]"),
         sample_column = c(time = "Time[utc]"),
-        numeric_time = TRUE,
+        time_to_numeric = TRUE,
         keep_all = TRUE,
         verbose = FALSE)
 

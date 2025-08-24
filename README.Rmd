@@ -63,7 +63,8 @@ data_raw <- read_data(file_path,
                       sample_column = c(time = "hh:mm:ss"),
                       event_column = c(lap = "Lap"),
                       sample_rate = 2,
-                      numeric_time = TRUE,
+                      time_to_numeric = TRUE,
+                      time_from_zero = TRUE,
                       keep_all = FALSE,
                       verbose = FALSE)
 
@@ -83,16 +84,14 @@ sample_rate <- attributes(data_raw)$sample_rate
 
 data_cleaned <- data_raw |> 
     mutate(
-        time = time - first(time), ## correct time column to start at zero
         across(any_of(nirs_columns), 
                \(.x) replace_invalid(x = .x,
                                      values = c(0, 100),
-                                     width = 20 * sample_rate,
                                      return = "NA")
         ),
         across(any_of(nirs_columns), 
                \(.x) replace_outliers(x = .x,
-                                      width = 20 * sample_rate, ## 20 sec median window
+                                      width = 15, ## 15 sample median window
                                       t0 = 3,
                                       na.rm = TRUE,
                                       return = "median")
@@ -115,14 +114,14 @@ plot(data_cleaned)
 
 ```{r}
 
-data_resampled <- data_cleaned |> 
-    downsample_data(sample_column = NULL, ## will be automatically read from metadata
+data_downsampled <- data_cleaned |> 
+    resample_data(sample_column = NULL, ## will be automatically read from metadata
                     sample_rate = NULL, ## will be automatically read from metadata
-                    downsample_time = 10) ## equal to `downsample_rate = 0.1`
+                    resample_time = 10) ## equal to `resample_rate = 0.1`
 
-data_resampled
+data_downsampled
 
-plot(data_resampled)
+plot(data_downsampled)
 ```
 
 

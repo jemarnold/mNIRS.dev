@@ -1,4 +1,4 @@
-^mNIRS\.Rproj$
+^.*\.Rproj$
 ^\.Rproj\.user$
 ^LICENSE\.md$
 ^README\.Rmd$
@@ -8,3 +8,5 @@
 ^docs$
 ^pkgdown$
 ^\.github$
+^worksheets$
+^mNIRS-app$

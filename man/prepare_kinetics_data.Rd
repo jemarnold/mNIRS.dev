@@ -9,8 +9,8 @@ prepare_kinetics_data(
   event_sample = NULL,
   event_label = NULL,
   event_index = NULL,
-  fit_window = c(30, 180),
-  display_window = NULL,
+  fit_span = c(30, 180),
+  display_span = NULL,
   group_events = list("distinct", "ensemble"),
   nirs_columns = NULL,
   sample_column = NULL,
@@ -34,29 +34,26 @@ label such as \emph{"end work"}.}
 indices of kinetics events. i.e., to identify the start of kinetic events by
 row number.}
 
-\item{fit_window}{A two-element numeric vector in the form \code{c(before, after)}
+\item{fit_span}{A two-element numeric vector in the form \code{c(before, after)}
 in units of \code{sample_column}, defining the window around the kinetics events
-to include in the model fitting process (\emph{default = c(30, 180)}).}
+to include in the model fitting process (\emph{default} \code{fit_span = c(30, 180)}).}
 
-\item{display_window}{(\emph{Not currently implemented})
-An \emph{optional} two-element numeric vector in the form
-\code{c(before, after)} in units of \code{sample_column}, defining the window around
-the kinetics events to include for display, but not for model fitting.}
+\item{display_span}{\emph{\verb{<under development>}}.}
 
 \item{group_events}{Indicates how kinetics events should be analysed. Typically
-either \emph{"distinct"} (\emph{the default}) or \emph{"ensemble"}, but can be manually
+either \emph{"distinct"} (the \emph{default}) or \emph{"ensemble"}, but can be manually
 specified (see \emph{Details}).}
 
 \item{nirs_columns}{A character vector indicating the mNIRS data columns to
 be processed from your dataframe. Must match \code{data} column names exactly.
-Can be taken from metadata if not defined explicitly.}
+Will be taken from metadata if not defined explicitly.}
 
 \item{sample_column}{A character scalar indicating the time or sample data
-column. Must match \code{data} column names exactly. Can be taken from metadata
+column. Must match \code{data} column names exactly. Will be taken from metadata
 if not defined explicitly.}
 
 \item{event_column}{An \emph{optional} character scalar indicating an event or
-lap data column. Must match \code{data} column names exactly. Can be taken from
+lap data column. Must match \code{data} column names exactly. Will be taken from
 metadata if not defined explicitly.}
 
 \item{sample_rate}{A numeric scalar for the sample rate in Hz. Will be taken
@@ -65,7 +62,7 @@ from metadata if not defined explicitly.}
 \item{...}{Additional arguments.}
 }
 \value{
-A list of \link[tibble:tibble-package]{tibbles} of class \code{mNIRS.data}
+A list of \link[tibble:tibble-package]{tibbles} of class \code{"mNIRS.data"}
 with metadata available with \code{attributes()}.
 }
 \description{
@@ -73,17 +70,17 @@ Processes a list of one or more dataframes of class \code{"mNIRS.data"} represen
 distinct or ensembled kinetics events for further analysis.
 }
 \details{
-\code{display_window} defines the widest range of data before and after the kinetics
+\code{display_span} defines the widest range of data before and after the kinetics
 event which will be passed on in the dataframe, but not included in the
-modelling process. \code{fit_window} defines the widest extent of data before and
+modelling process. \code{fit_span} defines the widest extent of data before and
 after the kinetics event which may be included in the modelling process.
 
 \code{group_events} indicates how kinetics events should be analysed, either
 separately, or grouped and ensemble averaged similar to oxygen uptake kinetics.
 \describe{
-\item{\code{group_events = "distinct"}}{Will prepare a list of unique dataframes
+\item{\verb{group_events = }\emph{\code{"distinct"}}}{Will prepare a list of unique dataframes
 for each kinetics event (\emph{default}).}
-\item{\code{group_events = "ensemble"}}{Will prepare one dataframe with the
+\item{\verb{group_events = }\emph{\code{"ensemble"}}}{Will prepare one dataframe with the
 ensemble-averaged data from all mNIRS kinetics events.}
 \item{\code{group_events = list(c(1, 2), c(3, 4))}}{Will group kinetic events
 together in sequence of appearance, and prepare a list of ensemble-averaged

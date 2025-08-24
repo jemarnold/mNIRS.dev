@@ -17,9 +17,9 @@ create_mNIRS_data(data, metadata)
 \item event_column
 \item sample_rate
 \item event_sample_list
-\item fit_window
-\item display_window
-\item end_kinetics_window
+\item fit_span
+\item display_span
+\item end_kinetics_span
 }}
 }
 \value{
@@ -37,9 +37,9 @@ metadata <- list(nirs_device = NULL,
                  event_column = NULL,
                  sample_rate = NULL,
                  event_sample_list = NULL,
-                 fit_window = NULL,
-                 display_window = NULL,
-                 end_kinetics_window = NULL)
+                 fit_span = NULL,
+                 display_span = NULL,
+                 end_kinetics_span = NULL)
 
 df <- data.frame(A = 1:3,
                  B = seq(10, 30, 10),

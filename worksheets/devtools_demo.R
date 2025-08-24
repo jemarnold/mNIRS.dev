@@ -45,7 +45,7 @@ devtools::build_readme()
 usethis::use_package("rlang")
 usethis::use_package("purrr", type = "suggest")
 
-usethis::use_import_from("stats", "aggregate")
+usethis::use_import_from("stats", "approx")
 
 usethis::use_vignette("processing-mNIRS-data.qmd")
 devtools::build_rmd("vignettes/processing-mNIRS-data.qmd")
@@ -54,7 +54,7 @@ usethis::use_test("prepare_kinetics_data.R")
 devtools::load_all()
 devtools::test()
 devtools::check()
-
+# utils::globalVariables()
 ## Building R packages with devtools and usethis | RStudio ================
 ## https://www.youtube.com/watch?v=EpTkT6Rkgbs
 MVP minimum viable package

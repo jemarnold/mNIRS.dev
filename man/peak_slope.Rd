@@ -7,7 +7,7 @@
 peak_slope(
   y,
   x = seq_along(y),
-  width,
+  span,
   align = c("center", "left", "right"),
   na.rm = FALSE
 )
@@ -18,12 +18,12 @@ peak_slope(
 \item{x}{A numeric vector of the predictor variable, defaults to using the
 index of \code{x = seq_along(y)}.}
 
-\item{width}{A numeric scalar defining the window width in units of \code{x}
-for rolling calculations.}
+\item{span}{A numeric scalar defining the window in units of \code{x} for
+rolling local calculations.}
 
-\item{align}{Specifies the window alignment of \code{width} as \emph{"center"}
+\item{align}{Specifies the window alignment of \code{span} as \emph{"center"}
 (the \emph{default}), \emph{"left"}, or \emph{"right"}. Where \emph{"left"} is \emph{forward looking},
-and \emph{"right"} is \emph{backward looking} by the window \code{width} from the current
+and \emph{"right"} is \emph{backward looking} by the window \code{span} from the current
 sample.}
 
 \item{na.rm}{A logical indicating how missing data will be handled. \code{FALSE}
@@ -38,10 +38,10 @@ A list of class \code{mNIRS.kinetics} with components \code{L$...}:
 \item{\code{y}}{The \code{y} value predicted from linear regression at the local
 peak slope.}
 \item{\code{slope}}{The slope value in units of \code{y/x}.}
-\item{\code{x_fitted}}{The range of \code{x} values given by \code{width} corresponding
-to the local peak slope.}
-\item{\code{y_fitted}}{The range of \code{y} values given by \code{width} predicted
-from linear regression, corresponding to the local peak slope.}
+\item{\code{x_fitted}}{\code{x} values within the window given by \code{span},
+corresponding to the local peak slope.}
+\item{\code{y_fitted}}{Predicted \code{y} values from the linear regression model
+within the window given by \code{span}, corresponding to the local peak slope.}
 }
 \description{
 Computes the peak directional linear regression slope for upward or downward
@@ -50,8 +50,8 @@ a moving window.
 }
 \details{
 Uses the least squares formula on complete case analysis to calculate
-local slopes within a rolling window along \code{x} specified by \code{width} in units
-of \code{x}. i.e. \code{x = 10} would include samples within a 10-second window for
+local slopes within a rolling window specified by \code{span} along \code{x}, in units
+of \code{x}. i.e. \code{span = 10} would include samples within a 10-second window for
 time series data.
 
 The direction of \code{y} (upward or downward) will determine whether a positive
@@ -60,9 +60,9 @@ an overall slope >= 0.
 }
 \examples{
 y <- c(1, 3, 2, 5, 8, 7, 9, 12, 11, 14)
-peak_slope(y, width = 3)
+peak_slope(y, span = 3)
 
 y <- c(14, 11, 12, 9, 7, 8, 5, 2, 3, 1)
-peak_slope(y, width = 3)
+peak_slope(y, span = 3)
 
 }

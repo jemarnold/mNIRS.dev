@@ -13,41 +13,41 @@
 #' @param event_index An *optional* numeric vector indicating the starting row
 #'  indices of kinetics events. i.e., to identify the start of kinetic events by
 #'  row number.
-#' @param fit_window A two-element numeric vector in the form `c(before, after)`
+#' @param fit_span A two-element numeric vector in the form `c(before, after)`
 #'  in units of `sample_column`, defining the window around the kinetics events
-#'  to include in the model fitting process (*default = c(30, 180)*).
-#' @param display_window (*Not currently implemented*)
-#'  An *optional* two-element numeric vector in the form
-#'  `c(before, after)` in units of `sample_column`, defining the window around
-#'  the kinetics events to include for display, but not for model fitting.
+#'  to include in the model fitting process (*default* `fit_span = c(30, 180)`).
+#' @param display_span *`<under development>`*.
+# #'  An *optional* two-element numeric vector in the form
+# #'  `c(before, after)` in units of `sample_column`, defining the window around
+# #'  the kinetics events to include for display, but not for model fitting.
 #' @param group_events Indicates how kinetics events should be analysed. Typically
-#'  either *"distinct"* (*the default*) or *"ensemble"*, but can be manually
+#'  either *"distinct"* (the *default*) or *"ensemble"*, but can be manually
 #'  specified (see *Details*).
 #' @param nirs_columns A character vector indicating the mNIRS data columns to
 #'  be processed from your dataframe. Must match `data` column names exactly.
-#'  Can be taken from metadata if not defined explicitly.
+#'  Will be taken from metadata if not defined explicitly.
 #' @param sample_column A character scalar indicating the time or sample data
-#'  column. Must match `data` column names exactly. Can be taken from metadata
+#'  column. Must match `data` column names exactly. Will be taken from metadata
 #'  if not defined explicitly.
 #' @param event_column An *optional* character scalar indicating an event or
-#'  lap data column. Must match `data` column names exactly. Can be taken from
+#'  lap data column. Must match `data` column names exactly. Will be taken from
 #'  metadata if not defined explicitly.
 #' @param sample_rate A numeric scalar for the sample rate in Hz. Will be taken
 #'  from metadata if not defined explicitly.
 #' @param ... Additional arguments.
 #'
 #' @details
-#' `display_window` defines the widest range of data before and after the kinetics
+#' `display_span` defines the widest range of data before and after the kinetics
 #'  event which will be passed on in the dataframe, but not included in the
-#'  modelling process. `fit_window` defines the widest extent of data before and
+#'  modelling process. `fit_span` defines the widest extent of data before and
 #'  after the kinetics event which may be included in the modelling process.
 #'
 #' `group_events` indicates how kinetics events should be analysed, either
 #'  separately, or grouped and ensemble averaged similar to oxygen uptake kinetics.
 #'  \describe{
-#'      \item{`group_events = "distinct"`}{Will prepare a list of unique dataframes
+#'      \item{`group_events = `*`"distinct"`*}{Will prepare a list of unique dataframes
 #'      for each kinetics event (*default*).}
-#'      \item{`group_events = "ensemble"`}{Will prepare one dataframe with the
+#'      \item{`group_events = `*`"ensemble"`*}{Will prepare one dataframe with the
 #'      ensemble-averaged data from all mNIRS kinetics events.}
 #'      \item{`group_events = list(c(1, 2), c(3, 4))`}{Will group kinetic events
 #'      together in sequence of appearance, and prepare a list of ensemble-averaged
@@ -55,7 +55,7 @@
 #'      not explicitly defined here will return as a distinct dataframe.}
 #'  }
 #'
-#' @return A list of [tibbles][tibble::tibble-package] of class `mNIRS.data`
+#' @return A list of [tibbles][tibble::tibble-package] of class `"mNIRS.data"`
 #'  with metadata available with `attributes()`.
 #'
 #' @export
@@ -64,8 +64,8 @@ prepare_kinetics_data <- function(
         event_sample = NULL,
         event_label = NULL,
         event_index = NULL,
-        fit_window = c(30, 180),
-        display_window = NULL,
+        fit_span = c(30, 180),
+        display_span = NULL,
         group_events = list("distinct", "ensemble"),
         nirs_columns = NULL,
         sample_column = NULL,
@@ -128,20 +128,20 @@ prepare_kinetics_data <- function(
         sample_rate <- metadata$sample_rate
     }
 
-    ## validation: `fit_windows` must be numeric scalar
-    if (!is.numeric(fit_window) || !length(fit_window) == 2) {
+    ## validation: `fit_spans` must be numeric scalar
+    if (!is.numeric(fit_span) || !length(fit_span) == 2) {
         cli_abort(paste(
-            "{.arg fit_window} must be a two-element {.cls numeric} vector",
+            "{.arg fit_span} must be a two-element {.cls numeric} vector",
             "{.val c(before, after)}."))
     }
 
-    ## define & validation: `display_window`
+    ## define & validation: `display_span`
     ## TODO 2025-08-12 NOT CURRENTLY IMPLEMENTED
-    # if (is.null(display_window)) {
-    display_window <- fit_window
-    # } else if (!is.numeric(display_window) || !length(display_window) == 2) {
+    # if (is.null(display_span)) {
+    display_span <- fit_span
+    # } else if (!is.numeric(display_span) || !length(display_span) == 2) {
     #     cli_abort(paste(
-    #         "{.arg display_window} must be a two-element {.cls numeric} vector",
+    #         "{.arg display_span} must be a two-element {.cls numeric} vector",
     #         "{.val c(before, after)}."))
     # }
     #
@@ -164,10 +164,10 @@ prepare_kinetics_data <- function(
     event_sample_list <- sort(unique(c(
         event_index_sample, event_sample, event_label_sample)))
 
-    fit_window[1] <- -abs(fit_window[1])
-    display_window[1] <- -abs(display_window[1])
-    display_start <- min(c(fit_window[1], display_window[1]))
-    display_end <- max(c(fit_window[2], display_window[2]))
+    fit_span[1] <- -abs(fit_span[1])
+    display_span[1] <- -abs(display_span[1])
+    display_start <- min(c(fit_span[1], display_span[1]))
+    display_end <- max(c(fit_span[2], display_span[2]))
 
     # display_column <- paste0("display_", sample_column)
     fit_column <- paste0("fit_", sample_column)
@@ -178,9 +178,9 @@ prepare_kinetics_data <- function(
     metadata$sample_column <- sample_column
     metadata$event_column <- event_column
     metadata$event_sample_list <- event_sample_list
-    metadata$fit_window <- fit_window
+    metadata$fit_span <- fit_span
     ## TODO 2025-08-12 NOT CURRENTLY IMPLEMENTED
-    # metadata$display_window <- display_window
+    # metadata$display_span <- display_span
 
     ## data list =================================
     data_list <- lapply(
@@ -199,9 +199,9 @@ prepare_kinetics_data <- function(
 
             ## create new fit_sample column named from `fit_column`
             ## as a sample vector zeroed to the kinetics event
-            ## filtered within the `fit_window`
+            ## filtered within the `fit_span`
             event_data[[fit_column]] <- ifelse(
-                display_sample >= fit_window[1] & display_sample <= fit_window[2],
+                display_sample >= fit_span[1] & display_sample <= fit_span[2],
                 display_sample, NA_real_)
 
             ## relocates `fit_column` as the first col, includes remaining cols

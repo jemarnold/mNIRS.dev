@@ -40,22 +40,23 @@ be defined (see \emph{Details}).}
 }}
 
 \item{spar}{A numeric scalar defining the smoothing parameter for
-\code{method = "smooth-spline"}.}
+\verb{method = }\emph{\code{"smooth-spline"}}.}
 
 \item{n}{An integer scalar defining the order of a Butterworth filter for
-\code{method = "butterworth"}.}
+\verb{method = }\emph{\code{"butterworth"}}.}
 
 \item{W}{A numeric scalar or two-element vector defining the fractional
-critical frequency(ies) of a Butterworth filter for \code{method = "butterworth"}.}
+critical frequency(ies) of a Butterworth filter for \verb{method = }
+\emph{\code{"butterworth"}}.}
 
 \item{fc}{A numeric scalar or two-element vector defining the critical
-frequency(ies) of a Butterworth filter for \code{method = "butterworth"}.}
+frequency(ies) of a Butterworth filter for \verb{method = }\emph{\code{"butterworth"}}.}
 
 \item{sample_rate}{A numeric scalar for the sample rate in Hz for
-\code{method = "butterworth"}.}
+\verb{method = }\emph{\code{"butterworth"}}.}
 
 \item{width}{A numeric scalar defining the window length of samples for
-\code{method = "moving-average"}.}
+\verb{method = }\emph{\code{"moving-average"}}.}
 
 \item{na.rm}{A logical indicating whether missing values should be ignored
 (\code{TRUE}) before the filter is applied. Otherwise (\code{FALSE}, the \emph{default}) will
@@ -76,14 +77,14 @@ Apply signal filtering to vector data with either: 1. A cubic smoothing spline.
 }
 \details{
 \describe{
-\item{\code{method = "smooth-spline"}}{applies a non-parametric cubic
+\item{\verb{method = }\emph{\code{"smooth-spline"}}}{applies a non-parametric cubic
 smoothing spline from \code{\link[stats:smooth.spline]{stats::smooth.spline()}}. Smoothing is defined
 by the parameter \code{spar}, which can be left blank and automatically
 determined via penalised log liklihood. This usually works well for
 smoothing responses occurring on the order of minutes or longer. Or \code{spar}
 can be defined explicitly, typically (but not necessarily) in the range
 \verb{spar = [0, 1]}.}
-\item{\code{method = "butterworth"}}{applies a centred (two-pass symmetrical)
+\item{\verb{method = }\emph{\code{"butterworth"}}}{applies a centred (two-pass symmetrical)
 Butterworth digital filter from \code{\link[signal:butter]{signal::butter()}} and \code{\link[signal:filtfilt]{signal::filtfilt()}}.
 The filter order is defined by \code{n}, typically in the range \verb{n = [1, 10]}.
 Higher filter orders tend to better capture rapid changes in amplitude,
@@ -113,7 +114,7 @@ recorded data in Hz. \code{W = fc / (sample_rate/2)}.
 
 Defining both \code{fc} and \code{sample_rate} explicitly will
 overwrite \code{W}.}
-\item{\code{method = "moving-average"}}{applies a centred (two-way symmetrical)
+\item{\verb{method = }\emph{\code{"moving-average"}}}{applies a centred (two-way symmetrical)
 moving average filter from \code{\link[zoo:rollapply]{zoo::rollapply()}}. The moving-average is
 calculated over a window of width \code{width} defining the number of samples
 between \verb{[i - floor(width/2), i + floor(width/2)]}. A partial moving-

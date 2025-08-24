@@ -95,7 +95,7 @@ test_that("find_first_extreme for Moxy data", {
     kinetics_data <- prepare_kinetics_data(
         data_raw,
         event_sample = event_samples,
-        fit_window = c(30, 120)
+        fit_span = c(30, 120)
     )[[1]]
 
     attributes(kinetics_data)$sample_column <- fit_sample_name
@@ -139,7 +139,7 @@ test_that("find_first_extreme for Train.Red data", {
     kinetics_data <- prepare_kinetics_data(
         data_raw,
         event_sample = event_samples,
-        fit_window = c(30, 120),
+        fit_span = c(30, 120),
         group_events = "ensemble"
     )[[1]]
 
@@ -414,16 +414,16 @@ test_that("peak_slope x, y names passthrough works", {
     mydata <- tibble(xx = x1, yy = y1)
 
     .method <- "peak_slope"
-    .width <- 5
+    .span <- 5
 
     index_result <- process_kinetics(y = y1, x = NULL,
                                      data = NULL, method = .method,
-                                     width = .width)
+                                     span = .span)
     expect_true(all(c("index", "y") %in% names(index_result$data))) ## y1
 
     x1_result <- process_kinetics(y = y1, x = x1,
                                   data = NULL, method = .method,
-                                  width = .width)
+                                  span = .span)
     expect_true(all(c("x", "y") %in% names(x1_result$data))) ## x1, y1
 
     ## x parameters should be unequal
@@ -435,57 +435,57 @@ test_that("peak_slope x, y names passthrough works", {
 
     expect_error(process_kinetics(y = "y1", x = NULL,
                                   data = NULL, method = .method,
-                                  width = .width),
+                                  span = .span),
                  "must be a.*numeric.*vector")
     expect_error(process_kinetics(y = y1, x = "x1",
                                   data = NULL, method = .method,
-                                  width = .width),
+                                  span = .span),
                  "must be a.*numeric.*vector")
 
     ## expect dataframe error
     expect_error(process_kinetics(y = "yy", x = "xx",
                                   data = A, method = .method,
-                                  width = .width),
+                                  span = .span),
                  "must be a dataframe")
     ## expect error for names missing from data
     expect_error(process_kinetics(y = "qq", x = "zz",
                                   data = mydata, method = .method,
-                                  width = .width),
+                                  span = .span),
                  "not found in `data")
 
     expect_error(process_kinetics(y = "yy", x = "zz",
                                   data = mydata, method = .method,
-                                  width = .width),
+                                  span = .span),
                  "not found in `data")
 
     quoted_yy_result <- process_kinetics(y = "yy", x = NULL,
                                          data = mydata, method = .method,
-                                         width = .width, verbose = FALSE)
+                                         span = .span, verbose = FALSE)
     expect_true(all(c("index", "yy") %in% names(quoted_yy_result$data)))
     expect_true(all(round(index_result$coef, 3) == round(quoted_yy_result$coef, 3)))
 
     data_quoted_result <- process_kinetics(y = "yy", x = "xx",
                                            data = mydata, method = .method,
-                                           width = .width)
+                                           span = .span)
     expect_true(all(c("xx", "yy") %in% names(data_quoted_result$data)))
     expect_true(all(round(x1_result$coef, 3) == round(data_quoted_result$coef, 3)))
 
     ## TODO 2025-08-10 unquoted not currently working
     # data_yy_result <- process_kinetics(y = yy, x = NULL,
     #                                    data = mydata, method = .method,
-    #                                    width = .width, verbose = FALSE)
+    #                                    span = .span, verbose = FALSE)
     # expect_true(all(c("index", "yy") %in% names(data_yy_result$data)))
     # expect_true(all(round(index_result$coef, 3) == round(data_yy_result$coef, 3)))
     #
     # quoted_xx_result <- process_kinetics(y = yy, x = "xx",
     #                                      data = mydata, method = .method,
-    #                                      width = .width)
+    #                                      span = .span)
     # expect_true(all(c("xx", "yy") %in% names(quoted_xx_result$data)))
     # expect_true(all(round(x1_result$coef, 3) == round(quoted_xx_result$coef, 3)))
     #
     # data_unquoted_result <- process_kinetics(y = yy, x = xx,
     #                                          data = mydata, method = .method,
-    #                                          width = .width)
+    #                                          span = .span)
     # expect_true(all(c("xx", "yy") %in% names(data_unquoted_result$data)))
     # expect_true(all(round(x1_result$coef, 3) == round(data_unquoted_result$coef, 3)))
 })
@@ -516,7 +516,7 @@ test_that("process_kinetics works for a local environment call", {
     kinetics_data <- prepare_kinetics_data(
         data_raw,
         event_sample = event_samples,
-        fit_window = c(30, 180)
+        fit_span = c(30, 180)
     )[[1]]
 
     attributes(kinetics_data)$sample_column <- fit_sample_name
@@ -525,7 +525,7 @@ test_that("process_kinetics works for a local environment call", {
                               x = fit_sample_name,
                               data = kinetics_data,
                               method = "peak_slope",
-                              width = 10)
+                              span = 10)
 
     ## check class
     expect_s3_class(model, "mNIRS.kinetics")
@@ -533,7 +533,7 @@ test_that("process_kinetics works for a local environment call", {
     ## check list contents
     model_contents <- c("method", "equation", "data", "fitted",
                         "residuals", "rolling_slopes", "x0", "extreme",
-                        "width", "align", "coefs", "call")
+                        "span", "align", "coefs", "call")
     expect_equal(sum(names(model) %in% model_contents),
                  length(model_contents))
 
@@ -589,7 +589,7 @@ test_that("process_kinetics works inside a purrr::map() call", {
     kinetics_data <- prepare_kinetics_data(
         data_raw,
         event_sample = event_samples,
-        fit_window = c(30, 120),
+        fit_span = c(30, 120),
         group_events = "distinct"
     )
 
@@ -603,7 +603,7 @@ test_that("process_kinetics works inside a purrr::map() call", {
                              x = fit_sample_name,
                              data = .df,
                              method = .method,
-                             width = 10)
+                             span = 10)
         )
 
 
@@ -669,8 +669,6 @@ test_that("process_kinetics works with large oxysoft file", {
         verbose = FALSE,
     ) |>
         dplyr::mutate(
-            # time = round(time - dplyr::first(time), 1),
-            time = sample/50,
             across(c(O2Hb, HHb), \(.x) filter_data(.x, "butterworth", n = 2, W = 0.05))
         )
 
@@ -683,9 +681,9 @@ test_that("process_kinetics works with large oxysoft file", {
 
     data_list <- prepare_kinetics_data(
         data_raw,
-        event_sample = event_samples,
+        event_sample = event_samples/50,
         event_label = c("E7"),
-        fit_window = c(30*50, 120*50),
+        fit_span = c(30, 80),
     )
 
     # plot(data_list[[1]])
@@ -693,18 +691,18 @@ test_that("process_kinetics works with large oxysoft file", {
     model_list <- tidyr::expand_grid(
         .df = data_list,
         .nirs = attributes(data_raw)$nirs_columns,
-        .method = "sigmoidal") |>
+        .method = "monoexp") |>
         purrr::pmap(
             \(.df, .nirs, .method)
             process_kinetics(y = .nirs,
                              x = fit_sample_name,
                              data = .df,
                              method = .method,
-                             window = 25*50,
-                             width = 5*50)
+                             end_kinetics_span = 25,
+                             span = 5)
         )
 
-    # plot(model_list[[1]])
+    # plot(model    _list[[1]])
 
     ## check length of model_list
     expect_equal(length(model_list), length(c(nirs_columns, event_samples)))
@@ -712,7 +710,7 @@ test_that("process_kinetics works with large oxysoft file", {
     ## check model_list names match sample_column and event_samples
     expect_equal(sum(grepl(sample_column, names(model_list))),
                  length(model_list))
-    expect_equal(sum(grepl(paste(event_samples, collapse = "|"), names(model_list))),
+    expect_equal(sum(grepl(paste(event_samples/50, collapse = "|"), names(model_list))),
                  length(model_list))
 
     ## check class

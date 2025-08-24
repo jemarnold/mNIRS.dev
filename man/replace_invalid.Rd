@@ -28,7 +28,8 @@ with \code{NA} or the local median value.
 Useful to overwrite known invalid/nonsense values, such as \code{0},
 \code{100}, or \code{102.3}.
 
-\emph{TODO: allow for overwriting all values greater or less than known values.}
+\verb{<under development>} \emph{allow for overwriting all values greater or less than
+known values.}
 }
 \examples{
 set.seed(13)
