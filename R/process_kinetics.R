@@ -12,7 +12,7 @@
 #'  variables named in `x` and `y`. Names for `x` and `y` must be in quotations.
 #' @param x0 (*Default = 0*) A numeric scalar indicating the value of the predictor
 #'  variable `x` representing the start of the kinetics event.
-#' @param end_kinetics_span (*Default* `end_kinetics_span = 30`) A numeric scalar
+#' @param end_kinetics_span (*Default* `end_kinetics_span = 15`) A numeric scalar
 #'  indicating the local window in units of the predictor variable `x` after the
 #'  kinetics extreme (peak or trough) value to look for subsequent greater extremes.
 #'  The kinetics model will be fit to the data up to the first local extreme with
@@ -158,7 +158,7 @@ process_kinetics <- function(
         x = NULL,
         data = NULL,
         x0 = 0,
-        end_kinetics_span = 30,
+        end_kinetics_span = 15,
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         verbose = TRUE,
         ...
@@ -172,8 +172,7 @@ process_kinetics <- function(
     UseMethod("process_kinetics", y)
 }
 
-## TODO 2025-07-19 fix fitted models up to first peak with no greater peaks within X samples
-## TODO 2025-07-19 fix half-time to use neighbouring median around peak value B
+## TODO 2025-07-19 fix half-time to use local median around peak value B
 
 
 
@@ -186,7 +185,7 @@ process_kinetics.monoexponential <- function(
         x = NULL,
         data = NULL,
         x0 = 0,
-        end_kinetics_span = 30,
+        end_kinetics_span = 15,
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         verbose = TRUE,
         ...
@@ -265,7 +264,7 @@ process_kinetics.sigmoidal <- function(
         x = NULL,
         data = NULL,
         x0 = 0,
-        end_kinetics_span = 30,
+        end_kinetics_span = 15,
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         verbose = TRUE,
         ...
@@ -343,7 +342,7 @@ process_kinetics.half_time <- function(
         x = NULL,
         data = NULL,
         x0 = 0,
-        end_kinetics_span = 30,
+        end_kinetics_span = 15,
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         verbose = TRUE,
         ...
@@ -418,7 +417,7 @@ process_kinetics.peak_slope <- function(
         x = NULL,
         data = NULL,
         x0 = 0,
-        end_kinetics_span = 30,
+        end_kinetics_span = 15,
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         verbose = TRUE,
         ...
@@ -505,7 +504,7 @@ pre_process_kinetics_names <- function(
         x = NULL,
         data = NULL,
         x0 = 0,
-        end_kinetics_span = 30,
+        end_kinetics_span = 15,
         verbose = TRUE
 ) {
     if (is.null(data)) {
@@ -582,7 +581,9 @@ pre_process_kinetics_names <- function(
     x <- x - x0
 
     ## TODO 2025-08-12 implement extreme$x & extreme$y
-    first_extreme <- find_first_extreme(y = y, x = x, end_kinetics_span = end_kinetics_span)
+    first_extreme <- find_first_extreme(y = y,
+                                        x = x,
+                                        end_kinetics_span = end_kinetics_span)
     x <- first_extreme$x
     y <- first_extreme$y
     df <- tibble(x, y)
@@ -615,7 +616,7 @@ pre_process_kinetics_names <- function(
 #'
 #' @keywords internal
 #' @export
-find_first_extreme <- function(y, x = NULL, end_kinetics_span = 30) {
+find_first_extreme <- function(y, x = NULL, end_kinetics_span = 15) {
     if (is.null(x)) {x <- seq_along(y)} ## where `x` is not defined
 
     if (length(x) != length(y)) {

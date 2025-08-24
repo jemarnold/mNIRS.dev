@@ -188,6 +188,7 @@ prepare_kinetics_data <- function(
         \(.x) {
             ## sample vector zeroed to the kinetics event
             ## TODO 2025-08-12 display_sample currently not implemented in
+            ## TODO 2025-08-23 do I need sample_rate at all? Can I round to signif?
             ## outgoing data_list. Only being used to define fit_sample
             ## round to avoid floating point error
             display_sample <- round((data[[sample_column]] - .x) * sample_rate) / sample_rate
