@@ -51,7 +51,8 @@ return a dataframe of class <code>"mNIRS.data"</code> with recorded data and met
 <span>  sample_column <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  event_column <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  sample_rate <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  numeric_time <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  time_to_numeric <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  time_from_zero <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  keep_all <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -92,10 +93,16 @@ exactly. A named character vector can be used to rename columns in the form:
 If not defined explicitly, will be estimated from the data (see <em>Details</em>).</p></dd>
 
 
-<dt id="arg-numeric-time">numeric_time<a class="anchor" aria-label="anchor" href="#arg-numeric-time"></a></dt>
+<dt id="arg-time-to-numeric">time_to_numeric<a class="anchor" aria-label="anchor" href="#arg-time-to-numeric"></a></dt>
 <dd><p>A logical. <code>TRUE</code> (the <em>default</em>) will convert
 a date-time formatted <code>sample_column</code> to numeric values in seconds.
 <code>FALSE</code> will return <code>sample_column</code> in the format of the original file.</p></dd>
+
+
+<dt id="arg-time-from-zero">time_from_zero<a class="anchor" aria-label="anchor" href="#arg-time-from-zero"></a></dt>
+<dd><p>A logical. <code>FALSE</code> (the <em>default</em>) will return the
+original numeric values of <code>sample_column</code>. <code>TRUE</code> will re-sample
+<code>sample_column</code> to start from zero.</p></dd>
 
 
 <dt id="arg-keep-all">keep_all<a class="anchor" aria-label="anchor" href="#arg-keep-all"></a></dt>
@@ -129,8 +136,8 @@ from the row numbers. If the specified <code>sample_column</code> contains unequ
 sampling (i.e., repeated values or unordered samples) a warning will be given
 suggesting the user confirm the file data manually.</p>
 <p>When the <code>sample_column</code> is provided in date-time format (e.g. <code>hh:mm:ss</code>),
-this can be converted back to numeric values by <code>numeric_time = TRUE</code>. In this
-case, values will be recalculated as starting from <code>0</code> at the first sample.</p>
+this can be converted back to numeric values by <code>time_to_numeric = TRUE</code>. In
+this case, values will be recalculated as starting from <code>0</code> at the first sample.</p>
 <p><code>sample_column</code> will typically represent time values in seconds. However, some
 NIRS devices export the sample index. This can be converted to time values
 if the <code>sample_rate</code> is known.</p>

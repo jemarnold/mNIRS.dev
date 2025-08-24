@@ -104,32 +104,33 @@ be defined (see <em>Details</em>).</p></dd>
 
 <dt id="arg-spar">spar<a class="anchor" aria-label="anchor" href="#arg-spar"></a></dt>
 <dd><p>A numeric scalar defining the smoothing parameter for
-<code>method = "smooth-spline"</code>.</p></dd>
+<code>method = </code><em><code>"smooth-spline"</code></em>.</p></dd>
 
 
 <dt id="arg-n">n<a class="anchor" aria-label="anchor" href="#arg-n"></a></dt>
 <dd><p>An integer scalar defining the order of a Butterworth filter for
-<code>method = "butterworth"</code>.</p></dd>
+<code>method = </code><em><code>"butterworth"</code></em>.</p></dd>
 
 
 <dt id="arg-w">W<a class="anchor" aria-label="anchor" href="#arg-w"></a></dt>
 <dd><p>A numeric scalar or two-element vector defining the fractional
-critical frequency(ies) of a Butterworth filter for <code>method = "butterworth"</code>.</p></dd>
+critical frequency(ies) of a Butterworth filter for <code>method = </code>
+<em><code>"butterworth"</code></em>.</p></dd>
 
 
 <dt id="arg-fc">fc<a class="anchor" aria-label="anchor" href="#arg-fc"></a></dt>
 <dd><p>A numeric scalar or two-element vector defining the critical
-frequency(ies) of a Butterworth filter for <code>method = "butterworth"</code>.</p></dd>
+frequency(ies) of a Butterworth filter for <code>method = </code><em><code>"butterworth"</code></em>.</p></dd>
 
 
 <dt id="arg-sample-rate">sample_rate<a class="anchor" aria-label="anchor" href="#arg-sample-rate"></a></dt>
 <dd><p>A numeric scalar for the sample rate in Hz for
-<code>method = "butterworth"</code>.</p></dd>
+<code>method = </code><em><code>"butterworth"</code></em>.</p></dd>
 
 
 <dt id="arg-width">width<a class="anchor" aria-label="anchor" href="#arg-width"></a></dt>
 <dd><p>A numeric scalar defining the window length of samples for
-<code>method = "moving-average"</code>.</p></dd>
+<code>method = </code><em><code>"moving-average"</code></em>.</p></dd>
 
 
 <dt id="arg-na-rm">na.rm<a class="anchor" aria-label="anchor" href="#arg-na-rm"></a></dt>
@@ -155,7 +156,7 @@ messages. Errors will always be returned.</p></dd>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
 
-<dl><dt><code>method = "smooth-spline"</code></dt>
+<dl><dt><code>method = </code><em><code>"smooth-spline"</code></em></dt>
 <dd><p>applies a non-parametric cubic
 smoothing spline from <code><a href="https://rdrr.io/r/stats/smooth.spline.html" class="external-link">stats::smooth.spline()</a></code>. Smoothing is defined
 by the parameter <code>spar</code>, which can be left blank and automatically
@@ -164,7 +165,7 @@ smoothing responses occurring on the order of minutes or longer. Or <code>spar</
 can be defined explicitly, typically (but not necessarily) in the range
 <code>spar = [0, 1]</code>.</p></dd>
 
-<dt><code>method = "butterworth"</code></dt>
+<dt><code>method = </code><em><code>"butterworth"</code></em></dt>
 <dd><p>applies a centred (two-pass symmetrical)
 Butterworth digital filter from <code><a href="https://rdrr.io/pkg/signal/man/butter.html" class="external-link">signal::butter()</a></code> and <code><a href="https://rdrr.io/pkg/signal/man/filtfilt.html" class="external-link">signal::filtfilt()</a></code>.
 The filter order is defined by <code>n</code>, typically in the range <code>n = [1, 10]</code>.
@@ -192,7 +193,7 @@ recorded data in Hz. <code>W = fc / (sample_rate/2)</code>.</p>
 <p>Defining both <code>fc</code> and <code>sample_rate</code> explicitly will
 overwrite <code>W</code>.</p></dd>
 
-<dt><code>method = "moving-average"</code></dt>
+<dt><code>method = </code><em><code>"moving-average"</code></em></dt>
 <dd><p>applies a centred (two-way symmetrical)
 moving average filter from <code><a href="https://rdrr.io/pkg/zoo/man/rollapply.html" class="external-link">zoo::rollapply()</a></code>. The moving-average is
 calculated over a window of width <code>width</code> defining the number of samples

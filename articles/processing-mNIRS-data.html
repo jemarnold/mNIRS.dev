@@ -56,7 +56,7 @@
       <h1>Processing Data with {mNIRS}</h1>
 
       <p class="author">Jem Arnold</p>
-      <p class="date">2025-08-22</p>
+      <p class="date">2025-08-24</p>
 
       <small class="dont-index">Source: <a href="https://github.com/jemarnold/mNIRS/blob/main/vignettes/processing-mNIRS-data.qmd" class="external-link"><code>vignettes/processing-mNIRS-data.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -109,7 +109,8 @@
 </h3>
 <ul>
 <li><p><code>sample_rate</code>: The sample rate of the NIRS recording can be specified if known, as number of samples per second, in Hz. If left blank, the function will estimate the sample rate from <code>sample_column</code>, assuming it contains time values.</p></li>
-<li><p><code>numeric_time</code>: If <code>sample_column</code> is in a date-time format (e.g. <code>hh:mm:ss</code>), we can convert this to numeric with <code>numeric_time = TRUE</code>. This may read the date-time format as starting from a non-zero value. This can be manually corrected later with some basic data wrangling.</p></li>
+<li><p><code>time_to_numeric</code>: If <code>sample_column</code> is in a date-time format (e.g. <code>hh:mm:ss</code>), we can convert this to numeric with <code>numeric_time = TRUE</code>. The numeric time values will be re-sampled to start from zero.</p></li>
+<li><p><code>time_from_zero</code>: If the <code>sample_column</code> begins at a non-zero numeric value, it can be re-sampled to start from zero by using <code>time_from_zero = TRUE</code>.</p></li>
 <li><p><code>keep_all</code>: Once the data table in the file is identified, the default is to return only the columns names explicitly specified above. If we want to return all columns in the data table, we can set <code>keep_all = TRUE</code>.</p></li>
 <li><p><code>verbose</code>: Finally, the function may return warnings or messages, for example if there are duplicate values in <code>sample_column</code> which may indicate a recording issue. These informative messages can be useful for data validation, but can be silenced with <code>verbose = TRUE</code>. Fail-state errors will always be returned.</p></li>
 </ul>
@@ -121,7 +122,7 @@
 <span>                      sample_column <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>time <span class="op">=</span> <span class="st">"hh:mm:ss"</span><span class="op">)</span>,</span>
 <span>                      event_column <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>lap <span class="op">=</span> <span class="st">"Lap"</span><span class="op">)</span>,</span>
 <span>                      sample_rate <span class="op">=</span> <span class="fl">2</span>, <span class="co">## we know this file is recorded at 2 samples per second</span></span>
-<span>                      numeric_time <span class="op">=</span> <span class="cn">TRUE</span>, <span class="co">## to convert the date-time string to numeric</span></span>
+<span>                      time_to_numeric <span class="op">=</span> <span class="cn">TRUE</span>, <span class="co">## to convert the date-time string to numeric</span></span>
 <span>                      keep_all <span class="op">=</span> <span class="cn">FALSE</span>, <span class="co">## to keep the returned dataframe clean</span></span>
 <span>                      verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="co">## show warnings &amp; messages, but ignore them for now</span></span>
 <span><span class="co">#&gt; Warning: `sample_column = time` has non-sequential or repeating values.</span></span>
@@ -143,32 +144,23 @@
 <span><span class="co">#&gt;  8  3.71     1        57         67</span></span>
 <span><span class="co">#&gt;  9  4.26     1        57         67</span></span>
 <span><span class="co">#&gt; 10  4.81     1        57         67</span></span>
-<span><span class="co">#&gt; # ℹ 2,193 more rows</span></span></code></pre></div>
-</div>
-</section></section><section class="level2"><h2 id="data-wrangling">Data wrangling<a class="anchor" aria-label="anchor" href="#data-wrangling"></a>
-</h2>
-<p>Note our <code>time</code> column does not start at zero, because we converted from <code>hh:mm:ss</code>. Let’s quickly fix that, then we’ll plot the data.</p>
-<p>We can do any other data wrangling steps here, as we would for any data file. I prefer to use <a href="https://tidyverse.tidyverse.org" class="external-link">tidyverse</a> for dataframe wrangling.</p>
-<div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">data_time_fixed</span> <span class="op">&lt;-</span> <span class="va">data_raw</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>time <span class="op">=</span> <span class="va">time</span> <span class="op">-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/nth.html" class="external-link">first</a></span><span class="op">(</span><span class="va">time</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; # ℹ 2,193 more rows</span></span>
 <span></span>
 <span><span class="co">## {mNIRS} data can be plotted with a built in call to `plot()`</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">data_time_fixed</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">data_raw</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
-<figure><p><img src="processing-mNIRS-data_files/figure-html/unnamed-chunk-4-1.png" class="quarto-figure quarto-figure-center" style="width:100.0%"></p>
+<figure><p><img src="processing-mNIRS-data_files/figure-html/unnamed-chunk-3-1.png" class="quarto-figure quarto-figure-center" style="width:100.0%"></p>
 </figure>
 </div>
 </div>
 </div>
-<section class="level3"><h3 id="metadata-stored-in-mnirs-data-dataframes">Metadata stored in <em>mNIRS.data</em> dataframes<a class="anchor" aria-label="anchor" href="#metadata-stored-in-mnirs-data-dataframes"></a>
+</section><section class="level3"><h3 id="metadata-stored-in-mnirs-data-dataframes">Metadata stored in <em>mNIRS.data</em> dataframes<a class="anchor" aria-label="anchor" href="#metadata-stored-in-mnirs-data-dataframes"></a>
 </h3>
 <p>Dataframes read or processed by <a href="https://github.com/jemarnold/mNIRS" class="external-link">mNIRS</a> functions will return <code>class = mNIRS.data</code> and contain metadata, which can be retrieved with <code>attributes(data)</code>.</p>
 <p>Instead of re-defining our column names or sample rate, we can call them from the metadata. Some <a href="https://github.com/jemarnold/mNIRS" class="external-link">mNIRS</a> functions will automatically retrieve metadata if present.</p>
 <div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">nirs_columns</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attributes.html" class="external-link">attributes</a></span><span class="op">(</span><span class="va">data_raw</span><span class="op">)</span><span class="op">$</span><span class="va">nirs_columns</span></span>
 <span><span class="va">nirs_columns</span></span>
 <span><span class="co">#&gt; [1] "smo2_left"  "smo2_right"</span></span>
@@ -215,19 +207,19 @@
 </ul>
 <p>Subsequent processing &amp; analysis steps may return errors when missing values are present. Therefore, it is a good habit to identify and deal with them early during data processing.</p>
 <div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">data_cleaned</span> <span class="op">&lt;-</span> <span class="va">data_time_fixed</span> <span class="op">|&gt;</span> </span>
+<div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">data_cleaned</span> <span class="op">&lt;-</span> <span class="va">data_raw</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
 <span>        <span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html" class="external-link">across</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/all_of.html" class="external-link">any_of</a></span><span class="op">(</span><span class="va">nirs_columns</span><span class="op">)</span>, <span class="co">## apply function across all of our `nirs_columns`</span></span>
 <span>               \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu"><a href="../reference/replace_outliers.html">replace_outliers</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">.x</span>,</span>
-<span>                                      width <span class="op">=</span> <span class="fl">20</span> <span class="op">*</span> <span class="va">sample_rate</span>, <span class="co">## 20 sec window</span></span>
+<span>                                      width <span class="op">=</span> <span class="fl">15</span>, <span class="co">## 15 sample window to each side of `x`</span></span>
 <span>                                      na.rm <span class="op">=</span> <span class="cn">TRUE</span>, <span class="co">## ignore `NA`</span></span>
 <span>                                      return <span class="op">=</span> <span class="st">"median"</span><span class="op">)</span></span>
 <span>        <span class="op">)</span>,</span>
 <span>        <span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html" class="external-link">across</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/all_of.html" class="external-link">any_of</a></span><span class="op">(</span><span class="va">nirs_columns</span><span class="op">)</span>, </span>
 <span>               \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu"><a href="../reference/replace_invalid.html">replace_invalid</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">.x</span>,</span>
 <span>                                     values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">100</span><span class="op">)</span>, <span class="co">## known invalid values</span></span>
-<span>                                     width <span class="op">=</span> <span class="fl">20</span> <span class="op">*</span> <span class="va">sample_rate</span>,</span>
+<span>                                     width <span class="op">=</span> <span class="fl">15</span>,</span>
 <span>                                     return <span class="op">=</span> <span class="st">"NA"</span><span class="op">)</span></span>
 <span>        <span class="op">)</span>,</span>
 <span>        </span>
@@ -242,54 +234,62 @@
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">data_cleaned</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
-<figure><p><img src="processing-mNIRS-data_files/figure-html/unnamed-chunk-6-1.png" class="quarto-figure quarto-figure-center" style="width:100.0%"></p>
+<figure><p><img src="processing-mNIRS-data_files/figure-html/unnamed-chunk-5-1.png" class="quarto-figure quarto-figure-center" style="width:100.0%"></p>
 </figure>
 </div>
 </div>
 </div>
 <p>That got rid of all the obvious data issues.</p>
-</section></section><section class="level2"><h2 id="downsample-data">Downsample Data<a class="anchor" aria-label="anchor" href="#downsample-data"></a>
+</section></section><section class="level2"><h2 id="resample-data">Resample Data<a class="anchor" aria-label="anchor" href="#resample-data"></a>
 </h2>
 <p>Say we are interested in phenomena occurring on a time scale of 5-minutes, and we have NIRS data recorded at 50 Hz, but something like power data recorded at only 1 Hz. It may be easier to synchronise our data and faster to work with fewer samples if we down-sample the NIRS data also to 1 Hz.</p>
-<section class="level3"><h3 id="downsample_data-options">
-<code>downsample_data()</code> options<a class="anchor" aria-label="anchor" href="#downsample_data-options"></a>
+<p>Alternatively, if we have something like high-frequency EMG data and we want to up-sample our NIRS data, we can do that. Although, we should be cautious with up-sampling as this can artificially inflate our confidence with certain modelling or processing methods.</p>
+<section class="level3"><h3 id="resample_data-options">
+<code>resample_data()</code> options<a class="anchor" aria-label="anchor" href="#resample_data-options"></a>
 </h3>
 <ul>
 <li><p><code>data</code>: This function works on a dataframe; it will take in a dataframe (<code>data</code>), apply the processing step to all data channels, and return the processed dataframe.</p></li>
 <li><p><code>sample_column</code>: If the dataframe already has <em>mNIRS.data</em> metadata, the <em>time</em> or <em>sample</em> column will be detected automatically. Otherwise, we can define or overwrite it explicitly.</p></li>
 <li><p><code>sample_rate</code>: If the dataframe already has <em>mNIRS.data</em> metadata, the <em>sample_rate</em> will be detected automatically. Otherwise, we can define or overwrite it explicitly.</p></li>
-<li><p><code>downsample_rate</code>: Specify the output sample rate we want to covert to, as a number of samples per second (Hz). This value should be lower than the input <code>sample_rate</code>, or else it won’t do anything.</p></li>
-<li><p><code>downsample_time</code>: Alternatively, we can specify the output as a number of seconds per sample to produce the same result.</p></li>
+<li><p><code>resample_rate</code>: Specify the output sample rate we want to covert to, as a number of samples per second (Hz).</p></li>
+<li><p><code>resample_time</code>: Alternatively, we can specify the output as a number of seconds per sample to produce the same result.</p></li>
 </ul>
 <p>This example dataset is already at relatively low sample rate, but let’s just see what it looks like if for some reason we wanted to down-sample further to 0.1 Hz (1 sample every 10 sec).</p>
 <div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_downsampled</span> <span class="op">&lt;-</span> <span class="va">data_cleaned</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="fu"><a href="../reference/downsample_data.html">downsample_data</a></span><span class="op">(</span>sample_column <span class="op">=</span> <span class="cn">NULL</span>, <span class="co">## will be automatically read from metadata</span></span>
+<span>    <span class="fu"><a href="../reference/resample_data.html">resample_data</a></span><span class="op">(</span>sample_column <span class="op">=</span> <span class="cn">NULL</span>, <span class="co">## will be automatically read from metadata</span></span>
 <span>                    sample_rate <span class="op">=</span> <span class="cn">NULL</span>, <span class="co">## will be automatically read from metadata</span></span>
-<span>                    downsample_time <span class="op">=</span> <span class="fl">10</span><span class="op">)</span> <span class="co">## equal to `downsample_rate = 0.1`</span></span>
-<span><span class="co">#&gt; ℹ Sample rate = 2 Hz. Output is downsampled at 0.1 Hz.</span></span>
+<span>                    resample_time <span class="op">=</span> <span class="fl">10</span><span class="op">)</span> <span class="co">## equal to `resample_rate = 0.1`</span></span>
+<span><span class="co">#&gt; Warning in regularize.values(x, y, ties, missing(ties), na.rm = na.rm):</span></span>
+<span><span class="co">#&gt; collapsing to unique 'x' values</span></span>
+<span><span class="co">#&gt; Warning in regularize.values(x, y, ties, missing(ties), na.rm = na.rm):</span></span>
+<span><span class="co">#&gt; collapsing to unique 'x' values</span></span>
+<span><span class="co">#&gt; Warning in regularize.values(x, y, ties, missing(ties), na.rm = na.rm):</span></span>
+<span><span class="co">#&gt; collapsing to unique 'x' values</span></span>
+<span><span class="co">#&gt; ℹ `sample_rate` = 2 Hz.</span></span>
+<span><span class="co">#&gt; ℹ Output is resampled at 0.1 Hz.</span></span>
 <span></span>
 <span><span class="va">data_downsampled</span></span>
 <span><span class="co">#&gt; # A tibble: 121 × 4</span></span>
 <span><span class="co">#&gt;     time   lap smo2_left smo2_right</span></span>
 <span><span class="co">#&gt;    &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;</span></span>
-<span><span class="co">#&gt;  1     0     1      54.1       66.7</span></span>
-<span><span class="co">#&gt;  2    10     1      55.1       64.5</span></span>
-<span><span class="co">#&gt;  3    20     1      55.8       65.4</span></span>
-<span><span class="co">#&gt;  4    30     1      55.7       65.1</span></span>
-<span><span class="co">#&gt;  5    40     1      55.5       62.8</span></span>
-<span><span class="co">#&gt;  6    50     1      55.7       64.4</span></span>
-<span><span class="co">#&gt;  7    60     1      55.3       66.2</span></span>
-<span><span class="co">#&gt;  8    70     1      56.1       66.7</span></span>
-<span><span class="co">#&gt;  9    80     1      56.8       66.4</span></span>
-<span><span class="co">#&gt; 10    90     1      56.6       68.5</span></span>
+<span><span class="co">#&gt;  1     0     1      54           68</span></span>
+<span><span class="co">#&gt;  2    10     1      55           64</span></span>
+<span><span class="co">#&gt;  3    20     1      56           66</span></span>
+<span><span class="co">#&gt;  4    30     1      56           65</span></span>
+<span><span class="co">#&gt;  5    40     1      56           65</span></span>
+<span><span class="co">#&gt;  6    50     1      55           62</span></span>
+<span><span class="co">#&gt;  7    60     1      55           65</span></span>
+<span><span class="co">#&gt;  8    70     1      55.7         68</span></span>
+<span><span class="co">#&gt;  9    80     1      56.5         67</span></span>
+<span><span class="co">#&gt; 10    90     1      57           68</span></span>
 <span><span class="co">#&gt; # ℹ 111 more rows</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">data_downsampled</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
-<figure><p><img src="processing-mNIRS-data_files/figure-html/unnamed-chunk-7-1.png" class="quarto-figure quarto-figure-center" style="width:100.0%"></p>
+<figure><p><img src="processing-mNIRS-data_files/figure-html/unnamed-chunk-6-1.png" class="quarto-figure quarto-figure-center" style="width:100.0%"></p>
 </figure>
 </div>
 </div>
@@ -330,7 +330,7 @@
 </h3>
 <p>Let’s try a <em>Butterworth low-pass</em> filter, and we’ll specify some empirically chosen filter parameters. See <code><a href="../reference/filter_data.html">?filter_data</a></code> for further details on each of these filtering methods and their respective parameters.</p>
 <div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_filtered</span> <span class="op">&lt;-</span> <span class="va">data_cleaned</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
 <span>        <span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html" class="external-link">across</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/all_of.html" class="external-link">any_of</a></span><span class="op">(</span><span class="va">nirs_columns</span><span class="op">)</span>,</span>
@@ -350,7 +350,7 @@
 <span>              <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">smo2_right</span>, colour <span class="op">=</span> <span class="st">"smo2_right"</span><span class="op">)</span>, alpha <span class="op">=</span> <span class="fl">0.4</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
-<figure><p><img src="processing-mNIRS-data_files/figure-html/unnamed-chunk-8-1.png" class="quarto-figure quarto-figure-center" style="width:100.0%"></p>
+<figure><p><img src="processing-mNIRS-data_files/figure-html/unnamed-chunk-7-1.png" class="quarto-figure quarto-figure-center" style="width:100.0%"></p>
 </figure>
 </div>
 </div>
@@ -376,7 +376,7 @@ If the dataframe already has <em>mNIRS.data</em> metadata, the <em>NIRS</em> dat
 </ul>
 <p>We have a 2-minute baseline for this dataset, so maybe we want to shift both NIRS signals so that the mean value of the 2-min baseline is equal to zero.</p>
 <div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_shifted</span> <span class="op">&lt;-</span> <span class="va">data_filtered</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="co">## convert `nirs_columns` to separate list items to shift each column separately</span></span>
 <span>    <span class="fu"><a href="../reference/shift_data.html">shift_data</a></span><span class="op">(</span>nirs_columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">as.list</a></span><span class="op">(</span><span class="va">nirs_columns</span><span class="op">)</span>,</span>
@@ -388,7 +388,7 @@ If the dataframe already has <em>mNIRS.data</em> metadata, the <em>NIRS</em> dat
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="fl">0</span>, linetype <span class="op">=</span> <span class="st">"dotted"</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
-<figure><p><img src="processing-mNIRS-data_files/figure-html/unnamed-chunk-9-1.png" class="quarto-figure quarto-figure-center" style="width:100.0%"></p>
+<figure><p><img src="processing-mNIRS-data_files/figure-html/unnamed-chunk-8-1.png" class="quarto-figure quarto-figure-center" style="width:100.0%"></p>
 </figure>
 </div>
 </div>
@@ -405,7 +405,7 @@ If the dataframe already has <em>mNIRS.data</em> metadata, the <em>NIRS</em> dat
 </ul>
 <p>For example, if we are interested in comparing the ‘functional range’ of each NIRS signal, we may want to set them both to 0-100%.</p>
 <div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_rescaled</span> <span class="op">&lt;-</span> <span class="va">data_filtered</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="co">## convert `nirs_columns` vector to separate list items to shift each column separately</span></span>
 <span>    <span class="fu"><a href="../reference/rescale_data.html">rescale_data</a></span><span class="op">(</span>nirs_columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">as.list</a></span><span class="op">(</span><span class="va">nirs_columns</span><span class="op">)</span>, </span>
@@ -415,7 +415,7 @@ If the dataframe already has <em>mNIRS.data</em> metadata, the <em>NIRS</em> dat
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">100</span><span class="op">)</span>, linetype <span class="op">=</span> <span class="st">"dotted"</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
-<figure><p><img src="processing-mNIRS-data_files/figure-html/unnamed-chunk-10-1.png" class="quarto-figure quarto-figure-center" style="width:100.0%"></p>
+<figure><p><img src="processing-mNIRS-data_files/figure-html/unnamed-chunk-9-1.png" class="quarto-figure quarto-figure-center" style="width:100.0%"></p>
 </figure>
 </div>
 </div>
@@ -425,7 +425,7 @@ If the dataframe already has <em>mNIRS.data</em> metadata, the <em>NIRS</em> dat
 </h3>
 <p>What if we wanted to shift both NIRS signals so their mean 120-sec baselines are equal, then rescale the dynamic range of both signals grouped, such that the highest and lowest values were from 0 to 100?</p>
 <div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_rescaled</span> <span class="op">&lt;-</span> <span class="va">data_filtered</span> <span class="op">|&gt;</span> </span>
 <span>     <span class="co">## the lowest single value for each NIRS channel will be shifted to zero</span></span>
 <span>    <span class="fu"><a href="../reference/shift_data.html">shift_data</a></span><span class="op">(</span>nirs_columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">as.list</a></span><span class="op">(</span><span class="va">nirs_columns</span><span class="op">)</span>,</span>
@@ -440,7 +440,7 @@ If the dataframe already has <em>mNIRS.data</em> metadata, the <em>NIRS</em> dat
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">100</span><span class="op">)</span>, linetype <span class="op">=</span> <span class="st">"dotted"</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
-<figure><p><img src="processing-mNIRS-data_files/figure-html/unnamed-chunk-11-1.png" class="quarto-figure quarto-figure-center" style="width:100.0%"></p>
+<figure><p><img src="processing-mNIRS-data_files/figure-html/unnamed-chunk-10-1.png" class="quarto-figure quarto-figure-center" style="width:100.0%"></p>
 </figure>
 </div>
 </div>
