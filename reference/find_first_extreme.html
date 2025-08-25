@@ -51,7 +51,7 @@ greater extreme is observed within a trailing window in units of <code>x</code> 
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">find_first_extreme</span><span class="op">(</span><span class="va">y</span>, x <span class="op">=</span> <span class="cn">NULL</span>, end_kinetics_span <span class="op">=</span> <span class="fl">30</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">find_first_extreme</span><span class="op">(</span><span class="va">y</span>, x <span class="op">=</span> <span class="cn">NULL</span>, end_kinetics_span <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -70,7 +70,7 @@ of the variable within a dataframe. <em>Defaults</em> to using the index of
 
 
 <dt id="arg-end-kinetics-span">end_kinetics_span<a class="anchor" aria-label="anchor" href="#arg-end-kinetics-span"></a></dt>
-<dd><p>(<em>Default</em> <code>end_kinetics_span = 30</code>) A numeric scalar
+<dd><p>(<em>Default</em> <code>end_kinetics_span = 15</code>) A numeric scalar
 indicating the local window in units of the predictor variable <code>x</code> after the
 kinetics extreme (peak or trough) value to look for subsequent greater extremes.
 The kinetics model will be fit to the data up to the first local extreme with

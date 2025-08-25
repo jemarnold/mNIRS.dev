@@ -55,9 +55,9 @@
 
 <dt id="arg-metadata">metadata<a class="anchor" aria-label="anchor" href="#arg-metadata"></a></dt>
 <dd><p>Metadata passed along with the dataframe.</p><ul><li><p>nirs_device</p></li>
-<li><p>nirs_columns</p></li>
-<li><p>sample_column</p></li>
-<li><p>event_column</p></li>
+<li><p>nirs_channels</p></li>
+<li><p>sample_channel</p></li>
+<li><p>event_channel</p></li>
 <li><p>sample_rate</p></li>
 <li><p>event_sample_list</p></li>
 <li><p>fit_span</p></li>
@@ -76,9 +76,9 @@ metadata available with <code><a href="https://rdrr.io/r/base/attributes.html" c
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co">## currently implemented metadata</span></span></span>
 <span class="r-in"><span><span class="va">metadata</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>nirs_device <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>                 nirs_columns <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>                 sample_column <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>                 event_column <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>                 nirs_channels <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>                 sample_channel <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>                 event_channel <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>                 sample_rate <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>                 event_sample_list <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>                 fit_span <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
@@ -101,8 +101,8 @@ metadata available with <code><a href="https://rdrr.io/r/base/attributes.html" c
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">nirs_data</span> <span class="op">&lt;-</span> <span class="fu">create_mNIRS_data</span><span class="op">(</span></span></span>
 <span class="r-in"><span>    <span class="va">df</span>,</span></span>
-<span class="r-in"><span>    metadata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>nirs_columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"B"</span>, <span class="st">"C"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>                    sample_column <span class="op">=</span> <span class="st">"A"</span>,</span></span>
+<span class="r-in"><span>    metadata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>nirs_channels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"B"</span>, <span class="st">"C"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                    sample_channel <span class="op">=</span> <span class="st">"A"</span>,</span></span>
 <span class="r-in"><span>                    sample_rate <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/attributes.html" class="external-link">attributes</a></span><span class="op">(</span><span class="va">nirs_data</span><span class="op">)</span></span></span>
@@ -115,10 +115,10 @@ metadata available with <code><a href="https://rdrr.io/r/base/attributes.html" c
 <span class="r-out co"><span class="r-pr">#&gt;</span> $names</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "A" "B" "C"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $nirs_columns</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $nirs_channels</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "B" "C"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $sample_column</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $sample_channel</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "A"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $sample_rate</span>

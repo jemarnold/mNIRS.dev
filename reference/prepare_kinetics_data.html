@@ -53,9 +53,9 @@ distinct or ensembled kinetics events for further analysis.</p>
 <span>  fit_span <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">30</span>, <span class="fl">180</span><span class="op">)</span>,</span>
 <span>  display_span <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  group_events <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"distinct"</span>, <span class="st">"ensemble"</span><span class="op">)</span>,</span>
-<span>  nirs_columns <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  sample_column <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  event_column <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  nirs_channels <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  sample_channel <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  event_channel <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  sample_rate <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -71,13 +71,13 @@ distinct or ensembled kinetics events for further analysis.</p>
 
 <dt id="arg-event-sample">event_sample<a class="anchor" aria-label="anchor" href="#arg-event-sample"></a></dt>
 <dd><p>An <em>optional</em> numeric vector corresponding to values of
-<code>sample_column</code> indicating the start of kinetic events. i.e., by time value
+<code>sample_channel</code> indicating the start of kinetic events. i.e., by time value
 or sample number.</p></dd>
 
 
 <dt id="arg-event-label">event_label<a class="anchor" aria-label="anchor" href="#arg-event-label"></a></dt>
 <dd><p>An <em>optional</em> character vector corresponding to values of
-<code>event_column</code> indicating the start of kinetics events. i.e., by an event
+<code>event_channel</code> indicating the start of kinetics events. i.e., by an event
 label such as <em>"end work"</em>.</p></dd>
 
 
@@ -89,7 +89,7 @@ row number.</p></dd>
 
 <dt id="arg-fit-span">fit_span<a class="anchor" aria-label="anchor" href="#arg-fit-span"></a></dt>
 <dd><p>A two-element numeric vector in the form <code>c(before, after)</code>
-in units of <code>sample_column</code>, defining the window around the kinetics events
+in units of <code>sample_channel</code>, defining the window around the kinetics events
 to include in the model fitting process (<em>default</em> <code>fit_span = c(30, 180)</code>).</p></dd>
 
 
@@ -103,21 +103,21 @@ either <em>"distinct"</em> (the <em>default</em>) or <em>"ensemble"</em>, but ca
 specified (see <em>Details</em>).</p></dd>
 
 
-<dt id="arg-nirs-columns">nirs_columns<a class="anchor" aria-label="anchor" href="#arg-nirs-columns"></a></dt>
-<dd><p>A character vector indicating the mNIRS data columns to
+<dt id="arg-nirs-channels">nirs_channels<a class="anchor" aria-label="anchor" href="#arg-nirs-channels"></a></dt>
+<dd><p>A character vector indicating the mNIRS data channels to
 be processed from your dataframe. Must match <code>data</code> column names exactly.
 Will be taken from metadata if not defined explicitly.</p></dd>
 
 
-<dt id="arg-sample-column">sample_column<a class="anchor" aria-label="anchor" href="#arg-sample-column"></a></dt>
+<dt id="arg-sample-channel">sample_channel<a class="anchor" aria-label="anchor" href="#arg-sample-channel"></a></dt>
 <dd><p>A character scalar indicating the time or sample data
-column. Must match <code>data</code> column names exactly. Will be taken from metadata
+channel. Must match <code>data</code> column names exactly. Will be taken from metadata
 if not defined explicitly.</p></dd>
 
 
-<dt id="arg-event-column">event_column<a class="anchor" aria-label="anchor" href="#arg-event-column"></a></dt>
+<dt id="arg-event-channel">event_channel<a class="anchor" aria-label="anchor" href="#arg-event-channel"></a></dt>
 <dd><p>An <em>optional</em> character scalar indicating an event or
-lap data column. Must match <code>data</code> column names exactly. Will be taken from
+lap data channel. Must match <code>data</code> column names exactly. Will be taken from
 metadata if not defined explicitly.</p></dd>
 
 

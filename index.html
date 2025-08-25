@@ -91,13 +91,13 @@
 <span><span class="co">## {mNIRS} includes sample files from a few NIRS devices</span></span>
 <span><span class="va">file_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/moxy_ramp_example.xlsx"</span>, package <span class="op">=</span> <span class="st">"mNIRS"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co">## rename columns in the format `new_name1 = "file_column_name1"`</span></span>
+<span><span class="co">## rename channels in the format `new_name1 = "file_column_name1"`</span></span>
 <span><span class="co">## where "file_column_name1" should match the file column name exactly</span></span>
 <span><span class="va">data_raw</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/read_data.html">read_data</a></span><span class="op">(</span><span class="va">file_path</span>,</span>
-<span>                      nirs_columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>smo2_left <span class="op">=</span> <span class="st">"SmO2 Live"</span>,</span>
+<span>                      nirs_channels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>smo2_left <span class="op">=</span> <span class="st">"SmO2 Live"</span>,</span>
 <span>                                       smo2_right <span class="op">=</span> <span class="st">"SmO2 Live(2)"</span><span class="op">)</span>,</span>
-<span>                      sample_column <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>time <span class="op">=</span> <span class="st">"hh:mm:ss"</span><span class="op">)</span>,</span>
-<span>                      event_column <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>lap <span class="op">=</span> <span class="st">"Lap"</span><span class="op">)</span>,</span>
+<span>                      sample_channel <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>time <span class="op">=</span> <span class="st">"hh:mm:ss"</span><span class="op">)</span>,</span>
+<span>                      event_channel <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>lap <span class="op">=</span> <span class="st">"Lap"</span><span class="op">)</span>,</span>
 <span>                      sample_rate <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>                      time_to_numeric <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                      time_from_zero <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -129,24 +129,24 @@
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">## metadata are stored in dataframe attributes</span></span>
-<span><span class="va">nirs_columns</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attributes.html" class="external-link">attributes</a></span><span class="op">(</span><span class="va">data_raw</span><span class="op">)</span><span class="op">$</span><span class="va">nirs_columns</span></span>
+<span><span class="va">nirs_channels</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attributes.html" class="external-link">attributes</a></span><span class="op">(</span><span class="va">data_raw</span><span class="op">)</span><span class="op">$</span><span class="va">nirs_channels</span></span>
 <span><span class="va">sample_rate</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attributes.html" class="external-link">attributes</a></span><span class="op">(</span><span class="va">data_raw</span><span class="op">)</span><span class="op">$</span><span class="va">sample_rate</span></span>
 <span></span>
 <span><span class="va">data_cleaned</span> <span class="op">&lt;-</span> <span class="va">data_raw</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
-<span>        <span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html" class="external-link">across</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/all_of.html" class="external-link">any_of</a></span><span class="op">(</span><span class="va">nirs_columns</span><span class="op">)</span>, </span>
+<span>        <span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html" class="external-link">across</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/all_of.html" class="external-link">any_of</a></span><span class="op">(</span><span class="va">nirs_channels</span><span class="op">)</span>, </span>
 <span>               \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu"><a href="reference/replace_invalid.html">replace_invalid</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">.x</span>,</span>
 <span>                                     values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">100</span><span class="op">)</span>,</span>
 <span>                                     return <span class="op">=</span> <span class="st">"NA"</span><span class="op">)</span></span>
 <span>        <span class="op">)</span>,</span>
-<span>        <span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html" class="external-link">across</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/all_of.html" class="external-link">any_of</a></span><span class="op">(</span><span class="va">nirs_columns</span><span class="op">)</span>, </span>
+<span>        <span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html" class="external-link">across</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/all_of.html" class="external-link">any_of</a></span><span class="op">(</span><span class="va">nirs_channels</span><span class="op">)</span>, </span>
 <span>               \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu"><a href="reference/replace_outliers.html">replace_outliers</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">.x</span>,</span>
 <span>                                      width <span class="op">=</span> <span class="fl">15</span>, <span class="co">## 15 sample median window</span></span>
 <span>                                      t0 <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>                                      na.rm <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                                      return <span class="op">=</span> <span class="st">"median"</span><span class="op">)</span></span>
 <span>        <span class="op">)</span>,</span>
-<span>        <span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html" class="external-link">across</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/all_of.html" class="external-link">any_of</a></span><span class="op">(</span><span class="va">nirs_columns</span><span class="op">)</span>, </span>
+<span>        <span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html" class="external-link">across</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/all_of.html" class="external-link">any_of</a></span><span class="op">(</span><span class="va">nirs_channels</span><span class="op">)</span>, </span>
 <span>               \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu"><a href="reference/replace_missing.html">replace_missing</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">.x</span>,</span>
 <span>                                     method <span class="op">=</span> <span class="st">"linear"</span>,</span>
 <span>                                     na.rm <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -179,7 +179,7 @@
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">data_downsampled</span> <span class="op">&lt;-</span> <span class="va">data_cleaned</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="fu"><a href="reference/resample_data.html">resample_data</a></span><span class="op">(</span>sample_column <span class="op">=</span> <span class="cn">NULL</span>, <span class="co">## will be automatically read from metadata</span></span>
+<span>    <span class="fu"><a href="reference/resample_data.html">resample_data</a></span><span class="op">(</span>sample_channel <span class="op">=</span> <span class="cn">NULL</span>, <span class="co">## will be automatically read from metadata</span></span>
 <span>                    sample_rate <span class="op">=</span> <span class="cn">NULL</span>, <span class="co">## will be automatically read from metadata</span></span>
 <span>                    resample_time <span class="op">=</span> <span class="fl">10</span><span class="op">)</span> <span class="co">## equal to `resample_rate = 0.1`</span></span>
 <span><span class="co">#&gt; Warning in regularize.values(x, y, ties, missing(ties), na.rm = na.rm):</span></span>
@@ -216,7 +216,7 @@
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_filtered</span> <span class="op">&lt;-</span> <span class="va">data_cleaned</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
-<span>        <span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html" class="external-link">across</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/all_of.html" class="external-link">any_of</a></span><span class="op">(</span><span class="va">nirs_columns</span><span class="op">)</span>,</span>
+<span>        <span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html" class="external-link">across</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/all_of.html" class="external-link">any_of</a></span><span class="op">(</span><span class="va">nirs_channels</span><span class="op">)</span>,</span>
 <span>               \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu"><a href="reference/filter_data.html">filter_data</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">.x</span>,</span>
 <span>                                 method <span class="op">=</span> <span class="st">"butterworth"</span>,</span>
 <span>                                 type <span class="op">=</span> <span class="st">"low"</span>,</span>
@@ -249,34 +249,35 @@
 </h3>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_shifted</span> <span class="op">&lt;-</span> <span class="va">data_filtered</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="co">## convert `nirs_columns` to separate list items to shift each column separately</span></span>
-<span>    <span class="fu"><a href="reference/shift_data.html">shift_data</a></span><span class="op">(</span>nirs_columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">as.list</a></span><span class="op">(</span><span class="va">nirs_columns</span><span class="op">)</span>,</span>
+<span>    <span class="co">## convert `nirs_channels` to separate list items to shift each channel separately</span></span>
+<span>    <span class="fu"><a href="reference/shift_data.html">shift_data</a></span><span class="op">(</span>nirs_channels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">as.list</a></span><span class="op">(</span><span class="va">nirs_channels</span><span class="op">)</span>,</span>
+<span>               sample_channel <span class="op">=</span> <span class="cn">NULL</span>, <span class="co">## we can leave this null since `sample_channel` is in our metadata</span></span>
 <span>               shift_to <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>               position <span class="op">=</span> <span class="st">"first"</span>,</span>
-<span>               mean_samples <span class="op">=</span> <span class="fl">120</span> <span class="op">*</span> <span class="va">sample_rate</span><span class="op">)</span> <span class="co">## shift the mean first 120 sec equal to zero</span></span>
+<span>               span <span class="op">=</span> <span class="fl">120</span><span class="op">)</span> <span class="co">## shift the mean of the first 120 sec of data to zero</span></span>
 <span></span>
 <span><span class="va">data_shifted</span></span>
 <span><span class="co">#&gt; # A tibble: 2,203 × 4</span></span>
 <span><span class="co">#&gt;     time   lap smo2_left smo2_right</span></span>
 <span><span class="co">#&gt;    &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;</span></span>
-<span><span class="co">#&gt;  1  0        1     -1.13      0.806</span></span>
-<span><span class="co">#&gt;  2  0.4      1     -1.14      0.796</span></span>
-<span><span class="co">#&gt;  3  0.96     1     -1.14      0.783</span></span>
-<span><span class="co">#&gt;  4  1.51     1     -1.14      0.769</span></span>
-<span><span class="co">#&gt;  5  2.06     1     -1.14      0.753</span></span>
-<span><span class="co">#&gt;  6  2.61     1     -1.14      0.735</span></span>
-<span><span class="co">#&gt;  7  3.16     1     -1.13      0.715</span></span>
-<span><span class="co">#&gt;  8  3.71     1     -1.13      0.694</span></span>
-<span><span class="co">#&gt;  9  4.26     1     -1.12      0.671</span></span>
-<span><span class="co">#&gt; 10  4.81     1     -1.11      0.646</span></span>
+<span><span class="co">#&gt;  1  0        1     -1.19      0.551</span></span>
+<span><span class="co">#&gt;  2  0.4      1     -1.19      0.540</span></span>
+<span><span class="co">#&gt;  3  0.96     1     -1.20      0.528</span></span>
+<span><span class="co">#&gt;  4  1.51     1     -1.20      0.514</span></span>
+<span><span class="co">#&gt;  5  2.06     1     -1.20      0.497</span></span>
+<span><span class="co">#&gt;  6  2.61     1     -1.19      0.480</span></span>
+<span><span class="co">#&gt;  7  3.16     1     -1.19      0.460</span></span>
+<span><span class="co">#&gt;  8  3.71     1     -1.18      0.439</span></span>
+<span><span class="co">#&gt;  9  4.26     1     -1.18      0.416</span></span>
+<span><span class="co">#&gt; 10  4.81     1     -1.17      0.391</span></span>
 <span><span class="co">#&gt; # ℹ 2,193 more rows</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">data_shifted</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-6-1.png" width="100%"></p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_rescaled</span> <span class="op">&lt;-</span> <span class="va">data_filtered</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="co">## convert `nirs_columns` vector to separate list items to shift each column separately</span></span>
-<span>    <span class="fu"><a href="reference/rescale_data.html">rescale_data</a></span><span class="op">(</span>nirs_columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">as.list</a></span><span class="op">(</span><span class="va">nirs_columns</span><span class="op">)</span>, </span>
+<span>    <span class="co">## convert `nirs_channels` vector to separate list items to shift each channel separately</span></span>
+<span>    <span class="fu"><a href="reference/rescale_data.html">rescale_data</a></span><span class="op">(</span>nirs_channels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">as.list</a></span><span class="op">(</span><span class="va">nirs_channels</span><span class="op">)</span>, </span>
 <span>                 rescale_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">100</span><span class="op">)</span><span class="op">)</span> <span class="co">## rescale to a 0-100% functional exercise range</span></span>
 <span></span>
 <span><span class="va">data_rescaled</span></span>

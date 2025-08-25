@@ -47,9 +47,9 @@ return a dataframe of class <code>"mNIRS.data"</code> with recorded data and met
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">read_data</span><span class="op">(</span></span>
 <span>  <span class="va">file_path</span>,</span>
-<span>  <span class="va">nirs_columns</span>,</span>
-<span>  sample_column <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  event_column <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">nirs_channels</span>,</span>
+<span>  sample_channel <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  event_channel <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  sample_rate <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  time_to_numeric <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  time_from_zero <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -67,21 +67,21 @@ return a dataframe of class <code>"mNIRS.data"</code> with recorded data and met
 <em>".xls"</em>, or <em>".csv"</em>) to import.</p></dd>
 
 
-<dt id="arg-nirs-columns">nirs_columns<a class="anchor" aria-label="anchor" href="#arg-nirs-columns"></a></dt>
+<dt id="arg-nirs-channels">nirs_channels<a class="anchor" aria-label="anchor" href="#arg-nirs-channels"></a></dt>
 <dd><p>A character vector indicating the mNIRS data columns
 to import from the file. Must match column names in the data file exactly.
 A named character vector can be used to rename columns in the form:
 <code>c(new_name = "old_name")</code> (see <em>Details</em>).</p></dd>
 
 
-<dt id="arg-sample-column">sample_column<a class="anchor" aria-label="anchor" href="#arg-sample-column"></a></dt>
+<dt id="arg-sample-channel">sample_channel<a class="anchor" aria-label="anchor" href="#arg-sample-channel"></a></dt>
 <dd><p>An <em>optional</em> character scalar indicating the time or
 sample data column to import from the file. Must match column names in the
 data file exactly. A named character vector can be used to rename columns in
 the form: <code>c(new_name = "old_name")</code> (see <em>Details</em>).</p></dd>
 
 
-<dt id="arg-event-column">event_column<a class="anchor" aria-label="anchor" href="#arg-event-column"></a></dt>
+<dt id="arg-event-channel">event_channel<a class="anchor" aria-label="anchor" href="#arg-event-channel"></a></dt>
 <dd><p>An <em>optional</em> character scalar indicating the event or lap
 data column to import from the file. Must match column names in the data file
 exactly. A named character vector can be used to rename columns in the form:
@@ -95,14 +95,14 @@ If not defined explicitly, will be estimated from the data (see <em>Details</em>
 
 <dt id="arg-time-to-numeric">time_to_numeric<a class="anchor" aria-label="anchor" href="#arg-time-to-numeric"></a></dt>
 <dd><p>A logical. <code>TRUE</code> (the <em>default</em>) will convert
-a date-time formatted <code>sample_column</code> to numeric values in seconds.
-<code>FALSE</code> will return <code>sample_column</code> in the format of the original file.</p></dd>
+a date-time formatted <code>sample_channel</code> to numeric values in seconds.
+<code>FALSE</code> will return <code>sample_channel</code> in the format of the original file.</p></dd>
 
 
 <dt id="arg-time-from-zero">time_from_zero<a class="anchor" aria-label="anchor" href="#arg-time-from-zero"></a></dt>
 <dd><p>A logical. <code>FALSE</code> (the <em>default</em>) will return the
-original numeric values of <code>sample_column</code>. <code>TRUE</code> will re-sample
-<code>sample_column</code> to start from zero.</p></dd>
+original numeric values of <code>sample_channel</code>. <code>TRUE</code> will re-sample
+<code>sample_channel</code> to start from zero.</p></dd>
 
 
 <dt id="arg-keep-all">keep_all<a class="anchor" aria-label="anchor" href="#arg-keep-all"></a></dt>
@@ -124,27 +124,27 @@ metadata available with <code><a href="https://rdrr.io/r/base/attributes.html" c
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Column names are matched to a single row, anywhere in the data file, not
-necessarily the top row of the file.</p>
-<p>Columns can be renamed in the format <code>c(new_name = "original_name")</code>, where
+    <p>Channel names are matched to a single row, representing the header row for
+data columns anywhere in the data file, not necessarily the top row of the file.</p>
+<p>Channels can be renamed in the format <code>c(new_name = "original_name")</code>, where
 <code>"original_name"</code> should match the column names found in the file exactly.</p>
-<p>If there are duplicate column names in the file, the columns will be matched
-in the order in which they appear. You may want to confirm that the correct
-columns have been assigned as intended.</p>
-<p>If <code>sample_column</code> is not specified, then an <code>index</code> column will be added
-from the row numbers. If the specified <code>sample_column</code> contains unequal
+<p>If there are duplicate column names in the file, the channel names will be
+matched in the order in which they appear. You may want to confirm that the
+correct columns have been assigned to each channel as intended.</p>
+<p>If <code>sample_channel</code> is not specified, then an <code>index</code> column will be added
+from the row numbers. If the specified <code>sample_channel</code> contains unequal
 sampling (i.e., repeated values or unordered samples) a warning will be given
 suggesting the user confirm the file data manually.</p>
-<p>When the <code>sample_column</code> is provided in date-time format (e.g. <code>hh:mm:ss</code>),
+<p>When the <code>sample_channel</code> is provided in date-time format (e.g. <code>hh:mm:ss</code>),
 this can be converted back to numeric values by <code>time_to_numeric = TRUE</code>. In
 this case, values will be recalculated as starting from <code>0</code> at the first sample.</p>
-<p><code>sample_column</code> will typically represent time values in seconds. However, some
+<p><code>sample_channel</code> will typically represent time values in seconds. However, some
 NIRS devices export the sample index. This can be converted to time values
 if the <code>sample_rate</code> is known.</p>
 <p><code>sample_rate</code> is required for certain <code>{mNIRS}</code> functions to work properly.
 If it is not defined explicitly, it will be estimated based on the mean
-difference between values in the <code>sample_column</code>. If <code>sample_column</code> is not
-defined, then <code>sample_rate</code> will be set to 1 Hz. If <code>sample_column</code> in the
+difference between values in the <code>sample_channel</code>. If <code>sample_channel</code> is not
+defined, then <code>sample_rate</code> will be set to 1 Hz. If <code>sample_channel</code> in the
 data file contains integer row numbers, then <code>sample_rate</code> will be
 incorrectly estimated to be 1 Hz, and should be defined explicitly.</p>
 <p>Columns and rows which contain entirely missing data (<code>NA</code>) are omitted.</p>

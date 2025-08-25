@@ -56,7 +56,7 @@
       <h1>Processing Data with {mNIRS}</h1>
 
       <p class="author">Jem Arnold</p>
-      <p class="date">2025-08-24</p>
+      <p class="date">2025-08-25</p>
 
       <small class="dont-index">Source: <a href="https://github.com/jemarnold/mNIRS/blob/main/vignettes/processing-mNIRS-data.qmd" class="external-link"><code>vignettes/processing-mNIRS-data.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -90,42 +90,42 @@
 <code class="sourceCode R"><span><span class="va">file_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/moxy_ramp_example.xlsx"</span>, package <span class="op">=</span> <span class="st">"mNIRS"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <p>Now we can read the data file with the <code><a href="../reference/read_data.html">read_data()</a></code> function. This function will take in raw NIRS data exported from a device, and return a dataframe with the data channels we specify. See <code><a href="../reference/read_data.html">?read_data</a></code> for more details.</p>
-</section><section class="level3"><h3 id="specify-column-names">Specify column names<a class="anchor" aria-label="anchor" href="#specify-column-names"></a>
+</section><section class="level3"><h3 id="specify-channel-names">Specify channel names<a class="anchor" aria-label="anchor" href="#specify-channel-names"></a>
 </h3>
-<p>We need to tell the function what column names to look for, to identify our data table in the file. The data table may not be at the very top of the file, so these column names can be anywhere in the file.</p>
+<p>We need to tell the function what channel names to look for, to identify our data table in the file. The data table may not be at the very top of the file, so these column names can be anywhere in the file.</p>
 <ul>
-<li><p><code>nirs_columns</code>: At minimum, we need one column name defined for NIRS data.</p></li>
-<li><p><code>sample_column</code>: Typically, we will also specify a column for the time or sample number of each observation.</p></li>
-<li><p><code>event_column</code>: We can specify a column to indicate <em>laps</em> or specific <em>events</em> in the dataset.</p></li>
+<li><p><code>nirs_channels</code>: At minimum, we need one channel name defined for NIRS data.</p></li>
+<li><p><code>sample_channel</code>: Typically, we will also specify a channel for the time or sample number of each observation.</p></li>
+<li><p><code>event_channel</code>: We can specify a channel to indicate <em>laps</em> or specific <em>events</em> in the dataset.</p></li>
 </ul>
-<p>These names should be in quotations and exactly match the column headers in the file (case- and special character-sensitive). Multiple columns can be accepted for <code>nirs_columns</code>. We can rename these columns when importing our data in the format:</p>
-<!-- * `nirs_columns = c(new_name1 = "file_column_name1", new_name2 = "file_column_name2")`. -->
+<p>These names should be in quotations and exactly match the column headers in the file (case- and special character-sensitive). Multiple columns can be accepted for <code>nirs_channels</code>. We can rename these columns when importing our data in the format:</p>
+<!-- * `nirs_channels = c(new_name1 = "file_column_name1", new_name2 = "file_column_name2")`. -->
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">nirs_columns</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>new_name1 <span class="op">=</span> <span class="st">"file_column_name1"</span>, </span>
+<code class="sourceCode R"><span><span class="va">nirs_channels</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>new_name1 <span class="op">=</span> <span class="st">"file_column_name1"</span>, </span>
 <span>                new_name2 <span class="op">=</span> <span class="st">"file_column_name2"</span><span class="op">)</span></span></code></pre></div>
 </div>
 </section><section class="level3"><h3 id="other-read_data-options">Other <code>read_data()</code> options<a class="anchor" aria-label="anchor" href="#other-read_data-options"></a>
 </h3>
 <ul>
-<li><p><code>sample_rate</code>: The sample rate of the NIRS recording can be specified if known, as number of samples per second, in Hz. If left blank, the function will estimate the sample rate from <code>sample_column</code>, assuming it contains time values.</p></li>
-<li><p><code>time_to_numeric</code>: If <code>sample_column</code> is in a date-time format (e.g. <code>hh:mm:ss</code>), we can convert this to numeric with <code>numeric_time = TRUE</code>. The numeric time values will be re-sampled to start from zero.</p></li>
-<li><p><code>time_from_zero</code>: If the <code>sample_column</code> begins at a non-zero numeric value, it can be re-sampled to start from zero by using <code>time_from_zero = TRUE</code>.</p></li>
-<li><p><code>keep_all</code>: Once the data table in the file is identified, the default is to return only the columns names explicitly specified above. If we want to return all columns in the data table, we can set <code>keep_all = TRUE</code>.</p></li>
-<li><p><code>verbose</code>: Finally, the function may return warnings or messages, for example if there are duplicate values in <code>sample_column</code> which may indicate a recording issue. These informative messages can be useful for data validation, but can be silenced with <code>verbose = TRUE</code>. Fail-state errors will always be returned.</p></li>
+<li><p><code>sample_rate</code>: The sample rate of the NIRS recording can be specified if known, as number of samples per second, in Hz. If left blank, the function will estimate the sample rate from <code>sample_channel</code>, assuming it contains time values.</p></li>
+<li><p><code>time_to_numeric</code>: If <code>sample_channel</code> is in a date-time format (e.g. <code>hh:mm:ss</code>), we can convert this to numeric with <code>numeric_time = TRUE</code>. The numeric time values will be re-sampled to start from zero.</p></li>
+<li><p><code>time_from_zero</code>: If the <code>sample_channel</code> begins at a non-zero numeric value, it can be re-sampled to start from zero by using <code>time_from_zero = TRUE</code>.</p></li>
+<li><p><code>keep_all</code>: Once the data table in the file is identified, the default is to return only the column names explicitly specified above. If we want to return all columns in the data table, we can set <code>keep_all = TRUE</code>.</p></li>
+<li><p><code>verbose</code>: Finally, the function may return warnings or messages, for example if there are duplicate values in <code>sample_channel</code> which may indicate a recording issue. These informative messages can be useful for data validation, but can be silenced with <code>verbose = TRUE</code>. Fail-state errors will always be returned.</p></li>
 </ul>
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_raw</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/read_data.html">read_data</a></span><span class="op">(</span><span class="va">file_path</span>,</span>
-<span>                      nirs_columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>smo2_left <span class="op">=</span> <span class="st">"SmO2 Live"</span>,</span>
+<span>                      nirs_channels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>smo2_left <span class="op">=</span> <span class="st">"SmO2 Live"</span>,</span>
 <span>                                       smo2_right <span class="op">=</span> <span class="st">"SmO2 Live(2)"</span><span class="op">)</span>,</span>
-<span>                      sample_column <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>time <span class="op">=</span> <span class="st">"hh:mm:ss"</span><span class="op">)</span>,</span>
-<span>                      event_column <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>lap <span class="op">=</span> <span class="st">"Lap"</span><span class="op">)</span>,</span>
+<span>                      sample_channel <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>time <span class="op">=</span> <span class="st">"hh:mm:ss"</span><span class="op">)</span>,</span>
+<span>                      event_channel <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>lap <span class="op">=</span> <span class="st">"Lap"</span><span class="op">)</span>,</span>
 <span>                      sample_rate <span class="op">=</span> <span class="fl">2</span>, <span class="co">## we know this file is recorded at 2 samples per second</span></span>
 <span>                      time_to_numeric <span class="op">=</span> <span class="cn">TRUE</span>, <span class="co">## to convert the date-time string to numeric</span></span>
 <span>                      keep_all <span class="op">=</span> <span class="cn">FALSE</span>, <span class="co">## to keep the returned dataframe clean</span></span>
 <span>                      verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="co">## show warnings &amp; messages, but ignore them for now</span></span>
-<span><span class="co">#&gt; Warning: `sample_column = time` has non-sequential or repeating values.</span></span>
+<span><span class="co">#&gt; Warning: `sample_channel = time` has non-sequential or repeating values.</span></span>
 <span><span class="co">#&gt; ℹ Consider investigating at "time = 211.99, 211.99, 211.99, 1184, and 1184".</span></span>
 <span></span>
 <span><span class="co">## ignore the Warning about repeated samples here</span></span>
@@ -158,11 +158,11 @@
 </section><section class="level3"><h3 id="metadata-stored-in-mnirs-data-dataframes">Metadata stored in <em>mNIRS.data</em> dataframes<a class="anchor" aria-label="anchor" href="#metadata-stored-in-mnirs-data-dataframes"></a>
 </h3>
 <p>Dataframes read or processed by <a href="https://github.com/jemarnold/mNIRS" class="external-link">mNIRS</a> functions will return <code>class = mNIRS.data</code> and contain metadata, which can be retrieved with <code>attributes(data)</code>.</p>
-<p>Instead of re-defining our column names or sample rate, we can call them from the metadata. Some <a href="https://github.com/jemarnold/mNIRS" class="external-link">mNIRS</a> functions will automatically retrieve metadata if present.</p>
+<p>Instead of re-defining our channel names or sample rate, we can call them from the metadata. Some <a href="https://github.com/jemarnold/mNIRS" class="external-link">mNIRS</a> functions will automatically retrieve metadata if present.</p>
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">nirs_columns</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attributes.html" class="external-link">attributes</a></span><span class="op">(</span><span class="va">data_raw</span><span class="op">)</span><span class="op">$</span><span class="va">nirs_columns</span></span>
-<span><span class="va">nirs_columns</span></span>
+<code class="sourceCode R"><span><span class="va">nirs_channels</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attributes.html" class="external-link">attributes</a></span><span class="op">(</span><span class="va">data_raw</span><span class="op">)</span><span class="op">$</span><span class="va">nirs_channels</span></span>
+<span><span class="va">nirs_channels</span></span>
 <span><span class="co">#&gt; [1] "smo2_left"  "smo2_right"</span></span>
 <span></span>
 <span><span class="va">sample_rate</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attributes.html" class="external-link">attributes</a></span><span class="op">(</span><span class="va">data_raw</span><span class="op">)</span><span class="op">$</span><span class="va">sample_rate</span></span>
@@ -210,20 +210,20 @@
 <div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_cleaned</span> <span class="op">&lt;-</span> <span class="va">data_raw</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
-<span>        <span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html" class="external-link">across</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/all_of.html" class="external-link">any_of</a></span><span class="op">(</span><span class="va">nirs_columns</span><span class="op">)</span>, <span class="co">## apply function across all of our `nirs_columns`</span></span>
+<span>        <span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html" class="external-link">across</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/all_of.html" class="external-link">any_of</a></span><span class="op">(</span><span class="va">nirs_channels</span><span class="op">)</span>, <span class="co">## apply function across all of our `nirs_channels`</span></span>
 <span>               \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu"><a href="../reference/replace_outliers.html">replace_outliers</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">.x</span>,</span>
 <span>                                      width <span class="op">=</span> <span class="fl">15</span>, <span class="co">## 15 sample window to each side of `x`</span></span>
 <span>                                      na.rm <span class="op">=</span> <span class="cn">TRUE</span>, <span class="co">## ignore `NA`</span></span>
 <span>                                      return <span class="op">=</span> <span class="st">"median"</span><span class="op">)</span></span>
 <span>        <span class="op">)</span>,</span>
-<span>        <span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html" class="external-link">across</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/all_of.html" class="external-link">any_of</a></span><span class="op">(</span><span class="va">nirs_columns</span><span class="op">)</span>, </span>
+<span>        <span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html" class="external-link">across</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/all_of.html" class="external-link">any_of</a></span><span class="op">(</span><span class="va">nirs_channels</span><span class="op">)</span>, </span>
 <span>               \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu"><a href="../reference/replace_invalid.html">replace_invalid</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">.x</span>,</span>
 <span>                                     values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">100</span><span class="op">)</span>, <span class="co">## known invalid values</span></span>
 <span>                                     width <span class="op">=</span> <span class="fl">15</span>,</span>
 <span>                                     return <span class="op">=</span> <span class="st">"NA"</span><span class="op">)</span></span>
 <span>        <span class="op">)</span>,</span>
 <span>        </span>
-<span>        <span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html" class="external-link">across</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/all_of.html" class="external-link">any_of</a></span><span class="op">(</span><span class="va">nirs_columns</span><span class="op">)</span>, </span>
+<span>        <span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html" class="external-link">across</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/all_of.html" class="external-link">any_of</a></span><span class="op">(</span><span class="va">nirs_channels</span><span class="op">)</span>, </span>
 <span>               \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu"><a href="../reference/replace_missing.html">replace_missing</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">.x</span>,</span>
 <span>                                     method <span class="op">=</span> <span class="st">"linear"</span>, <span class="co">## linear interpolation</span></span>
 <span>                                     na.rm <span class="op">=</span> <span class="cn">FALSE</span>, <span class="co">## to preserve the length of the vector</span></span>
@@ -249,7 +249,7 @@
 </h3>
 <ul>
 <li><p><code>data</code>: This function works on a dataframe; it will take in a dataframe (<code>data</code>), apply the processing step to all data channels, and return the processed dataframe.</p></li>
-<li><p><code>sample_column</code>: If the dataframe already has <em>mNIRS.data</em> metadata, the <em>time</em> or <em>sample</em> column will be detected automatically. Otherwise, we can define or overwrite it explicitly.</p></li>
+<li><p><code>sample_channel</code>: If the dataframe already has <em>mNIRS.data</em> metadata, the <em>time</em> or <em>sample</em> channel will be detected automatically. Otherwise, we can define or overwrite it explicitly.</p></li>
 <li><p><code>sample_rate</code>: If the dataframe already has <em>mNIRS.data</em> metadata, the <em>sample_rate</em> will be detected automatically. Otherwise, we can define or overwrite it explicitly.</p></li>
 <li><p><code>resample_rate</code>: Specify the output sample rate we want to covert to, as a number of samples per second (Hz).</p></li>
 <li><p><code>resample_time</code>: Alternatively, we can specify the output as a number of seconds per sample to produce the same result.</p></li>
@@ -258,7 +258,7 @@
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_downsampled</span> <span class="op">&lt;-</span> <span class="va">data_cleaned</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="fu"><a href="../reference/resample_data.html">resample_data</a></span><span class="op">(</span>sample_column <span class="op">=</span> <span class="cn">NULL</span>, <span class="co">## will be automatically read from metadata</span></span>
+<span>    <span class="fu"><a href="../reference/resample_data.html">resample_data</a></span><span class="op">(</span>sample_channel <span class="op">=</span> <span class="cn">NULL</span>, <span class="co">## will be automatically read from metadata</span></span>
 <span>                    sample_rate <span class="op">=</span> <span class="cn">NULL</span>, <span class="co">## will be automatically read from metadata</span></span>
 <span>                    resample_time <span class="op">=</span> <span class="fl">10</span><span class="op">)</span> <span class="co">## equal to `resample_rate = 0.1`</span></span>
 <span><span class="co">#&gt; Warning in regularize.values(x, y, ties, missing(ties), na.rm = na.rm):</span></span>
@@ -333,7 +333,7 @@
 <div class="sourceCode cell-code" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_filtered</span> <span class="op">&lt;-</span> <span class="va">data_cleaned</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
-<span>        <span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html" class="external-link">across</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/all_of.html" class="external-link">any_of</a></span><span class="op">(</span><span class="va">nirs_columns</span><span class="op">)</span>,</span>
+<span>        <span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html" class="external-link">across</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/all_of.html" class="external-link">any_of</a></span><span class="op">(</span><span class="va">nirs_channels</span><span class="op">)</span>,</span>
 <span>               \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu"><a href="../reference/filter_data.html">filter_data</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">.x</span>,</span>
 <span>                                 method <span class="op">=</span> <span class="st">"butterworth"</span>,</span>
 <span>                                 type <span class="op">=</span> <span class="st">"low"</span>,</span>
@@ -366,23 +366,24 @@
 <p>We may want to shift our data values while preserving the absolute dynamic range. See <code><a href="../reference/shift_data.html">?shift_data</a></code> for details.</p>
 <ul>
 <li><p><code>data</code>: This function works on a dataframe; it will take in a dataframe (<code>data</code>), apply the processing step to all data channels, and return the processed dataframe.</p></li>
-<li><p><code>nirs_columns</code>: A list specifying how we want the <em>NIRS</em> data channels to be grouped, to preserve within-group relative scaling. Listing each channel separately (e.g. <code>list("A", "B", "C")</code>) will shift each channel independently. The relative scaling between channels will be lost.<br><br>
+<li><p><code>nirs_channels</code>: A list specifying how we want the <em>NIRS</em> data channels to be grouped, to preserve within-group relative scaling. Listing each channel separately (e.g. <code>list("A", "B", "C")</code>) will shift each channel independently. The relative scaling between channels will be lost.<br><br>
 Grouping channels (e.g. <code>list(c("A", "B"), c("C"))</code>) will shift each group of channels together. The relative scaling between channels will be preserved within each group, but lost across groups.<br><br>
 If the dataframe already has <em>mNIRS.data</em> metadata, the <em>NIRS</em> data channels will be detected automatically and processed as if grouped globally together.</p></li>
 <li><p><code>shift_to</code>: The <em>NIRS</em> value to which the channels will be shifted.</p></li>
 <li><p><code>position</code>: Specifies how we want to shift the data; either shifting the <em>“minimum”</em>, <em>“maximum”</em>, or <em>“first”</em> sample(s) to the value specified above.</p></li>
 <li><p><code>mean_samples</code>: Specifies how many samples we want to average across when shifting to our new value specified above. The default <code>mean_samples = 1</code> will shift a single value.</p></li>
-<li><p><code>shift_by</code>: An alternate way to specify, if we wanted to shift a data column by, say 10 units.</p></li>
+<li><p><code>shift_by</code>: An alternate way to specify, if we wanted to shift a data channel by, say 10 units.</p></li>
 </ul>
 <p>We have a 2-minute baseline for this dataset, so maybe we want to shift both NIRS signals so that the mean value of the 2-min baseline is equal to zero.</p>
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_shifted</span> <span class="op">&lt;-</span> <span class="va">data_filtered</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="co">## convert `nirs_columns` to separate list items to shift each column separately</span></span>
-<span>    <span class="fu"><a href="../reference/shift_data.html">shift_data</a></span><span class="op">(</span>nirs_columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">as.list</a></span><span class="op">(</span><span class="va">nirs_columns</span><span class="op">)</span>,</span>
+<span>    <span class="co">## convert `nirs_channels` to separate list items to shift each channel separately</span></span>
+<span>    <span class="fu"><a href="../reference/shift_data.html">shift_data</a></span><span class="op">(</span>nirs_channels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">as.list</a></span><span class="op">(</span><span class="va">nirs_channels</span><span class="op">)</span>,</span>
+<span>               sample_channel <span class="op">=</span> <span class="cn">NULL</span>, <span class="co">## we can leave this null since `sample_channel` is in our metadata</span></span>
 <span>               shift_to <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>               position <span class="op">=</span> <span class="st">"first"</span>,</span>
-<span>               mean_samples <span class="op">=</span> <span class="fl">120</span> <span class="op">*</span> <span class="va">sample_rate</span><span class="op">)</span> <span class="co">## shift the mean first 120 sec equal to zero</span></span>
+<span>               span <span class="op">=</span> <span class="fl">120</span><span class="op">)</span> <span class="co">## shift the mean of the first 120 sec of data to zero</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">data_shifted</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="fl">0</span>, linetype <span class="op">=</span> <span class="st">"dotted"</span><span class="op">)</span></span></code></pre></div>
@@ -400,15 +401,15 @@ If the dataframe already has <em>mNIRS.data</em> metadata, the <em>NIRS</em> dat
 <p>We may want to rescale our data to a new dynamic range. See <code><a href="../reference/rescale_data.html">?rescale_data</a></code> for details.</p>
 <ul>
 <li><p><code>data</code>: This function works on a dataframe; it will take in a dataframe (<code>data</code>), apply the processing step to all data channels, and return the processed dataframe.</p></li>
-<li><p><code>nirs_columns</code>: A list specifying how we want the <em>NIRS</em> data channels to be grouped, to preserve within-group relative scaling (see <em>Shift Data</em> above).</p></li>
+<li><p><code>nirs_channels</code>: A list specifying how we want the <em>NIRS</em> data channels to be grouped, to preserve within-group relative scaling (see <em>Shift Data</em> above).</p></li>
 <li><p><code>rescale_range</code>: Specifies the new dynamic range, in the form <code>c(minimum, maximum)</code>.</p></li>
 </ul>
 <p>For example, if we are interested in comparing the ‘functional range’ of each NIRS signal, we may want to set them both to 0-100%.</p>
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_rescaled</span> <span class="op">&lt;-</span> <span class="va">data_filtered</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="co">## convert `nirs_columns` vector to separate list items to shift each column separately</span></span>
-<span>    <span class="fu"><a href="../reference/rescale_data.html">rescale_data</a></span><span class="op">(</span>nirs_columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">as.list</a></span><span class="op">(</span><span class="va">nirs_columns</span><span class="op">)</span>, </span>
+<span>    <span class="co">## convert `nirs_channels` vector to separate list items to shift each channel separately</span></span>
+<span>    <span class="fu"><a href="../reference/rescale_data.html">rescale_data</a></span><span class="op">(</span>nirs_channels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">as.list</a></span><span class="op">(</span><span class="va">nirs_channels</span><span class="op">)</span>, </span>
 <span>                 rescale_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">100</span><span class="op">)</span><span class="op">)</span> <span class="co">## rescale to a 0-100% functional exercise range</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">data_rescaled</span><span class="op">)</span> <span class="op">+</span></span>
@@ -428,12 +429,12 @@ If the dataframe already has <em>mNIRS.data</em> metadata, the <em>NIRS</em> dat
 <div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_rescaled</span> <span class="op">&lt;-</span> <span class="va">data_filtered</span> <span class="op">|&gt;</span> </span>
 <span>     <span class="co">## the lowest single value for each NIRS channel will be shifted to zero</span></span>
-<span>    <span class="fu"><a href="../reference/shift_data.html">shift_data</a></span><span class="op">(</span>nirs_columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">as.list</a></span><span class="op">(</span><span class="va">nirs_columns</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="../reference/shift_data.html">shift_data</a></span><span class="op">(</span>nirs_channels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">as.list</a></span><span class="op">(</span><span class="va">nirs_channels</span><span class="op">)</span>,</span>
 <span>               shift_to <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>               position <span class="op">=</span> <span class="st">"first"</span>,</span>
-<span>               mean_samples <span class="op">=</span> <span class="fl">120</span> <span class="op">*</span> <span class="va">sample_rate</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>               span <span class="op">=</span> <span class="fl">120</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="co">## Then both channels will be grouped and the maximum value of the two scaled to 100%</span></span>
-<span>    <span class="fu"><a href="../reference/rescale_data.html">rescale_data</a></span><span class="op">(</span>nirs_columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">nirs_columns</span><span class="op">)</span>, </span>
+<span>    <span class="fu"><a href="../reference/rescale_data.html">rescale_data</a></span><span class="op">(</span>nirs_channels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">nirs_channels</span><span class="op">)</span>, </span>
 <span>                 rescale_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">100</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">data_rescaled</span><span class="op">)</span> <span class="op">+</span></span>

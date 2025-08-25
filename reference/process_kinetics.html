@@ -51,7 +51,7 @@ on vector data.</p>
 <span>  x <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  x0 <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  end_kinetics_span <span class="op">=</span> <span class="fl">30</span>,</span>
+<span>  end_kinetics_span <span class="op">=</span> <span class="fl">15</span>,</span>
 <span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"monoexponential"</span>, <span class="st">"sigmoidal"</span>, <span class="st">"half_time"</span>, <span class="st">"peak_slope"</span><span class="op">)</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -63,7 +63,7 @@ on vector data.</p>
 <span>  x <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  x0 <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  end_kinetics_span <span class="op">=</span> <span class="fl">30</span>,</span>
+<span>  end_kinetics_span <span class="op">=</span> <span class="fl">15</span>,</span>
 <span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"monoexponential"</span>, <span class="st">"sigmoidal"</span>, <span class="st">"half_time"</span>, <span class="st">"peak_slope"</span><span class="op">)</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -75,7 +75,7 @@ on vector data.</p>
 <span>  x <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  x0 <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  end_kinetics_span <span class="op">=</span> <span class="fl">30</span>,</span>
+<span>  end_kinetics_span <span class="op">=</span> <span class="fl">15</span>,</span>
 <span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"monoexponential"</span>, <span class="st">"sigmoidal"</span>, <span class="st">"half_time"</span>, <span class="st">"peak_slope"</span><span class="op">)</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -87,7 +87,7 @@ on vector data.</p>
 <span>  x <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  x0 <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  end_kinetics_span <span class="op">=</span> <span class="fl">30</span>,</span>
+<span>  end_kinetics_span <span class="op">=</span> <span class="fl">15</span>,</span>
 <span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"monoexponential"</span>, <span class="st">"sigmoidal"</span>, <span class="st">"half_time"</span>, <span class="st">"peak_slope"</span><span class="op">)</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -120,7 +120,7 @@ variable <code>x</code> representing the start of the kinetics event.</p></dd>
 
 
 <dt id="arg-end-kinetics-span">end_kinetics_span<a class="anchor" aria-label="anchor" href="#arg-end-kinetics-span"></a></dt>
-<dd><p>(<em>Default</em> <code>end_kinetics_span = 30</code>) A numeric scalar
+<dd><p>(<em>Default</em> <code>end_kinetics_span = 15</code>) A numeric scalar
 indicating the local window in units of the predictor variable <code>x</code> after the
 kinetics extreme (peak or trough) value to look for subsequent greater extremes.
 The kinetics model will be fit to the data up to the first local extreme with
