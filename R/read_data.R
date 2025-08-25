@@ -490,9 +490,7 @@ read_data <- function(
         event_channel = names(event_channel),
         sample_rate = sample_rate)
 
-    mNIRS_data <- create_mNIRS_data(data_prepared, metadata)
-
-    return(mNIRS_data)
+    return(create_mNIRS_data(data_prepared, metadata))
 }
 
 

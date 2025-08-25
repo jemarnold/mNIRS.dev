@@ -46,13 +46,13 @@ library(mNIRS)
 ## {mNIRS} includes sample files from a few NIRS devices
 file_path <- system.file("extdata/moxy_ramp_example.xlsx", package = "mNIRS")
 
-## rename columns in the format `new_name1 = "file_column_name1"`
+## rename channels in the format `new_name1 = "file_column_name1"`
 ## where "file_column_name1" should match the file column name exactly
 data_raw <- read_data(file_path,
-                      nirs_columns = c(smo2_left = "SmO2 Live",
+                      nirs_channels = c(smo2_left = "SmO2 Live",
                                        smo2_right = "SmO2 Live(2)"),
-                      sample_column = c(time = "hh:mm:ss"),
-                      event_column = c(lap = "Lap"),
+                      sample_channel = c(time = "hh:mm:ss"),
+                      event_channel = c(lap = "Lap"),
                       sample_rate = 2,
                       time_to_numeric = TRUE,
                       time_from_zero = TRUE,
@@ -85,24 +85,24 @@ plot(data_raw)
 ``` r
 
 ## metadata are stored in dataframe attributes
-nirs_columns <- attributes(data_raw)$nirs_columns
+nirs_channels <- attributes(data_raw)$nirs_channels
 sample_rate <- attributes(data_raw)$sample_rate
 
 data_cleaned <- data_raw |> 
     mutate(
-        across(any_of(nirs_columns), 
+        across(any_of(nirs_channels), 
                \(.x) replace_invalid(x = .x,
                                      values = c(0, 100),
                                      return = "NA")
         ),
-        across(any_of(nirs_columns), 
+        across(any_of(nirs_channels), 
                \(.x) replace_outliers(x = .x,
                                       width = 15, ## 15 sample median window
                                       t0 = 3,
                                       na.rm = TRUE,
                                       return = "median")
         ),
-        across(any_of(nirs_columns), 
+        across(any_of(nirs_channels), 
                \(.x) replace_missing(x = .x,
                                      method = "linear",
                                      na.rm = FALSE,
@@ -136,7 +136,7 @@ plot(data_cleaned)
 ``` r
 
 data_downsampled <- data_cleaned |> 
-    resample_data(sample_column = NULL, ## will be automatically read from metadata
+    resample_data(sample_channel = NULL, ## will be automatically read from metadata
                     sample_rate = NULL, ## will be automatically read from metadata
                     resample_time = 10) ## equal to `resample_rate = 0.1`
 #> Warning in regularize.values(x, y, ties, missing(ties), na.rm = na.rm):
@@ -174,7 +174,7 @@ plot(data_downsampled)
 ``` r
 data_filtered <- data_cleaned |> 
     mutate(
-        across(any_of(nirs_columns),
+        across(any_of(nirs_channels),
                \(.x) filter_data(x = .x,
                                  method = "butterworth",
                                  type = "low",
@@ -208,26 +208,27 @@ plot(data_filtered)
 
 ``` r
 data_shifted <- data_filtered |> 
-    ## convert `nirs_columns` to separate list items to shift each column separately
-    shift_data(nirs_columns = as.list(nirs_columns),
+    ## convert `nirs_channels` to separate list items to shift each channel separately
+    shift_data(nirs_channels = as.list(nirs_channels),
+               sample_channel = NULL, ## we can leave this null since `sample_channel` is in our metadata
                shift_to = 0,
                position = "first",
-               mean_samples = 120 * sample_rate) ## shift the mean first 120 sec equal to zero
+               span = 120) ## shift the mean of the first 120 sec of data to zero
 
 data_shifted
 #> # A tibble: 2,203 × 4
 #>     time   lap smo2_left smo2_right
 #>    <dbl> <dbl>     <dbl>      <dbl>
-#>  1  0        1     -1.13      0.806
-#>  2  0.4      1     -1.14      0.796
-#>  3  0.96     1     -1.14      0.783
-#>  4  1.51     1     -1.14      0.769
-#>  5  2.06     1     -1.14      0.753
-#>  6  2.61     1     -1.14      0.735
-#>  7  3.16     1     -1.13      0.715
-#>  8  3.71     1     -1.13      0.694
-#>  9  4.26     1     -1.12      0.671
-#> 10  4.81     1     -1.11      0.646
+#>  1  0        1     -1.19      0.551
+#>  2  0.4      1     -1.19      0.540
+#>  3  0.96     1     -1.20      0.528
+#>  4  1.51     1     -1.20      0.514
+#>  5  2.06     1     -1.20      0.497
+#>  6  2.61     1     -1.19      0.480
+#>  7  3.16     1     -1.19      0.460
+#>  8  3.71     1     -1.18      0.439
+#>  9  4.26     1     -1.18      0.416
+#> 10  4.81     1     -1.17      0.391
 #> # ℹ 2,193 more rows
 
 plot(data_shifted)
@@ -237,8 +238,8 @@ plot(data_shifted)
 
 ``` r
 data_rescaled <- data_filtered |> 
-    ## convert `nirs_columns` vector to separate list items to shift each column separately
-    rescale_data(nirs_columns = as.list(nirs_columns), 
+    ## convert `nirs_channels` vector to separate list items to shift each channel separately
+    rescale_data(nirs_channels = as.list(nirs_channels), 
                  rescale_range = c(0, 100)) ## rescale to a 0-100% functional exercise range
 
 data_rescaled

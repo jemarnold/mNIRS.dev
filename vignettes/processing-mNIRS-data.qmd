@@ -55,23 +55,23 @@ Now we can read the data file with the `read_data()` function. This function wil
 
 
 
-### Specify column names
+### Specify channel names
 
-We need to tell the function what column names to look for, to identify our data table in the file. The data table may not be at the very top of the file, so these column names can be anywhere in the file. 
+We need to tell the function what channel names to look for, to identify our data table in the file. The data table may not be at the very top of the file, so these column names can be anywhere in the file. 
 
-* `nirs_columns`: At minimum, we need one column name defined for NIRS data. 
+* `nirs_channels`: At minimum, we need one channel name defined for NIRS data. 
 
-* `sample_column`: Typically, we will also specify a column for the time or sample number of each observation. 
+* `sample_channel`: Typically, we will also specify a channel for the time or sample number of each observation. 
 
-* `event_column`: We can specify a column to indicate *laps* or specific *events* in the dataset.
+* `event_channel`: We can specify a channel to indicate *laps* or specific *events* in the dataset.
 
-These names should be in quotations and exactly match the column headers in the file (case- and special character-sensitive). Multiple columns can be accepted for `nirs_columns`. We can rename these columns when importing our data in the format: 
+These names should be in quotations and exactly match the column headers in the file (case- and special character-sensitive). Multiple columns can be accepted for `nirs_channels`. We can rename these columns when importing our data in the format: 
 
-<!-- * `nirs_columns = c(new_name1 = "file_column_name1", new_name2 = "file_column_name2")`. -->
+<!-- * `nirs_channels = c(new_name1 = "file_column_name1", new_name2 = "file_column_name2")`. -->
 ```{r}
 #| output: false
 
-nirs_columns = c(new_name1 = "file_column_name1", 
+nirs_channels = c(new_name1 = "file_column_name1", 
                 new_name2 = "file_column_name2")
 ```
 
@@ -79,22 +79,22 @@ nirs_columns = c(new_name1 = "file_column_name1",
 
 ### Other `read_data()` options
 
-* `sample_rate`: The sample rate of the NIRS recording can be specified if known, as number of samples per second, in Hz. If left blank, the function will estimate the sample rate from `sample_column`, assuming it contains time values.
+* `sample_rate`: The sample rate of the NIRS recording can be specified if known, as number of samples per second, in Hz. If left blank, the function will estimate the sample rate from `sample_channel`, assuming it contains time values.
 
-* `time_to_numeric`: If `sample_column` is in a date-time format (e.g. `hh:mm:ss`), we can convert this to numeric with `numeric_time = TRUE`. The numeric time values will be re-sampled to start from zero.
+* `time_to_numeric`: If `sample_channel` is in a date-time format (e.g. `hh:mm:ss`), we can convert this to numeric with `numeric_time = TRUE`. The numeric time values will be re-sampled to start from zero.
 
-* `time_from_zero`: If the `sample_column` begins at a non-zero numeric value, it can be re-sampled to start from zero by using `time_from_zero = TRUE`.
+* `time_from_zero`: If the `sample_channel` begins at a non-zero numeric value, it can be re-sampled to start from zero by using `time_from_zero = TRUE`.
 
-* `keep_all`: Once the data table in the file is identified, the default is to return only the columns names explicitly specified above. If we want to return all columns in the data table, we can set `keep_all = TRUE`.
+* `keep_all`: Once the data table in the file is identified, the default is to return only the column names explicitly specified above. If we want to return all columns in the data table, we can set `keep_all = TRUE`.
 
-* `verbose`: Finally, the function may return warnings or messages, for example if there are duplicate values in `sample_column` which may indicate a recording issue. These informative messages can be useful for data validation, but can be silenced with `verbose = TRUE`. Fail-state errors will always be returned.
+* `verbose`: Finally, the function may return warnings or messages, for example if there are duplicate values in `sample_channel` which may indicate a recording issue. These informative messages can be useful for data validation, but can be silenced with `verbose = TRUE`. Fail-state errors will always be returned.
 
 ```{r}
 data_raw <- read_data(file_path,
-                      nirs_columns = c(smo2_left = "SmO2 Live",
+                      nirs_channels = c(smo2_left = "SmO2 Live",
                                        smo2_right = "SmO2 Live(2)"),
-                      sample_column = c(time = "hh:mm:ss"),
-                      event_column = c(lap = "Lap"),
+                      sample_channel = c(time = "hh:mm:ss"),
+                      event_channel = c(lap = "Lap"),
                       sample_rate = 2, ## we know this file is recorded at 2 samples per second
                       time_to_numeric = TRUE, ## to convert the date-time string to numeric
                       keep_all = FALSE, ## to keep the returned dataframe clean
@@ -113,11 +113,11 @@ plot(data_raw)
 
 Dataframes read or processed by `{mNIRS}` functions will return `class = mNIRS.data` and contain metadata, which can be retrieved with `attributes(data)`. 
 
-Instead of re-defining our column names or sample rate, we can call them from the metadata. Some `{mNIRS}` functions will automatically retrieve metadata if present.
+Instead of re-defining our channel names or sample rate, we can call them from the metadata. Some `{mNIRS}` functions will automatically retrieve metadata if present.
 
 ```{r}
-nirs_columns <- attributes(data_raw)$nirs_columns
-nirs_columns
+nirs_channels <- attributes(data_raw)$nirs_channels
+nirs_channels
 
 sample_rate <- attributes(data_raw)$sample_rate
 sample_rate
@@ -178,20 +178,20 @@ Subsequent processing & analysis steps may return errors when missing values are
 ```{r}
 data_cleaned <- data_raw |> 
     mutate(
-        across(any_of(nirs_columns), ## apply function across all of our `nirs_columns`
+        across(any_of(nirs_channels), ## apply function across all of our `nirs_channels`
                \(.x) replace_outliers(x = .x,
                                       width = 15, ## 15 sample window to each side of `x`
                                       na.rm = TRUE, ## ignore `NA`
                                       return = "median")
         ),
-        across(any_of(nirs_columns), 
+        across(any_of(nirs_channels), 
                \(.x) replace_invalid(x = .x,
                                      values = c(0, 100), ## known invalid values
                                      width = 15,
                                      return = "NA")
         ),
         
-        across(any_of(nirs_columns), 
+        across(any_of(nirs_channels), 
                \(.x) replace_missing(x = .x,
                                      method = "linear", ## linear interpolation
                                      na.rm = FALSE, ## to preserve the length of the vector
@@ -218,7 +218,7 @@ Alternatively, if we have something like high-frequency EMG data and we want to 
 
 * `data`: This function works on a dataframe; it will take in a dataframe (`data`), apply the processing step to all data channels, and return the processed dataframe.
 
-* `sample_column`: If the dataframe already has *mNIRS.data* metadata, the *time* or *sample* column will be detected automatically. Otherwise, we can define or overwrite it explicitly.
+* `sample_channel`: If the dataframe already has *mNIRS.data* metadata, the *time* or *sample* channel will be detected automatically. Otherwise, we can define or overwrite it explicitly.
 
 * `sample_rate`: If the dataframe already has *mNIRS.data* metadata, the *sample_rate* will be detected automatically. Otherwise, we can define or overwrite it explicitly.
 
@@ -230,7 +230,7 @@ This example dataset is already at relatively low sample rate, but let's just se
 
 ```{r}
 data_downsampled <- data_cleaned |> 
-    resample_data(sample_column = NULL, ## will be automatically read from metadata
+    resample_data(sample_channel = NULL, ## will be automatically read from metadata
                     sample_rate = NULL, ## will be automatically read from metadata
                     resample_time = 10) ## equal to `resample_rate = 0.1`
 
@@ -292,7 +292,7 @@ Let's try a *Butterworth low-pass* filter, and we'll specify some empirically ch
 ```{r}
 data_filtered <- data_cleaned |> 
     mutate(
-        across(any_of(nirs_columns),
+        across(any_of(nirs_channels),
                \(.x) filter_data(x = .x,
                                  method = "butterworth",
                                  type = "low",
@@ -327,7 +327,7 @@ We may want to shift our data values while preserving the absolute dynamic range
 
 * `data`: This function works on a dataframe; it will take in a dataframe (`data`), apply the processing step to all data channels, and return the processed dataframe.
 
-* `nirs_columns`: A list specifying how we want the *NIRS* data channels to be grouped, to preserve within-group relative scaling. Listing each channel separately (e.g. `list("A", "B", "C")`) will shift each channel independently. The relative scaling between channels will be lost.\
+* `nirs_channels`: A list specifying how we want the *NIRS* data channels to be grouped, to preserve within-group relative scaling. Listing each channel separately (e.g. `list("A", "B", "C")`) will shift each channel independently. The relative scaling between channels will be lost.\
 \
 Grouping channels (e.g. `list(c("A", "B"), c("C"))`) will shift each group of channels together. The relative scaling between channels will be preserved within each group, but lost across groups.\
 \
@@ -339,17 +339,18 @@ If the dataframe already has *mNIRS.data* metadata, the *NIRS* data channels wil
 
 * `mean_samples`: Specifies how many samples we want to average across when shifting to our new value specified above. The default `mean_samples = 1` will shift a single value.
 
-* `shift_by`: An alternate way to specify, if we wanted to shift a data column by, say 10 units.
+* `shift_by`: An alternate way to specify, if we wanted to shift a data channel by, say 10 units.
 
 We have a 2-minute baseline for this dataset, so maybe we want to shift both NIRS signals so that the mean value of the 2-min baseline is equal to zero.
 
 ```{r}
 data_shifted <- data_filtered |> 
-    ## convert `nirs_columns` to separate list items to shift each column separately
-    shift_data(nirs_columns = as.list(nirs_columns),
+    ## convert `nirs_channels` to separate list items to shift each channel separately
+    shift_data(nirs_channels = as.list(nirs_channels),
+               sample_channel = NULL, ## we can leave this null since `sample_channel` is in our metadata
                shift_to = 0,
                position = "first",
-               mean_samples = 120 * sample_rate) ## shift the mean first 120 sec equal to zero
+               span = 120) ## shift the mean of the first 120 sec of data to zero
 
 plot(data_shifted) +
     geom_hline(yintercept = 0, linetype = "dotted")
@@ -365,7 +366,7 @@ We may want to rescale our data to a new dynamic range. See `?rescale_data` for 
 
 * `data`: This function works on a dataframe; it will take in a dataframe (`data`), apply the processing step to all data channels, and return the processed dataframe.
 
-* `nirs_columns`: A list specifying how we want the *NIRS* data channels to be grouped, to preserve within-group relative scaling (see *Shift Data* above).
+* `nirs_channels`: A list specifying how we want the *NIRS* data channels to be grouped, to preserve within-group relative scaling (see *Shift Data* above).
 
 * `rescale_range`: Specifies the new dynamic range, in the form `c(minimum, maximum)`.
 
@@ -373,8 +374,8 @@ For example, if we are interested in comparing the 'functional range' of each NI
 
 ```{r}
 data_rescaled <- data_filtered |> 
-    ## convert `nirs_columns` vector to separate list items to shift each column separately
-    rescale_data(nirs_columns = as.list(nirs_columns), 
+    ## convert `nirs_channels` vector to separate list items to shift each channel separately
+    rescale_data(nirs_channels = as.list(nirs_channels), 
                  rescale_range = c(0, 100)) ## rescale to a 0-100% functional exercise range
 
 plot(data_rescaled) +
@@ -392,12 +393,12 @@ What if we wanted to shift both NIRS signals so their mean 120-sec baselines are
 ```{r}
 data_rescaled <- data_filtered |> 
      ## the lowest single value for each NIRS channel will be shifted to zero
-    shift_data(nirs_columns = as.list(nirs_columns),
+    shift_data(nirs_channels = as.list(nirs_channels),
                shift_to = 0,
                position = "first",
-               mean_samples = 120 * sample_rate) |> 
+               span = 120) |> 
     ## Then both channels will be grouped and the maximum value of the two scaled to 100%
-    rescale_data(nirs_columns = list(nirs_columns), 
+    rescale_data(nirs_channels = list(nirs_channels), 
                  rescale_range = c(0, 100))
 
 plot(data_rescaled) +

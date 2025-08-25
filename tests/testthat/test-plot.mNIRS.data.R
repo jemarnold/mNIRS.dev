@@ -15,9 +15,9 @@ test_that("plot.mNIRS.data moxy.perfpro works", {
 
     df <- read_data(
         file_path = file_path,
-        nirs_columns = c(smo2_left = "SmO2 Live",
+        nirs_channels = c(smo2_left = "SmO2 Live",
                          smo2_right = "SmO2 Live(2)"),
-        sample_column = c(time = "hh:mm:ss"),
+        sample_channel = c(time = "hh:mm:ss"),
         verbose = FALSE)
 
     ## visual check
@@ -28,23 +28,23 @@ test_that("plot.mNIRS.data moxy.perfpro works", {
 
 
 
-test_that("plot.mNIRS.data Oxysoft multiple channels works", {
-    file_path <- system.file("extdata/oxysoft_interval_example.xlsx",
-                             package = "mNIRS")
-    expect_equal(class(file_path), "character")
-
-    # df <- read_data(
-    #     file_path = file_path,
-    #     nirs_columns = c("O2Hb 1" = 2,
-    #                      "HHb 1" = 3,
-    #                      "tHb 1" = 4,
-    #                      "O2Hb 2" = 5,
-    #                      "HHb 2" = 6,
-    #                      "tHb 2" = 7),
-    #     sample_column = c(sample = 1),
-    #     verbose = FALSE)
-    #
-    # ## visual check
-    # plot <- plot(df)
-    # expect_s3_class(plot, "ggplot")
-})
+# test_that("plot.mNIRS.data Oxysoft multiple channels works", {
+#     file_path <- system.file("extdata/oxysoft_interval_example.xlsx",
+#                              package = "mNIRS")
+#     expect_equal(class(file_path), "character")
+#
+#     df <- read_data(
+#         file_path = file_path,
+#         nirs_channels = c("O2Hb 1" = 2,
+#                          "HHb 1" = 3,
+#                          "tHb 1" = 4,
+#                          "O2Hb 2" = 5,
+#                          "HHb 2" = 6,
+#                          "tHb 2" = 7),
+#         sample_channel = c(sample = 1),
+#         verbose = FALSE)
+#
+#     ## visual check
+#     plot <- plot(df)
+#     expect_s3_class(plot, "ggplot")
+# })

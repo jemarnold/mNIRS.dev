@@ -8,10 +8,10 @@ shift_data(
   data,
   nirs_channels = list(),
   sample_channel = NULL,
-  shift_to = 0,
-  position = c("minimum", "maximum", "first"),
+  shift_to = NULL,
+  shift_by = NULL,
   span = 0,
-  shift_by = NULL
+  position = c("minimum", "maximum", "first")
 )
 }
 \arguments{
@@ -33,8 +33,16 @@ relative scaling within, but not across each group.}
 channel. Must match \code{data} column names exactly. Will be taken from metadata
 if not defined explicitly.}
 
-\item{shift_to}{A numeric scalar to which the specified data channels
-will be shifted.}
+\item{shift_to}{A positive or negative numeric scalar in units of \code{nirs_channels}
+to which the specified data channels will be shifted.}
+
+\item{shift_by}{An \emph{optional} positive or negative numeric scalar by which the
+data signals can be shifted by a set amount, in units of the \code{nirs_channels}.}
+
+\item{span}{A numeric scalar in units of \code{sample_channel}, defining the range
+over which the \code{position} is determined. \code{span = 0} takes the single
+minimum, maximum, or first value. \code{span = 30} would use the mean of the samples
+within the lowest, highest, or first \code{30} units of the \code{sample_channel}.}
 
 \item{position}{Indicates how to shift values.
 \describe{
@@ -43,14 +51,6 @@ to the specified \code{shift_to} value (the \emph{default}).}
 \item{\code{"maximum"}}{will shift selected channels by their maximum values.}
 \item{\code{"first"}}{will shift selected channels by their first values.}
 }}
-
-\item{span}{A numeric scalar in units of \code{sample_channel}, defining the range
-over which the \code{position} is determined. \code{span = 0} takes the single
-minimum, maximum, or first value. \code{span = 30} would use the mean of the samples
-within the lowest, highest, or first \code{30} units of the \code{sample_channel}.}
-
-\item{shift_by}{An \emph{optional} numeric scalar by which the data signals can
-be shifted by a set amount, in units of the \code{nirs_channels}.}
 }
 \value{
 A \link[tibble:tibble-package]{tibble} of class \code{mNIRS.data} with
@@ -80,4 +80,9 @@ across the group of data channels.}
 range and relative scaling are preserved within each group, but not across
 groups of data channels.}
 }
+
+Channels not explicitly specified will not be shifted, but will be passed
+through to the output dataframe.
+
+If both \code{shift_to} and \code{shift_by} are defined, only \code{shift_to} will be used.
 }

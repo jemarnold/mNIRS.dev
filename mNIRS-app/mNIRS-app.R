@@ -318,7 +318,7 @@ ui <- fluidPage(
                   em("Value to Shift"), "=", code("0"), ";",
                   em("Channels to Shift"), "= 'Distinct';",
                   em("Position to Shift"), "= 'First';", em("Samples to Shift"),
-                  "=", code("[30 * Sample Rate]"), "(equivalent to 30 seconds)."),
+                  "=", code("30")),
 
                 h4("Rescale Data:"),
                 p("Will re-scale the mNIRS channels either together (",
@@ -716,7 +716,7 @@ server <- function(input, output, session) {
                     nirs_channels = shift_nirs_channels,
                     shift_to = input$shift_value,
                     position = tolower(input$shift_position),
-                    mean_samples = input$shift_samples,
+                    span = input$shift_samples,
                 )
             } else {.df})() |>
             (\(.df) if (input$rescale_logical) {

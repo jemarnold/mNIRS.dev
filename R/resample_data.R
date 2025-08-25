@@ -150,7 +150,5 @@ resample_data <- function(
     metadata$sample_channel <- unlist(sample_channel)
     metadata$sample_rate <- resample_rate
 
-    result <- create_mNIRS_data(result, metadata)
-
-    return(result)
+    return(create_mNIRS_data(result, metadata))
 }

@@ -2,26 +2,39 @@
 #'
 #' Move the range of data channels in a dataframe up or down, while preserving
 #' the absolute dynamic range and/or relative scaling across channels. e.g. shift
-#' data range to positive values, or shift the first value of a recording to zero.
+#' data range to positive values, or shift the mean of the first X number of
+#' samples in a recording to zero.
 #'
 #' @param data A dataframe.
 #' @param nirs_channels A `list()` of character vectors indicating the column
 #'  names for data channels to be shifted (see *Details*).
-#' @param shift_to A numeric scalar to which the specified data channels
-#'  will be shifted to.
+#'  \describe{
+#'      \item{`nirs_channels = list("A", "B", "C")`}{will shift each channel
+#'      separately, losing relative scaling.}
+#'      \item{`nirs_channels = list(c("A", "B", "C"))`}{will shift all channels
+#'      together, preserving relative scaling.}
+#'      \item{`nirs_channels = list(c("A", "B"), c("C", "D"))`}{will shift channels
+#'      `A` and `B` together, and channels `C` and `D` together, preserving
+#'      relative scaling within, but not across each group.}
+#'  }
+#' @param sample_channel A character scalar indicating the time or sample data
+#'  channel. Must match `data` column names exactly. Will be taken from metadata
+#'  if not defined explicitly.
+#' @param shift_to A positive or negative numeric scalar in units of `nirs_channels`
+#'  to which the specified data channels will be shifted.
+#' @param shift_by An *optional* positive or negative numeric scalar by which the
+#'  data signals can be shifted by a set amount, in units of the `nirs_channels`.
+#' @param span A numeric scalar in units of `sample_channel`, defining the range
+#'  over which the `position` is determined. `span = 0` takes the single
+#'  minimum, maximum, or first value. `span = 30` would use the mean of the samples
+#'  within the lowest, highest, or first `30` units of the `sample_channel`.
 #' @param position Indicates how to shift values.
 #'  \describe{
 #'      \item{`"minimum"`}{will shift selected channels' minimum values
-#'      to the specified `shift_to` value (*default*).}
+#'      to the specified `shift_to` value (the *default*).}
 #'      \item{`"maximum"`}{will shift selected channels by their maximum values.}
 #'      \item{`"first"`}{will shift selected channels by their first values.}
 #'  }
-#' @param mean_samples An integer scalar representing the number of samples
-#'  over which the `position` is determined. e.g., `mean_samples = 1` looks for
-#'  the single minimum, maximum, or first value. `mean_samples = 30` would
-#'  use the mean of the lowest, highest, or first `30` samples.
-#' @param shift_by An *optional* numeric scalar by which the data signals can
-#'  be shifted by a set amount.
 #'
 #' @details
 #' `nirs_channels = list()` can be used to group data channels to preserve
@@ -42,6 +55,11 @@
 #'      groups of data channels.}
 #'  }
 #'
+#' Channels not explicitly specified will not be shifted, but will be passed
+#' through to the output dataframe.
+#'
+#' If both `shift_to` and `shift_by` are defined, only `shift_to` will be used.
+#'
 #' @return A [tibble][tibble::tibble-package] of class `mNIRS.data` with
 #'  metadata available with `attributes()`.
 #'
@@ -49,10 +67,11 @@
 shift_data <- function(
         data,
         nirs_channels = list(),
-        shift_to = 0,
-        position = c("minimum", "maximum", "first"),
-        mean_samples = 1,
-        shift_by = NULL
+        sample_channel = NULL,
+        shift_to = NULL,
+        shift_by = NULL,
+        span = 0,
+        position = c("minimum", "maximum", "first")
 ) {
     position <- match.arg(position)
     metadata <- attributes(data)
@@ -60,166 +79,82 @@ shift_data <- function(
     ## TODO shift by sample range, not only first samples
     ## TODO convert sym(nirs_channels) to strings?
 
-    if (
-        length(nirs_channels) == 0 &
-        !is.null(metadata$nirs_channels)
-    ) {
-        ## "global" condition from metadata$nirs_channels
-        nirs_channels <- metadata$nirs_channels
+    ## `nirs_channels` must be defined and grouped explicitly
+    if (is.null(nirs_channels) || length(nirs_channels) == 0) {
+        cli_abort("{.arg nirs_channels} should be defined and grouped explicitly.")
+    } else if (!is.character(unlist(nirs_channels)) ||
+               !all(unlist(nirs_channels) %in% names(data))) {
+        cli_abort(paste(
+            "{.arg nirs_channels} must be a list of column names within",
+            "{.arg data}. Make sure column names match exactly."))
     }
 
-    ## validation: `nirs_channels` must match expected dataframe names
-    if (!all(unlist(nirs_channels) %in% names(data))) {
+    ## define `sample_channel` manually overrides metadata
+    if (is.null(sample_channel) & is.null(metadata$sample_channel)) {
         cli_abort(paste(
-            "{.arg nirs_channels} must be a list of names.",
-            "Make sure channel names match exactly."))
+            "{.arg sample_channel} not found in metadata. Please check your data",
+            "attributes or define {.arg sample_channel} explicitly."))
+    } else if (is.null(sample_channel) & !is.null(metadata$sample_channel)) {
+        sample_channel <- metadata$sample_channel
+    } else if (!is.character(sample_channel) || !sample_channel %in% names(data)) {
+        cli_abort(paste(
+            "{.arg sample_channel} must be a column name within your {.arg data}.",
+            "Make sure column names match exactly."))
     }
 
     ## validation: `shift_to` or `shift_by` must be numeric scalar
-    if (
-        !(is.numeric(shift_to) | is.numeric(shift_by)) |
-        !(length(shift_to) == 1 | length(shift_by) == 1)
-    ) {
+    if (!(is.numeric(shift_to) | is.numeric(shift_by)) ||
+        !(length(shift_to) == 1 | length(shift_by) == 1)) {
         cli_abort(paste(
             "Either {.arg shift_to} or {.arg shift_by} must be a single",
             "{.cls numeric} scalar."))
     }
 
-    ## validation: `mean_samples` must be numeric scalar
-    if (!is.numeric(mean_samples) | !length(mean_samples) == 1) {
-        cli_abort(paste(
-            "{.arg mean_samples} must be a single {.cls numeric} scalar."))
+    ## validation: `span` must be numeric scalar
+    if (!is.numeric(span) | !length(span) == 1) {
+        cli_abort("{.arg span} must be a single-element {.cls numeric} value.")
     }
 
     ## shift range ================================
     if (position %in% c("minimum", "maximum")) {
 
-        shift_mean_value <- data |>
-            dplyr::mutate(
-                dplyr::across(
-                    dplyr::any_of(unlist(nirs_channels)),
-                    \(.x) zoo::rollapply(
-                        .x, width = mean_samples, FUN = mean,
-                        align = "center", partial = TRUE, na.rm = TRUE)),
-            ) |>
-            dplyr::summarise(
-                dplyr::across(
-                    dplyr::any_of(unlist(nirs_channels)),
-                    \(.x) if (position == "minimum") {
-                        min(.x, na.rm = TRUE)
-                    } else if (position == "maximum") {
-                        max(.x, na.rm = TRUE)
-                    })
-            )
+        rolling_means <- apply(data[unlist(nirs_channels)], 2, \(.x) {
+            dx <- mean(diff(.x), na.rm = TRUE)
+            k <- ifelse(span == 0, 1, round(span / dx))
+            zoo::rollmean(.x, k = k, align = "left")
+        })
+
+        shift_values <- if (position == "minimum") {
+            apply(rolling_means, 2, min, na.rm = TRUE)
+        } else if (position == "maximum") {
+            apply(rolling_means, 2, max, na.rm = TRUE)
+        }
 
     } else if (position == "first") {
 
-        shift_mean_value <- head(data, mean_samples) |>
-            dplyr::summarise(
-                dplyr::across(
-                    dplyr::any_of(unlist(nirs_channels)),
-                    \(.x) mean(.x, na.rm = TRUE))
-            )
+        head_max <- data[[sample_channel]][1] + span
+        head_data <- data[data[[sample_channel]] <= head_max, ][unlist(nirs_channels)]
+        shift_values <- colMeans(head_data, na.rm = TRUE)
     }
 
-    y <- lapply(
-        if (is.list(nirs_channels)) {
-            nirs_channels
-        } else {list(nirs_channels)},
-        \(.col) {
-            data |>
-                dplyr::select(dplyr::any_of(.col)) |>
-                dplyr::mutate(
-                    dplyr::across(
-                        dplyr::any_of(.col),
-                        \(.x) if (!is.null(shift_by) & is.null(shift_to)) {
-                            .x + shift_by
-                        } else if (position == "minimum") {
-                            .x - min(shift_mean_value[.col]) + shift_to
-                        } else if (position == "maximum") {
-                            .x - max(shift_mean_value[.col]) + shift_to
-                        } else if (position == "first") {
-                            .x - dplyr::first(
-                                rowMeans(shift_mean_value[.col])) + shift_to
-                        }
-                    ),
-                )
-        }) |>
-        dplyr::bind_cols(
-            dplyr::select(data, -dplyr::any_of(unlist(nirs_channels)))
-        ) |>
-        dplyr::relocate(names(data))
+    nirs_list <- if (is.list(nirs_channels)) nirs_channels else list(nirs_channels)
+
+    for (cols in nirs_list) {
+        if (!is.numeric(shift_to) & is.numeric(shift_by)) {
+            data[cols] <- data[cols] + shift_by
+        } else if (position == "minimum") {
+            data[cols] <- data[cols] - min(shift_values[cols]) + shift_to
+        } else if (position == "maximum") {
+            data[cols] <- data[cols] - max(shift_values[cols]) + shift_to
+        } else if (position == "first") {
+            data[cols] <- data[cols] - mean(shift_values[cols]) + shift_to
+        }
+    }
 
     ## Metadata =================================
     metadata$nirs_channels <- unique(
         c(metadata$nirs_channels, unlist(nirs_channels)))
+    metadata$sample_channel <- sample_channel
 
-    y <- create_mNIRS_data(y, metadata)
-
-    return(y)
+    return(create_mNIRS_data(data, metadata))
 }
-#
-## troubleshooting ===================================
-# (data <- read_data(
-#     file_path = r"(C:\OneDrive - UBC\Body Position Study\Raw Data\SRLB02-Oxysoft-2024-12-20.xlsx)",
-#     nirs_channels = c(ICG_VL = "9", ICG_SCM = "10", smo2 = "7"),
-#     sample_column = c(Sample = "1"),
-#     # event_channel = c(Event = "11"),
-# ) |> dplyr::slice(-1))
-# #
-# y <- shift_data(
-#     # data = tibble(ICG_VL = 1:10, ICG_SCM = -10:-1),
-#     data = data,
-#     nirs_channels = list("ICG_VL", "ICG_SCM", "smo2"),
-#     shift_to = 0,
-#     position = "maximum",
-#     mean_samples = 1,
-#     shift_by = NULL
-# ) |>
-#     print()
-# # attributes(y)
-# #
-# ggplot2::ggplot(y) +
-#     {list( ## Settings
-#         ggplot2::aes(x = Sample),
-#         # coord_cartesian(xlim = c(NA, 200)),
-#         # theme_JA(legend.position = "top"),
-#         NULL)} + ## Settings
-#     {list( ## Data
-#         ggplot2::geom_hline(yintercept = 0, linetype = "dotted"),
-#         ggplot2::geom_hline(yintercept = 10, linetype = "dotted"),
-#         ggplot2::geom_line(ggplot2::aes(y = ICG_VL, colour = "VL")),
-#         ggplot2::geom_line(ggplot2::aes(y = ICG_SCM, colour = "SCM")),
-#         ggplot2::geom_line(ggplot2::aes(y = smo2, colour = "smo2")),
-#         NULL)} ## Data
-
-
-# ## test function to get `enquote(...)` method working
-# test <- function(..., shift_by = 1) {
-#     # A <- dplyr::enquo(A)
-#     # data |> select(!!A)
-#
-#     args <- dplyr::enquos(...)
-#     # data |> select(!!!args)
-#
-#
-#
-#     y <- purrr::map(
-#         args,
-#         \(.col)
-#         data |>
-#             dplyr::select(!!.col) |>
-#             dplyr::mutate(
-#                 dplyr::across(
-#                     !!.col,
-#                     \(.x) .x + shift_by),
-#             )
-#     ) |>
-#         dplyr::bind_cols(
-#             dplyr::select(data, -c(!!!args))
-#         ) |>
-#         dplyr::relocate(names(data))
-#
-#     return(y)
-# }
-# test(ICG_VL, ICG_SCM, one)
