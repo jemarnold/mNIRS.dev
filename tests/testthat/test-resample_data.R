@@ -66,10 +66,9 @@ test_that("resample_data handles resample_rate == sample_rate", {
         value = seq(10, by = 1, len = 24)
     )
 
-
-
-    expect_warning(result <- resample_data(data, "time", 10, 10, verbose = FALSE),
-                   "collapsing to unique 'x' values")
+    result <- resample_data(data, "time", 10, 10, na.rm = TRUE, verbose = FALSE)
+    # expect_warning(result <- resample_data(data, "time", 10, 10, verbose = FALSE),
+    #                "collapsing to unique 'x' values")
     expect_equal(range(result$time), floor(range(data$time)*10)/10)
     expect_equal(result$value[2], mean(data$value[2:3]))
     expect_equal(result$value[9], mean(data$value[10:11]))
@@ -123,6 +122,78 @@ test_that("resample_data handles edge cases", {
                  "needs at least two non-NA values")
 })
 
+test_that("resample_data handles na.rm", {
+    ## missing data NA
+    ## up-sample
+    data <- data.frame(
+        time = c(1, 2, 3, 4, 6), ## missing samples
+        value1 = c(10, NA, 30, 40, 60),
+        value2 = c(NA, 20, 30, 40, NA) ## boundary conditions
+    )
+
+    ## na.rm = FALSE
+    result <- resample_data(data, "time", 1, 10, na.rm = FALSE, verbose = FALSE)
+    # print(result, n=Inf)
+
+    ## length should be 10x+1
+    expect_gte(nrow(result), nrow(data)*10)
+    ## should be NAs
+    expect_true(any(is.na(result$value1)))
+    expect_true(any(is.na(result$value2)))
+    ## existing samples match
+    expect_equal(result[result$time %in% data$time,]$value1, data$value1)
+    expect_equal(result[result$time %in% data$time,]$value2, data$value2)
+    ## new samples are NA
+    expect_true(all(is.na(result[!result$time %in% data$time,][2:3])))
+
+    ## na.rm = TRUE
+    result <- resample_data(data, "time", 1, 10, na.rm = TRUE, verbose = FALSE)
+
+    ## length should be 10x+1
+    expect_gte(nrow(result), nrow(data)*10)
+    ## should be no NAs
+    expect_false(any(is.na(result$value1)))
+    expect_false(any(is.na(result$value2)))
+    ## new samples correctly interpolated
+    expect_equal(result[result$time %in% data$time,]$value1,
+                 approx(data$value1, xout = data$time, rule = 2)$y)
+    expect_equal(result[result$time %in% data$time,]$value2,
+                 approx(data$value2, xout = data$time, rule = 2)$y)
+    ## should be interpolated equally across all samples
+    expect_true(all(round(diff(result$value1), 10) == data$value1[1]/10))
+    ## leading & trailing NA should have repeated values
+    expect_true(sum(result$value2 %in% 40) > 1)
+    expect_true(sum(result$value2 %in% 20) > 1)
+
+    ## na.rm = FALSE
+    result <- resample_data(data, "time", 1, 0.5, na.rm = FALSE, verbose = FALSE)
+    # print(result, n=Inf)
+
+    ## length should be /2+1
+    expect_gte(nrow(result), nrow(data)/2)
+    ## should be NAs
+    expect_true(any(is.na(result$value1)))
+    expect_true(any(is.na(result$value2)))
+    ## existing samples match
+    expect_equal(result[result$time %in% data$time,]$value1, data$value1[c(1, 3)])
+    expect_equal(result[result$time %in% data$time,]$value2, data$value2[c(1, 3)])
+    ## new samples are NA
+    expect_true(all(is.na(result[!result$time %in% data$time,][2:3])))
+
+    ## na.rm = TRUE
+    result <- resample_data(data, "time", 1, 0.5, na.rm = TRUE, verbose = FALSE)
+
+    ## length should be /2+1
+    expect_gte(nrow(result), nrow(data)/2)
+    ## should be no NAs
+    expect_false(any(is.na(result$value1)))
+    expect_false(any(is.na(result$value2)))
+    ## should be interpolated equally across all samples
+    expect_true(all(round(diff(result$value1), 10) == data$value1[1]*2))
+})
+
+
+
 
 test_that("resample_data works on Moxy", {
     # devtools::load_all()
@@ -139,7 +210,7 @@ test_that("resample_data works on Moxy", {
     df$time <- df$time+0.01
 
     ## works with metadata
-    expect_message(result <- resample_data(df, resample_rate = 1),
+    expect_message(result <- resample_data(df, resample_rate = 1, na.rm = TRUE),
                    "`sample_rate` = .*2.*Hz") |>
         expect_message("Output is resampled at .*1.*Hz")
     expect_equal(result$time, 0:7)
@@ -157,7 +228,7 @@ test_that("resample_data works on Moxy", {
         )
 
     ## expect close enough to time-weighted average
-    expect_equal(result, df2, ignore_attr = TRUE,tolerance = 2)
+    expect_equal(result, df2, ignore_attr = TRUE, tolerance = 2)
 
     ## should overwrite metadata
     df3 <- resample_data(df, sample_rate = 2, resample_rate = 1.1, verbose = FALSE)

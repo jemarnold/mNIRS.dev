@@ -401,8 +401,8 @@ read_data <- function(
 
         cli_warn(c(paste(
             "{.arg sample_channel = {names(sample_channel)}} has",
-            "non-sequential or repeating values."),
-            "i" = paste("Consider investigating at",
+            "non-sequential or repeating values. Consider using {.fn resample_data}."),
+            "i" = paste("Investigate at",
                         if (length(repeated_samples) > 5) {
                             paste(
                                 "{.arg {names(sample_channel)} =",

@@ -25,7 +25,7 @@ file_path <- r"(C:\R-Projects\mnirs.dev\inst\extdata\train.red_interval_example.
 # file_path <- r"(C:\R-Projects\mnirs.dev\inst\extdata\oxysoft_interval_example.xlsx)"
 # file_path <- r"(C:\R-Projects\mnirs.dev\inst\extdata\moxy_ramp_example.xlsx)"
 
-data_raw <- read_data(
+data <- read_data(
     file_path = file_path,
     # nirs_channels = c(smo2_left = "SmO2 Live", smo2_right = "SmO2 Live(2)"),
     # sample_channel = c(time = "hh:mm:ss"),
@@ -36,11 +36,16 @@ data_raw <- read_data(
     # event_channel = c(event = 8),
     time_from_zero = TRUE,
 ) |>
-    resample_data(
-        # sample_channel = "time",
-        resample_rate = attributes(.data)$sample_rate
-    ) |>
+    # resample_data(
+    #     # sample_channel = "time",
+    #     resample_rate = 10
+    # ) |>
     print()
+
+resample_data(
+    data_raw,
+    resample_rate = 10
+)
 
 plot(data_raw)
 

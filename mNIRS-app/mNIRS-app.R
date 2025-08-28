@@ -4,14 +4,14 @@ suppressPackageStartupMessages({
     library(bslib)
     library(DT)
     library(signal)
-    library(mNIRS)
+    library(mnirs)
     library(dplyr)
     library(tidyr)
     library(purrr)
     library(ggplot2)
 })
 
-# devtools::install_github("jemarnold/mNIRS", force = TRUE)
+# devtools::install_github("jemarnold/mnirs", force = TRUE)
 
 options(digits = 5, digits.secs = 3, scipen = 3,
         dplyr.summarise.inform = FALSE,
@@ -150,7 +150,7 @@ ui <- fluidPage(
                     ## TODO
                     ## prepare kinetics data
                     ## enter sample number or event label
-                    # mNIRS::prepare_kinetics_data()
+                    # mnirs::prepare_kinetics_data()
                     ## one mNIRS channel at a time (drop-down menu)
 
                     ## output: multiplot with each kinetics data & fitted data AND
@@ -459,7 +459,7 @@ server <- function(input, output, session) {
         upload_file <- input$upload_file$datapath
 
         data <- tryCatch(
-            mNIRS::read_data(
+            mnirs::read_data(
                 file_path = upload_file,
                 nirs_channels = string_to_named_vector(nirs_channels_debounced()),
                 sample_channel = string_to_named_vector(sample_channel_debounced()),
@@ -622,10 +622,11 @@ server <- function(input, output, session) {
 
 
         nirs_data <- raw_data |>
-            mNIRS::resample_data(
+            mnirs::resample_data(
                 sample_channel = sample_channel,
                 sample_rate = sample_rate,
                 resample_rate = input$resample_rate,
+                na.rm = TRUE, ## TODO 2025-08-28 should this be optional?
                 verbose = FALSE
             ) |>
             ## remove the head rows
@@ -642,7 +643,7 @@ server <- function(input, output, session) {
                 if (input$replace_outliers) {
                     across(
                         any_of(nirs_channels),
-                        \(.x) mNIRS::replace_outliers(
+                        \(.x) mnirs::replace_outliers(
                             .x,
                             width = 15 * sample_rate,  ## 5-sec window
                             na.rm = TRUE,
@@ -651,7 +652,7 @@ server <- function(input, output, session) {
                 if (!is.null(invalid_values)) {
                     across(
                         any_of(nirs_channels),
-                        \(.x) mNIRS::replace_invalid(
+                        \(.x) mnirs::replace_invalid(
                             .x,
                             values = invalid_values,
                             width = 15 * sample_rate, ## 5-sec window
@@ -660,7 +661,7 @@ server <- function(input, output, session) {
                 if (input$replace_missing) {
                     across(
                         any_of(nirs_channels),
-                        \(.x) mNIRS::replace_missing(.x, method = "linear"))
+                        \(.x) mnirs::replace_missing(.x, method = "linear"))
                 },
                 if (input$filter_method == "Smooth-Spline") {
                     # tryCatch(
@@ -672,7 +673,7 @@ server <- function(input, output, session) {
                     #     })
                     across(
                         any_of(nirs_channels),
-                        \(.x) mNIRS::filter_data(
+                        \(.x) mnirs::filter_data(
                             .x, method = tolower(input$filter_method),
                             verbose = FALSE, na.rm = TRUE))
                 } else if (input$filter_method == "Butterworth") {
@@ -680,7 +681,7 @@ server <- function(input, output, session) {
 
                     across(
                         any_of(nirs_channels),
-                        \(.x) mNIRS::filter_data(
+                        \(.x) mnirs::filter_data(
                             .x, method = tolower(input$filter_method),
                             type = butter_type(),
                             n = input$n,
@@ -694,7 +695,7 @@ server <- function(input, output, session) {
 
                     across(
                         any_of(nirs_channels),
-                        \(.x) mNIRS::filter_data(
+                        \(.x) mnirs::filter_data(
                             .x, method = tolower(input$filter_method),
                             width = input$width,
                             verbose = FALSE,
@@ -711,7 +712,7 @@ server <- function(input, output, session) {
                     shift_nirs_channels <- as.list(nirs_channels)
                 }
 
-                mNIRS::shift_data(
+                mnirs::shift_data(
                     data = .df,
                     nirs_channels = shift_nirs_channels,
                     shift_to = input$shift_value,
@@ -729,7 +730,7 @@ server <- function(input, output, session) {
                     rescale_nirs_channels <- as.list(nirs_channels)
                 }
 
-                mNIRS::rescale_data(
+                mnirs::rescale_data(
                     data = .df,
                     nirs_channels = rescale_nirs_channels,
                     rescale_range = c(input$rescale_min, input$rescale_max)
@@ -803,7 +804,7 @@ server <- function(input, output, session) {
             as.numeric()
 
         plot(nirs_data, display_time = input$display_hmmss) +
-            theme_mNIRS(base_size = 20, legend.position = "top") +
+            theme_mnirs(base_size = 20, legend.position = "top") +
             if (!is.null(manual_events)) {
                 geom_vline(xintercept = manual_events, linetype = "dashed")
             } else {NULL}
@@ -814,7 +815,7 @@ server <- function(input, output, session) {
     output$download_data <- downloadHandler(
 
         filename = function() {
-            paste0("mNIRS_processed_", Sys.time(), ".xlsx")
+            paste0("mnirs_processed_", Sys.time(), ".xlsx")
         },
 
         content = function(file) {
@@ -988,18 +989,18 @@ server <- function(input, output, session) {
 
         ggplot(data) +
             aes(x = .data[[fit_sample]]) +
-            theme_mNIRS(base_size = 20, legend.position = "top") +
+            theme_mnirs(base_size = 20, legend.position = "top") +
             scale_x_continuous(
                 name = if (input$display_kinetics_hmmss) {
                     paste(fit_sample, "(mm:ss)")
                 } else {waiver()},
                 breaks = if (input$display_kinetics_hmmss) {
-                    mNIRS:::breaks_timespan(n = 8)
+                    mnirs:::breaks_timespan(n = 8)
                 } else if (rlang::is_installed("scales")) {
                     scales::breaks_pretty(n = 8)
                 } else {waiver()},
                 labels = if (input$display_kinetics_hmmss) {
-                    mNIRS:::format_hmmss
+                    mnirs:::format_hmmss
                 } else {waiver()},
                 expand = expansion(mult = 0.01)) +
             scale_y_continuous(
@@ -1014,7 +1015,7 @@ server <- function(input, output, session) {
                 name = NULL,
                 aesthetics = c("fill", "colour"),
                 breaks = c(nirs_channels, "fitted"),
-                values = c(mNIRS_palette(length(nirs_channels)), "black"),
+                values = c(mnirs_palette(length(nirs_channels)), "black"),
                 limits = force) +
             geom_vline(xintercept = 0, linetype = "dotted") +
             map(nirs_channels, \(.x)
@@ -1187,7 +1188,7 @@ server <- function(input, output, session) {
     output$download_kinetics_data <- downloadHandler(
 
         filename = function() {
-            paste0("mNIRS_kinetic_coefs_", Sys.time(), ".xlsx")
+            paste0("mnirs_kinetic_coefs_", Sys.time(), ".xlsx")
         },
 
         content = function(file) {

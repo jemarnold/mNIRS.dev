@@ -8,11 +8,24 @@
 #'  column. Must match `data` column names exactly. Will be taken from metadata
 #'  if not defined explicitly.
 #' @param sample_rate A numeric scalar for the sample rate in Hz. Will be taken
-#'  from metadata if not defined explicitly.
+#'  from metadata or estimated from `sample_channel` if not defined explicitly.
 #' @param resample_rate An *optional* numeric scalar indicating the desired
-#'  output sample rate (in Hz) to convert the dataframe.
+#'  output sample rate (in Hz) to convert the dataframe. Setting
+#'  `resample_rate = sample_rate` will interpolate over missing and repeated
+#'  samples within the bounds of the existing data. If both `resample_rate = NULL`
+#'  and `resample_time = NULL` (the *default*), the original dataframe will be
+#'  passed through.
 #' @param resample_time An *optional* numeric scalar indicating the desired
 #'  sample time (in seconds) to convert the dataframe.
+#' @param na.rm A logical indicating whether `NA`s should be interpolated across
+#'  or passed through to the re-sampled dataframe.
+#'  \describe{
+#'      \item{`na.rm = FALSE`}{(The *default*) will pass through `NA`s from the
+#'      original data, and any new samples will be `NA`.}
+#'      \item{`na.rm = TRUE`}{Will use [stats::approx()] `method = "linear"` to
+#'      interpolate across `NA`s and any new samples. Leading and trailing `NA`s
+#'      will be filled by applying `rule = 2`.}
+#'  }
 #' @param verbose A logical. `TRUE` (the *default*) will return warnings and
 #' messages which can be used for data error checking. `FALSE` will silence these
 #' messages. Errors will always be returned.
@@ -26,6 +39,11 @@
 #' However, this may return unexpected values, and it is safer to define
 #' `sample_rate` explicitly.
 #'
+#' The default setting `resample_rate = sample_rate` will interpolate over missing
+#' and repeated samples within the bounds of the existing data. Setting both
+#' `resample_rate = NULL` and `resample_time = NULL` (the *default*) will pass
+#' through the original dataframe.
+#'
 #' @return A [tibble][tibble::tibble-package] of class `mnirs.data` with
 #'  metadata available with `attributes()`.
 #'
@@ -36,6 +54,7 @@ resample_data <- function(
         sample_rate = NULL,
         resample_rate = NULL,
         resample_time = NULL,
+        na.rm = FALSE,
         verbose = TRUE
 ) {
     ## pass through =============================
@@ -61,6 +80,12 @@ resample_data <- function(
                         "a {.cls numeric} vector."))
     }
 
+    ## check sample_channel length
+    if (nrow(data[!is.na(data[[sample_channel]]), ]) < 2) {
+        cli_abort(paste("{.arg sample_channel} = {.val {sample_channel}} needs",
+                        "at least two non-NA values to interpolate across."))
+    }
+
     ## check for non-NULL, not applicable `sample_rate`
     if (!is.null(sample_rate) & (!is.numeric(sample_rate) || sample_rate <= 0)) {
         sample_rate <- NULL
@@ -73,7 +98,7 @@ resample_data <- function(
     }
 
     ## estimate sample_rate in samples per second
-    sample_vector <- as.numeric(data[[sample_channel]])
+    sample_vector <- round(as.numeric(data[[sample_channel]]), 10)
     estimated_sample_rate <- diff(sample_vector)[1:100] |>
         mean(na.rm = TRUE) |>
         (\(.x) round((1/.x)/0.5)*0.5)()
@@ -95,12 +120,7 @@ resample_data <- function(
         sample_info <- paste("{.arg sample_rate} = {.val {sample_rate}} Hz.")
     }
 
-    if (nrow(data[!is.na(data[[sample_channel]]), ]) < 2) {
-        cli_abort(paste("{.arg sample_channel} = {.val {sample_channel}} needs",
-                        "at least two non-NA values to interpolate across."))
-    }
-
-    ## explicitly define `resample_rate` from `resample_time`
+    ## explicitly share definitions between `resample_rate` and `resample_time`
     if (!is.null(resample_rate) & is.null(resample_time)) {
         resample_time <- 1 / resample_rate
     } else if (!is.null(resample_time) & is.null(resample_rate)) {
@@ -113,11 +133,13 @@ resample_data <- function(
     #
     ## Processing ===================================
 
+    ## TODO 2025-08-28 - na.rm = FALSE should pass through NAs and not interpolate
+    ## over non-existing samples when up-sampling. na.rm = TRUE should interpolate
+    ## accross existing NA and across new up-samples.
+
     ## calculate resampling parameters
     sample_range <- floor(range(sample_vector, na.rm = TRUE) * sample_rate) / sample_rate
-    new_times <- seq(from = sample_range[1],
-                     to = sample_range[2],
-                     by = resample_time)
+    new_times <- seq(sample_range[1], sample_range[2], by = resample_time)
     result <- data.frame(setNames(list(new_times), sample_channel))
 
     ## interpolate numeric columns
@@ -127,10 +149,25 @@ resample_data <- function(
 
     if (any(numeric_cols)) {
         numeric_data <- data[numeric_cols]
+
         interpolated <- lapply(numeric_data, \(.x) {
-            approx(x = sample_vector, y = .x, xout = new_times,
-                   method = "linear", rule = 2)$y
+            if (na.rm) {
+                ## if na.rm, interpolate across NA and new up-samples
+                approx(x = sample_vector, y = .x, xout = new_times,
+                       method = "linear", rule = 2, ties = list("ordered", mean),
+                       na.rm = TRUE)$y
+            } else {
+                ## if !na.rm, pass through NA and leave new up-samples as NA
+                ## TODO 2025-08-28 what happens with down-samples?
+                # y <- rep(NA_real_, length(new_times))
+                # match_idx <- match(new_times, sample_vector)
+                # valid_matches <- !is.na(match_idx)
+                # y[valid_matches] <- .x[match_idx[valid_matches]]
+                # y
+                .x[match(new_times, sample_vector)]
+            }
         })
+
         result[names(interpolated)] <- interpolated
     }
 

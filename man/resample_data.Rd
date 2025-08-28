@@ -10,6 +10,7 @@ resample_data(
   sample_rate = NULL,
   resample_rate = NULL,
   resample_time = NULL,
+  na.rm = FALSE,
   verbose = TRUE
 )
 }
@@ -21,13 +22,27 @@ column. Must match \code{data} column names exactly. Will be taken from metadata
 if not defined explicitly.}
 
 \item{sample_rate}{A numeric scalar for the sample rate in Hz. Will be taken
-from metadata if not defined explicitly.}
+from metadata or estimated from \code{sample_channel} if not defined explicitly.}
 
 \item{resample_rate}{An \emph{optional} numeric scalar indicating the desired
-output sample rate (in Hz) to convert the dataframe.}
+output sample rate (in Hz) to convert the dataframe. Setting
+\code{resample_rate = sample_rate} will interpolate over missing and repeated
+samples within the bounds of the existing data. If both \code{resample_rate = NULL}
+and \code{resample_time = NULL} (the \emph{default}), the original dataframe will be
+passed through.}
 
 \item{resample_time}{An \emph{optional} numeric scalar indicating the desired
 sample time (in seconds) to convert the dataframe.}
+
+\item{na.rm}{A logical indicating whether \code{NA}s should be interpolated across
+or passed through to the re-sampled dataframe.
+\describe{
+\item{\code{na.rm = FALSE}}{(The \emph{default}) will pass through \code{NA}s from the
+original data, and any new samples will be \code{NA}.}
+\item{\code{na.rm = TRUE}}{Will use \code{\link[stats:approxfun]{stats::approx()}} \code{method = "linear"} to
+interpolate across \code{NA}s and any new samples. Leading and trailing \code{NA}s
+will be filled by applying \code{rule = 2}.}
+}}
 
 \item{verbose}{A logical. \code{TRUE} (the \emph{default}) will return warnings and
 messages which can be used for data error checking. \code{FALSE} will silence these
@@ -49,4 +64,9 @@ explicitly.
 Otherwise, \code{sample_rate} will be estimated from the values in \code{sample_channel}.
 However, this may return unexpected values, and it is safer to define
 \code{sample_rate} explicitly.
+
+The default setting \code{resample_rate = sample_rate} will interpolate over missing
+and repeated samples within the bounds of the existing data. Setting both
+\code{resample_rate = NULL} and \code{resample_time = NULL} (the \emph{default}) will pass
+through the original dataframe.
 }
