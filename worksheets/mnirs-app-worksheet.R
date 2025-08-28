@@ -36,22 +36,15 @@ data <- read_data(
     # event_channel = c(event = 8),
     time_from_zero = TRUE,
 ) |>
-    # resample_data(
-    #     # sample_channel = "time",
-    #     resample_rate = 10
-    # ) |>
+    resample_data(resample_rate = 10, na.rm = TRUE) |>
     print()
 
-resample_data(
-    data_raw,
-    resample_rate = 10
-)
 
-plot(data_raw)
+plot(data)
 
-dplyr::filter(data_raw, !is.na(event))
-# plot(data_raw)
-(sample_channel <- attributes(data_raw)$sample_channel)
+dplyr::filter(data, !is.na(event))
+# plot(data)
+(sample_channel <- attributes(data)$sample_channel)
 (fit_sample_name <- paste0("fit_", sample_channel))
 
 event_sample <- c(370, 1085)
@@ -79,7 +72,7 @@ event_sample <- c(370, 1085)
 
 
 data_list <- prepare_kinetics_data(
-    data_raw,
+    data,
     event_sample = event_sample,
     # event_label = c("E7"),
     fit_window = c(30, 120),
@@ -90,7 +83,7 @@ data_list <- prepare_kinetics_data(
 
 model_list <- tidyr::expand_grid(
     .df = data_list,
-    .nirs = attributes(data_raw)$nirs_channels,
+    .nirs = attributes(data)$nirs_channels,
     .method = "monoexp") |>
     purrr::pmap(
         \(.df, .nirs, .method)
@@ -126,8 +119,8 @@ coef_data <- purrr::imap(
 ## kinetics plot ======================================
 # model_list[[1]]$data
 
-(sample_channel <- attributes(data_raw)$sample_channel)
-(nirs_channels <- attributes(data_raw)$nirs_channels)
+(sample_channel <- attributes(data)$sample_channel)
+(nirs_channels <- attributes(data)$nirs_channels)
 (nirs_fitted <- paste0(nirs_channels, "_fitted"))
 (fit_sample <- paste0("fit_", sample_channel))
 
