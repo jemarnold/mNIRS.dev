@@ -1,9 +1,9 @@
 #' Prepare mNIRS Data for Kinetics Analysis
 #'
-#' Processes a list of one or more dataframes of class `"mNIRS.data"` representing
+#' Processes a list of one or more dataframes of class `"mnirs.data"` representing
 #' distinct or ensembled kinetics events for further analysis.
 #'
-#' @param data A dataframe of class `"mNIRS.data"`.
+#' @param data A dataframe of class `"mnirs.data"`.
 #' @param event_sample An *optional* numeric vector corresponding to values of
 #'  `sample_channel` indicating the start of kinetic events. i.e., by time value
 #'  or sample number.
@@ -55,7 +55,7 @@
 #'      not explicitly defined here will return as a distinct dataframe.}
 #'  }
 #'
-#' @return A list of [tibbles][tibble::tibble-package] of class `"mNIRS.data"`
+#' @return A list of [tibbles][tibble::tibble-package] of class `"mnirs.data"`
 #'  with metadata available with `attributes()`.
 #'
 #' @export
@@ -263,7 +263,7 @@ prepare_kinetics_data <- function(
                 cols <- c(fit_channel, sample_channel, event_channel, nirs_channels)
                 kinetics_data <- .df[c(cols, setdiff(names(.df), cols))]
 
-                return(create_mNIRS_data(kinetics_data, metadata))
+                return(create_mnirs_data(kinetics_data, metadata))
             }) |>
             setNames(paste0(sample_channel, "_", event_sample_list))
         ## TODO 2025-07-19 set names based on events or sample or index number
@@ -271,7 +271,7 @@ prepare_kinetics_data <- function(
     } else if (head(unlist(group_events), 1) == "ensemble") {
 
         kinetics_data_list <- list(
-            create_mNIRS_data(ensemble_data(data_list), metadata)) |>
+            create_mnirs_data(ensemble_data(data_list), metadata)) |>
             setNames("ensemble")
 
     } else if (is.numeric(unlist(group_events))) {
@@ -285,7 +285,7 @@ prepare_kinetics_data <- function(
         kinetics_data_list <- lapply(
             if (is.list(group_events)) {group_events} else {list(group_events)},
             \(.x)
-            create_mNIRS_data(ensemble_data(data_list[.x]), metadata)
+            create_mnirs_data(ensemble_data(data_list[.x]), metadata)
         ) |>
             setNames(lapply(group_events, paste, collapse = "_"))
     }

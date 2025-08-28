@@ -124,7 +124,7 @@ test_that("shift_data handles empty channel list", {
 test_that("shift_data works on Moxy", {
     # devtools::load_all()
     file_path <- system.file("extdata/moxy_ramp_example.xlsx",
-                             package = "mNIRS")
+                             package = "mnirs")
 
     df <- read_data(
         file_path = file_path,
@@ -165,7 +165,7 @@ test_that("shift_data works on Moxy", {
 test_that("shift_data works on Train.Red", {
     # devtools::load_all()
     file_path <- system.file("extdata/train.red_interval_example.csv",
-                             package = "mNIRS")
+                             package = "mnirs")
 
     df <- read_data(
         file_path = file_path,

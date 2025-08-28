@@ -112,7 +112,7 @@ optimisation. e.g., \code{A = 10} will define the function
 }}
 }
 \value{
-A list of class \code{mNIRS.kinetics} with components:
+A list of class \code{mnirs.kinetics} with components:
 \item{\code{method}}{The kinetics method used.}
 \item{\code{model}}{The model object.}
 \item{\code{equation}}{The equation of the kinetics model used.}

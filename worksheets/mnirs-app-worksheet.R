@@ -1,7 +1,7 @@
 ## Setup ==========================================================
 # suppressPackageStartupMessages({
 #     # library(JAPackage)
-#     library(mNIRS)
+#     library(mnirs)
 #     library(tidyverse)
 # })
 devtools::load_all()
@@ -21,28 +21,24 @@ devtools::load_all()
 # camcorder::gg_stop_recording()
 #
 ## Data Wrangling ================================
-upload_file <- r"(C:\R-Projects\mNIRS.dev\inst\extdata\train.red_interval_example.csv)"
-# upload_file <- r"(C:\R-Projects\mNIRS.dev\inst\extdata\oxysoft_interval_example.xlsx)"
-# upload_file <- r"(C:\R-Projects\mNIRS.dev\inst\extdata\moxy_ramp_example.xlsx)"
+file_path <- r"(C:\R-Projects\mnirs.dev\inst\extdata\train.red_interval_example.csv)"
+# file_path <- r"(C:\R-Projects\mnirs.dev\inst\extdata\oxysoft_interval_example.xlsx)"
+# file_path <- r"(C:\R-Projects\mnirs.dev\inst\extdata\moxy_ramp_example.xlsx)"
 
 data_raw <- read_data(
-    file_path = upload_file,
-    # nirs_columns = c(smo2_left = "SmO2 Live", smo2_right = "SmO2 Live(2)"),
-    # sample_column = c(time = "hh:mm:ss"),
-    nirs_columns = c(smo2_left = "SmO2", smo2_right = "SmO2"),
-    sample_column = c(time = "Timestamp (seconds passed)"),
-    # nirs_columns = c(O2Hb = 5, HHb = 6),
-    # sample_column = c(sample = 1),
-    # event_column = c(event = 8)
+    file_path = file_path,
+    # nirs_channels = c(smo2_left = "SmO2 Live", smo2_right = "SmO2 Live(2)"),
+    # sample_channel = c(time = "hh:mm:ss"),
+    nirs_channels = c(smo2_left = "SmO2", smo2_right = "SmO2"),
+    sample_channel = c(time = "Timestamp (seconds passed)"),
+    # nirs_channels = c(O2Hb = 5, HHb = 6),
+    # sample_channel = c(sample = 1),
+    # event_channel = c(event = 8),
+    time_from_zero = TRUE,
 ) |>
-    dplyr::mutate(
-        time = round(time - dplyr::first(time), 1),
-        # time = sample/50,
-    ) |>
-    # slice_head(by = time, n = 1) |>
-    downsample_data(
-        # sample_column = "time",
-        downsample_rate = NULL
+    resample_data(
+        # sample_channel = "time",
+        resample_rate = attributes(.data)$sample_rate
     ) |>
     print()
 
@@ -50,8 +46,8 @@ plot(data_raw)
 
 dplyr::filter(data_raw, !is.na(event))
 # plot(data_raw)
-(sample_column <- attributes(data_raw)$sample_column)
-(fit_sample_name <- paste0("fit_", sample_column))
+(sample_channel <- attributes(data_raw)$sample_channel)
+(fit_sample_name <- paste0("fit_", sample_channel))
 
 event_sample <- c(370, 1085)
 # event_sample <- c(24675, 66670)
@@ -63,7 +59,7 @@ event_sample <- c(370, 1085)
 ## TODO
 ## iterate over sub-dataframes / NIRS channels
 ## input (list item per event):
-## - processed mNIRS.data
+## - processed mnirs.data
 ## - list of sub-dataframes
 ## - list of vectors of NIRS channels
 ## - list of vectors of kinetics methods
@@ -89,7 +85,7 @@ data_list <- prepare_kinetics_data(
 
 model_list <- tidyr::expand_grid(
     .df = data_list,
-    .nirs = attributes(data_raw)$nirs_columns,
+    .nirs = attributes(data_raw)$nirs_channels,
     .method = "monoexp") |>
     purrr::pmap(
         \(.df, .nirs, .method)
@@ -101,7 +97,7 @@ model_list <- tidyr::expand_grid(
     ) |>
     print()
 
-peaks <- find_first_extreme(y = data_list[[1]][[nirs_columns[1]]],
+peaks <- find_first_extreme(y = data_list[[1]][[nirs_channels[1]]],
                             x = data_list[[1]][[fit_sample_name]],
                             window = 15)
 peaks$extreme
@@ -125,16 +121,16 @@ coef_data <- purrr::imap(
 ## kinetics plot ======================================
 # model_list[[1]]$data
 
-(sample_column <- attributes(data_raw)$sample_column)
-(nirs_columns <- attributes(data_raw)$nirs_columns)
-(nirs_fitted <- paste0(nirs_columns, "_fitted"))
-(fit_sample <- paste0("fit_", sample_column))
+(sample_channel <- attributes(data_raw)$sample_channel)
+(nirs_channels <- attributes(data_raw)$nirs_channels)
+(nirs_fitted <- paste0(nirs_channels, "_fitted"))
+(fit_sample <- paste0("fit_", sample_channel))
 
 display_data_list <- purrr::map(
     model_list,
     \(.x)
     .x$data |>
-        dplyr::select(dplyr::matches(c(fit_sample, nirs_columns, "fitted")))
+        dplyr::select(dplyr::matches(c(fit_sample, nirs_channels, "fitted")))
 ) |>
     (\(.l) split(.l, factor(names(.l), levels = unique(names(.l)))))() |>
     purrr::map(\(.l) purrr::reduce(.l, dplyr::full_join, by = fit_sample)) |>
@@ -149,7 +145,7 @@ display_method <- unique(unlist(lapply(model_list, \(.df) .df$method)))
 
 ggplot(display_data) +
     aes(x = .data[[fit_sample]]) +
-    theme_mNIRS(legend.position = "top") +
+    theme_mnirs(legend.position = "top") +
     scale_x_continuous(
         # name = deparse(sym(call$x)),
         breaks = if (rlang::is_installed("scales")) {
@@ -170,16 +166,16 @@ ggplot(display_data) +
         name = NULL,
         aesthetics = c("fill", "colour"),
         values = setNames(
-            c(scales::hue_pal()(length(nirs_columns)), "black"),
-            c(nirs_columns, "fitted")),
+            c(scales::hue_pal()(length(nirs_channels)), "black"),
+            c(nirs_channels, "fitted")),
         limits = force) +
     geom_vline(xintercept = 0, linetype = "dotted") +
-    purrr::map(nirs_columns,
+    purrr::map(nirs_channels,
                \(.x) geom_line(aes(y = .data[[.x]], colour = .x),
                                linewidth = 1)) +
     {if (display_method == "monoexponential") {
         purrr::map(
-            nirs_columns,
+            nirs_channels,
             \(.x) {
                 coef_channel <- display_coefs[display_coefs$channel == .x,]
                 nirs_fitted <- paste0(.x, "_fitted")
@@ -205,7 +201,7 @@ ggplot(display_data) +
     }} +
     {if (display_method == "half_time") {
         purrr::map(
-            nirs_columns,
+            nirs_channels,
             \(.x) {
                 coef_channel <- display_coefs[display_coefs$channel == .x,]
 
@@ -235,7 +231,7 @@ ggplot(display_data) +
     }} +
     {if (display_method == "peak_slope") {
         purrr::map(
-            nirs_columns,
+            nirs_channels,
             \(.x) {
                 coef_channel <- display_coefs[display_coefs$channel == .x,]
                 nirs_fitted <- paste0(.x, "_fitted")
@@ -765,10 +761,10 @@ onefun <- function(
     if (method == "monoexponential") {
         ## create the model and update for any fixed coefs
         model <- tryCatch(
-            nls(y ~ mNIRS:::SSmonoexp(x, A, B, TD, tau),
+            nls(y ~ mnirs:::SSmonoexp(x, A, B, TD, tau),
                 data = df,
                 na.action = na.exclude) |>
-                mNIRS:::update_fixed_coefs(...), ## TODO 2025-08-11 supply from fixed_coefs
+                mnirs:::update_fixed_coefs(...), ## TODO 2025-08-11 supply from fixed_coefs
             error = function(e) {
                 cat("Error in nls(", y_name, " ~ SSmonoexp(", x_name,
                     ", A, B, TD, tau)) : ", e$message, "\n", sep = "")
@@ -779,7 +775,7 @@ onefun <- function(
         data[[fitted_name]] <- model_output$fitted
         ## include explicitly defined coefs
         coefs <- c(fixed_coefs, model_output$coefs) |>
-            (\(.x) .x[match(names(formals(mNIRS:::SSmonoexp)), names(.x))] )() |>
+            (\(.x) .x[match(names(formals(mnirs:::SSmonoexp)), names(.x))] )() |>
             (\(.x) .x[!is.na(.x)])() |>
             (\(.x) as_tibble(as.list(.x)))()
 
@@ -799,7 +795,7 @@ onefun <- function(
             nls(y ~ SSfpl(x, A, B, xmid, scal),
                 data = df,
                 na.action = na.exclude) |>
-                mNIRS:::update_fixed_coefs(...), ## TODO 2025-08-11 supply from fixed_coefs
+                mnirs:::update_fixed_coefs(...), ## TODO 2025-08-11 supply from fixed_coefs
             error = function(e) {
                 cat("Error in nls(", y_name, " ~ SSfpl(", x_name,
                     ", A, B, xmid, scal)) : ", e$message, "\n", sep = "")
@@ -908,7 +904,7 @@ onefun <- function(
             coefs = as_tibble(as.list(coefs)),
             diagnostics = as_tibble(as.list(diagnostics)),
             call = match.call()),
-        class = "mNIRS.kinetics")
+        class = "mnirs.kinetics")
 
     return(out)
 }

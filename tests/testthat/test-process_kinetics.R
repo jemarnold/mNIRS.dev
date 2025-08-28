@@ -76,7 +76,7 @@ test_that("pre_process_kinetics_names", {
 test_that("find_first_extreme for Moxy data", {
     # devtools::load_all()
     file_path <- system.file("extdata/moxy_ramp_example.xlsx",
-                             package = "mNIRS")
+                             package = "mnirs")
 
     data_raw <- read_data(
         file_path = file_path,
@@ -120,7 +120,7 @@ test_that("find_first_extreme for Moxy data", {
 test_that("find_first_extreme for Train.Red data", {
     # devtools::load_all()
     file_path <- system.file("extdata/train.red_interval_example.csv",
-                             package = "mNIRS")
+                             package = "mnirs")
 
     data_raw <- read_data(
         file_path = file_path,
@@ -495,7 +495,7 @@ test_that("peak_slope x, y names passthrough works", {
 test_that("process_kinetics works for a local environment call", {
     # devtools::load_all()
     file_path <- system.file("extdata/moxy_ramp_example.xlsx",
-                             package = "mNIRS")
+                             package = "mnirs")
 
     data_raw <- read_data(
         file_path = file_path,
@@ -528,7 +528,7 @@ test_that("process_kinetics works for a local environment call", {
                               span = 10)
 
     ## check class
-    expect_s3_class(model, "mNIRS.kinetics")
+    expect_s3_class(model, "mnirs.kinetics")
 
     ## check list contents
     model_contents <- c("method", "equation", "data", "fitted",
@@ -570,7 +570,7 @@ test_that("process_kinetics works inside a purrr::map() call", {
     rlang::check_installed("purrr", reason = "to test purrr::pmap (probably temp)")
 
     file_path <- system.file("extdata/train.red_interval_example.csv",
-                             package = "mNIRS")
+                             package = "mnirs")
 
     data_raw <- read_data(
         file_path = file_path,
@@ -617,7 +617,7 @@ test_that("process_kinetics works inside a purrr::map() call", {
                  length(model_list))
 
     ## check class
-    expect_true(all(sapply(model_list, \(.x) class(.x)) == "mNIRS.kinetics"))
+    expect_true(all(sapply(model_list, \(.x) class(.x)) == "mnirs.kinetics"))
 
     model <- model_list[[1]]
 
@@ -659,7 +659,7 @@ test_that("process_kinetics works inside a purrr::map() call", {
 test_that("process_kinetics works with large oxysoft file", {
     # devtools::load_all()
     file_path <- system.file("extdata/oxysoft_interval_example.xlsx",
-                             package = "mNIRS")
+                             package = "mnirs")
 
     data_raw <- read_data(
         file_path = file_path,
@@ -714,7 +714,7 @@ test_that("process_kinetics works with large oxysoft file", {
                  length(model_list))
 
     ## check class
-    expect_true(all(sapply(model_list, \(.x) class(.x)) == "mNIRS.kinetics"))
+    expect_true(all(sapply(model_list, \(.x) class(.x)) == "mnirs.kinetics"))
 
     model <- model_list[[2]]
 

@@ -1,7 +1,7 @@
 ## Setup ==========================================================
 suppressPackageStartupMessages({
     # library(JAPackage)
-    library(mNIRS)
+    library(mnirs)
     # library(tidyverse)
 })
 
@@ -29,7 +29,7 @@ options(digits = 5, digits.secs = 3, scipen = 3,
 #
 # exists("read_data", where = globalenv(), inherits = FALSE)
 #
-# tools::showNonASCIIfile("C:/R-Projects/mNIRS/R/process_data.R")
+# tools::showNonASCIIfile("C:/R-Projects/mnirs/R/process_data.R")
 # document()
 # ?read_data
 # install()
@@ -47,8 +47,8 @@ usethis::use_package("purrr", type = "suggest")
 
 usethis::use_import_from("stats", "approx")
 
-usethis::use_vignette("processing-mNIRS-data.qmd")
-devtools::build_rmd("vignettes/processing-mNIRS-data.qmd")
+usethis::use_vignette("processing-mnirs-data.qmd")
+devtools::build_rmd("vignettes/processing-mnirs-data.qmd")
 
 usethis::use_test("prepare_kinetics_data.R")
 devtools::load_all()
@@ -113,7 +113,7 @@ or
 - pkgdown site
 - (pkgdown::clean_site() to remove)
 
-13. remotes::install_github("jemarnold/mNIRS")
+13. remotes::install_github("jemarnold/mnirs")
 
 #
 ## Claude.ai ===============================================

@@ -60,7 +60,7 @@
 #'
 #' If both `shift_to` and `shift_by` are defined, only `shift_to` will be used.
 #'
-#' @return A [tibble][tibble::tibble-package] of class `mNIRS.data` with
+#' @return A [tibble][tibble::tibble-package] of class `mnirs.data` with
 #'  metadata available with `attributes()`.
 #'
 #' @export
@@ -156,5 +156,5 @@ shift_data <- function(
         c(metadata$nirs_channels, unlist(nirs_channels)))
     metadata$sample_channel <- sample_channel
 
-    return(create_mNIRS_data(data, metadata))
+    return(create_mnirs_data(data, metadata))
 }

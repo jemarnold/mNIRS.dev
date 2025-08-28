@@ -19,14 +19,14 @@
 #'
 #' @details
 #' `sample_channel` and `sample_rate` will be taken from metadata for a dataframe
-#' of class `"mNIRS.data` which has been processed with `{mNIRS}`, if not specified
+#' of class `"mnirs.data` which has been processed with `{mnirs}`, if not specified
 #' explicitly.
 #'
 #' Otherwise, `sample_rate` will be estimated from the values in `sample_channel`.
 #' However, this may return unexpected values, and it is safer to define
 #' `sample_rate` explicitly.
 #'
-#' @return A [tibble][tibble::tibble-package] of class `mNIRS.data` with
+#' @return A [tibble][tibble::tibble-package] of class `mnirs.data` with
 #'  metadata available with `attributes()`.
 #'
 #' @export
@@ -89,7 +89,7 @@ resample_data <- function(
         sample_rate <- estimated_sample_rate
         sample_info <- paste(
             "Estimated {.arg sample_rate} = {.val {sample_rate}} Hz.",
-            "Overwrite this with {.arg sample_rate} = {.cls X}.")
+            "Overwrite this with {.arg sample_rate} = {.cls numeric}.")
 
     } else {
         sample_info <- paste("{.arg sample_rate} = {.val {sample_rate}} Hz.")
@@ -150,5 +150,5 @@ resample_data <- function(
     metadata$sample_channel <- unlist(sample_channel)
     metadata$sample_rate <- resample_rate
 
-    return(create_mNIRS_data(result, metadata))
+    return(create_mnirs_data(result, metadata))
 }

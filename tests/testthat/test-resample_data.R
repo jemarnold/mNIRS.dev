@@ -127,7 +127,7 @@ test_that("resample_data handles edge cases", {
 test_that("resample_data works on Moxy", {
     # devtools::load_all()
     file_path <- system.file("extdata/moxy_ramp_example.xlsx",
-                             package = "mNIRS")
+                             package = "mnirs")
 
     df <- read_data(
         file_path = file_path,
@@ -143,7 +143,7 @@ test_that("resample_data works on Moxy", {
                    "`sample_rate` = .*2.*Hz") |>
         expect_message("Output is resampled at .*1.*Hz")
     expect_equal(result$time, 0:7)
-    expect_s3_class(result, "mNIRS.data")
+    expect_s3_class(result, "mnirs.data")
 
     ## time-weighted average
     df2 <- df |>

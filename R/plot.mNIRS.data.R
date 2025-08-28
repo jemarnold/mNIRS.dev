@@ -1,8 +1,8 @@
 #' Plot mNIRS.data objects
 #'
-#' Create a simple plot for objects returned from [create_mNIRS_data()].
+#' Create a simple plot for objects returned from [create_mnirs_data()].
 #'
-#' @param x Object of class `mNIRS.data` as returned from [create_mNIRS_data()]
+#' @param x Object of class `mnirs.data` as returned from [create_mnirs_data()]
 #' @param ... Additional arguments,
 #'  \describe{
 #'      \item{`na.omit = FALSE`}{A logical indicating whether missing data (`NA`)
@@ -17,7 +17,7 @@
 #'  scale_y_continuous geom_line geom_point
 #'
 #' @export
-plot.mNIRS.data <- function(x, ...) {
+plot.mnirs.data <- function(x, ...) {
 
     rlang::check_installed("ggplot2", reason = "to plot mNIRS data")
 
@@ -39,7 +39,7 @@ plot.mNIRS.data <- function(x, ...) {
         ggplot() +
         aes(x = .data[[sample_channel]], y = y,
             colour = nirs_channels) +
-        theme_mNIRS() +
+        theme_mnirs() +
         scale_x_continuous(
             name = if (display_time) {
                 paste(sample_channel, "(h:mm:ss)")
@@ -59,7 +59,7 @@ plot.mNIRS.data <- function(x, ...) {
                 scales::breaks_pretty(n = 6)
             } else {waiver()},
             expand = expansion(mult = 0.01)) +
-        scale_colour_mNIRS() +
+        scale_colour_mnirs() +
         guides(colour = guide_legend(override.aes = list(linewidth = 1))) +
         geom_line()
 
@@ -77,12 +77,12 @@ plot.mNIRS.data <- function(x, ...) {
 #'
 #' @examples
 #' \dontrun{
-#' scales::show_col(mNIRS_palette())
+#' scales::show_col(mnirs_palette())
 #' }
 #'
 #' @export
-mNIRS_palette <- function(n = NULL) {
-    mNIRS_colours <- c(
+mnirs_palette <- function(n = NULL) {
+    mnirs_colours <- c(
         "#0080ff",      ## "VL"
         "#ba2630",      ## "FCR"
         "#5b8c52",      ## "BB" "#7dbf70"
@@ -95,11 +95,11 @@ mNIRS_palette <- function(n = NULL) {
         "#8b4726",      ## "PS"
         "#ED0000FF",    ## "O2Hb"
         "#0000ff")      ## "HHb"
-    if (is.null(n)) {return(mNIRS_colours)}
-    if (n <= length(mNIRS_colours)) return(mNIRS_colours[seq_len(n)])
+    if (is.null(n)) {return(mnirs_colours)}
+    if (n <= length(mnirs_colours)) return(mnirs_colours[seq_len(n)])
 
     ## interpolate if more colours needed, but this probably won't look good!
-    grDevices::colorRampPalette(mNIRS_colours)(n)
+    grDevices::colorRampPalette(mnirs_colours)(n)
 }
 
 
@@ -110,12 +110,12 @@ mNIRS_palette <- function(n = NULL) {
 #'
 #' @param ... Arguments passed to discrete_scale.
 #'
-#' @seealso [mNIRS_palette()]
+#' @seealso [mnirs_palette()]
 #' @rdname scale_colour_my_palette
 #' @export
-scale_colour_mNIRS <- function(...) {
+scale_colour_mnirs <- function(...) {
     ggplot2::discrete_scale(aesthetics = "colour",
-                            palette = mNIRS_palette,
+                            palette = mnirs_palette,
                             na.value = "grey10",
                             ...)
 }
@@ -125,9 +125,9 @@ scale_colour_mNIRS <- function(...) {
 
 #' @rdname scale_colour_my_palette
 #' @export
-scale_fill_mNIRS <- function(...) {
+scale_fill_mnirs <- function(...) {
     ggplot2::discrete_scale(aesthetics = "fill",
-                            palette = mNIRS_palette,
+                            palette = mnirs_palette,
                             na.value = "grey10",
                             ...)
 }
@@ -255,7 +255,7 @@ breaks_timespan <- function(
 #'  element_blank rel margin unit
 #'
 #' @export
-theme_mNIRS <- function(
+theme_mnirs <- function(
         base_size = 14,
         base_family = "sans",
         border = c("partial", "full"),

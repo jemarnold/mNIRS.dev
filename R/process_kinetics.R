@@ -91,7 +91,7 @@
 #'
 #' @seealso [stats::nls()], [stats::SSasymp()], [stats::SSfpl()],
 #'
-#' @return A list of class `mNIRS.kinetics` with components:
+#' @return A list of class `mnirs.kinetics` with components:
 #'      \item{`method`}{The kinetics method used.}
 #'      \item{`model`}{The model object.}
 #'      \item{`equation`}{The equation of the kinetics model used.}
@@ -248,7 +248,7 @@ process_kinetics.monoexponential <- function(
             coefs = coefs,
             diagnostics = diagnostics,
             call = match.call()),
-        class = "mNIRS.kinetics")
+        class = "mnirs.kinetics")
 
     return(out)
 }
@@ -326,7 +326,7 @@ process_kinetics.sigmoidal <- function(
             coefs = coefs,
             diagnostics = diagnostics,
             call = match.call()),
-        class = "mNIRS.kinetics")
+        class = "mnirs.kinetics")
 
     return(out)
 }
@@ -397,7 +397,7 @@ process_kinetics.half_time <- function(
             extreme = extreme,
             coefs = coefs,
             call = match.call()),
-        class = "mNIRS.kinetics")
+        class = "mnirs.kinetics")
 
     return(out)
 }
@@ -483,7 +483,7 @@ process_kinetics.peak_slope <- function(
             coefs = coefs,
             diagnostics = diagnostics,
             call = match.call()),
-        class = "mNIRS.kinetics")
+        class = "mnirs.kinetics")
 
     return(out)
 }

@@ -1,7 +1,7 @@
 ## Setup ==========================================================
 suppressPackageStartupMessages({
     library(JAPackage)
-    library(mNIRS)
+    library(mnirs)
     library(tidyverse)
 })
 
@@ -131,10 +131,10 @@ plot
 #         start = within(as.list(.x$m$getPars()), rm(A))))()
 # nls(y ~ monoexp_equation(x, A, B, TD, tau), data = data,
 #     start = list(A = 10, B = 100, TD = 15, tau = 10)) |>
-#     mNIRS::update_fixed_coefs(A = 10)
+#     mnirs::update_fixed_coefs(A = 10)
 #
 # nls(y ~ SSlogis(x, Asym, xmid, scal), data = data) |>
-#     mNIRS::update_fixed_coefs()
+#     mnirs::update_fixed_coefs()
 #
 ## monoexp kinetics function ============================
 
@@ -169,7 +169,7 @@ process_kinetics(
 
 
 
-fit_monoexp <- mNIRS::process_kinetics(
+fit_monoexp <- mnirs::process_kinetics(
     true_x, true_y, x0 = true_x[8], method = "monoexp", Q = 100)$model
 
 
@@ -184,8 +184,8 @@ fit_monoexp <- mNIRS::process_kinetics(
                 colour = "monoexp"))
 )
 
-mNIRS::process_kinetics(true_x, true_y, x0 = true_x[8], method = "half_time")
-(half_data <- mNIRS::process_kinetics(x=true_x, y=true_y, method = "half_time")$coefs)
+mnirs::process_kinetics(true_x, true_y, x0 = true_x[8], method = "half_time")
+(half_data <- mnirs::process_kinetics(x=true_x, y=true_y, method = "half_time")$coefs)
 
 plot2 +
     geom_point(

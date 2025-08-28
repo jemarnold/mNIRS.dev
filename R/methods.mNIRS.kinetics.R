@@ -2,7 +2,7 @@
 #'
 #' Generic methods defined for objects returned from [process_kinetics()].
 #'
-#' @param x Object of class `mNIRS.kinetics` returned from [process_kinetics()].
+#' @param x Object of class `mnirs.kinetics` returned from [process_kinetics()].
 #' @param ... Additional arguments.
 #'  \describe{
 #'      \item{`plot_coefs`}{`plot_coefs = TRUE` will display kinetics coefficients
@@ -14,16 +14,16 @@
 #'      scaled about the zero dotted line}
 #'  }
 #'
-#' @name mNIRS.kinetics-methods
-#' @rdname mNIRS.kinetics-methods
-#' @method print mNIRS.kinetics
+#' @name mnirs.kinetics-methods
+#' @rdname mnirs.kinetics-methods
+#' @method print mnirs.kinetics
 #'
 #' @return Return:
 #'      \item{`print`}{Returns a model summary}
 #'      \item{`plot`}{Returns a [ggplot2][ggplot2::ggplot()] object}
 #'
 #' @export
-print.mNIRS.kinetics <- function(x, ...) {
+print.mnirs.kinetics <- function(x, ...) {
 
     list2env(x, envir = environment())
     x_name <- names(data)[1]
@@ -117,14 +117,14 @@ print.mNIRS.kinetics <- function(x, ...) {
 
 
 
-#' @rdname mNIRS.kinetics-methods
-#' @method plot mNIRS.kinetics
+#' @rdname mnirs.kinetics-methods
+#' @method plot mnirs.kinetics
 #' @importFrom ggplot2 ggplot aes waiver expansion scale_x_continuous
 #'  scale_y_continuous scale_colour_manual guides guide_legend geom_line
 #'  geom_point geom_segment geom_vline arrow geom_hline annotate
 #'
 #' @export
-plot.mNIRS.kinetics <- function(x,  ...) {
+plot.mnirs.kinetics <- function(x,  ...) {
 
     rlang::check_installed("ggplot2", reason = "to plot mNIRS data")
 
@@ -197,7 +197,7 @@ plot.mNIRS.kinetics <- function(x,  ...) {
 
 
     ggplot(data, aes(x = .data[[x_name]])) +
-        theme_mNIRS(legend.position = "top") +
+        theme_mnirs(legend.position = "top") +
         scale_x_continuous(
             name = if (display_time) {
                 paste(x_name, "(h:mm:ss)")
@@ -220,7 +220,7 @@ plot.mNIRS.kinetics <- function(x,  ...) {
         scale_colour_manual(
             name = NULL,
             breaks = c(y_name, "fitted", "residuals"),
-            values = c(mNIRS_palette(1), "black", "grey"),
+            values = c(mnirs_palette(1), "black", "grey"),
             limits = force) +
         guides(colour = guide_legend(override.aes = list(linewidth = 1))) +
         geom_vline(xintercept = x0, linetype = "dotted") +

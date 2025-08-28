@@ -1,7 +1,7 @@
 test_that("filter_data smooth-spline works", {
     # devtools::load_all()
     file_path <- system.file("extdata/moxy_ramp_example.xlsx",
-                             package = "mNIRS")
+                             package = "mnirs")
 
     df <- read_data(
         file_path = file_path,
@@ -89,7 +89,7 @@ test_that("filter_data smooth-spline works", {
     # plot(df_na) +
     #     scale_colour_manual(breaks = c("smo2", "smooth_spline",
     #                                    "butterworth", "moving-average"),
-    #                         values = mNIRS_palette(4)) +
+    #                         values = mnirs_palette(4)) +
     #     geom_line(aes(y = smooth_spline, colour = "smooth_spline")) +
     #     geom_line(aes(y = butterworth, colour = "butterworth")) +
     #     geom_line(aes(y = moving_avg, colour = "moving-average"))

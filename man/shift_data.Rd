@@ -53,7 +53,7 @@ to the specified \code{shift_to} value (the \emph{default}).}
 }}
 }
 \value{
-A \link[tibble:tibble-package]{tibble} of class \code{mNIRS.data} with
+A \link[tibble:tibble-package]{tibble} of class \code{mnirs.data} with
 metadata available with \code{attributes()}.
 }
 \description{

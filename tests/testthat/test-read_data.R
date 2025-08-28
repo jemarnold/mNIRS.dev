@@ -1,7 +1,7 @@
 test_that("read_data moxy.perfpro works", {
     # devtools::load_all()
     file_path <- system.file("extdata/moxy_ramp_example.xlsx",
-                             package = "mNIRS")
+                             package = "mnirs")
 
     expect_warning(
         df <- read_data(
@@ -15,7 +15,7 @@ test_that("read_data moxy.perfpro works", {
         "non-sequential or repeating") |>
         expect_message("Estimated sample rate")
 
-    expect_s3_class(df, "mNIRS.data")
+    expect_s3_class(df, "mnirs.data")
     expect_s3_class(df, "data.frame")
     expect_s3_class(df$time, "POSIXct")
     expect_false(all(class(df$time) %in% "numeric"))
@@ -100,7 +100,7 @@ test_that("read_data moxy.perfpro works", {
 test_that("read_data train.red works", {
     # devtools::load_all()
     file_path <- system.file("extdata/train.red_interval_example.csv",
-                             package = "mNIRS")
+                             package = "mnirs")
 
     expect_warning(
         df <- read_data(
@@ -121,7 +121,7 @@ test_that("read_data train.red works", {
             verbose = FALSE)
     )
 
-    expect_s3_class(df, "mNIRS.data")
+    expect_s3_class(df, "mnirs.data")
     expect_s3_class(df, "data.frame")
     expect_type(df$time, "double")
     expect_gte(df$time[1], 0)
@@ -165,7 +165,7 @@ test_that("read_data train.red works", {
 test_that("read_data oxysoft works", {
     # devtools::load_all()
     file_path <- system.file("extdata/oxysoft_interval_example.xlsx",
-                             package = "mNIRS")
+                             package = "mnirs")
 
     expect_length(
         df <- read_data(
@@ -179,7 +179,7 @@ test_that("read_data oxysoft works", {
     expect_type(df$sample, "double")
     expect_type(df$time, "double")
     expect_equal(df$sample[1:10]/50, df$time[1:10])
-    expect_s3_class(df, "mNIRS.data")
+    expect_s3_class(df, "mnirs.data")
     expect_s3_class(df, "data.frame")
 
     expect_true(
@@ -224,7 +224,7 @@ test_that("read_data oxysoft works", {
 test_that("read_data VMPro app works", {
     # devtools::load_all()
     file_path <- system.file("extdata/vo2master_moxyunit_example.xlsx",
-                             package = "mNIRS")
+                             package = "mnirs")
 
     expect_length(
         df <- read_data(
@@ -237,7 +237,7 @@ test_that("read_data VMPro app works", {
             verbose = FALSE),
         5)
 
-    expect_s3_class(df, "mNIRS.data")
+    expect_s3_class(df, "mnirs.data")
     expect_s3_class(df, "data.frame")
     expect_s3_class(df$time, "POSIXct")
     expect_false(all(class(df$time) %in% "numeric"))

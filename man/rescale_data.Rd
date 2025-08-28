@@ -16,7 +16,7 @@ names for data channels to be rescaled (see \emph{Details}).}
 indicating the range of output values to which data channels will be rescaled.}
 }
 \value{
-A \link[tibble:tibble-package]{tibble} of class \code{mNIRS.data} with
+A \link[tibble:tibble-package]{tibble} of class \code{mnirs.data} with
 metadata available with \code{attributes()}.
 }
 \description{

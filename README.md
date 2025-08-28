@@ -1,26 +1,26 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# mNIRS
+# mnirs
 
-<!-- # mNIRS <img src='man/figures/logo.png' align="right" height="240" /> -->
+<!-- # mnirs <img src='man/figures/logo.png' align="right" height="240" /> -->
 
 <!-- badges: start -->
 
-[![R-CMD-check](https://github.com/jemarnold/mNIRS/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jemarnold/mNIRS/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/jemarnold/mnirs/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jemarnold/mnirs/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-`{mNIRS}` is a package to allow for importing, processing, and analysing
+`{mnirs}` is a package to allow for importing, processing, and analysing
 data from muscle near-infrared spectroscopy (mNIRS) devices.
 
 ## Installation
 
-You can install the development version of `{mNIRS}` from
-[GitHub](https://github.com/jemarnold/mNIRS) with:
+You can install the development version of `{mnirs}` from
+[GitHub](https://github.com/jemarnold/mnirs) with:
 
 ``` r
 # install.packages("remotes")
-devtools::install_github("jemarnold/mNIRS")
+devtools::install_github("jemarnold/mnirs")
 ```
 
 ## Citation
@@ -30,7 +30,7 @@ devtools::install_github("jemarnold/mNIRS")
 ## Online App
 
 A very basic implementation of this package is hosted at
-<https://jem-arnold.shinyapps.io/mNIRS-app/> and can be used for mNIRS
+<https://jem-arnold.shinyapps.io/mnirs-app/> and can be used for mnirs
 data importing and cleaning.
 
 ## Usage
@@ -41,10 +41,10 @@ data importing and cleaning.
 
 library(dplyr, warn.conflicts = FALSE)  ## load for data wrangling
 library(ggplot2) ## load for plotting
-library(mNIRS)
+library(mnirs)
 
-## {mNIRS} includes sample files from a few NIRS devices
-file_path <- system.file("extdata/moxy_ramp_example.xlsx", package = "mNIRS")
+## {mnirs} includes sample files from a few NIRS devices
+file_path <- system.file("extdata/moxy_ramp_example.xlsx", package = "mnirs")
 
 ## rename channels in the format `new_name1 = "file_column_name1"`
 ## where "file_column_name1" should match the file column name exactly

@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(mNIRS)
+library(mnirs)
 
-test_check("mNIRS")
+test_check("mnirs")

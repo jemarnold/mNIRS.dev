@@ -33,7 +33,7 @@ return the peak of rolling slopes where all local \code{y} samples are valid.
 sample is valid.}
 }
 \value{
-A list of class \code{mNIRS.kinetics} with components \code{L$...}:
+A list of class \code{mnirs.kinetics} with components \code{L$...}:
 \item{\code{x}}{The \code{x} position of the local peak slope.}
 \item{\code{y}}{The \code{y} value predicted from linear regression at the local
 peak slope.}

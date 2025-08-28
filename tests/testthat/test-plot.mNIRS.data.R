@@ -1,17 +1,17 @@
 test_that("palette returns correct colours", {
-    expect_length(mNIRS_palette(), 12)
-    expect_length(mNIRS_palette(3), 3)
-    expect_length(mNIRS_palette(15), 15)
-    expect_type(mNIRS_palette(), "character")
-    expect_match(mNIRS_palette(1), "^#[0-9a-f]{6}$")
+    expect_length(mnirs_palette(), 12)
+    expect_length(mnirs_palette(3), 3)
+    expect_length(mnirs_palette(15), 15)
+    expect_type(mnirs_palette(), "character")
+    expect_match(mnirs_palette(1), "^#[0-9a-f]{6}$")
 })
 
 
 
 
-test_that("plot.mNIRS.data moxy.perfpro works", {
+test_that("plot.mnirs.data moxy.perfpro works", {
     file_path <- system.file("extdata/moxy_ramp_example.xlsx",
-                             package = "mNIRS")
+                             package = "mnirs")
 
     df <- read_data(
         file_path = file_path,
@@ -28,9 +28,9 @@ test_that("plot.mNIRS.data moxy.perfpro works", {
 
 
 
-# test_that("plot.mNIRS.data Oxysoft multiple channels works", {
+# test_that("plot.mnirs.data Oxysoft multiple channels works", {
 #     file_path <- system.file("extdata/oxysoft_interval_example.xlsx",
-#                              package = "mNIRS")
+#                              package = "mnirs")
 #     expect_equal(class(file_path), "character")
 #
 #     df <- read_data(

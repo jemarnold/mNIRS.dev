@@ -20,7 +20,7 @@ prepare_kinetics_data(
 )
 }
 \arguments{
-\item{data}{A dataframe of class \code{"mNIRS.data"}.}
+\item{data}{A dataframe of class \code{"mnirs.data"}.}
 
 \item{event_sample}{An \emph{optional} numeric vector corresponding to values of
 \code{sample_channel} indicating the start of kinetic events. i.e., by time value
@@ -62,11 +62,11 @@ from metadata if not defined explicitly.}
 \item{...}{Additional arguments.}
 }
 \value{
-A list of \link[tibble:tibble-package]{tibbles} of class \code{"mNIRS.data"}
+A list of \link[tibble:tibble-package]{tibbles} of class \code{"mnirs.data"}
 with metadata available with \code{attributes()}.
 }
 \description{
-Processes a list of one or more dataframes of class \code{"mNIRS.data"} representing
+Processes a list of one or more dataframes of class \code{"mnirs.data"} representing
 distinct or ensembled kinetics events for further analysis.
 }
 \details{

@@ -26,7 +26,7 @@
 #'      is preserved within each group, but not across groups of data channels.}
 #'  }
 #'
-#' @return A [tibble][tibble::tibble-package] of class `mNIRS.data` with
+#' @return A [tibble][tibble::tibble-package] of class `mnirs.data` with
 #'  metadata available with `attributes()`.
 #'
 #' @export
@@ -88,14 +88,14 @@ rescale_data <- function(
     metadata$nirs_channels <- unique(
         c(metadata$nirs_channels, unlist(nirs_channels)))
 
-    y <- create_mNIRS_data(y, metadata)
+    y <- create_mnirs_data(y, metadata)
 
     return(y)
 }
 #
 ## troubleshooting ===================================
 # library(ggplot2)
-# library(mNIRS)
+# library(mnirs)
 # #
 # (df <- read_data(
 #     file_path = r"(C:\OneDrive - UBC\Body Position Study\Raw Data\SRLB02-Oxysoft-2024-12-20.xlsx)",

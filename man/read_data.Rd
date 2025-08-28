@@ -55,12 +55,12 @@ messages which can be used for troubleshooting. \code{FALSE} will silence these
 messages. Errors will always be returned.}
 }
 \value{
-A \link[tibble:tibble-package]{tibble} of class \code{"mNIRS.data"} with
+A \link[tibble:tibble-package]{tibble} of class \code{"mnirs.data"} with
 metadata available with \code{attributes()}.
 }
 \description{
 Will read files exported from most commercially available mNIRS devices and
-return a dataframe of class \code{"mNIRS.data"} with recorded data and metadata.
+return a dataframe of class \code{"mnirs.data"} with recorded data and metadata.
 }
 \details{
 Channel names are matched to a single row, representing the header row for
@@ -86,7 +86,7 @@ this case, values will be recalculated as starting from \code{0} at the first sa
 NIRS devices export the sample index. This can be converted to time values
 if the \code{sample_rate} is known.
 
-\code{sample_rate} is required for certain \code{{mNIRS}} functions to work properly.
+\code{sample_rate} is required for certain \code{{mnirs}} functions to work properly.
 If it is not defined explicitly, it will be estimated based on the mean
 difference between values in the \code{sample_channel}. If \code{sample_channel} is not
 defined, then \code{sample_rate} will be set to 1 Hz. If \code{sample_channel} in the

@@ -1,12 +1,12 @@
 ---
-title: "Processing Data with {mNIRS}"
+title: "Processing Data with {mnirs}"
 date: last-modified
 language:
     title-block-published: "UPDATED"
 author:
     - name: Jem Arnold
 vignette: >
-    %\VignetteIndexEntry{processing-mNIRS-data}
+    %\VignetteIndexEntry{processing-mnirs-data}
     %\VignetteEngine{quarto::html}
     %\VignetteEncoding{UTF-8}
 format:
@@ -25,9 +25,9 @@ knitr:
 
 ## Read Data From File
     
-We will read an example data file with two NIRS channels, recording an incremental ramp cycling assessment. A few example NIRS data files are included in the `{mNIRS}` package.
+We will read an example data file with two NIRS channels, recording an incremental ramp cycling assessment. A few example NIRS data files are included in the `{mnirs}` package.
 
-First, we load in the `{mNIRS}` package and any other required libraries. `{mNIRS}` can be installed with `devtools::install_github("jemarnold/mNIRS")`.
+First, we load in the `{mnirs}` package and any other required libraries. `{mnirs}` can be installed with `devtools::install_github("jemarnold/mnirs")`.
 
 ```{r}
 #| label: setup
@@ -35,20 +35,20 @@ First, we load in the `{mNIRS}` package and any other required libraries. `{mNIR
 
 library(dplyr) ## load for data wrangling
 library(ggplot2) ## load for plotting
-library(mNIRS) 
-# devtools::install_github("jemarnold/mNIRS") ## install development version
+library(mnirs) 
+# devtools::install_github("jemarnold/mnirs") ## install development version
 ```
 
 
 
 ### Specify file path
 
-* `file_path`: We need to specify the file path to read from. e.g. ` r("C:\myfolder\mNIRS_file.xlsx")`.
+* `file_path`: We need to specify the file path to read from. e.g. ` r("C:\myfolder\mnirs_file.xlsx")`.
 
 We will read in the `file_path` to the included example data file.
 
 ```{r}
-file_path <- system.file("extdata/moxy_ramp_example.xlsx", package = "mNIRS")
+file_path <- system.file("extdata/moxy_ramp_example.xlsx", package = "mnirs")
 ```
 
 Now we can read the data file with the `read_data()` function. This function will take in raw NIRS data exported from a device, and return a dataframe with the data channels we specify. See `?read_data` for more details.
@@ -104,16 +104,16 @@ data_raw <- read_data(file_path,
 
 data_raw
 
-## {mNIRS} data can be plotted with a built in call to `plot()`
+## {mnirs} data can be plotted with a built in call to `plot()`
 plot(data_raw)
 ```
 
 
-### Metadata stored in *mNIRS.data* dataframes
+### Metadata stored in *mnirs.data* dataframes
 
-Dataframes read or processed by `{mNIRS}` functions will return `class = mNIRS.data` and contain metadata, which can be retrieved with `attributes(data)`. 
+Dataframes read or processed by `{mnirs}` functions will return `class = mnirs.data` and contain metadata, which can be retrieved with `attributes(data)`. 
 
-Instead of re-defining our channel names or sample rate, we can call them from the metadata. Some `{mNIRS}` functions will automatically retrieve metadata if present.
+Instead of re-defining our channel names or sample rate, we can call them from the metadata. Some `{mnirs}` functions will automatically retrieve metadata if present.
 
 ```{r}
 nirs_channels <- attributes(data_raw)$nirs_channels
@@ -218,9 +218,9 @@ Alternatively, if we have something like high-frequency EMG data and we want to 
 
 * `data`: This function works on a dataframe; it will take in a dataframe (`data`), apply the processing step to all data channels, and return the processed dataframe.
 
-* `sample_channel`: If the dataframe already has *mNIRS.data* metadata, the *time* or *sample* channel will be detected automatically. Otherwise, we can define or overwrite it explicitly.
+* `sample_channel`: If the dataframe already has *mnirs.data* metadata, the *time* or *sample* channel will be detected automatically. Otherwise, we can define or overwrite it explicitly.
 
-* `sample_rate`: If the dataframe already has *mNIRS.data* metadata, the *sample_rate* will be detected automatically. Otherwise, we can define or overwrite it explicitly.
+* `sample_rate`: If the dataframe already has *mnirs.data* metadata, the *sample_rate* will be detected automatically. Otherwise, we can define or overwrite it explicitly.
 
 * `resample_rate`: Specify the output sample rate we want to covert to, as a number of samples per second (Hz).
 
@@ -331,7 +331,7 @@ We may want to shift our data values while preserving the absolute dynamic range
 \
 Grouping channels (e.g. `list(c("A", "B"), c("C"))`) will shift each group of channels together. The relative scaling between channels will be preserved within each group, but lost across groups.\
 \
-If the dataframe already has *mNIRS.data* metadata, the *NIRS* data channels will be detected automatically and processed as if grouped globally together.
+If the dataframe already has *mnirs.data* metadata, the *NIRS* data channels will be detected automatically and processed as if grouped globally together.
 
 * `shift_to`: The *NIRS* value to which the channels will be shifted.
 

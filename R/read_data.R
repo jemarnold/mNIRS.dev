@@ -1,6 +1,6 @@
 #' Create an mNIRS Dataframe with Metadata
 #'
-#' Manually add class `"mNIRS.data"` and metadata to an existing dataframe.
+#' Manually add class `"mnirs.data"` and metadata to an existing dataframe.
 #'
 #' @param data A dataframe.
 #' @param metadata Metadata passed along with the dataframe.
@@ -14,7 +14,7 @@
 #'  - display_span
 #'  - end_kinetics_span
 #'
-#' @return A [tibble][tibble::tibble-package] of class `mNIRS.data` with
+#' @return A [tibble][tibble::tibble-package] of class `mnirs.data` with
 #'  metadata available with `attributes()`.
 #'
 #' @examples
@@ -34,7 +34,7 @@
 #'                  C = seq(11, 33, 11))
 #' attributes(df)
 #'
-#' nirs_data <- create_mNIRS_data(
+#' nirs_data <- create_mnirs_data(
 #'     df,
 #'     metadata = list(nirs_channels = c("B", "C"),
 #'                     sample_channel = "A",
@@ -44,7 +44,7 @@
 #'
 #' @keywords internal
 #' @export
-create_mNIRS_data <- function(
+create_mnirs_data <- function(
         data,
         metadata
 ) {
@@ -54,7 +54,7 @@ create_mNIRS_data <- function(
 
     nirs_data <- tibble::new_tibble(
         data,
-        class = "mNIRS.data",
+        class = "mnirs.data",
         nirs_device = metadata$nirs_device,
         nirs_channels = metadata$nirs_channels,
         sample_channel = metadata$sample_channel,
@@ -79,7 +79,7 @@ create_mNIRS_data <- function(
 #' Read mNIRS Data From File
 #'
 #' Will read files exported from most commercially available mNIRS devices and
-#' return a dataframe of class `"mNIRS.data"` with recorded data and metadata.
+#' return a dataframe of class `"mnirs.data"` with recorded data and metadata.
 #'
 #' @param file_path The file path including extension (either *".xlsx"*,
 #'  *".xls"*, or *".csv"*) to import.
@@ -134,7 +134,7 @@ create_mNIRS_data <- function(
 #' NIRS devices export the sample index. This can be converted to time values
 #' if the `sample_rate` is known.
 #'
-#' `sample_rate` is required for certain `{mNIRS}` functions to work properly.
+#' `sample_rate` is required for certain `{mnirs}` functions to work properly.
 #' If it is not defined explicitly, it will be estimated based on the mean
 #' difference between values in the `sample_channel`. If `sample_channel` is not
 #' defined, then `sample_rate` will be set to 1 Hz. If `sample_channel` in the
@@ -143,7 +143,7 @@ create_mNIRS_data <- function(
 #'
 #' Columns and rows which contain entirely missing data (`NA`) are omitted.
 #'
-#' @return A [tibble][tibble::tibble-package] of class `"mNIRS.data"` with
+#' @return A [tibble][tibble::tibble-package] of class `"mnirs.data"` with
 #'  metadata available with `attributes()`.
 #'
 #' @export
@@ -430,7 +430,7 @@ read_data <- function(
 
         if (verbose) {
             cli_alert_info(paste(
-                "{.arg sample_rate} = {.cls X} should be defined",
+                "{.arg sample_rate} = {.cls numeric} should be defined",
                 "explicitly as a numeric value >{.val {0}} Hz."))
         }
     }
@@ -455,7 +455,7 @@ read_data <- function(
         if (verbose) {
             cli_alert_info(paste(
                 "Oxysoft detected sample rate = {.val {sample_rate}} Hz.",
-                "Overwrite this with {.arg sample_rate} = {.cls X}."))
+                "Overwrite this with {.arg sample_rate} = {.cls numeric}."))
             cli_alert_info(paste(
                 "{.arg time} column in seconds added from",
                 "{.arg {names(sample_channel)}} and {.arg sample_rate}"))
@@ -467,7 +467,7 @@ read_data <- function(
         if (verbose) {
             cli_alert_info(paste(
                 "No {.arg sample_channel} provided. Sample rate set to {.val {1}} Hz.",
-                "Overwrite this with {.arg sample_rate} = {.cls X}."))
+                "Overwrite this with {.arg sample_rate} = {.cls numeric}."))
         }
     } else {
         ## sample_rate will be incorrect if `sample_channel` is integer
@@ -479,7 +479,7 @@ read_data <- function(
         if (verbose) {
             cli_alert_info(paste(
                 "Estimated sample rate = {.val {sample_rate}} Hz.",
-                "Overwrite this with {.arg sample_rate} = {.cls X}."))
+                "Overwrite this with {.arg sample_rate} = {.cls numeric}."))
         }
     }
 
@@ -490,7 +490,7 @@ read_data <- function(
         event_channel = names(event_channel),
         sample_rate = sample_rate)
 
-    return(create_mNIRS_data(data_prepared, metadata))
+    return(create_mnirs_data(data_prepared, metadata))
 }
 
 
@@ -548,7 +548,7 @@ read_data <- function(
 #     event_channel = NULL)
 # #
 # # ## VMPro
-# mNIRS::read_data(
+# mnirs::read_data(
 #     file_path = r"(C:\OneDrive - UBC\JAData\MoxyUnit-VMPro-2023-05-17.xlsx)",
 #     nirs_channels = c("right_smo2" = "SmO2[%]",
 #                      "left_smo2" = "SmO2 -  2[%]",

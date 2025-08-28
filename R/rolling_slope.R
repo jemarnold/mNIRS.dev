@@ -192,7 +192,7 @@ rolling_slope <- function(
 #'  or negative peak slope is returned. Peak positive slope will be returned for
 #'  an overall slope >= 0.
 #'
-#' @return A list of class `mNIRS.kinetics` with components `L$...`:
+#' @return A list of class `mnirs.kinetics` with components `L$...`:
 #'      \item{`x`}{The `x` position of the local peak slope.}
 #'      \item{`y`}{The `y` value predicted from linear regression at the local
 #'      peak slope.}

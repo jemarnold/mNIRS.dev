@@ -34,7 +34,7 @@ messages which can be used for data error checking. \code{FALSE} will silence th
 messages. Errors will always be returned.}
 }
 \value{
-A \link[tibble:tibble-package]{tibble} of class \code{mNIRS.data} with
+A \link[tibble:tibble-package]{tibble} of class \code{mnirs.data} with
 metadata available with \code{attributes()}.
 }
 \description{
@@ -43,7 +43,7 @@ interpolation for up- and down-sampling.
 }
 \details{
 \code{sample_channel} and \code{sample_rate} will be taken from metadata for a dataframe
-of class \verb{"mNIRS.data} which has been processed with \code{{mNIRS}}, if not specified
+of class \verb{"mnirs.data} which has been processed with \code{{mnirs}}, if not specified
 explicitly.
 
 Otherwise, \code{sample_rate} will be estimated from the values in \code{sample_channel}.
