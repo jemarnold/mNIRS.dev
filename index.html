@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Muscle Near-Infrared Spectroscopy Processing &amp; Analysis • mNIRS</title>
+<title>Muscle Near-Infrared Spectroscopy Processing &amp; Analysis • mnirs</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
@@ -20,9 +20,9 @@
 
     <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
 
-    <a class="navbar-brand me-2" href="index.html">mNIRS</a>
+    <a class="navbar-brand me-2" href="index.html">mnirs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9013</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9020</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,7 +35,7 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="articles/processing-mNIRS-data.html">Processing Data with {mNIRS}</a></li>
+<li><a class="dropdown-item" href="articles/processing-mNIRS-data.html">Processing Data with {mnirs}</a></li>
   </ul>
 </li>
       </ul>
@@ -43,7 +43,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/jemarnold/mNIRS/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/jemarnold/mnirs/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -52,19 +52,19 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="mnirs">mNIRS<a class="anchor" aria-label="anchor" href="#mnirs"></a>
+<div class="page-header"><h1 id="mnirs">mnirs<a class="anchor" aria-label="anchor" href="#mnirs"></a>
 </h1></div>
-<!-- # mNIRS <img src='man/figures/logo.png' align="right" height="240" /> -->
+<!-- # mnirs <img src='man/figures/logo.png' align="right" height="240" /> -->
 <!-- badges: start -->
 
-<p><a href="https://github.com/jemarnold/mNIRS" class="external-link">mNIRS</a> is a package to allow for importing, processing, and analysing data from muscle near-infrared spectroscopy (mNIRS) devices.</p>
+<p><a href="https://github.com/jemarnold/mnirs" class="external-link">mnirs</a> is a package to allow for importing, processing, and analysing data from muscle near-infrared spectroscopy (mNIRS) devices.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>You can install the development version of <a href="https://github.com/jemarnold/mNIRS" class="external-link">mNIRS</a> from <a href="https://github.com/jemarnold/mNIRS" class="external-link">GitHub</a> with:</p>
+<p>You can install the development version of <a href="https://github.com/jemarnold/mnirs" class="external-link">mnirs</a> from <a href="https://github.com/jemarnold/mnirs" class="external-link">GitHub</a> with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"jemarnold/mNIRS"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"jemarnold/mnirs"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
@@ -74,7 +74,7 @@
 <div class="section level2">
 <h2 id="online-app">Online App<a class="anchor" aria-label="anchor" href="#online-app"></a>
 </h2>
-<p>A very basic implementation of this package is hosted at <a href="https://jem-arnold.shinyapps.io/mNIRS-app/" class="external-link uri">https://jem-arnold.shinyapps.io/mNIRS-app/</a> and can be used for mNIRS data importing and cleaning.</p>
+<p>A very basic implementation of this package is hosted at <a href="https://jem-arnold.shinyapps.io/mnirs-app/" class="external-link uri">https://jem-arnold.shinyapps.io/mnirs-app/</a> and can be used for mnirs data importing and cleaning.</p>
 </div>
 <div class="section level2">
 <h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
@@ -86,10 +86,10 @@
 <code class="sourceCode R"><span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span>, warn.conflicts <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co">## load for data wrangling</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span> <span class="co">## load for plotting</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/jemarnold/mNIRS" class="external-link">mNIRS</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/jemarnold/mnirs" class="external-link">mnirs</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co">## {mNIRS} includes sample files from a few NIRS devices</span></span>
-<span><span class="va">file_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/moxy_ramp_example.xlsx"</span>, package <span class="op">=</span> <span class="st">"mNIRS"</span><span class="op">)</span></span>
+<span><span class="co">## {mnirs} includes sample files from a few NIRS devices</span></span>
+<span><span class="va">file_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/moxy_ramp_example.xlsx"</span>, package <span class="op">=</span> <span class="st">"mnirs"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co">## rename channels in the format `new_name1 = "file_column_name1"`</span></span>
 <span><span class="co">## where "file_column_name1" should match the file column name exactly</span></span>
@@ -336,8 +336,8 @@
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
-<li><a href="https://github.com/jemarnold/mNIRS/" class="external-link">Browse source code</a></li>
-<li><a href="https://github.com/jemarnold/mNIRS/issues" class="external-link">Report a bug</a></li>
+<li><a href="https://github.com/jemarnold/mnirs/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/jemarnold/mnirs/issues" class="external-link">Report a bug</a></li>
 </ul>
 </div>
 
@@ -353,7 +353,7 @@
 <div class="citation">
 <h2 data-toc-skip>Citation</h2>
 <ul class="list-unstyled">
-<li><a href="authors.html#citation">Citing mNIRS</a></li>
+<li><a href="authors.html#citation">Citing mnirs</a></li>
 </ul>
 </div>
 
@@ -367,7 +367,7 @@
 <div class="dev-status">
 <h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
-<li><a href="https://github.com/jemarnold/mNIRS/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/jemarnold/mNIRS/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
+<li><a href="https://github.com/jemarnold/mnirs/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/jemarnold/mnirs/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
 </ul>
 </div>
 
