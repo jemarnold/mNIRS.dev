@@ -12,7 +12,7 @@
 #'  variables named in `x` and `y`. Names for `x` and `y` must be in quotations.
 #' @param x0 (*Default = 0*) A numeric scalar indicating the value of the predictor
 #'  variable `x` representing the start of the kinetics event.
-#' @param end_kinetics_span (*Default* `end_kinetics_span = 15`) A numeric scalar
+#' @param end_kinetics_span (*Default* `end_kinetics_span = 20`) A numeric scalar
 #'  indicating the local window in units of the predictor variable `x` after the
 #'  kinetics extreme (peak or trough) value to look for subsequent greater extremes.
 #'  The kinetics model will be fit to the data up to the first local extreme with
@@ -32,21 +32,21 @@
 #'      \item{`method = "peak_slope"`}{A non-parametric estimate of the
 #'      peak dynamic rate of change in the mNIRS signal, calculated from rolling
 #'      local linear regression slope within a window in units of `x` defined
-#'      by `span`.}
+#'      by `peak_slope_span`.}
 #'  }
 #' @param verbose A logical. `TRUE` (the *default*) will return warnings and
 #' messages which can be used for data error checking. `FALSE` will silence these
 #' messages. Errors will always be returned.
 #' @param ... Additional arguments.
 #'  \describe{
-#'      \item{`span`}{A numeric scalar defining the window in units of the
+#'      \item{`peak_slope_span`}{A numeric scalar defining the window in units of the
 #'      predictor variable `x` for rolling local calculations used for `method = `
 #'      *"peak_slope"*.}
 #'      \item{`align = c(`*`"center", "left", "right"`*`)`}{Specifies the window
-#'      alignment of `span` as *"center"* (the *default*), *"left"*, or *"right"*.
-#'      Where *"left"* is *forward looking*, and *"right"* is *backward looking*
-#'      by the window `span` from the current sample. Only used for `method =`
-#'      *"peak_slope"*.}
+#'      alignment of `peak_slope_span` as *"center"* (the *default*), *"left"*, or
+#'      *"right"*. Where *"left"* is *forward looking*, and *"right"* is
+#'      *backward looking* by the window `peak_slope_span` from the current sample.
+#'      Only used for `method =` *"peak_slope"*.}
 #'      \item{*`fixed parameters`*}{Parameters (coefficients) of the parametric
 #'      models (*"monoexponential"* and *"sigmoidal"*) can be defined
 #'      a priori and fixed, to exclude them from the model fitting
@@ -83,7 +83,7 @@
 #'
 #' "peak_slope": A non-parametric estimate of the peak dynamic rate of change in
 #'  the mNIRS signal, calculated from rolling local linear regression slope
-#'  within a window in units of `x` defined by `span`.
+#'  within a window in units of `x` defined by `peak_slope_span`.
 #'  - `A`: text
 #'  - `B`: text
 #'  - `x_fitted`: text
@@ -141,7 +141,7 @@
 #' }
 #'
 #' ## peak slope ===============================
-#' model <- process_kinetics(y1, x1, method = "peak_slope", span = 10)
+#' model <- process_kinetics(y1, x1, method = "peak_slope", peak_slope_span = 10)
 #' model
 #'
 #' \dontrun{
@@ -158,7 +158,7 @@ process_kinetics <- function(
         x = NULL,
         data = NULL,
         x0 = 0,
-        end_kinetics_span = 15,
+        end_kinetics_span = 20,
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         verbose = TRUE,
         ...
@@ -185,7 +185,7 @@ process_kinetics.monoexponential <- function(
         x = NULL,
         data = NULL,
         x0 = 0,
-        end_kinetics_span = 15,
+        end_kinetics_span = 20,
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         verbose = TRUE,
         ...
@@ -264,7 +264,7 @@ process_kinetics.sigmoidal <- function(
         x = NULL,
         data = NULL,
         x0 = 0,
-        end_kinetics_span = 15,
+        end_kinetics_span = 20,
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         verbose = TRUE,
         ...
@@ -342,7 +342,7 @@ process_kinetics.half_time <- function(
         x = NULL,
         data = NULL,
         x0 = 0,
-        end_kinetics_span = 15,
+        end_kinetics_span = 20,
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         verbose = TRUE,
         ...
@@ -417,14 +417,15 @@ process_kinetics.peak_slope <- function(
         x = NULL,
         data = NULL,
         x0 = 0,
-        end_kinetics_span = 15,
+        end_kinetics_span = 20,
         method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
         verbose = TRUE,
         ...
 ) {
     method <- match.arg(method)
     args <- list(...)
-    span <- args$span %||% span ## fails with object 'span' not found
+    ## fails with object 'peak_slope_span' not found
+    peak_slope_span <- args$peak_slope_span %||% peak_slope_span
     na.rm <- args$na.rm %||% FALSE ## hidden option rolling_slopes(na.rm = TRUE)
 
     align_choices <- c("center", "left", "right")
@@ -442,8 +443,8 @@ process_kinetics.peak_slope <- function(
     extreme <- setNames(intake$extreme, c(x_name, y_name))
     fitted_name <- paste0(y_name, "_fitted")
 
-    rolling_slopes <- rolling_slope(y, x, span, align, na.rm)
-    peak_slope <- peak_slope(y, x, span, align, na.rm)
+    rolling_slopes <- rolling_slope(y, x, span = peak_slope_span, align, na.rm)
+    peak_slope <- peak_slope(y, x, span = peak_slope_span, align, na.rm)
 
     ## add fitted data to original data, NA beyond range of local slope
     data[[fitted_name]] <- NA_real_
@@ -461,12 +462,14 @@ process_kinetics.peak_slope <- function(
     resid_y <- df$y[which(x %in% peak_slope$x_fitted)]
     total_var <- c(crossprod(resid_y - mean(resid_y, na.rm = TRUE)))
     diagnostics <- tibble(
-        R2adj = 1 - ((RSS / (n - nrow(coefs))) / ((total_var / (n - 1)))),
+        ## TODO WHY ARE R^2 VALUES SO HIGH?!
+        # R2adj = 1 - ((RSS / (n - nrow(coefs))) / ((total_var / (n - 1)))),
         RMSE = sqrt(RSS / n),
         MAE = mean(abs(residuals)),
         MAPE = mean(abs(residuals / resid_y), na.rm = TRUE) * 100)
 
-    equation <- paste0("peak_slope ~ max(rolling_slope(y ~ x, span = ", span, "))")
+    equation <- paste0("peak_slope ~ max(rolling_slope(y ~ x, peak_slope_span = ",
+                       peak_slope_span, "))")
 
     out <- structure(
         list(
@@ -478,7 +481,7 @@ process_kinetics.peak_slope <- function(
             rolling_slopes = rolling_slopes,
             x0 = x0,
             extreme = extreme,
-            span = span,
+            peak_slope_span = peak_slope_span,
             align = align,
             coefs = coefs,
             diagnostics = diagnostics,
@@ -504,7 +507,7 @@ pre_process_kinetics_names <- function(
         x = NULL,
         data = NULL,
         x0 = 0,
-        end_kinetics_span = 15,
+        end_kinetics_span = 20,
         verbose = TRUE
 ) {
     if (is.null(data)) {
@@ -616,7 +619,7 @@ pre_process_kinetics_names <- function(
 #'
 #' @keywords internal
 #' @export
-find_first_extreme <- function(y, x = NULL, end_kinetics_span = 15) {
+find_first_extreme <- function(y, x = NULL, end_kinetics_span = 20) {
     if (is.null(x)) {x <- seq_along(y)} ## where `x` is not defined
 
     if (length(x) != length(y)) {
@@ -700,7 +703,8 @@ process_model <- function(model) {
                    scal = NA_real_, xmid = NA_real_)
         diagnostics <- c(
             AIC = NA_real_, BIC = NA_real_,
-            R2adj = NA_real_, RMSE = NA_real_,
+            # R2adj = NA_real_,
+            RMSE = NA_real_,
             MAE = NA_real_, MAPE = NA_real_)
     } else {
         y <- model$m$getEnv()$y
@@ -718,7 +722,8 @@ process_model <- function(model) {
             ## see ?performance::r2 & ?performance::r2_efron
             # R2 = 1 - RSS / total_var,
             ## see https://stats.stackexchange.com/a/584551
-            R2adj = 1 - ((RSS / (n - length(coefs))) / ((total_var / (n - 1)))),
+            ## TODO WHY ARE R^2 VALUES SO HIGH?!
+            # R2adj = 1 - ((RSS / (n - length(coefs))) / ((total_var / (n - 1)))),
             RMSE = sqrt(RSS / n),
             MAE = mean(abs(residuals)),
             MAPE = mean(abs(residuals / y), na.rm = TRUE) * 100)

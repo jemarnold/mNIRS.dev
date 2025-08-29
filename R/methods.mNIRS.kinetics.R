@@ -190,8 +190,7 @@ plot.mnirs.kinetics <- function(x,  ...) {
             annotate("text", x = coords[1], y = adjusted_hline,
                      label = "residuals", size = 4, colour = "grey30",
                      hjust = "left", vjust = -0.1),
-            geom_line(#data = data[!is.na(data[[fitted]]),],
-                      aes(y = resid_adj, colour = "residuals"), na.rm = TRUE)
+            geom_line(aes(y = resid_adj, colour = "residuals"), na.rm = TRUE)
         )
     }
 
@@ -246,7 +245,6 @@ plot.mnirs.kinetics <- function(x,  ...) {
             geom_line(
                 data = data[!is.na(data[[fitted]]),],
                 aes(y = .data[[fitted]], colour = "fitted"), linewidth = 1),
-            ## TODO 2025-08-10 report xmid_yvalue
             geom_segment(
                 data = tibble(x = coefs$xmid, y = coefs[[5]]),
                 aes(x = x, xend = x, y = y, yend = -Inf),
@@ -273,7 +271,6 @@ plot.mnirs.kinetics <- function(x,  ...) {
         )}} +
         {if (method == "peak_slope") {list(
             geom_line(
-                # data = data[!is.na(data[[fitted]]),],
                 aes(y = .data[[fitted]], colour = "fitted"),
                 linewidth = 1, na.rm = TRUE),
             geom_segment(

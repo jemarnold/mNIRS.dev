@@ -418,12 +418,12 @@ test_that("peak_slope x, y names passthrough works", {
 
     index_result <- process_kinetics(y = y1, x = NULL,
                                      data = NULL, method = .method,
-                                     span = .span)
+                                     peak_slope_span = .span)
     expect_true(all(c("index", "y") %in% names(index_result$data))) ## y1
 
     x1_result <- process_kinetics(y = y1, x = x1,
                                   data = NULL, method = .method,
-                                  span = .span)
+                                  peak_slope_span = .span)
     expect_true(all(c("x", "y") %in% names(x1_result$data))) ## x1, y1
 
     ## x parameters should be unequal
@@ -435,57 +435,57 @@ test_that("peak_slope x, y names passthrough works", {
 
     expect_error(process_kinetics(y = "y1", x = NULL,
                                   data = NULL, method = .method,
-                                  span = .span),
+                                  peak_slope_span = .span),
                  "must be a.*numeric.*vector")
     expect_error(process_kinetics(y = y1, x = "x1",
                                   data = NULL, method = .method,
-                                  span = .span),
+                                  peak_slope_span = .span),
                  "must be a.*numeric.*vector")
 
     ## expect dataframe error
     expect_error(process_kinetics(y = "yy", x = "xx",
                                   data = A, method = .method,
-                                  span = .span),
+                                  peak_slope_span = .span),
                  "must be a dataframe")
     ## expect error for names missing from data
     expect_error(process_kinetics(y = "qq", x = "zz",
                                   data = mydata, method = .method,
-                                  span = .span),
+                                  peak_slope_span = .span),
                  "not found in `data")
 
     expect_error(process_kinetics(y = "yy", x = "zz",
                                   data = mydata, method = .method,
-                                  span = .span),
+                                  peak_slope_span = .span),
                  "not found in `data")
 
     quoted_yy_result <- process_kinetics(y = "yy", x = NULL,
                                          data = mydata, method = .method,
-                                         span = .span, verbose = FALSE)
+                                         peak_slope_span = .span, verbose = FALSE)
     expect_true(all(c("index", "yy") %in% names(quoted_yy_result$data)))
     expect_true(all(round(index_result$coef, 3) == round(quoted_yy_result$coef, 3)))
 
     data_quoted_result <- process_kinetics(y = "yy", x = "xx",
                                            data = mydata, method = .method,
-                                           span = .span)
+                                           peak_slope_span = .span)
     expect_true(all(c("xx", "yy") %in% names(data_quoted_result$data)))
     expect_true(all(round(x1_result$coef, 3) == round(data_quoted_result$coef, 3)))
 
     ## TODO 2025-08-10 unquoted not currently working
     # data_yy_result <- process_kinetics(y = yy, x = NULL,
     #                                    data = mydata, method = .method,
-    #                                    span = .span, verbose = FALSE)
+    #                                    peak_slope_span = .span, verbose = FALSE)
     # expect_true(all(c("index", "yy") %in% names(data_yy_result$data)))
     # expect_true(all(round(index_result$coef, 3) == round(data_yy_result$coef, 3)))
     #
     # quoted_xx_result <- process_kinetics(y = yy, x = "xx",
     #                                      data = mydata, method = .method,
-    #                                      span = .span)
+    #                                      peak_slope_span = .span)
     # expect_true(all(c("xx", "yy") %in% names(quoted_xx_result$data)))
     # expect_true(all(round(x1_result$coef, 3) == round(quoted_xx_result$coef, 3)))
     #
     # data_unquoted_result <- process_kinetics(y = yy, x = xx,
     #                                          data = mydata, method = .method,
-    #                                          span = .span)
+    #                                          peak_slope_span = .span)
     # expect_true(all(c("xx", "yy") %in% names(data_unquoted_result$data)))
     # expect_true(all(round(x1_result$coef, 3) == round(data_unquoted_result$coef, 3)))
 })
@@ -525,7 +525,7 @@ test_that("process_kinetics works for a local environment call", {
                               x = fit_sample_name,
                               data = kinetics_data,
                               method = "peak_slope",
-                              span = 10)
+                              peak_slope_span = 10)
 
     ## check class
     expect_s3_class(model, "mnirs.kinetics")
@@ -533,7 +533,7 @@ test_that("process_kinetics works for a local environment call", {
     ## check list contents
     model_contents <- c("method", "equation", "data", "fitted",
                         "residuals", "rolling_slopes", "x0", "extreme",
-                        "span", "align", "coefs", "call")
+                        "peak_slope_span", "align", "coefs", "call")
     expect_equal(sum(names(model) %in% model_contents),
                  length(model_contents))
 
@@ -603,7 +603,7 @@ test_that("process_kinetics works inside a purrr::map() call", {
                              x = fit_sample_name,
                              data = .df,
                              method = .method,
-                             span = 10)
+                             peak_slope_span = 10)
         )
 
 
@@ -699,7 +699,7 @@ test_that("process_kinetics works with large oxysoft file", {
                              data = .df,
                              method = .method,
                              end_kinetics_span = 25,
-                             span = 5)
+                             peak_slope_span = 5)
         )
 
     # plot(model    _list[[1]])

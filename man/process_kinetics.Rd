@@ -13,7 +13,7 @@
   x = NULL,
   data = NULL,
   x0 = 0,
-  end_kinetics_span = 15,
+  end_kinetics_span = 20,
   method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
   verbose = TRUE,
   ...
@@ -24,7 +24,7 @@
   x = NULL,
   data = NULL,
   x0 = 0,
-  end_kinetics_span = 15,
+  end_kinetics_span = 20,
   method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
   verbose = TRUE,
   ...
@@ -35,7 +35,7 @@
   x = NULL,
   data = NULL,
   x0 = 0,
-  end_kinetics_span = 15,
+  end_kinetics_span = 20,
   method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
   verbose = TRUE,
   ...
@@ -46,7 +46,7 @@
   x = NULL,
   data = NULL,
   x0 = 0,
-  end_kinetics_span = 15,
+  end_kinetics_span = 20,
   method = c("monoexponential", "sigmoidal", "half_time", "peak_slope"),
   verbose = TRUE,
   ...
@@ -66,7 +66,7 @@ variables named in \code{x} and \code{y}. Names for \code{x} and \code{y} must b
 \item{x0}{(\emph{Default = 0}) A numeric scalar indicating the value of the predictor
 variable \code{x} representing the start of the kinetics event.}
 
-\item{end_kinetics_span}{(\emph{Default} \code{end_kinetics_span = 15}) A numeric scalar
+\item{end_kinetics_span}{(\emph{Default} \code{end_kinetics_span = 20}) A numeric scalar
 indicating the local window in units of the predictor variable \code{x} after the
 kinetics extreme (peak or trough) value to look for subsequent greater extremes.
 The kinetics model will be fit to the data up to the first local extreme with
@@ -87,7 +87,7 @@ to recover half of the total kinetics amplitude.}
 \item{\code{method = "peak_slope"}}{A non-parametric estimate of the
 peak dynamic rate of change in the mNIRS signal, calculated from rolling
 local linear regression slope within a window in units of \code{x} defined
-by \code{span}.}
+by \code{peak_slope_span}.}
 }}
 
 \item{verbose}{A logical. \code{TRUE} (the \emph{default}) will return warnings and
@@ -96,14 +96,14 @@ messages. Errors will always be returned.}
 
 \item{...}{Additional arguments.
 \describe{
-\item{\code{span}}{A numeric scalar defining the window in units of the
+\item{\code{peak_slope_span}}{A numeric scalar defining the window in units of the
 predictor variable \code{x} for rolling local calculations used for \verb{method = }
 \emph{"peak_slope"}.}
 \item{\verb{align = c(}\emph{\verb{"center", "left", "right"}}\verb{)}}{Specifies the window
-alignment of \code{span} as \emph{"center"} (the \emph{default}), \emph{"left"}, or \emph{"right"}.
-Where \emph{"left"} is \emph{forward looking}, and \emph{"right"} is \emph{backward looking}
-by the window \code{span} from the current sample. Only used for \verb{method =}
-\emph{"peak_slope"}.}
+alignment of \code{peak_slope_span} as \emph{"center"} (the \emph{default}), \emph{"left"}, or
+\emph{"right"}. Where \emph{"left"} is \emph{forward looking}, and \emph{"right"} is
+\emph{backward looking} by the window \code{peak_slope_span} from the current sample.
+Only used for \verb{method =} \emph{"peak_slope"}.}
 \item{\emph{\verb{fixed parameters}}}{Parameters (coefficients) of the parametric
 models (\emph{"monoexponential"} and \emph{"sigmoidal"}) can be defined
 a priori and fixed, to exclude them from the model fitting
@@ -167,7 +167,7 @@ the total kinetics amplitude.
 
 "peak_slope": A non-parametric estimate of the peak dynamic rate of change in
 the mNIRS signal, calculated from rolling local linear regression slope
-within a window in units of \code{x} defined by \code{span}.
+within a window in units of \code{x} defined by \code{peak_slope_span}.
 \itemize{
 \item \code{A}: text
 \item \code{B}: text
@@ -209,7 +209,7 @@ plot(model, plot_coefs = TRUE, plot_diagnostics = TRUE, plot_residuals = TRUE)
 }
 
 ## peak slope ===============================
-model <- process_kinetics(y1, x1, method = "peak_slope", span = 10)
+model <- process_kinetics(y1, x1, method = "peak_slope", peak_slope_span = 10)
 model
 
 \dontrun{
