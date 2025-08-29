@@ -51,7 +51,7 @@ on vector data.</p>
 <span>  x <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  x0 <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  end_kinetics_span <span class="op">=</span> <span class="fl">15</span>,</span>
+<span>  end_kinetics_span <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"monoexponential"</span>, <span class="st">"sigmoidal"</span>, <span class="st">"half_time"</span>, <span class="st">"peak_slope"</span><span class="op">)</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -63,7 +63,7 @@ on vector data.</p>
 <span>  x <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  x0 <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  end_kinetics_span <span class="op">=</span> <span class="fl">15</span>,</span>
+<span>  end_kinetics_span <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"monoexponential"</span>, <span class="st">"sigmoidal"</span>, <span class="st">"half_time"</span>, <span class="st">"peak_slope"</span><span class="op">)</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -75,7 +75,7 @@ on vector data.</p>
 <span>  x <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  x0 <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  end_kinetics_span <span class="op">=</span> <span class="fl">15</span>,</span>
+<span>  end_kinetics_span <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"monoexponential"</span>, <span class="st">"sigmoidal"</span>, <span class="st">"half_time"</span>, <span class="st">"peak_slope"</span><span class="op">)</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -87,7 +87,7 @@ on vector data.</p>
 <span>  x <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  x0 <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  end_kinetics_span <span class="op">=</span> <span class="fl">15</span>,</span>
+<span>  end_kinetics_span <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"monoexponential"</span>, <span class="st">"sigmoidal"</span>, <span class="st">"half_time"</span>, <span class="st">"peak_slope"</span><span class="op">)</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -120,7 +120,7 @@ variable <code>x</code> representing the start of the kinetics event.</p></dd>
 
 
 <dt id="arg-end-kinetics-span">end_kinetics_span<a class="anchor" aria-label="anchor" href="#arg-end-kinetics-span"></a></dt>
-<dd><p>(<em>Default</em> <code>end_kinetics_span = 15</code>) A numeric scalar
+<dd><p>(<em>Default</em> <code>end_kinetics_span = 20</code>) A numeric scalar
 indicating the local window in units of the predictor variable <code>x</code> after the
 kinetics extreme (peak or trough) value to look for subsequent greater extremes.
 The kinetics model will be fit to the data up to the first local extreme with
@@ -148,7 +148,7 @@ to recover half of the total kinetics amplitude.</p></dd>
 <dd><p>A non-parametric estimate of the
 peak dynamic rate of change in the mNIRS signal, calculated from rolling
 local linear regression slope within a window in units of <code>x</code> defined
-by <code>span</code>.</p></dd>
+by <code>peak_slope_span</code>.</p></dd>
 
 
 </dl></dd>
@@ -161,17 +161,17 @@ messages. Errors will always be returned.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>Additional arguments.</p><dl><dt><code>span</code></dt>
+<dd><p>Additional arguments.</p><dl><dt><code>peak_slope_span</code></dt>
 <dd><p>A numeric scalar defining the window in units of the
 predictor variable <code>x</code> for rolling local calculations used for <code>method = </code>
 <em>"peak_slope"</em>.</p></dd>
 
 <dt><code>align = c(</code><em><code>"center", "left", "right"</code></em><code>)</code></dt>
 <dd><p>Specifies the window
-alignment of <code>span</code> as <em>"center"</em> (the <em>default</em>), <em>"left"</em>, or <em>"right"</em>.
-Where <em>"left"</em> is <em>forward looking</em>, and <em>"right"</em> is <em>backward looking</em>
-by the window <code>span</code> from the current sample. Only used for <code>method =</code>
-<em>"peak_slope"</em>.</p></dd>
+alignment of <code>peak_slope_span</code> as <em>"center"</em> (the <em>default</em>), <em>"left"</em>, or
+<em>"right"</em>. Where <em>"left"</em> is <em>forward looking</em>, and <em>"right"</em> is
+<em>backward looking</em> by the window <code>peak_slope_span</code> from the current sample.
+Only used for <code>method =</code> <em>"peak_slope"</em>.</p></dd>
 
 <dt><em><code>fixed parameters</code></em></dt>
 <dd><p>Parameters (coefficients) of the parametric
@@ -244,7 +244,7 @@ the total kinetics amplitude.</p><ul><li><p><code>A</code>: text</p></li>
 <li><p><code>half_value</code>: text</p></li>
 </ul><p>"peak_slope": A non-parametric estimate of the peak dynamic rate of change in
 the mNIRS signal, calculated from rolling local linear regression slope
-within a window in units of <code>x</code> defined by <code>span</code>.</p><ul><li><p><code>A</code>: text</p></li>
+within a window in units of <code>x</code> defined by <code>peak_slope_span</code>.</p><ul><li><p><code>A</code>: text</p></li>
 <li><p><code>B</code>: text</p></li>
 <li><p><code>x_fitted</code>: text</p></li>
 <li><p><code>peak_slope</code>: text</p></li>
@@ -275,8 +275,8 @@ within a window in units of <code>x</code> defined by <code>span</code>.</p><ul>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  11.97 98.9 5.436 11.65 17.08      66.92</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Model Diagnostics:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  AIC   BIC  R2adj RMSE   MAE  MAPE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  181 188.9 0.9938  2.6 2.046 5.465</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  AIC   BIC RMSE   MAE  MAPE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  181 188.9  2.6 2.046 5.465</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
@@ -298,8 +298,8 @@ within a window in units of <code>x</code> defined by <code>span</code>.</p><ul>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  7.929 95.47 5.178 13.92        51.7</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Model Diagnostics:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    AIC   BIC  R2adj  RMSE   MAE  MAPE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  199.9 207.8 0.9896 3.381 2.661 9.035</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    AIC   BIC  RMSE   MAE  MAPE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  199.9 207.8 3.381 2.661 9.035</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
@@ -326,12 +326,12 @@ within a window in units of <code>x</code> defined by <code>span</code>.</p><ul>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## peak slope ===============================</span></span></span>
-<span class="r-in"><span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu">process_kinetics</span><span class="op">(</span><span class="va">y1</span>, <span class="va">x1</span>, method <span class="op">=</span> <span class="st">"peak_slope"</span>, span <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu">process_kinetics</span><span class="op">(</span><span class="va">y1</span>, <span class="va">x1</span>, method <span class="op">=</span> <span class="st">"peak_slope"</span>, peak_slope_span <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">model</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Peak Linear Regression Rolling Slope</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   data:         data.frame(x = x, y = y)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   equation:     peak_slope ~ max(rolling_slope(y ~ x, span = 10))</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   equation:     peak_slope ~ max(rolling_slope(y ~ x, peak_slope_span = 10))</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Model Coefficients:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  peak_slope_x peak_slope_fitted peak_slope</span>
