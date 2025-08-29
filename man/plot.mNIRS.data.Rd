@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot.mnirs.data.R
 \name{plot.mnirs.data}
 \alias{plot.mnirs.data}
-\title{Plot mNIRS.data objects}
+\title{Plot mnirs.data objects}
 \usage{
 \method{plot}{mnirs.data}(x, ...)
 }

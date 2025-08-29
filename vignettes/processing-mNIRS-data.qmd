@@ -24,7 +24,7 @@ knitr:
 ---
 
 ## Read Data From File
-    
+
 We will read an example data file with two NIRS channels, recording an incremental ramp cycling assessment. A few example NIRS data files are included in the `{mnirs}` package.
 
 First, we load in the `{mnirs}` package and any other required libraries. `{mnirs}` can be installed with `devtools::install_github("jemarnold/mnirs")`.
@@ -72,7 +72,7 @@ These names should be in quotations and exactly match the column headers in the 
 #| output: false
 
 nirs_channels = c(new_name1 = "file_column_name1", 
-                new_name2 = "file_column_name2")
+                  new_name2 = "file_column_name2")
 ```
 
 
@@ -92,7 +92,7 @@ nirs_channels = c(new_name1 = "file_column_name1",
 ```{r}
 data_raw <- read_data(file_path,
                       nirs_channels = c(smo2_left = "SmO2 Live",
-                                       smo2_right = "SmO2 Live(2)"),
+                                        smo2_right = "SmO2 Live(2)"),
                       sample_channel = c(time = "hh:mm:ss"),
                       event_channel = c(lap = "Lap"),
                       sample_rate = 2, ## we know this file is recorded at 2 samples per second
@@ -231,8 +231,9 @@ This example dataset is already at relatively low sample rate, but let's just se
 ```{r}
 data_downsampled <- data_cleaned |> 
     resample_data(sample_channel = NULL, ## will be automatically read from metadata
-                    sample_rate = NULL, ## will be automatically read from metadata
-                    resample_time = 10) ## equal to `resample_rate = 0.1`
+                  sample_rate = NULL, ## will be automatically read from metadata
+                  resample_time = 10, ## equal to `resample_rate = 0.1`
+                  na.rm = TRUE) ## interpolate across missing data appropriately
 
 data_downsampled
 
@@ -392,7 +393,7 @@ What if we wanted to shift both NIRS signals so their mean 120-sec baselines are
 
 ```{r}
 data_rescaled <- data_filtered |> 
-     ## the lowest single value for each NIRS channel will be shifted to zero
+    ## the lowest single value for each NIRS channel will be shifted to zero
     shift_data(nirs_channels = as.list(nirs_channels),
                shift_to = 0,
                position = "first",

@@ -50,7 +50,7 @@ file_path <- system.file("extdata/moxy_ramp_example.xlsx", package = "mnirs")
 ## where "file_column_name1" should match the file column name exactly
 data_raw <- read_data(file_path,
                       nirs_channels = c(smo2_left = "SmO2 Live",
-                                       smo2_right = "SmO2 Live(2)"),
+                                        smo2_right = "SmO2 Live(2)"),
                       sample_channel = c(time = "hh:mm:ss"),
                       event_channel = c(lap = "Lap"),
                       sample_rate = 2,
@@ -137,14 +137,9 @@ plot(data_cleaned)
 
 data_downsampled <- data_cleaned |> 
     resample_data(sample_channel = NULL, ## will be automatically read from metadata
-                    sample_rate = NULL, ## will be automatically read from metadata
-                    resample_time = 10) ## equal to `resample_rate = 0.1`
-#> Warning in regularize.values(x, y, ties, missing(ties), na.rm = na.rm):
-#> collapsing to unique 'x' values
-#> Warning in regularize.values(x, y, ties, missing(ties), na.rm = na.rm):
-#> collapsing to unique 'x' values
-#> Warning in regularize.values(x, y, ties, missing(ties), na.rm = na.rm):
-#> collapsing to unique 'x' values
+                  sample_rate = NULL, ## will be automatically read from metadata
+                  resample_time = 10, ## equal to `resample_rate = 0.1`
+                  na.rm = TRUE) ## interpolate across missing data appropriately
 #> ℹ `sample_rate` = 2 Hz.
 #> ℹ Output is resampled at 0.1 Hz.
 

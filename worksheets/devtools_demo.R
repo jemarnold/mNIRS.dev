@@ -95,25 +95,29 @@ or
 8. devtools::check()
 - check early & often
 
-9. usethis::use_git() / ::usegithub()
+9. devtools::build_vignettes()
+   devtools::build_readme()
+- Build vignettes if any
+
+10. usethis::use_git() / usethis::usegithub()
 - happygitwithr.com by Jenny Bryan
 - committ early & often
 
-10. usethis::use_mit_license()
+11. usethis::use_mit_license()
 
-11. usethis::use_test()
+12. usethis::use_test()
 - for open file
 - devtools::load_all() then devtools::test() for all function tests
 - devtools::check() will run tests
 
-12. usethis::use_github_action("pkgdown")
+13. usethis::use_github_action("pkgdown")
 - usethis::use_pkgdown_github_pages()
 - NEED TO REMOVE `docs` FROM GITIGNORE
 - locally build devtools::build_site()
 - pkgdown site
 - (pkgdown::clean_site() to remove)
 
-13. remotes::install_github("jemarnold/mnirs")
+14. remotes::install_github("jemarnold/mnirs")
 
 #
 ## Claude.ai ===============================================

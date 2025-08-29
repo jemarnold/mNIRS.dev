@@ -1,4 +1,4 @@
-#' Methods for mNIRS.kinetics objects
+#' Methods for mnirs.kinetics objects
 #'
 #' Generic methods defined for objects returned from [process_kinetics()].
 #'

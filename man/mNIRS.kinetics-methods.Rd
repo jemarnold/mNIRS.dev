@@ -4,7 +4,7 @@
 \alias{mnirs.kinetics-methods}
 \alias{print.mnirs.kinetics}
 \alias{plot.mnirs.kinetics}
-\title{Methods for mNIRS.kinetics objects}
+\title{Methods for mnirs.kinetics objects}
 \usage{
 \method{print}{mnirs.kinetics}(x, ...)
 

@@ -66,7 +66,6 @@ resample_data <- function(
         return(data)
     }
 
-    ## metadata ================================
     metadata <- attributes(data)
 
     ## define `sample_channel`. priority is manually defined
@@ -132,11 +131,6 @@ resample_data <- function(
     }
     #
     ## Processing ===================================
-
-    ## TODO 2025-08-28 - na.rm = FALSE should pass through NAs and not interpolate
-    ## over non-existing samples when up-sampling. na.rm = TRUE should interpolate
-    ## accross existing NA and across new up-samples.
-
     ## calculate resampling parameters
     sample_range <- floor(range(sample_vector, na.rm = TRUE) * sample_rate) / sample_rate
     new_times <- seq(sample_range[1], sample_range[2], by = resample_time)
@@ -158,12 +152,6 @@ resample_data <- function(
                        na.rm = TRUE)$y
             } else {
                 ## if !na.rm, pass through NA and leave new up-samples as NA
-                ## TODO 2025-08-28 what happens with down-samples?
-                # y <- rep(NA_real_, length(new_times))
-                # match_idx <- match(new_times, sample_vector)
-                # valid_matches <- !is.na(match_idx)
-                # y[valid_matches] <- .x[match_idx[valid_matches]]
-                # y
                 .x[match(new_times, sample_vector)]
             }
         })

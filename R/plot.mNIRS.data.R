@@ -1,4 +1,4 @@
-#' Plot mNIRS.data objects
+#' Plot mnirs.data objects
 #'
 #' Create a simple plot for objects returned from [create_mnirs_data()].
 #'
