@@ -56,7 +56,7 @@
       <h1>Processing Data with {mnirs}</h1>
 
       <p class="author">Jem Arnold</p>
-      <p class="date">2025-08-28</p>
+      <p class="date">2025-08-29</p>
 
       <small class="dont-index">Source: <a href="https://github.com/jemarnold/mnirs/blob/main/vignettes/processing-mNIRS-data.qmd" class="external-link"><code>vignettes/processing-mNIRS-data.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -103,7 +103,7 @@
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">nirs_channels</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>new_name1 <span class="op">=</span> <span class="st">"file_column_name1"</span>, </span>
-<span>                new_name2 <span class="op">=</span> <span class="st">"file_column_name2"</span><span class="op">)</span></span></code></pre></div>
+<span>                  new_name2 <span class="op">=</span> <span class="st">"file_column_name2"</span><span class="op">)</span></span></code></pre></div>
 </div>
 </section><section class="level3"><h3 id="other-read_data-options">Other <code>read_data()</code> options<a class="anchor" aria-label="anchor" href="#other-read_data-options"></a>
 </h3>
@@ -118,7 +118,7 @@
 <div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_raw</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/read_data.html">read_data</a></span><span class="op">(</span><span class="va">file_path</span>,</span>
 <span>                      nirs_channels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>smo2_left <span class="op">=</span> <span class="st">"SmO2 Live"</span>,</span>
-<span>                                       smo2_right <span class="op">=</span> <span class="st">"SmO2 Live(2)"</span><span class="op">)</span>,</span>
+<span>                                        smo2_right <span class="op">=</span> <span class="st">"SmO2 Live(2)"</span><span class="op">)</span>,</span>
 <span>                      sample_channel <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>time <span class="op">=</span> <span class="st">"hh:mm:ss"</span><span class="op">)</span>,</span>
 <span>                      event_channel <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>lap <span class="op">=</span> <span class="st">"Lap"</span><span class="op">)</span>,</span>
 <span>                      sample_rate <span class="op">=</span> <span class="fl">2</span>, <span class="co">## we know this file is recorded at 2 samples per second</span></span>
@@ -260,8 +260,9 @@
 <div class="sourceCode cell-code" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_downsampled</span> <span class="op">&lt;-</span> <span class="va">data_cleaned</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu"><a href="../reference/resample_data.html">resample_data</a></span><span class="op">(</span>sample_channel <span class="op">=</span> <span class="cn">NULL</span>, <span class="co">## will be automatically read from metadata</span></span>
-<span>                    sample_rate <span class="op">=</span> <span class="cn">NULL</span>, <span class="co">## will be automatically read from metadata</span></span>
-<span>                    resample_time <span class="op">=</span> <span class="fl">10</span><span class="op">)</span> <span class="co">## equal to `resample_rate = 0.1`</span></span>
+<span>                  sample_rate <span class="op">=</span> <span class="cn">NULL</span>, <span class="co">## will be automatically read from metadata</span></span>
+<span>                  resample_time <span class="op">=</span> <span class="fl">10</span>, <span class="co">## equal to `resample_rate = 0.1`</span></span>
+<span>                  na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="co">## interpolate across missing data appropriately</span></span>
 <span><span class="co">#&gt; ℹ `sample_rate` = 2 Hz.</span></span>
 <span><span class="co">#&gt; ℹ Output is resampled at 0.1 Hz.</span></span>
 <span></span>
@@ -269,16 +270,16 @@
 <span><span class="co">#&gt; # A tibble: 121 × 4</span></span>
 <span><span class="co">#&gt;     time   lap smo2_left smo2_right</span></span>
 <span><span class="co">#&gt;    &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;</span></span>
-<span><span class="co">#&gt;  1     0     1        54         68</span></span>
-<span><span class="co">#&gt;  2    10    NA        NA         NA</span></span>
-<span><span class="co">#&gt;  3    20    NA        NA         NA</span></span>
-<span><span class="co">#&gt;  4    30    NA        NA         NA</span></span>
-<span><span class="co">#&gt;  5    40    NA        NA         NA</span></span>
-<span><span class="co">#&gt;  6    50    NA        NA         NA</span></span>
-<span><span class="co">#&gt;  7    60     1        55         65</span></span>
-<span><span class="co">#&gt;  8    70    NA        NA         NA</span></span>
-<span><span class="co">#&gt;  9    80    NA        NA         NA</span></span>
-<span><span class="co">#&gt; 10    90    NA        NA         NA</span></span>
+<span><span class="co">#&gt;  1     0     1      54           68</span></span>
+<span><span class="co">#&gt;  2    10     1      55           64</span></span>
+<span><span class="co">#&gt;  3    20     1      56           66</span></span>
+<span><span class="co">#&gt;  4    30     1      56           65</span></span>
+<span><span class="co">#&gt;  5    40     1      56           65</span></span>
+<span><span class="co">#&gt;  6    50     1      55           62</span></span>
+<span><span class="co">#&gt;  7    60     1      55           65</span></span>
+<span><span class="co">#&gt;  8    70     1      55.7         68</span></span>
+<span><span class="co">#&gt;  9    80     1      56.5         67</span></span>
+<span><span class="co">#&gt; 10    90     1      57           68</span></span>
 <span><span class="co">#&gt; # ℹ 111 more rows</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">data_downsampled</span><span class="op">)</span></span></code></pre></div>
@@ -423,7 +424,7 @@ If the dataframe already has <em>mnirs.data</em> metadata, the <em>NIRS</em> dat
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_rescaled</span> <span class="op">&lt;-</span> <span class="va">data_filtered</span> <span class="op">|&gt;</span> </span>
-<span>     <span class="co">## the lowest single value for each NIRS channel will be shifted to zero</span></span>
+<span>    <span class="co">## the lowest single value for each NIRS channel will be shifted to zero</span></span>
 <span>    <span class="fu"><a href="../reference/shift_data.html">shift_data</a></span><span class="op">(</span>nirs_channels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">as.list</a></span><span class="op">(</span><span class="va">nirs_channels</span><span class="op">)</span>,</span>
 <span>               shift_to <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>               position <span class="op">=</span> <span class="st">"first"</span>,</span>

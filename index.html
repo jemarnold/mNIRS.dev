@@ -95,7 +95,7 @@
 <span><span class="co">## where "file_column_name1" should match the file column name exactly</span></span>
 <span><span class="va">data_raw</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/read_data.html">read_data</a></span><span class="op">(</span><span class="va">file_path</span>,</span>
 <span>                      nirs_channels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>smo2_left <span class="op">=</span> <span class="st">"SmO2 Live"</span>,</span>
-<span>                                       smo2_right <span class="op">=</span> <span class="st">"SmO2 Live(2)"</span><span class="op">)</span>,</span>
+<span>                                        smo2_right <span class="op">=</span> <span class="st">"SmO2 Live(2)"</span><span class="op">)</span>,</span>
 <span>                      sample_channel <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>time <span class="op">=</span> <span class="st">"hh:mm:ss"</span><span class="op">)</span>,</span>
 <span>                      event_channel <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>lap <span class="op">=</span> <span class="st">"Lap"</span><span class="op">)</span>,</span>
 <span>                      sample_rate <span class="op">=</span> <span class="fl">2</span>,</span>
@@ -180,14 +180,9 @@
 <code class="sourceCode R"><span></span>
 <span><span class="va">data_downsampled</span> <span class="op">&lt;-</span> <span class="va">data_cleaned</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu"><a href="reference/resample_data.html">resample_data</a></span><span class="op">(</span>sample_channel <span class="op">=</span> <span class="cn">NULL</span>, <span class="co">## will be automatically read from metadata</span></span>
-<span>                    sample_rate <span class="op">=</span> <span class="cn">NULL</span>, <span class="co">## will be automatically read from metadata</span></span>
-<span>                    resample_time <span class="op">=</span> <span class="fl">10</span><span class="op">)</span> <span class="co">## equal to `resample_rate = 0.1`</span></span>
-<span><span class="co">#&gt; Warning in regularize.values(x, y, ties, missing(ties), na.rm = na.rm):</span></span>
-<span><span class="co">#&gt; collapsing to unique 'x' values</span></span>
-<span><span class="co">#&gt; Warning in regularize.values(x, y, ties, missing(ties), na.rm = na.rm):</span></span>
-<span><span class="co">#&gt; collapsing to unique 'x' values</span></span>
-<span><span class="co">#&gt; Warning in regularize.values(x, y, ties, missing(ties), na.rm = na.rm):</span></span>
-<span><span class="co">#&gt; collapsing to unique 'x' values</span></span>
+<span>                  sample_rate <span class="op">=</span> <span class="cn">NULL</span>, <span class="co">## will be automatically read from metadata</span></span>
+<span>                  resample_time <span class="op">=</span> <span class="fl">10</span>, <span class="co">## equal to `resample_rate = 0.1`</span></span>
+<span>                  na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="co">## interpolate across missing data appropriately</span></span>
 <span><span class="co">#&gt; ℹ `sample_rate` = 2 Hz.</span></span>
 <span><span class="co">#&gt; ℹ Output is resampled at 0.1 Hz.</span></span>
 <span></span>
